@@ -481,19 +481,22 @@ const PropertyCard = ({
       <span className="absolute top-2 right-10 bg-white/90 text-gray-900 text-[9px] font-bold px-2 py-0.5 rounded-full">{property.location}</span>
     </div>
     <div className="p-3 flex flex-col gap-1">
-      <div className="text-brand-green font-bold text-sm leading-none">{property.price === 'Contact for Price' ? 'LKR Contact' : property.price}</div>
+      <div className="flex items-baseline gap-1.5">
+        <span className="text-brand-green font-extrabold text-sm leading-none">
+          {property.price === 'Contact for Price' ? 'LKR Contact' : property.price}
+        </span>
+      </div>
       {(() => {
         const converted = convertPrice(property.price);
         if (!converted) return null;
         return (
-          <div className="flex gap-2 text-[8px] font-bold text-gray-400 mt-0.5">
-            <span>{converted.usd}</span>
-            <span className="opacity-40">•</span>
-            <span>{converted.eur}</span>
+          <div className="flex items-center gap-1.5 text-[8px] font-bold text-gray-400 mt-0.5">
+            <span className="bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">{converted.usd}</span>
+            <span className="bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">{converted.eur}</span>
           </div>
         );
       })()}
-      <div className="text-xs font-semibold text-gray-800 line-clamp-1 leading-tight">{property.title}</div>
+      <div className="text-xs font-semibold text-gray-800 line-clamp-1 leading-tight mt-0.5">{property.title}</div>
       <div className="flex items-center gap-3 mt-1.5 text-[10px] text-gray-500">
         <span className="flex items-center gap-1 font-medium"><Building2 size={10} /> 3 Beds</span>
         <span className="flex items-center gap-1 font-medium"><LandPlot size={10} /> 15 Perch</span>
@@ -758,16 +761,28 @@ const PropertyDetail = ({
               <div className="absolute top-0 right-0 w-32 h-32 bg-brand-green/5 rounded-full -mr-16 -mt-16 sm:block hidden" />
               
               <div className="relative z-10">
-                <div className="text-xs text-gray-400 font-bold uppercase mb-2">Asking Price</div>
-                <div className="text-3xl font-extrabold text-brand-green mb-1">{property.price}</div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Asking Price</div>
+                  <div className="px-2 py-0.5 bg-brand-green/10 text-brand-green text-[9px] font-bold rounded-full uppercase tracking-wider">LKR Base</div>
+                </div>
+                
+                <div className="flex items-baseline gap-2 mb-2">
+                  <span className="text-4xl font-black text-brand-green tracking-tight">{property.price}</span>
+                </div>
+
                 {(() => {
                   const converted = convertPrice(property.price);
                   if (!converted) return null;
                   return (
-                    <div className="flex items-center gap-3 text-sm font-bold text-gray-400 mb-8">
-                      <span className="flex items-center gap-1"><DollarSign size={14} /> {converted.usd}</span>
-                      <span className="opacity-30">|</span>
-                      <span className="flex items-center gap-1 font-medium">{converted.eur}</span>
+                    <div className="flex flex-wrap items-center gap-2 mb-8">
+                      <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-xl">
+                        <DollarSign size={12} className="text-gray-400" />
+                        <span className="text-[11px] font-bold text-gray-600">{converted.usd}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-xl">
+                        <span className="text-gray-400 text-xs font-bold">€</span>
+                        <span className="text-[11px] font-bold text-gray-600">{converted.eur}</span>
+                      </div>
                     </div>
                   );
                 })()}
@@ -923,7 +938,7 @@ const Footer = ({ onNavigateHome, onShowContact }: { onNavigateHome: () => void,
     <div className="container mx-auto px-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
         <div className="space-y-6">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => onNavigateHome()}>
             <div className="w-8 h-8 bg-brand-green rounded-lg flex items-center justify-center text-white font-bold text-lg">L</div>
             <h2 className="text-xl font-bold tracking-tight text-white leading-none">LankaProperty<span className="text-brand-green">.lk</span></h2>
           </div>
