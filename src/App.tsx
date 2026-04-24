@@ -143,12 +143,12 @@ L.Icon.Default.mergeOptions({
 
 // --- Types & Data ---
 const PROPERTY_CATEGORIES = [
-  { name: "Land", icon: <LandPlot className="w-6 h-6" />, count: "1,382" },
-  { name: "House", icon: <HomeIcon className="w-6 h-6" />, count: "1,524" },
-  { name: "Apartment", icon: <Building2 className="w-6 h-6" />, count: "108" },
-  { name: "Building", icon: <Building className="w-6 h-6" />, count: "350" },
-  { name: "Hotel", icon: <Hotel className="w-6 h-6" />, count: "184" },
-  { name: "Business", icon: <Briefcase className="w-6 h-6" />, count: "52" },
+  { name: "Land", icon: <LandPlot className="w-8 h-8" />, count: "1,382" },
+  { name: "House", icon: <HomeIcon className="w-8 h-8" />, count: "1,524" },
+  { name: "Apartment", icon: <Building2 className="w-8 h-8" />, count: "108" },
+  { name: "Building", icon: <Building className="w-8 h-8" />, count: "350" },
+  { name: "Hotel", icon: <Hotel className="w-8 h-8" />, count: "184" },
+  { name: "Business", icon: <Briefcase className="w-8 h-8" />, count: "52" },
 ];
 
 const FEATURED_PROPERTIES = [
@@ -331,105 +331,109 @@ const Hero = ({ onDirectInquiry }: { onDirectInquiry: () => void }) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="mt-4 text-white/90 text-sm font-medium"
+            className="mt-6 text-white/95 text-lg font-semibold max-w-lg leading-relaxed shadow-sm"
           >
-            Over 15,000+ properties available for sale and rent across the island. 
+            Over 15,000+ premium properties available for sale and rent across the island. 
           </motion.p>
         </div>
 
           <motion.div 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="glass-panel p-6 rounded-2xl w-full max-w-sm"
+            className="glass-panel p-8 rounded-3xl w-full max-w-sm shadow-2xl"
           >
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500">Search Properties</h3>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-sm font-black uppercase tracking-widest text-gray-500">Search Properties</h3>
               <button 
                 onClick={onDirectInquiry}
-                className="text-[10px] font-bold text-brand-green hover:underline"
+                className="text-xs font-bold text-brand-green hover:underline"
               >
                 Direct Inquiry
               </button>
             </div>
           
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
               <button 
                 onClick={() => setActiveStatus("Sale")}
-                className={`py-2.5 rounded-lg text-xs font-bold compact-transition ${activeStatus === 'Sale' ? 'bg-brand-green text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                className={`py-3.5 rounded-xl text-sm font-bold compact-transition ${activeStatus === 'Sale' ? 'bg-brand-green text-white shadow-lg shadow-brand-green/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
               >
                 For Sale
               </button>
               <button 
                 onClick={() => setActiveStatus("Rent")}
-                className={`py-2.5 rounded-lg text-xs font-bold compact-transition ${activeStatus === 'Rent' ? 'bg-brand-green text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                className={`py-3.5 rounded-xl text-sm font-bold compact-transition ${activeStatus === 'Rent' ? 'bg-brand-green text-white shadow-lg shadow-brand-green/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
               >
                 For Rent
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-2 gap-3">
               <div className="relative">
-                <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 appearance-none text-xs text-gray-700 font-medium focus:ring-1 focus:ring-brand-green outline-none compact-transition">
+                <select className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 appearance-none text-sm text-gray-700 font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
                   <option>All Types</option>
                   <option>Houses</option>
                   <option>Lands</option>
                   <option>Apartments</option>
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
               </div>
 
               <div className="relative">
-                <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 appearance-none text-xs text-gray-700 font-medium focus:ring-1 focus:ring-brand-green outline-none compact-transition">
+                <select className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 appearance-none text-sm text-gray-700 font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
                   <option>City</option>
                   <option>Colombo</option>
                   <option>Kandy</option>
                   <option>Galle</option>
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-2 gap-3">
               <div className="relative">
-                <select className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-3 py-2.5 appearance-none text-xs text-gray-700 font-medium focus:ring-1 focus:ring-brand-green outline-none compact-transition">
+                <select className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-3 py-3.5 appearance-none text-sm text-gray-700 font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
                   <option>Beds</option>
                   <option>1+</option>
                   <option>2+</option>
                   <option>3+</option>
                 </select>
-                <Bed className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+                <Bed className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
               </div>
               <div className="relative">
-                <select className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-3 py-2.5 appearance-none text-xs text-gray-700 font-medium focus:ring-1 focus:ring-brand-green outline-none compact-transition">
+                <select className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-3 py-3.5 appearance-none text-sm text-gray-700 font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
                   <option>Baths</option>
                   <option>1+</option>
                   <option>2+</option>
                   <option>3+</option>
                 </select>
-                <Bath className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+                <Bath className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
               </div>
             </div>
 
             <div className="relative">
-              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                <span className="text-gray-400 text-xs font-bold">LKR</span>
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                <span className="text-gray-400 text-sm font-black">LKR</span>
               </div>
-              <select className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-12 pr-3 py-2.5 appearance-none text-xs text-gray-700 font-medium focus:ring-1 focus:ring-brand-green outline-none compact-transition">
+              <select className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-14 pr-3 py-3.5 appearance-none text-sm text-gray-700 font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
                 <option>Price Range</option>
                 <option>Below 10M</option>
                 <option>10M - 50M</option>
                 <option>50M - 100M</option>
                 <option>Above 100M</option>
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
             </div>
 
-            <button className="w-full py-3 bg-brand-red text-white text-sm font-bold rounded-lg shadow-lg shadow-red-200 hover:bg-brand-red-dark compact-transition uppercase tracking-wide mt-2">
+            <motion.button 
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-4 bg-brand-red text-white text-base font-black rounded-xl shadow-xl shadow-red-200 hover:bg-brand-red-dark compact-transition uppercase tracking-widest mt-4"
+            >
               Search Now
-            </button>
+            </motion.button>
           </div>
         </motion.div>
       </div>
@@ -478,20 +482,20 @@ const PropertyCard = ({
         e.stopPropagation();
         onToggleFavorite?.(e);
       }}
-      className={`absolute top-2 right-2 z-10 p-1.5 rounded-full backdrop-blur-sm compact-transition ${
-        isFavorited ? 'bg-brand-red text-white' : 'bg-white/50 text-gray-700 hover:bg-white hover:text-brand-red'
+      className={`absolute top-2 right-2 z-10 p-2 rounded-full backdrop-blur-md compact-transition ${
+        isFavorited ? 'bg-brand-red text-white' : 'bg-white/70 text-gray-700 hover:bg-white hover:text-brand-red shadow-lg'
       }`}
     >
-      <Heart size={12} fill={isFavorited ? "currentColor" : "none"} />
+      <Heart size={14} fill={isFavorited ? "currentColor" : "none"} />
     </button>
-    <div className="relative h-36 bg-gray-200 overflow-hidden">
+    <div className="relative h-44 bg-gray-200 overflow-hidden">
       <img src={property.image} alt={property.title} className="w-full h-full object-cover compact-transition group-hover:scale-105" />
-      <span className="absolute top-2 left-2 bg-brand-red text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">For {property.type}</span>
-      <span className="absolute top-2 right-10 bg-white/90 text-gray-900 text-[9px] font-bold px-2 py-0.5 rounded-full">{property.location}</span>
+      <span className="absolute top-3 left-3 bg-brand-red text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">For {property.type}</span>
+      <span className="absolute top-3 right-3 bg-white/95 text-gray-900 text-[10px] font-extrabold px-3 py-1 rounded-full shadow-sm">{property.location}</span>
     </div>
-    <div className="p-3 flex flex-col gap-1">
+    <div className="p-4 flex flex-col gap-1.5">
       <div className="flex items-baseline gap-1.5">
-        <span className="text-brand-green font-extrabold text-sm leading-none">
+        <span className="text-brand-green font-black text-lg leading-none">
           {property.price === 'Contact for Price' ? 'LKR Contact' : property.price}
         </span>
       </div>
@@ -499,16 +503,16 @@ const PropertyCard = ({
         const converted = convertPrice(property.price);
         if (!converted) return null;
         return (
-          <div className="flex items-center gap-1.5 text-[8px] font-bold text-gray-400 mt-0.5">
-            <span className="bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">{converted.usd}</span>
-            <span className="bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">{converted.eur}</span>
+          <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
+            <span className="bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100">{converted.usd}</span>
+            <span className="bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100">{converted.eur}</span>
           </div>
         );
       })()}
-      <div className="text-xs font-semibold text-gray-800 line-clamp-1 leading-tight mt-0.5">{property.title}</div>
-      <div className="flex items-center gap-3 mt-1.5 text-[10px] text-gray-500">
-        <span className="flex items-center gap-1 font-medium"><Building2 size={10} /> 3 Beds</span>
-        <span className="flex items-center gap-1 font-medium"><LandPlot size={10} /> 15 Perch</span>
+      <div className="text-sm font-bold text-dark-navy line-clamp-1 leading-tight mt-1">{property.title}</div>
+      <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 font-semibold">
+        <span className="flex items-center gap-1.5"><Building2 size={14} className="text-brand-green opacity-70" /> 3 Beds</span>
+        <span className="flex items-center gap-1.5"><LandPlot size={14} className="text-brand-green opacity-70" /> 15 Perch</span>
       </div>
     </div>
   </motion.div>
@@ -969,8 +973,8 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages }: 
         </div>
 
         <div>
-          <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Quick Links</h4>
-          <ul className="space-y-4 text-sm">
+          <h4 className="text-white font-bold mb-6 uppercase text-sm tracking-widest">Quick Links</h4>
+          <ul className="space-y-4 text-base font-medium">
             <li><a href="#" onClick={(e) => { e.preventDefault(); onShowAbout(); }} className="hover:text-brand-green compact-transition">About Us</a></li>
             <li><a href="#" onClick={(e) => { e.preventDefault(); onShowContact(); }} className="hover:text-brand-green compact-transition">Contact Support</a></li>
             <li><a href="#" onClick={(e) => { e.preventDefault(); onShowPackages(); }} className="hover:text-brand-green compact-transition">Advertising Packages</a></li>
@@ -981,8 +985,8 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages }: 
         </div>
 
         <div>
-          <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Popular Areas</h4>
-          <ul className="space-y-4 text-sm">
+          <h4 className="text-white font-bold mb-6 uppercase text-sm tracking-widest">Popular Areas</h4>
+          <ul className="space-y-4 text-base font-medium">
             {["Colombo Real Estate", "Kandy Properties", "Galle Villas", "Negombo Land", "Kurunegala Homes", "Kalutara Estates"].map(item => (
               <li key={item}><a href="#" className="hover:text-brand-green compact-transition">{item}</a></li>
             ))}
@@ -990,36 +994,36 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages }: 
         </div>
 
         <div>
-          <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Newsletter</h4>
-          <p className="text-sm mb-6">Subscribe to receive the latest property market insights and deals.</p>
+          <h4 className="text-white font-bold mb-6 uppercase text-sm tracking-widest">Newsletter</h4>
+          <p className="text-base font-medium mb-6 leading-relaxed">Subscribe to receive the latest property market insights and deals.</p>
           <div className="relative">
             <input 
               type="email" 
               placeholder="Your email address" 
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-green compact-transition"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-base focus:outline-none focus:border-brand-green compact-transition"
             />
-            <button className="absolute right-2 top-1.5 bottom-1.5 px-4 bg-brand-green text-white rounded-lg text-xs font-bold hover:bg-brand-green-dark compact-transition">
+            <button className="absolute right-2 top-2 bottom-2 px-6 bg-brand-green text-white rounded-lg text-sm font-bold hover:bg-brand-green-dark compact-transition">
               Join
             </button>
           </div>
-          <div className="flex items-center gap-2 mt-6 text-[10px] bg-brand-green/10 border border-brand-green/20 p-3 rounded-xl text-brand-green font-bold">
-            <Percent size={14} />
+          <div className="flex items-center gap-3 mt-6 text-xs bg-brand-green/10 border border-brand-green/20 p-4 rounded-xl text-brand-green font-bold">
+            <Percent size={16} />
             <span>Get 10% off your first ad listing!</span>
           </div>
         </div>
       </div>
 
       <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-        <div className="text-[10px] font-medium tracking-wide">
+        <div className="text-[11px] font-bold text-gray-500 tracking-wider">
           &copy; 2026 LANKAPROPERTY.LK. ALL RIGHTS RESERVED. DESIGNED FOR EXCELLENCE.
         </div>
-        <div className="flex gap-6 items-center">
-          <div className="flex items-center gap-2 text-xs font-bold text-white group cursor-pointer">
-            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+        <div className="flex gap-8 items-center">
+          <div className="flex items-center gap-2 text-sm font-bold text-white group cursor-pointer">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
             <span className="group-hover:text-brand-green compact-transition">Platform Status: Online</span>
           </div>
-          <div className="w-px h-4 bg-white/10" />
-          <a href="#" className="text-[10px] font-bold text-brand-green hover:underline uppercase tracking-widest underline-offset-4">Agent Access</a>
+          <div className="w-px h-5 bg-white/10" />
+          <a href="#" className="text-xs font-bold text-brand-green hover:underline uppercase tracking-widest underline-offset-4">Agent Access</a>
         </div>
       </div>
     </div>
@@ -1070,38 +1074,38 @@ const MortgageCalculatorModal = ({ isOpen, onClose, initialAmount = 10000000 }: 
             
             <div className="p-8 space-y-6">
               <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Loan Amount (LKR)</label>
+                <label className="text-sm font-black text-gray-400 uppercase tracking-widest mb-3 block">Loan Amount (LKR)</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">Rs.</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-black text-lg">Rs.</span>
                   <input 
                     type="number" 
                     value={loanAmount}
                     onChange={(e) => setLoanAmount(Number(e.target.value))}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-dark-navy font-bold focus:ring-2 focus:ring-brand-green outline-none compact-transition"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-14 pr-4 py-4 text-dark-navy font-black text-lg focus:ring-2 focus:ring-brand-green outline-none compact-transition"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Interest Rate (%)</label>
+                  <label className="text-sm font-black text-gray-400 uppercase tracking-widest mb-3 block">Interest Rate (%)</label>
                   <div className="relative">
                     <input 
                       type="number" 
                       value={interestRate}
                       onChange={(e) => setInterestRate(Number(e.target.value))}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-dark-navy font-bold focus:ring-2 focus:ring-brand-green outline-none compact-transition"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-dark-navy font-black text-lg focus:ring-2 focus:ring-brand-green outline-none compact-transition"
                     />
-                    <Percent className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                    <Percent className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Loan Term (Years)</label>
+                  <label className="text-sm font-black text-gray-400 uppercase tracking-widest mb-3 block">Loan Term (Years)</label>
                   <input 
                     type="number" 
                     value={loanTerm}
                     onChange={(e) => setLoanTerm(Number(e.target.value))}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-dark-navy font-bold focus:ring-2 focus:ring-brand-green outline-none compact-transition"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-dark-navy font-black text-lg focus:ring-2 focus:ring-brand-green outline-none compact-transition"
                   />
                 </div>
               </div>
@@ -1452,27 +1456,27 @@ const PricingPackages = ({ onBack, onGetStarted }: { onBack: () => void, onGetSt
             className={`relative rounded-[32px] p-8 border border-gray-100 flex flex-col h-full bg-white shadow-xl shadow-gray-100/50 compact-transition ${pkg.highlight ? 'ring-2 ring-brand-green' : ''}`}
           >
             {pkg.highlight && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-green text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-green text-white text-xs font-black uppercase tracking-widest px-5 py-2 rounded-full shadow-lg">
                 Most Popular
               </div>
             )}
 
             <div className="mb-8">
-              <h3 className="text-xl font-bold text-dark-navy mb-2">{pkg.name}</h3>
+              <h3 className="text-2xl font-bold text-dark-navy mb-2">{pkg.name}</h3>
               <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-3xl font-black text-brand-green tracking-tight">{pkg.price}</span>
-                <span className="text-gray-400 text-sm font-bold">/ {pkg.duration}</span>
+                <span className="text-4xl font-black text-brand-green tracking-tight">{pkg.price}</span>
+                <span className="text-gray-500 text-base font-bold">/ {pkg.duration}</span>
               </div>
-              <p className="text-xs text-gray-400 font-medium leading-relaxed">{pkg.description}</p>
+              <p className="text-sm text-gray-400 font-medium leading-relaxed">{pkg.description}</p>
             </div>
 
             <div className="space-y-4 mb-10 flex-grow">
               {pkg.features.map((feature, fIdx) => (
                 <div key={fIdx} className="flex items-start gap-3">
-                  <div className="shrink-0 w-5 h-5 rounded-full bg-brand-green/10 flex items-center justify-center text-brand-green mt-0.5">
-                    <CheckCircle size={12} fill="currentColor" className="text-brand-green flex-grow-0" />
+                  <div className="shrink-0 w-6 h-6 rounded-full bg-brand-green/10 flex items-center justify-center text-brand-green mt-0.5">
+                    <CheckCircle size={14} fill="currentColor" className="text-brand-green flex-grow-0" />
                   </div>
-                  <span className="text-xs font-semibold text-gray-600">{feature}</span>
+                  <span className="text-sm font-semibold text-gray-600">{feature}</span>
                 </div>
               ))}
             </div>
@@ -1673,30 +1677,30 @@ const AuthPage = ({ onBack, onLogin }: { onBack: () => void, onLogin: (email: st
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Email Address</label>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input 
                   type="email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-5 pl-12 pr-4 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Password</label>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Password</label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input 
                   type="password" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-5 pl-12 pr-4 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
                   required
                 />
               </div>
@@ -1821,28 +1825,28 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col relative">
-      <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
-        <div className="bg-dark-navy h-8 flex items-center">
-          <div className="container mx-auto px-6 flex justify-between items-center text-[10px] text-gray-300">
-            <div className="flex gap-4">
-              <span className="flex items-center gap-1.5 opacity-80">Hotline: +94 33 222 96 95</span>
-              <span className="flex items-center gap-1.5 opacity-80">Email: info@lankaproperty.lk</span>
+      <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100 shadow-sm">
+        <div className="bg-dark-navy h-10 flex items-center">
+          <div className="container mx-auto px-6 flex justify-between items-center text-xs text-gray-300">
+            <div className="flex gap-6">
+              <span className="flex items-center gap-1.5 opacity-90">Hotline: +94 33 222 96 95</span>
+              <span className="flex items-center gap-1.5 opacity-90">Email: info@lankaproperty.lk</span>
             </div>
-            <div className="flex items-center gap-3">
-              <a href="#" className="hover:text-white compact-transition">Login</a>
-              <span className="text-gray-700 text-[8px]">|</span>
-              <a href="#" className="font-semibold text-brand-green hover:text-brand-green-dark compact-transition">Post a Free Ad</a>
+            <div className="flex items-center gap-4 font-medium">
+              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentView({ type: 'auth' }); }} className="hover:text-white compact-transition">Login</a>
+              <span className="text-gray-700 text-xs">|</span>
+              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentView({ type: 'packages' }); }} className="font-bold text-brand-green hover:text-brand-green-dark compact-transition">Post a Free Ad</a>
             </div>
           </div>
         </div>
-        <nav className="container mx-auto px-6 h-16 flex justify-between items-center">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigateHome()}>
-            <div className="w-8 h-8 bg-brand-green rounded-lg flex items-center justify-center text-white font-bold text-lg">L</div>
+        <nav className="container mx-auto px-6 h-20 flex justify-between items-center">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigateHome()}>
+            <div className="w-10 h-10 bg-brand-green rounded-xl flex items-center justify-center text-white font-bold text-xl">L</div>
             <div className="hidden sm:block">
-              <h1 className="text-xl font-bold tracking-tight text-dark-navy leading-none">LankaProperty<span className="text-brand-green">.lk</span></h1>
+              <h1 className="text-2xl font-bold tracking-tight text-dark-navy leading-none">LankaProperty<span className="text-brand-green">.lk</span></h1>
             </div>
           </div>
-          <ul className="hidden lg:flex items-center gap-6 text-sm font-medium text-slate-700">
+          <ul className="hidden lg:flex items-center gap-8 text-base font-semibold text-slate-700">
             {["Home", "About", "Real Estate", "Packages", "Agents", "Advertising", "Contact"].map((item) => (
               <li key={item}>
                 <a 
@@ -1855,36 +1859,36 @@ export default function App() {
                     else if (item === 'Advertising') setCurrentView({ type: 'packages' });
                     else if (item === 'Contact') setCurrentView({ type: 'contact' });
                   }}
-                  className={`${(item === 'Home' && currentView.type === 'home' || item === 'About' && currentView.type === 'about' || item === 'Packages' && currentView.type === 'packages' || item === 'Advertising' && currentView.type === 'packages' || item === 'Contact' && currentView.type === 'contact') ? 'text-brand-green border-b-2 border-brand-green pb-1' : 'hover:text-brand-green'} compact-transition`}
+                  className={`${(item === 'Home' && currentView.type === 'home' || item === 'About' && currentView.type === 'about' || item === 'Packages' && currentView.type === 'packages' || item === 'Advertising' && currentView.type === 'packages' || item === 'Contact' && currentView.type === 'contact') ? 'text-brand-green border-b-2 border-brand-green pb-1.5' : 'hover:text-brand-green'} compact-transition`}
                 >
                   {item}
                 </a>
               </li>
             ))}
           </ul>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-5">
             {user ? (
-              <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-full pl-1 pr-3 py-1">
-                <div className="w-8 h-8 rounded-full bg-brand-green flex items-center justify-center text-white text-xs font-bold">
+              <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-full pl-1.5 pr-4 py-2">
+                <div className="w-10 h-10 rounded-full bg-brand-green flex items-center justify-center text-white text-sm font-bold">
                   {user.email[0].toUpperCase()}
                 </div>
-                <span className="text-xs font-bold text-dark-navy truncate max-w-[100px]">{user.email}</span>
-                <button onClick={() => setUser(null)} className="text-gray-400 hover:text-red-500">
-                  <LogOut size={14} />
+                <span className="text-sm font-bold text-dark-navy truncate max-w-[140px]">{user.email}</span>
+                <button onClick={() => setUser(null)} className="text-gray-400 hover:text-red-500 ml-1">
+                  <LogOut size={16} />
                 </button>
               </div>
             ) : (
               <button 
                 onClick={() => setCurrentView({ type: 'auth' })}
-                className="bg-brand-green text-white font-bold text-xs px-6 py-3 rounded-xl hover:bg-brand-green-dark compact-transition shadow-lg shadow-brand-green/20"
+                className="bg-brand-green text-white font-bold text-sm px-8 py-4 rounded-2xl hover:bg-brand-green-dark compact-transition shadow-lg shadow-brand-green/20"
               >
                 Sign In
               </button>
             )}
+            <button className="px-5 py-3 bg-gray-100 text-gray-700 rounded-xl text-base font-bold hover:bg-gray-200 compact-transition">
+              Menu
+            </button>
           </div>
-          <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 compact-transition">
-            Menu
-          </button>
         </nav>
       </header>
       
@@ -1900,25 +1904,27 @@ export default function App() {
             <Hero onDirectInquiry={() => setCurrentView({ type: 'contact' })} />
             <div className="bg-gray-50 border-b border-gray-100 py-6">
               <div className="container mx-auto px-6 flex justify-between items-center">
-                <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+                <div className="flex gap-8 overflow-x-auto pb-4 no-scrollbar">
                   {PROPERTY_CATEGORIES.map((cat, idx) => (
                     <motion.div
                       key={cat.name}
                       onClick={() => handleCategoryClick(cat.name)}
-                      className="flex flex-col items-center gap-1.5 min-w-[80px] cursor-pointer group"
+                      whileHover={{ scale: 1.1, y: -5 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="flex flex-col items-center gap-2.5 min-w-[100px] cursor-pointer group"
                     >
-                      <div className="w-10 h-10 bg-white rounded-full shadow-sm flex items-center justify-center border border-gray-100 group-hover:border-brand-green compact-transition">
+                      <div className="w-16 h-16 bg-white rounded-full shadow-md flex items-center justify-center border border-gray-100 group-hover:border-brand-green group-hover:shadow-lg group-hover:shadow-brand-green/10 compact-transition">
                         <div className="text-gray-400 group-hover:text-brand-green group-hover:scale-110 compact-transition">
                           {cat.icon}
                         </div>
                       </div>
-                      <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-tight group-hover:text-brand-green">{cat.name}</span>
+                      <span className="text-sm font-bold text-gray-600 uppercase tracking-widest group-hover:text-brand-green">{cat.name}</span>
                     </motion.div>
                   ))}
                 </div>
-                <div className="flex items-center gap-4 bg-white p-1 rounded-lg border border-gray-200">
-                  <button className="px-4 py-1.5 bg-brand-green text-white text-[10px] font-bold rounded-md compact-transition">Buy</button>
-                  <button className="px-4 py-1.5 text-gray-400 text-[10px] font-bold hover:text-gray-600 compact-transition">Rent</button>
+                <div className="flex items-center gap-8 bg-white p-2 rounded-2xl border border-gray-200 shadow-sm ml-6">
+                  <button className="px-10 py-3 bg-brand-green text-white text-sm font-black rounded-xl compact-transition hover:bg-brand-green-dark shadow-lg shadow-brand-green/20">Buy</button>
+                  <button className="px-10 py-3 text-gray-500 text-sm font-black hover:text-dark-navy compact-transition">Rent</button>
                 </div>
               </div>
             </div>
@@ -1930,8 +1936,8 @@ export default function App() {
                 <div className="flex-1 space-y-10">
                   <div>
                     <div className="flex justify-between items-end mb-4">
-                      <h2 className="text-lg font-bold text-dark-navy">Featured Properties</h2>
-                      <a href="#" className="text-xs text-brand-green font-bold hover:underline">View All &rarr;</a>
+                      <h2 className="text-xl font-extrabold text-dark-navy">Featured Properties</h2>
+                      <a href="#" className="text-sm text-brand-green font-bold hover:underline">View All &rarr;</a>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {FEATURED_PROPERTIES.slice(0,3).map(p => (
@@ -1948,10 +1954,10 @@ export default function App() {
 
                   <div>
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-4">
-                      <h2 className="text-lg font-bold text-dark-navy">Recent Listings</h2>
-                      <div className="flex bg-gray-100 p-1 rounded-lg">
-                        <button onClick={() => setRecentFilter("Sale")} className={`px-6 py-1.5 rounded-md text-[10px] font-bold compact-transition ${recentFilter === 'Sale' ? 'bg-brand-green text-white shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>Buy</button>
-                        <button onClick={() => setRecentFilter("Rent")} className={`px-6 py-1.5 rounded-md text-[10px] font-bold compact-transition ${recentFilter === 'Rent' ? 'bg-brand-green text-white shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>Rent</button>
+                      <h2 className="text-xl font-extrabold text-dark-navy">Recent Listings</h2>
+                      <div className="flex bg-gray-100 p-1.5 rounded-xl">
+                        <button onClick={() => setRecentFilter("Sale")} className={`px-8 py-2 rounded-lg text-xs font-bold compact-transition ${recentFilter === 'Sale' ? 'bg-brand-green text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Buy</button>
+                        <button onClick={() => setRecentFilter("Rent")} className={`px-8 py-2 rounded-lg text-xs font-bold compact-transition ${recentFilter === 'Rent' ? 'bg-brand-green text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Rent</button>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
