@@ -73,7 +73,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Maximize,
-  Box
+  Box,
+  Quote,
+  Star
 } from "lucide-react";
 
 // ... (previous code)
@@ -130,7 +132,7 @@ const VirtualTourModal = ({ isOpen, onClose, propertyTitle }: { isOpen: boolean,
   );
 };
 
-delete L.Icon.Default.prototype._getIconUrl;
+delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
@@ -222,7 +224,7 @@ const AMENITIES = [
 ];
 
 const AGENTS = [
-  { name: "Mr. Lalith Ratnatunga", role: "Manager", img: "https://i.pravatar.cc/150?u=1" },
+  { name: "Mr. Lalith Ratnatunga", role: "General Manager", img: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400" },
   { name: "Chamath Wickramasooriya", role: "Sales Lead", img: "https://i.pravatar.cc/150?u=2" },
   { name: "Barnad Fernando", role: "Consultant", img: "https://i.pravatar.cc/150?u=3" },
   { name: "Deshani Kaushalya", role: "Agent", img: "https://i.pravatar.cc/150?u=4" },
@@ -270,7 +272,7 @@ const Navbar = () => (
 
 const WORDS = ["Home", "Villa", "Land", "Apartment", "Office"];
 
-const Hero = () => {
+const Hero = ({ onDirectInquiry }: { onDirectInquiry: () => void }) => {
   const [activeStatus, setActiveStatus] = useState<"Sale" | "Rent">("Sale");
   const [index, setIndex] = useState(0);
 
@@ -326,12 +328,20 @@ const Hero = () => {
           </motion.p>
         </div>
 
-        <motion.div 
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="glass-panel p-6 rounded-2xl w-full max-w-sm"
-        >
-          <h3 className="text-xs font-bold mb-4 uppercase tracking-wider text-gray-500">Search Properties</h3>
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="glass-panel p-6 rounded-2xl w-full max-w-sm"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500">Search Properties</h3>
+              <button 
+                onClick={onDirectInquiry}
+                className="text-[10px] font-bold text-brand-green hover:underline"
+              >
+                Direct Inquiry
+              </button>
+            </div>
           
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
@@ -765,7 +775,7 @@ const PropertyDetail = ({
                 <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mb-8">
                   <div className="flex items-center gap-4 mb-4">
                     <div className="relative">
-                      <img src="https://i.pravatar.cc/150?u=manager" className="w-16 h-16 rounded-full border-2 border-brand-green" />
+                      <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200" className="w-16 h-16 rounded-full border-2 border-brand-green object-cover" />
                       <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-brand-green rounded-full flex items-center justify-center text-white border-2 border-white">
                         <Shield size={12} fill="currentColor" />
                       </div>
@@ -773,9 +783,9 @@ const PropertyDetail = ({
                     <div>
                       <div className="text-sm font-bold text-dark-navy">Lalith Ratnatunga</div>
                       <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-bold uppercase mt-0.5">
-                        <span className="text-brand-green">Verified Agent</span>
+                        <span className="text-brand-green">General Manager</span>
                         <span className="text-gray-300">•</span>
-                        <span>4.8 Rating</span>
+                        <span>Verified Agent</span>
                       </div>
                     </div>
                   </div>
@@ -833,12 +843,18 @@ const PropertyDetail = ({
             <div className="bg-gray-900 border border-gray-800 p-8 rounded-2xl text-white shadow-2xl">
               <h4 className="text-sm font-bold mb-2">Request more information</h4>
               <p className="text-[10px] text-gray-400 mb-6 font-medium">Lalith typically responds within 2 hours.</p>
-              <div className="space-y-4">
-                <input placeholder="Your Full Name" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none" />
-                <input placeholder="Phone Number" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none" />
-                <textarea placeholder="Your Message..." rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none resize-none"></textarea>
-                <button className="w-full py-3 bg-brand-green text-white text-xs font-bold rounded-xl hover:bg-brand-green-dark compact-transition">Request Details</button>
-              </div>
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  alert("Your inquiry has been sent to Lalith. He will contact you shortly.");
+                }}
+                className="space-y-4"
+              >
+                <input required placeholder="Your Full Name" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none" />
+                <input required type="tel" placeholder="Phone Number" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none" />
+                <textarea required placeholder="Your Message..." rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none resize-none"></textarea>
+                <button type="submit" className="w-full py-3 bg-brand-green text-white text-xs font-bold rounded-xl hover:bg-brand-green-dark compact-transition">Request Details</button>
+              </form>
             </div>
           </div>
         </div>
@@ -902,37 +918,80 @@ const Sidebar = ({ onOpenCalculator }: { onOpenCalculator: () => void }) => (
   </aside>
 );
 
-const Footer = () => (
-  <footer className="bg-dark-navy py-6 border-t border-gray-800">
-    <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-      <div className="text-[10px] text-gray-500">
-        &copy; 2026 LankaProperty.lk - Sri Lanka's #1 Real Estate Marketplace.
+const Footer = ({ onNavigateHome, onShowContact }: { onNavigateHome: () => void, onShowContact: () => void }) => (
+  <footer className="bg-[#0c1a2e] text-gray-400 pt-20 pb-10">
+    <div className="container mx-auto px-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+        <div className="space-y-6">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-brand-green rounded-lg flex items-center justify-center text-white font-bold text-lg">L</div>
+            <h2 className="text-xl font-bold tracking-tight text-white leading-none">LankaProperty<span className="text-brand-green">.lk</span></h2>
+          </div>
+          <p className="text-sm leading-relaxed max-w-xs">
+            Sri Lanka's premier real estate marketplace. Connecting buyers, sellers, and renters with the most trusted properties and agents in the island.
+          </p>
+          <div className="flex gap-3">
+            {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
+              <a key={i} href="#" className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-green hover:border-brand-green hover:text-white compact-transition">
+                <Icon size={16} />
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Quick Links</h4>
+          <ul className="space-y-4 text-sm">
+            <li><a href="#" onClick={(e) => { e.preventDefault(); onNavigateHome(); }} className="hover:text-brand-green compact-transition">About Us</a></li>
+            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowContact(); }} className="hover:text-brand-green compact-transition">Contact Support</a></li>
+            <li><a href="#" className="hover:text-brand-green compact-transition">Advertising</a></li>
+            <li><a href="#" className="hover:text-brand-green compact-transition">Terms of Service</a></li>
+            <li><a href="#" className="hover:text-brand-green compact-transition">Privacy Policy</a></li>
+            <li><a href="#" className="hover:text-brand-green compact-transition">Sitemap</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Popular Areas</h4>
+          <ul className="space-y-4 text-sm">
+            {["Colombo Real Estate", "Kandy Properties", "Galle Villas", "Negombo Land", "Kurunegala Homes", "Kalutara Estates"].map(item => (
+              <li key={item}><a href="#" className="hover:text-brand-green compact-transition">{item}</a></li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Newsletter</h4>
+          <p className="text-sm mb-6">Subscribe to receive the latest property market insights and deals.</p>
+          <div className="relative">
+            <input 
+              type="email" 
+              placeholder="Your email address" 
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-green compact-transition"
+            />
+            <button className="absolute right-2 top-1.5 bottom-1.5 px-4 bg-brand-green text-white rounded-lg text-xs font-bold hover:bg-brand-green-dark compact-transition">
+              Join
+            </button>
+          </div>
+          <div className="flex items-center gap-2 mt-6 text-[10px] bg-brand-green/10 border border-brand-green/20 p-3 rounded-xl text-brand-green font-bold">
+            <Percent size={14} />
+            <span>Get 10% off your first ad listing!</span>
+          </div>
+        </div>
       </div>
 
-      <div className="flex gap-3">
-        {[
-          { Icon: Facebook, link: "https://facebook.com" },
-          { Icon: Twitter, link: "https://twitter.com" },
-          { Icon: Instagram, link: "https://instagram.com" },
-          { Icon: Linkedin, link: "https://linkedin.com" }
-        ].map(({ Icon, link }, i) => (
-          <a 
-            key={i} 
-            href={link} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="w-8 h-8 rounded-full border border-gray-800 flex items-center justify-center text-gray-400 hover:border-brand-green hover:text-brand-green bg-dark-navy hover:bg-gray-800 compact-transition"
-          >
-            <Icon size={14} />
-          </a>
-        ))}
-      </div>
-
-      <div className="flex gap-6 text-[10px] text-gray-400 font-medium">
-        {["Terms", "Privacy", "Sitemap"].map(item => (
-          <a key={item} href="#" className="hover:text-white compact-transition">{item}</a>
-        ))}
-        <a href="#" className="font-semibold text-brand-green hover:text-brand-green-dark compact-transition underline underline-offset-4">Agent Login</a>
+      <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="text-[10px] font-medium tracking-wide">
+          &copy; 2026 LANKAPROPERTY.LK. ALL RIGHTS RESERVED. DESIGNED FOR EXCELLENCE.
+        </div>
+        <div className="flex gap-6 items-center">
+          <div className="flex items-center gap-2 text-xs font-bold text-white group cursor-pointer">
+            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+            <span className="group-hover:text-brand-green compact-transition">Platform Status: Online</span>
+          </div>
+          <div className="w-px h-4 bg-white/10" />
+          <a href="#" className="text-[10px] font-bold text-brand-green hover:underline uppercase tracking-widest underline-offset-4">Agent Access</a>
+        </div>
       </div>
     </div>
   </footer>
@@ -1100,7 +1159,14 @@ const ContactUs = ({ onBack }: { onBack: () => void }) => {
           {/* Contact Form */}
           <div className="bg-white p-10 rounded-3xl border border-gray-100 shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-4 h-full bg-brand-green" />
-            <div className="relative z-10 space-y-8">
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                alert("Thank you! Your message has been sent to our management team. We will get back to you shortly.");
+                (e.target as HTMLFormElement).reset();
+              }}
+              className="relative z-10 space-y-8"
+            >
               <div>
                 <h2 className="text-2xl font-bold text-dark-navy mb-2">Send us an inquiry</h2>
                 <p className="text-sm text-gray-400 font-medium">Fill out the form below and our team will get back to you within 24 hours.</p>
@@ -1110,17 +1176,17 @@ const ContactUs = ({ onBack }: { onBack: () => void }) => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Full Name</label>
-                    <input className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition" placeholder="John Doe" />
+                    <input required className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition" placeholder="John Doe" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Email Address</label>
-                    <input className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition" placeholder="john@example.com" />
+                    <input required type="email" className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition" placeholder="john@example.com" />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Phone Number</label>
-                  <input className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition" placeholder="+94 77 123 4567" />
+                  <input required type="tel" className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition" placeholder="+94 77 123 4567" />
                 </div>
 
                 <div className="space-y-2">
@@ -1135,20 +1201,148 @@ const ContactUs = ({ onBack }: { onBack: () => void }) => {
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Message</label>
-                  <textarea rows={5} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition resize-none" placeholder="How can we help you?"></textarea>
+                  <textarea required rows={5} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition resize-none" placeholder="How can we help you?"></textarea>
                 </div>
 
-                <button className="w-full bg-brand-green text-white font-bold py-4 rounded-xl hover:bg-brand-green-dark compact-transition shadow-lg shadow-brand-green/20 flex items-center justify-center gap-2">
+                <button type="submit" className="w-full bg-brand-green text-white font-bold py-4 rounded-xl hover:bg-brand-green-dark compact-transition shadow-lg shadow-brand-green/20 flex items-center justify-center gap-2">
                   <Send size={18} /> Submit Inquiry
                 </button>
               </div>
-            </div>
+            </form>
+          </div>
+        </div>
+
+        {/* Meet the Team Section */}
+        <div className="mt-24">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-extrabold text-dark-navy mb-4">Meet Our Expert Agents</h2>
+            <p className="text-gray-500 max-w-xl mx-auto">Our dedicated team of professionals is ready to guide you through every step of your real estate journey.</p>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {AGENTS.map((agent, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="group"
+              >
+                <div className="relative mb-4 overflow-hidden rounded-3xl aspect-[4/5] shadow-lg">
+                  <img src={agent.img} alt={agent.name} className="w-full h-full object-cover group-hover:scale-110 compact-transition" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-dark-navy/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 compact-transition flex flex-col justify-end p-6">
+                    <div className="flex gap-3 justify-center">
+                      <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-brand-green compact-transition cursor-pointer"><Linkedin size={16} /></div>
+                      <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-brand-green compact-transition cursor-pointer"><Facebook size={16} /></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <h4 className="font-bold text-dark-navy mb-0.5 group-hover:text-brand-green compact-transition">{agent.name}</h4>
+                  <p className="text-[10px] font-bold text-brand-green uppercase tracking-widest">{agent.role}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </div>
     </motion.div>
   );
 };
+
+const EXPERTISE = [
+  { label: "Years of Excellence", value: "15+", icon: <Clock size={24} /> },
+  { label: "Properties Sold", value: "2,500+", icon: <CheckCircle size={24} /> },
+  { label: "Verified Agents", value: "80+", icon: <User size={24} /> },
+  { label: "Client Satisfaction", value: "99%", icon: <Heart size={24} /> }
+];
+
+const ExpertiseSection = () => (
+  <section className="py-12 bg-white border-y border-gray-100">
+    <div className="container mx-auto px-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+        {EXPERTISE.map((item, idx) => (
+          <div key={idx} className="flex flex-col items-center text-center group">
+            <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-brand-green mb-4 group-hover:bg-brand-green group-hover:text-white compact-transition">
+              {item.icon}
+            </div>
+            <div className="text-2xl font-extrabold text-dark-navy mb-1">{item.value}</div>
+            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{item.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+const TESTIMONIALS = [
+  {
+    name: "Sanduni Perera",
+    role: "Home Owner",
+    text: "LankaProperty helped me find my dream home in Rajagiriya within just two weeks! The virtual tour feature was a game-changer for my busy schedule.",
+    rating: 5,
+    avatar: "https://i.pravatar.cc/150?u=sanduni"
+  },
+  {
+    name: "Dr. Rohan Silva",
+    role: "Property Investor",
+    text: "Reliable and professional. Lalith and his team at LankaProperty are the best in the business for high-value commercial land deals in Colombo.",
+    rating: 5,
+    avatar: "https://i.pravatar.cc/150?u=rohan"
+  },
+  {
+    name: "Michael de Soyza",
+    role: "Overseas Buyer",
+    text: "As an overseas investor, transparency is key. Their mortgage calculator and detailed property insights made the process seamless and trustworthy.",
+    rating: 5,
+    avatar: "https://i.pravatar.cc/150?u=michael"
+  }
+];
+
+const TestimonialsSection = () => (
+  <section className="py-20 bg-gray-50 overflow-hidden">
+    <div className="container mx-auto px-6">
+      <div className="text-center mb-16">
+        <h2 className="text-3xl font-extrabold text-dark-navy mb-4">What Our Clients Say</h2>
+        <div className="w-20 h-1.5 bg-brand-green mx-auto rounded-full"></div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {TESTIMONIALS.map((testimonial, idx) => (
+          <motion.div 
+            key={idx}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: idx * 0.1 }}
+            className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 relative group hover:shadow-xl hover:-translate-y-1 compact-transition"
+          >
+            <div className="absolute top-8 right-8 text-brand-green/20">
+              <Quote size={40} />
+            </div>
+            
+            <div className="flex gap-1 mb-6 text-orange-400">
+              {[...Array(testimonial.rating)].map((_, i) => (
+                <Star key={i} size={16} fill="currentColor" />
+              ))}
+            </div>
+            
+            <p className="text-gray-600 italic mb-8 leading-relaxed">"{testimonial.text}"</p>
+            
+            <div className="flex items-center gap-4">
+              <img src={testimonial.avatar} alt={testimonial.name} className="w-12 h-12 rounded-full ring-2 ring-brand-green/10" />
+              <div>
+                <div className="font-bold text-dark-navy leading-tight">{testimonial.name}</div>
+                <div className="text-xs text-gray-400 font-bold uppercase tracking-widest">{testimonial.role}</div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
 
 export default function App() {
   const [recentFilter, setRecentFilter] = useState<"Sale" | "Rent">("Sale");
@@ -1260,7 +1454,7 @@ export default function App() {
             exit={{ opacity: 0 }}
             className="flex-grow space-y-12 pb-16"
           >
-            <Hero />
+            <Hero onDirectInquiry={() => setCurrentView({ type: 'contact' })} />
             <div className="bg-gray-50 border-b border-gray-100 py-6">
               <div className="container mx-auto px-6 flex justify-between items-center">
                 <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
@@ -1285,6 +1479,8 @@ export default function App() {
                 </div>
               </div>
             </div>
+
+            <ExpertiseSection />
 
             <section className="container mx-auto px-6">
               <div className="flex flex-col lg:flex-row gap-8">
@@ -1332,6 +1528,8 @@ export default function App() {
                 <div className="w-full lg:w-64 shrink-0"><Sidebar onOpenCalculator={() => setShowCalculator(true)} /></div>
               </div>
             </section>
+
+            <TestimonialsSection />
           </motion.main>
         )}
 
@@ -1395,7 +1593,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      <Footer />
+      <Footer onNavigateHome={navigateHome} onShowContact={() => setCurrentView({ type: 'contact' })} />
 
       <MortgageCalculatorModal 
         isOpen={showCalculator} 
