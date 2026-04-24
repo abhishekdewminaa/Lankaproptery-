@@ -75,7 +75,9 @@ import {
   Maximize,
   Box,
   Quote,
-  Star
+  Star,
+  Lock,
+  LogOut
 } from "lucide-react";
 
 // ... (previous code)
@@ -270,18 +272,38 @@ const Navbar = () => (
   </header>
 );
 
-const WORDS = ["Home", "Villa", "Land", "Apartment", "Office"];
-
-const Hero = ({ onDirectInquiry }: { onDirectInquiry: () => void }) => {
-  const [activeStatus, setActiveStatus] = useState<"Sale" | "Rent">("Sale");
+const FlipWords = ({ words, className = "" }: { words: string[], className?: string }) => {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setIndex((prev) => (prev + 1) % WORDS.length);
-    }, 3000);
+      setIndex((prev) => (prev + 1) % words.length);
+    }, 2500);
     return () => clearInterval(timer);
-  }, []);
+  }, [words.length]);
+
+  return (
+    <div className={`inline-block relative h-[1.15em] overflow-hidden align-top ${className}`}>
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={words[index]}
+          initial={{ y: 20, opacity: 0, rotateX: -90 }}
+          animate={{ y: 0, opacity: 1, rotateX: 0 }}
+          exit={{ y: -20, opacity: 0, rotateX: 90 }}
+          transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+          className="block"
+        >
+          {words[index]}
+        </motion.span>
+      </AnimatePresence>
+    </div>
+  );
+};
+
+const WORDS = ["Home", "Villa", "Land", "Apartment", "Office"];
+
+const Hero = ({ onDirectInquiry }: { onDirectInquiry: () => void }) => {
+  const [activeStatus, setActiveStatus] = useState<"Sale" | "Rent">("Sale");
 
   return (
     <section className="relative h-[650px] flex items-center overflow-hidden">
@@ -302,20 +324,7 @@ const Hero = ({ onDirectInquiry }: { onDirectInquiry: () => void }) => {
             className="text-4xl lg:text-5xl font-bold leading-tight drop-shadow-md"
           >
             Find Your Dream <br/>
-            <div className="inline-block relative h-[1.15em] w-full align-top overflow-hidden">
-              <AnimatePresence mode="wait">
-                <motion.span
-                  key={WORDS[index]}
-                  initial={{ y: 30, opacity: 0, rotateX: -90 }}
-                  animate={{ y: 0, opacity: 1, rotateX: 0 }}
-                  exit={{ y: -30, opacity: 0, rotateX: 90 }}
-                  transition={{ duration: 0.5, ease: "easeInOut" }}
-                  className="text-brand-green block"
-                >
-                  {WORDS[index]}
-                </motion.span>
-              </AnimatePresence>
-            </div>
+            <FlipWords words={WORDS} className="text-brand-green w-full" />
             in Sri Lanka.
           </motion.h2>
           <motion.p 
@@ -878,7 +887,7 @@ const PropertyDetail = ({
   );
 };
 
-const Sidebar = ({ onOpenCalculator }: { onOpenCalculator: () => void }) => (
+const Sidebar = ({ onOpenCalculator, onShowPackages }: { onOpenCalculator: () => void, onShowPackages?: () => void }) => (
   <aside className="space-y-6">
     <div 
       onClick={onOpenCalculator}
@@ -922,10 +931,15 @@ const Sidebar = ({ onOpenCalculator }: { onOpenCalculator: () => void }) => (
 
     <div className="bg-dark-navy p-4 rounded-xl text-white relative overflow-hidden group">
       <div className="relative z-10">
-        <h4 className="text-sm font-bold">Sell your home?</h4>
+        <h4 className="text-sm font-bold flex items-center gap-1.5">
+          Sell your <FlipWords words={["Home", "Land", "Villa", "Agency"]} className="text-brand-green" />?
+        </h4>
         <p className="text-[10px] text-gray-400 mt-1 mb-4 leading-tight">List for free and reach 500k monthly buyers across the island.</p>
-        <button className="w-full py-2 bg-brand-green text-white text-[10px] font-bold rounded-lg hover:bg-brand-green-dark compact-transition">
-          List Now
+        <button 
+          onClick={onShowPackages}
+          className="w-full py-2 bg-brand-green text-white text-[10px] font-bold rounded-lg hover:bg-brand-green-dark compact-transition"
+        >
+          View Packages
         </button>
       </div>
       <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-brand-green/20 rounded-full group-hover:scale-150 compact-transition"></div>
@@ -933,7 +947,7 @@ const Sidebar = ({ onOpenCalculator }: { onOpenCalculator: () => void }) => (
   </aside>
 );
 
-const Footer = ({ onNavigateHome, onShowContact }: { onNavigateHome: () => void, onShowContact: () => void }) => (
+const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages }: { onNavigateHome: () => void, onShowContact: () => void, onShowAbout: () => void, onShowPackages: () => void }) => (
   <footer className="bg-[#0c1a2e] text-gray-400 pt-20 pb-10">
     <div className="container mx-auto px-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
@@ -957,9 +971,9 @@ const Footer = ({ onNavigateHome, onShowContact }: { onNavigateHome: () => void,
         <div>
           <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Quick Links</h4>
           <ul className="space-y-4 text-sm">
-            <li><a href="#" onClick={(e) => { e.preventDefault(); onNavigateHome(); }} className="hover:text-brand-green compact-transition">About Us</a></li>
+            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowAbout(); }} className="hover:text-brand-green compact-transition">About Us</a></li>
             <li><a href="#" onClick={(e) => { e.preventDefault(); onShowContact(); }} className="hover:text-brand-green compact-transition">Contact Support</a></li>
-            <li><a href="#" className="hover:text-brand-green compact-transition">Advertising</a></li>
+            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowPackages(); }} className="hover:text-brand-green compact-transition">Advertising Packages</a></li>
             <li><a href="#" className="hover:text-brand-green compact-transition">Terms of Service</a></li>
             <li><a href="#" className="hover:text-brand-green compact-transition">Privacy Policy</a></li>
             <li><a href="#" className="hover:text-brand-green compact-transition">Sitemap</a></li>
@@ -1113,7 +1127,7 @@ const MortgageCalculatorModal = ({ isOpen, onClose, initialAmount = 10000000 }: 
 const ContactUs = ({ onBack }: { onBack: () => void }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: -100 }}
       animate={{ opacity: 1, y: 0 }}
       className="container mx-auto px-6 py-12"
     >
@@ -1359,10 +1373,401 @@ const TestimonialsSection = () => (
   </section>
 );
 
+const AD_PACKAGES = [
+  {
+    name: "Starter",
+    price: "Free",
+    duration: "30 Days",
+    description: "Ideal for individuals looking to test the waters with a single property listing.",
+    features: [
+      "Standard Property Listing",
+      "Up to 3 High-Res Photos",
+      "Basic Search Visibility",
+      "Standard Email Support",
+      "Public Search Integration"
+    ],
+    highlight: false,
+    color: "bg-slate-100",
+    textColor: "text-slate-600"
+  },
+  {
+    name: "Premium",
+    price: "Rs. 4,500",
+    duration: "60 Days",
+    description: "The most popular choice for serious sellers and professional agents.",
+    features: [
+      "Featured Position (Top 5)",
+      "Up to 15 High-Res Photos",
+      "Priority Search Placement",
+      "Social Media Promotion",
+      "Direct WhatsApp Inquiry Button",
+      "Verified Seller Badge"
+    ],
+    highlight: true,
+    color: "bg-brand-green",
+    textColor: "text-white"
+  },
+  {
+    name: "Elite",
+    price: "Rs. 12,500",
+    duration: "90 Days",
+    description: "Maximum exposure for high-value luxury properties and commercial projects.",
+    features: [
+      "Top-Shelf Branding",
+      "Unlimited Professional Photos",
+      "360° Virtual Tour Creation",
+      "Dedicated Account Manager",
+      "Weekly Performance Reports",
+      "Multi-Platform Ad Network",
+      "Drone Photography Support"
+    ],
+    highlight: false,
+    color: "bg-dark-navy",
+    textColor: "text-white"
+  }
+];
+
+const PricingPackages = ({ onBack, onGetStarted }: { onBack: () => void, onGetStarted: () => void }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="container mx-auto px-6 py-16"
+    >
+      <div className="text-center mb-16 space-y-4">
+        <h1 className="text-4xl font-extrabold text-dark-navy tracking-tight">
+          Advertising <FlipWords words={["Packages", "Solutions", "Plans", "Options"]} className="text-brand-green min-w-[180px]" />
+        </h1>
+        <p className="text-gray-500 max-w-2xl mx-auto font-medium">
+          Choose the perfect plan to reach over 500,000 potential buyers and renters every month in Sri Lanka.
+        </p>
+        <div className="w-24 h-1.5 bg-brand-green mx-auto rounded-full"></div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        {AD_PACKAGES.map((pkg, idx) => (
+          <motion.div
+            key={idx}
+            whileHover={{ y: -8 }}
+            className={`relative rounded-[32px] p-8 border border-gray-100 flex flex-col h-full bg-white shadow-xl shadow-gray-100/50 compact-transition ${pkg.highlight ? 'ring-2 ring-brand-green' : ''}`}
+          >
+            {pkg.highlight && (
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-green text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
+                Most Popular
+              </div>
+            )}
+
+            <div className="mb-8">
+              <h3 className="text-xl font-bold text-dark-navy mb-2">{pkg.name}</h3>
+              <div className="flex items-baseline gap-1 mb-4">
+                <span className="text-3xl font-black text-brand-green tracking-tight">{pkg.price}</span>
+                <span className="text-gray-400 text-sm font-bold">/ {pkg.duration}</span>
+              </div>
+              <p className="text-xs text-gray-400 font-medium leading-relaxed">{pkg.description}</p>
+            </div>
+
+            <div className="space-y-4 mb-10 flex-grow">
+              {pkg.features.map((feature, fIdx) => (
+                <div key={fIdx} className="flex items-start gap-3">
+                  <div className="shrink-0 w-5 h-5 rounded-full bg-brand-green/10 flex items-center justify-center text-brand-green mt-0.5">
+                    <CheckCircle size={12} fill="currentColor" className="text-brand-green flex-grow-0" />
+                  </div>
+                  <span className="text-xs font-semibold text-gray-600">{feature}</span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={onGetStarted}
+              className={`w-full py-4 rounded-2xl font-bold text-sm tracking-wide uppercase compact-transition ${pkg.highlight ? 'bg-brand-green text-white shadow-lg shadow-brand-green/20 hover:bg-brand-green-dark' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+            >
+              Get Started
+            </button>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="mt-20 bg-dark-navy rounded-[40px] p-12 text-white relative overflow-hidden">
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-brand-green/10 rounded-full blur-3xl -mb-48 -mr-48"></div>
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div className="space-y-6">
+            <h3 className="text-3xl font-extrabold leading-tight">Need a Custom Solution for your Agency?</h3>
+            <p className="text-gray-400 font-medium leading-relaxed">
+              We offer exclusive enterprise packages for real estate agencies, developers, and large-scale property management firms. Get bulk listing discounts and priority support.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <button 
+                onClick={() => window.open('https://wa.me/94773951560', '_blank')}
+                className="bg-brand-green text-white font-bold py-4 px-8 rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition"
+              >
+                Schedule a Demo
+              </button>
+              <button 
+                onClick={onBack}
+                className="bg-white/10 text-white font-bold py-4 px-8 rounded-2xl backdrop-blur-md hover:bg-white/20 compact-transition"
+              >
+                Back to Home
+              </button>
+            </div>
+          </div>
+          <div className="hidden md:grid grid-cols-2 gap-4">
+            <div className="space-y-4">
+              <div className="bg-white/5 p-6 rounded-3xl backdrop-blur-sm border border-white/5">
+                <div className="text-brand-green font-black text-2xl mb-1">98%</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Satisfaction Rate</div>
+              </div>
+              <div className="bg-white/5 p-6 rounded-3xl backdrop-blur-sm border border-white/5">
+                <div className="text-brand-green font-black text-2xl mb-1">24h</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Listing Approval</div>
+              </div>
+            </div>
+            <div className="pt-8 space-y-4">
+              <div className="bg-white/5 p-6 rounded-3xl backdrop-blur-sm border border-white/5">
+                <div className="text-brand-green font-black text-2xl mb-1">5k+</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Active Agents</div>
+              </div>
+              <div className="bg-white/5 p-6 rounded-3xl backdrop-blur-sm border border-white/5">
+                <div className="text-brand-green font-black text-2xl mb-1">10M+</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Monthly Page Views</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const AboutUs = ({ onBack }: { onBack: () => void }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="container mx-auto px-6 py-12"
+    >
+      <div className="max-w-4xl mx-auto space-y-16">
+        {/* Hero Section */}
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-dark-navy tracking-tight">About LankaProperty.lk</h1>
+          <p className="text-gray-500 text-lg max-w-2xl mx-auto font-medium">
+            Sri Lanka's most trusted real estate marketplace, dedicated to connecting people with their ideal properties since 2011.
+          </p>
+          <div className="w-24 h-1.5 bg-brand-green mx-auto rounded-full"></div>
+        </div>
+
+        {/* Story Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div className="relative aspect-square rounded-3xl overflow-hidden shadow-2xl">
+            <img 
+              src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=1000" 
+              className="w-full h-full object-cover" 
+              alt="Our Story" 
+            />
+            <div className="absolute inset-0 bg-brand-green/10"></div>
+          </div>
+          <div className="space-y-6">
+            <h2 className="text-3xl font-extrabold text-dark-navy">Our Story</h2>
+            <p className="text-gray-600 leading-relaxed">
+              Founded over a decade ago, LankaProperty.lk emerged from a simple vision: to bring transparency and efficiency to the Sri Lankan real estate market. We understood the challenges buyers and sellers faced, and we set out to build a platform that prioritizes trust, accuracy, and user experience.
+            </p>
+            <p className="text-gray-600 leading-relaxed">
+              Today, we are proud to be the premier destination for property seekers across the island, hosting over 15,000 active listings and serving a community of thousands of verified agents and developers.
+            </p>
+            <div className="flex gap-4 pt-4">
+              <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex-1 text-center">
+                <div className="text-2xl font-black text-brand-green">12+</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Years Experience</div>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex-1 text-center">
+                <div className="text-2xl font-black text-brand-green">15k+</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Active Listings</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Values Section */}
+        <div className="bg-dark-navy p-12 rounded-[32px] text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-brand-green/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+          <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+            <div className="space-y-4">
+              <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto text-brand-green">
+                <Shield size={32} />
+              </div>
+              <h3 className="text-xl font-bold">Uncompromising Trust</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">We verify our agents and listings to ensure that every interaction on our platform is safe and reliable.</p>
+            </div>
+            <div className="space-y-4">
+              <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto text-brand-green">
+                <Globe size={32} />
+              </div>
+              <h3 className="text-xl font-bold">Island-wide Coverage</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">From the heart of Colombo to the hills of Kandy, we list properties in every corner of Sri Lanka.</p>
+            </div>
+            <div className="space-y-4">
+              <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto text-brand-green">
+                <User size={32} />
+              </div>
+              <h3 className="text-xl font-bold">Customer First</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">Our dedicated support team and expert agents are always here to guide you through your journey.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Mission Section */}
+        <div className="text-center space-y-6 max-w-2xl mx-auto py-8">
+          <h2 className="text-3xl font-extrabold text-dark-navy">Our Mission</h2>
+          <p className="text-gray-600 text-lg italic font-medium leading-relaxed">
+            "To empower everyone in Sri Lanka to find their place in the world through innovative technology and a commitment to radical transparency."
+          </p>
+          <div className="flex justify-center gap-4">
+            <button 
+              onClick={() => onBack()}
+              className="bg-brand-green text-white font-bold py-4 px-8 rounded-xl hover:bg-brand-green-dark compact-transition shadow-lg shadow-brand-green/20"
+            >
+              Back to Home
+            </button>
+            <button 
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="bg-dark-navy text-white font-bold py-4 px-8 rounded-xl hover:opacity-90 compact-transition"
+            >
+              Contact Us
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const AuthPage = ({ onBack, onLogin }: { onBack: () => void, onLogin: (email: string) => void }) => {
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email && password) {
+      onLogin(email);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="container mx-auto px-6 py-12 flex items-center justify-center min-h-[70vh]"
+    >
+      <div className="bg-white rounded-[40px] shadow-2xl shadow-gray-200 border border-gray-100 p-10 max-w-md w-full relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-green/5 rounded-full -mr-16 -mt-16"></div>
+        
+        <div className="relative z-10 space-y-8">
+          <div className="text-center space-y-2">
+            <h2 className="text-3xl font-black text-dark-navy tracking-tight">
+              {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+            </h2>
+            <p className="text-gray-400 text-sm font-medium">
+              {mode === 'login' ? 'Enter your details to access your account' : 'Join Sri Lanka\'s premier property network'}
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input 
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input 
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
+                  required
+                />
+              </div>
+            </div>
+
+            {mode === 'login' && (
+              <div className="text-right">
+                <a href="#" className="text-xs font-bold text-brand-green hover:underline">Forgot Password?</a>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-brand-green text-white font-bold py-4 rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition mt-4"
+            >
+              {mode === 'login' ? 'Sign In' : 'Create Account'}
+            </button>
+          </form>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
+            <div className="relative flex justify-center text-xs uppercase font-bold"><span className="bg-white px-2 text-gray-300">Or continue with</span></div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <button className="flex items-center justify-center gap-2 border border-gray-100 rounded-2xl py-3 hover:bg-gray-50 compact-transition">
+              <img src="https://www.iconpacks.net/icons/2/free-google-logo-icon-2422-thumb.png" className="h-5" alt="Google" />
+              <span className="text-sm font-bold text-gray-600">Google</span>
+            </button>
+            <button className="flex items-center justify-center gap-2 border border-gray-100 rounded-2xl py-3 hover:bg-gray-50 compact-transition">
+              <Facebook className="text-[#1877f2]" size={20} fill="currentColor" />
+              <span className="text-sm font-bold text-gray-600">Facebook</span>
+            </button>
+          </div>
+
+          <div className="text-center">
+            <p className="text-sm text-gray-400 font-medium">
+              {mode === 'login' ? "Don't have an account?" : "Already have an account?"}{' '}
+              <button 
+                onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                className="text-brand-green font-bold hover:underline"
+              >
+                {mode === 'login' ? 'Sign Up' : 'Log In'}
+              </button>
+            </p>
+          </div>
+
+          <button 
+            onClick={onBack}
+            className="w-full text-gray-400 text-xs font-bold hover:text-gray-600 compact-transition"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
 export default function App() {
   const [recentFilter, setRecentFilter] = useState<"Sale" | "Rent">("Sale");
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact', data?: any }>({ type: 'home' });
+  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth', data?: any }>({ type: 'home' });
+  const [user, setUser] = useState<{ email: string } | null>(null);
+
+  // Scroll to top when view changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [currentView.type]);
+
+  const navigateToAuth = () => setCurrentView({ type: 'auth' });
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [showCalculator, setShowCalculator] = useState(false);
   const [showVirtualTour, setShowVirtualTour] = useState(false);
@@ -1438,22 +1843,45 @@ export default function App() {
             </div>
           </div>
           <ul className="hidden lg:flex items-center gap-6 text-sm font-medium text-slate-700">
-            {["Home", "Real Estate", "Directory", "Agents", "Advertising", "Contact"].map((item) => (
+            {["Home", "About", "Real Estate", "Packages", "Agents", "Advertising", "Contact"].map((item) => (
               <li key={item}>
                 <a 
                   href="#" 
                   onClick={(e) => {
                     e.preventDefault();
                     if (item === 'Home') navigateHome();
+                    else if (item === 'About') setCurrentView({ type: 'about' });
+                    else if (item === 'Packages') setCurrentView({ type: 'packages' });
+                    else if (item === 'Advertising') setCurrentView({ type: 'packages' });
                     else if (item === 'Contact') setCurrentView({ type: 'contact' });
                   }}
-                  className={`${(item === 'Home' && currentView.type === 'home' || item === 'Contact' && currentView.type === 'contact') ? 'text-brand-green border-b-2 border-brand-green pb-1' : 'hover:text-brand-green'} compact-transition`}
+                  className={`${(item === 'Home' && currentView.type === 'home' || item === 'About' && currentView.type === 'about' || item === 'Packages' && currentView.type === 'packages' || item === 'Advertising' && currentView.type === 'packages' || item === 'Contact' && currentView.type === 'contact') ? 'text-brand-green border-b-2 border-brand-green pb-1' : 'hover:text-brand-green'} compact-transition`}
                 >
                   {item}
                 </a>
               </li>
             ))}
           </ul>
+          <div className="flex items-center gap-4">
+            {user ? (
+              <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-full pl-1 pr-3 py-1">
+                <div className="w-8 h-8 rounded-full bg-brand-green flex items-center justify-center text-white text-xs font-bold">
+                  {user.email[0].toUpperCase()}
+                </div>
+                <span className="text-xs font-bold text-dark-navy truncate max-w-[100px]">{user.email}</span>
+                <button onClick={() => setUser(null)} className="text-gray-400 hover:text-red-500">
+                  <LogOut size={14} />
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setCurrentView({ type: 'auth' })}
+                className="bg-brand-green text-white font-bold text-xs px-6 py-3 rounded-xl hover:bg-brand-green-dark compact-transition shadow-lg shadow-brand-green/20"
+              >
+                Sign In
+              </button>
+            )}
+          </div>
           <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 compact-transition">
             Menu
           </button>
@@ -1540,7 +1968,12 @@ export default function App() {
                     </div>
                   </div>
                 </div>
-                <div className="w-full lg:w-64 shrink-0"><Sidebar onOpenCalculator={() => setShowCalculator(true)} /></div>
+                <div className="w-full lg:w-64 shrink-0">
+                  <Sidebar 
+                    onOpenCalculator={() => setShowCalculator(true)} 
+                    onShowPackages={() => setCurrentView({ type: 'packages' })}
+                  />
+                </div>
               </div>
             </section>
 
@@ -1606,9 +2039,32 @@ export default function App() {
         {currentView.type === 'contact' && (
           <ContactUs onBack={navigateHome} />
         )}
+
+        {currentView.type === 'about' && (
+          <AboutUs onBack={navigateHome} />
+        )}
+
+        {currentView.type === 'packages' && (
+          <PricingPackages onBack={navigateHome} onGetStarted={() => setCurrentView({ type: 'auth' })} />
+        )}
+
+        {currentView.type === 'auth' && (
+          <AuthPage 
+            onBack={navigateHome} 
+            onLogin={(email) => {
+              setUser({ email });
+              setCurrentView({ type: 'home' });
+            }} 
+          />
+        )}
       </AnimatePresence>
 
-      <Footer onNavigateHome={navigateHome} onShowContact={() => setCurrentView({ type: 'contact' })} />
+      <Footer 
+        onNavigateHome={navigateHome} 
+        onShowContact={() => setCurrentView({ type: 'contact' })} 
+        onShowAbout={() => setCurrentView({ type: 'about' })} 
+        onShowPackages={() => setCurrentView({ type: 'packages' })} 
+      />
 
       <MortgageCalculatorModal 
         isOpen={showCalculator} 
