@@ -77,7 +77,9 @@ import {
   Quote,
   Star,
   Lock,
-  LogOut
+  LogOut,
+  Youtube,
+  PenTool
 } from "lucide-react";
 
 // ... (previous code)
@@ -143,12 +145,12 @@ L.Icon.Default.mergeOptions({
 
 // --- Types & Data ---
 const PROPERTY_CATEGORIES = [
-  { name: "Land", icon: <LandPlot className="w-8 h-8" />, count: "1,382" },
-  { name: "House", icon: <HomeIcon className="w-8 h-8" />, count: "1,524" },
-  { name: "Apartment", icon: <Building2 className="w-8 h-8" />, count: "108" },
-  { name: "Building", icon: <Building className="w-8 h-8" />, count: "350" },
-  { name: "Hotel", icon: <Hotel className="w-8 h-8" />, count: "184" },
-  { name: "Business", icon: <Briefcase className="w-8 h-8" />, count: "52" },
+  { name: "Land", icon: <LandPlot className="w-8 h-8" />, count: "1,382", color: "text-emerald-500", bg: "bg-emerald-50" },
+  { name: "House", icon: <HomeIcon className="w-8 h-8" />, count: "1,524", color: "text-orange-500", bg: "bg-orange-50" },
+  { name: "Apartment", icon: <Building2 className="w-8 h-8" />, count: "108", color: "text-blue-500", bg: "bg-blue-50" },
+  { name: "Building", icon: <Building className="w-8 h-8" />, count: "350", color: "text-indigo-500", bg: "bg-indigo-50" },
+  { name: "Hotel", icon: <Hotel className="w-8 h-8" />, count: "184", color: "text-rose-500", bg: "bg-rose-50" },
+  { name: "Business", icon: <Briefcase className="w-8 h-8" />, count: "52", color: "text-amber-500", bg: "bg-amber-50" },
 ];
 
 const FEATURED_PROPERTIES = [
@@ -161,6 +163,7 @@ const FEATURED_PROPERTIES = [
     image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800",
     lat: 6.8259,
     lng: 79.8804,
+    agentId: "lalith-ratnatunga"
   },
   {
     id: 2,
@@ -171,6 +174,7 @@ const FEATURED_PROPERTIES = [
     image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800",
     lat: 7.0873,
     lng: 80.0957,
+    agentId: "lalith-ratnatunga"
   },
   {
     id: 3,
@@ -181,6 +185,7 @@ const FEATURED_PROPERTIES = [
     image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800",
     lat: 6.9374,
     lng: 80.6486,
+    agentId: "lalith-ratnatunga"
   },
   {
     id: 4,
@@ -191,6 +196,7 @@ const FEATURED_PROPERTIES = [
     image: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=800",
     lat: 6.9147,
     lng: 79.8510,
+    agentId: "chamath-wickramasooriya"
   },
   {
     id: 5,
@@ -201,6 +207,7 @@ const FEATURED_PROPERTIES = [
     image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=800",
     lat: 7.2089,
     lng: 79.8355,
+    agentId: "chamath-wickramasooriya"
   },
   {
     id: 6,
@@ -211,6 +218,7 @@ const FEATURED_PROPERTIES = [
     image: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=800",
     lat: 6.9847,
     lng: 79.8914,
+    agentId: "barnad-fernando"
   },
 ];
 
@@ -226,10 +234,61 @@ const AMENITIES = [
 ];
 
 const AGENTS = [
-  { name: "Mr. Lalith Ratnatunga", role: "General Manager", img: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400" },
-  { name: "Chamath Wickramasooriya", role: "Sales Lead", img: "https://i.pravatar.cc/150?u=2" },
-  { name: "Barnad Fernando", role: "Consultant", img: "https://i.pravatar.cc/150?u=3" },
-  { name: "Deshani Kaushalya", role: "Agent", img: "https://i.pravatar.cc/150?u=4" },
+  { 
+    id: "lalith-ratnatunga",
+    name: "Mr. Lalith Ratnatunga", 
+    role: "General Manager", 
+    img: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400",
+    experience: "15+ Years",
+    phone: "+94 77 395 1560",
+    email: "lalith@lankaproperty.lk",
+    bio: "Lalith is a seasoned real estate professional with over 15 years of experience in the Sri Lankan market. As General Manager, he has overseen thousands of successful transactions and is dedicated to providing elite service to both buyers and sellers.",
+    listings: [1, 2, 3],
+    reviews: [
+      { user: "Rohan S.", rating: 5, comment: "Lalith provided exceptional service. Very professional and knowledgeable.", date: "2 months ago" },
+      { user: "Anusha K.", rating: 5, comment: "Highly recommend working with Lalith. He made the buying process so easy.", date: "5 months ago" }
+    ]
+  },
+  { 
+    id: "chamath-wickramasooriya",
+    name: "Chamath Wickramasooriya", 
+    role: "Sales Lead", 
+    img: "https://i.pravatar.cc/150?u=2",
+    experience: "8 Years",
+    phone: "+94 77 123 4567",
+    email: "chamath@lankaproperty.lk",
+    bio: "Chamath leads our sales team with a focus on residential properties in Colombo and Kandy. His energetic approach and market insight ensure clients get the best deals.",
+    listings: [4, 5],
+    reviews: [
+      { user: "Sunil F.", rating: 4, comment: "Great experience with Chamath. He found us a perfect apartment.", date: "1 month ago" }
+    ]
+  },
+  { 
+    id: "barnad-fernando",
+    name: "Barnad Fernando", 
+    role: "Consultant", 
+    img: "https://i.pravatar.cc/150?u=3",
+    experience: "12 Years",
+    phone: "+94 77 987 6543",
+    email: "barnad@lankaproperty.lk",
+    bio: "Barnad specializes in commercial property consulting and large-scale land acquisitions. His strategic advice is highly valued by property investors.",
+    listings: [6],
+    reviews: []
+  },
+  { 
+    id: "deshani-kaushalya",
+    name: "Deshani Kaushalya", 
+    role: "Agent", 
+    img: "https://i.pravatar.cc/150?u=4",
+    experience: "4 Years",
+    phone: "+94 71 555 1234",
+    email: "deshani@lankaproperty.lk",
+    bio: "Deshani is a rising star in real estate, known for her attention to detail and commitment to customer satisfaction. She specializes in luxury villas and holiday homes.",
+    listings: [],
+    reviews: [
+      { user: "Kasun T.", rating: 5, comment: "Deshani was very helpful and patient with all our questions.", date: "3 weeks ago" }
+    ]
+  },
 ];
 
 // --- Components ---
@@ -239,7 +298,14 @@ const Navbar = () => (
     <div className="bg-dark-navy h-8 flex items-center">
       <div className="container mx-auto px-6 flex justify-between items-center text-[10px] text-gray-300">
         <div className="flex gap-4">
-          <span className="flex items-center gap-1.5 opacity-80 underline-offset-2">Hotline: +94 33 222 96 95</span>
+          <span className="flex items-center gap-1.5 opacity-80 underline-offset-2">
+            <motion.span 
+              animate={{ opacity: [1, 0.4, 1] }} 
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_5px_#00b562]"
+            ></motion.span>
+            Hotline: +94 33 222 96 95
+          </span>
           <span className="flex items-center gap-1.5 opacity-80">Email: info@lankaproperty.lk</span>
         </div>
         <div className="flex items-center gap-3">
@@ -428,6 +494,10 @@ const Hero = ({ onDirectInquiry }: { onDirectInquiry: () => void }) => {
             </div>
 
             <motion.button 
+              animate={{ 
+                boxShadow: ["0 0 0px rgba(239, 68, 68, 0)", "0 0 20px rgba(239, 68, 68, 0.4)", "0 0 0px rgba(239, 68, 68, 0)"] 
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
               className="w-full py-4 bg-brand-red text-white text-base font-black rounded-xl shadow-xl shadow-red-200 hover:bg-brand-red-dark compact-transition uppercase tracking-widest mt-4"
@@ -448,10 +518,13 @@ const CategoryStrip = () => (
         {PROPERTY_CATEGORIES.slice(0, 4).map((cat, idx) => (
           <motion.div
             key={cat.name}
+            initial={{ y: 0 }}
+            animate={{ y: [0, -5, 0] }}
+            transition={{ duration: 4, repeat: Infinity, delay: idx * 0.5, ease: "easeInOut" }}
             className="flex flex-col items-center gap-1.5 min-w-[80px]"
           >
-            <div className="w-10 h-10 bg-white rounded-full shadow-sm flex items-center justify-center border border-gray-100 hover:border-brand-green cursor-pointer group compact-transition">
-              <div className="text-gray-400 group-hover:text-brand-green group-hover:scale-110 compact-transition">
+            <div className={`w-10 h-10 ${cat.bg} rounded-full shadow-sm flex items-center justify-center border border-gray-100 hover:border-brand-green cursor-pointer group compact-transition`}>
+              <div className={`${cat.color} group-hover:scale-110 compact-transition`}>
                 {cat.icon}
               </div>
             </div>
@@ -524,14 +597,16 @@ const PropertyDetail = ({
   isFavorited,
   onToggleFavorite,
   onOpenCalculator,
-  onPropertyClick
+  onPropertyClick,
+  onAgentClick
 }: { 
   property: any, 
   onBack: () => void,
   isFavorited?: boolean,
   onToggleFavorite?: () => void,
   onOpenCalculator?: () => void,
-  onPropertyClick?: (p: any) => void
+  onPropertyClick?: (p: any) => void,
+  onAgentClick?: (agent: any) => void
 }) => {
   const images = Array(12).fill(property.image).map((img, i) => 
     i === 0 ? img : `https://images.unsplash.com/photo-${1512917774080 + i}-9991f1c4c750?auto=format&fit=crop&q=60&w=800`
@@ -559,7 +634,14 @@ const PropertyDetail = ({
           </button>
           <div>
             <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-              <span className="flex items-center gap-1.5"><Clock size={12} /> Posted 2 days ago</span>
+              <span className="flex items-center gap-1.5 peer">
+                <motion.span 
+                  animate={{ scale: [1, 1.3, 1], opacity: [1, 0.7, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="w-2 h-2 rounded-full bg-brand-green"
+                />
+                <Clock size={12} /> Posted 2 days ago
+              </span>
               <span className="text-gray-300">|</span>
               <span className="flex items-center gap-1.5"><Eye size={12} /> 1,245 views</span>
               <span className="text-gray-300">|</span>
@@ -800,21 +882,41 @@ const PropertyDetail = ({
                   );
                 })()}
 
-                <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mb-8">
+                <div 
+                  onClick={() => {
+                    const agent = AGENTS.find(a => a.id === property.agentId) || AGENTS[0];
+                    onAgentClick?.(agent);
+                  }}
+                  className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mb-8 cursor-pointer hover:border-brand-green compact-transition group"
+                >
                   <div className="flex items-center gap-4 mb-4">
                     <div className="relative">
-                      <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200" className="w-16 h-16 rounded-full border-2 border-brand-green object-cover" />
-                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-brand-green rounded-full flex items-center justify-center text-white border-2 border-white">
-                        <Shield size={12} fill="currentColor" />
-                      </div>
+                      {(() => {
+                        const agent = AGENTS.find(a => a.id === property.agentId) || AGENTS[0];
+                        return (
+                          <>
+                            <img src={agent.img} className="w-16 h-16 rounded-full border-2 border-brand-green object-cover group-hover:scale-105 compact-transition" />
+                            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-brand-green rounded-full flex items-center justify-center text-white border-2 border-white">
+                              <Shield size={12} fill="currentColor" />
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                     <div>
-                      <div className="text-sm font-bold text-dark-navy">Lalith Ratnatunga</div>
-                      <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-bold uppercase mt-0.5">
-                        <span className="text-brand-green">General Manager</span>
-                        <span className="text-gray-300">•</span>
-                        <span>Verified Agent</span>
-                      </div>
+                      {(() => {
+                        const agent = AGENTS.find(a => a.id === property.agentId) || AGENTS[0];
+                        return (
+                          <>
+                            <div className="text-sm font-bold text-dark-navy group-hover:text-brand-green compact-transition">{agent.name}</div>
+                            <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-bold uppercase mt-0.5">
+                              <span className="text-brand-green">{agent.role}</span>
+                              <span className="text-gray-300">•</span>
+                              <span>Verified Agent</span>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -951,24 +1053,52 @@ const Sidebar = ({ onOpenCalculator, onShowPackages }: { onOpenCalculator: () =>
   </aside>
 );
 
-const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages }: { onNavigateHome: () => void, onShowContact: () => void, onShowAbout: () => void, onShowPackages: () => void }) => (
+const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, onShowPromotion }: { onNavigateHome: () => void, onShowContact: () => void, onShowAbout: () => void, onShowPackages: () => void, onShowPromotion: () => void }) => (
   <footer className="bg-[#0c1a2e] text-gray-400 pt-20 pb-10">
     <div className="container mx-auto px-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-        <div className="space-y-6">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => onNavigateHome()}>
-            <div className="w-8 h-8 bg-brand-green rounded-lg flex items-center justify-center text-white font-bold text-lg">L</div>
-            <h2 className="text-xl font-bold tracking-tight text-white leading-none">LankaProperty<span className="text-brand-green">.lk</span></h2>
+        <div className="space-y-8">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigateHome()}>
+            <div className="w-12 h-12 bg-brand-green rounded-xl flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-brand-green/20">L</div>
+            <h2 className="text-3xl font-black tracking-tighter text-white leading-none">LankaProperty<span className="text-brand-green">.lk</span></h2>
           </div>
-          <p className="text-sm leading-relaxed max-w-xs">
-            Sri Lanka's premier real estate marketplace. Connecting buyers, sellers, and renters with the most trusted properties and agents in the island.
+          <p className="text-lg font-medium text-gray-400 leading-relaxed max-w-sm">
+            Sri Lanka's premier real estate marketplace. Connecting buyers, sellers, and renters with the most trusted properties and agents across the island.
           </p>
-          <div className="flex gap-3">
-            {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
-              <a key={i} href="#" className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-green hover:border-brand-green hover:text-white compact-transition">
-                <Icon size={16} />
-              </a>
-            ))}
+          <div className="flex gap-4">
+            {[
+              { icon: Facebook, color: "text-[#1877F2]", bg: "bg-[#1877F2]/10", hover: "hover:bg-[#1877F2]", url: "https://facebook.com" },
+              { icon: Twitter, color: "text-[#1DA1F2]", bg: "bg-[#1DA1F2]/10", hover: "hover:bg-[#1DA1F2]", url: "https://twitter.com" },
+              { icon: Instagram, color: "text-[#E4405F]", bg: "bg-[#E4405F]/10", hover: "hover:bg-[#E4405F]", url: "https://instagram.com" },
+              { icon: Linkedin, color: "text-[#0A66C2]", bg: "bg-[#0A66C2]/10", hover: "hover:bg-[#0A66C2]", url: "https://linkedin.com" },
+              { icon: Youtube, color: "text-[#FF0000]", bg: "bg-[#FF0000]/10", hover: "hover:bg-[#FF0000]", url: "https://youtube.com" },
+              { icon: PenTool, color: "text-[#000000]", bg: "bg-white/10", hover: "hover:bg-[#000000]", url: "https://medium.com" }
+            ].map((item, i) => {
+              const Icon = item.icon;
+              return (
+                <motion.a 
+                  key={i} 
+                  href={item.url} 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  whileHover={{ 
+                    scale: 1.2, 
+                    y: -8, 
+                    backgroundColor: item.color.replace('text-', '').replace('[', '').replace(']', ''), 
+                    color: "#ffffff",
+                    boxShadow: "0 10px 25px -5px rgba(0,0,0,0.3)"
+                  }}
+                  whileTap={{ scale: 0.9 }}
+                  className={`w-12 h-12 rounded-2xl ${item.bg} border border-white/10 flex items-center justify-center ${item.color} compact-transition shadow-xl hover:border-transparent`}
+                >
+                  <Icon size={24} />
+                </motion.a>
+              );
+            })}
           </div>
         </div>
 
@@ -1006,7 +1136,10 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages }: 
               Join
             </button>
           </div>
-          <div className="flex items-center gap-3 mt-6 text-xs bg-brand-green/10 border border-brand-green/20 p-4 rounded-xl text-brand-green font-bold">
+          <div 
+            onClick={() => onShowPromotion()}
+            className="flex items-center gap-3 mt-6 text-xs bg-brand-green/10 border border-brand-green/20 p-4 rounded-xl text-brand-green font-bold cursor-pointer hover:bg-brand-green/20 compact-transition"
+          >
             <Percent size={16} />
             <span>Get 10% off your first ad listing!</span>
           </div>
@@ -1128,7 +1261,7 @@ const MortgageCalculatorModal = ({ isOpen, onClose, initialAmount = 10000000 }: 
   );
 };
 
-const ContactUs = ({ onBack }: { onBack: () => void }) => {
+const ContactUs = ({ onBack, onAgentClick }: { onBack: () => void, onAgentClick?: (agent: any) => void }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: -100 }}
@@ -1252,7 +1385,7 @@ const ContactUs = ({ onBack }: { onBack: () => void }) => {
             <p className="text-gray-500 max-w-xl mx-auto">Our dedicated team of professionals is ready to guide you through every step of your real estate journey.</p>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {AGENTS.map((agent, i) => (
               <motion.div 
                 key={i}
@@ -1260,7 +1393,8 @@ const ContactUs = ({ onBack }: { onBack: () => void }) => {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="group"
+                className="group cursor-pointer"
+                onClick={() => onAgentClick?.(agent)}
               >
                 <div className="relative mb-4 overflow-hidden rounded-3xl aspect-[4/5] shadow-lg">
                   <img src={agent.img} alt={agent.name} className="w-full h-full object-cover group-hover:scale-110 compact-transition" />
@@ -1760,10 +1894,280 @@ const AuthPage = ({ onBack, onLogin }: { onBack: () => void, onLogin: (email: st
   );
 };
 
+const AgentsView = ({ onAgentClick, onBack }: { onAgentClick: (agent: any) => void, onBack: () => void }) => {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="container mx-auto px-6 py-20"
+    >
+      <div className="text-center mb-16 space-y-4">
+        <h1 className="text-4xl font-extrabold text-dark-navy tracking-tight">
+          Our Professional <span className="text-brand-green">Agents</span>
+        </h1>
+        <p className="text-gray-500 max-w-2xl mx-auto font-medium text-lg">
+          Connect with the island's most trusted real estate experts. Our agents are verified and committed to excellence.
+        </p>
+        <div className="w-24 h-1.5 bg-brand-green mx-auto rounded-full"></div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+        {AGENTS.map((agent, i) => (
+          <motion.div 
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.1 }}
+            className="group cursor-pointer"
+            onClick={() => onAgentClick(agent)}
+          >
+            <div className="relative mb-6 overflow-hidden rounded-[32px] aspect-[4/5] shadow-2xl border border-gray-100">
+              <img src={agent.img} alt={agent.name} className="w-full h-full object-cover group-hover:scale-110 compact-transition" />
+              <div className="absolute inset-0 bg-gradient-to-t from-dark-navy/90 via-dark-navy/20 to-transparent opacity-0 group-hover:opacity-100 compact-transition flex flex-col justify-end p-8">
+                <p className="text-white font-medium text-sm leading-relaxed mb-6 line-clamp-3">
+                  {agent.bio}
+                </p>
+                <div className="flex gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-brand-green compact-transition"><Linkedin size={18} /></div>
+                  <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-brand-green compact-transition"><Facebook size={18} /></div>
+                </div>
+              </div>
+            </div>
+            <div className="text-center space-y-1">
+              <h4 className="text-xl font-black text-dark-navy group-hover:text-brand-green compact-transition">{agent.name}</h4>
+              <p className="text-xs font-black text-brand-green uppercase tracking-[0.2em]">{agent.role}</p>
+              <div className="flex items-center justify-center gap-2 mt-4">
+                <div className="px-3 py-1 rounded-full bg-gray-100 text-[10px] font-black text-gray-500 uppercase tracking-widest">{agent.experience}</div>
+                <div className="px-3 py-1 rounded-full bg-brand-green/10 text-[10px] font-black text-brand-green uppercase tracking-widest">{agent.listings.length} Listings</div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+      
+      <div className="mt-20 p-12 bg-gray-900 rounded-[40px] text-center text-white relative overflow-hidden">
+        <div className="relative z-10 space-y-6">
+          <h2 className="text-3xl font-black">Are you a Real Estate Professional?</h2>
+          <p className="text-gray-400 max-w-xl mx-auto text-lg">Join the island's fastest growing property marketplace and reach thousands of verified buyers every day.</p>
+          <button className="px-10 py-5 bg-brand-green text-white font-black rounded-2xl hover:bg-brand-green-dark compact-transition shadow-xl shadow-brand-green/20">
+            Apply to Join as an Agent
+          </button>
+        </div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-brand-green/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+      </div>
+    </motion.div>
+  );
+};
+
+const AgentProfileView = ({ agent, onBack, onPropertyClick }: { agent: any, onBack: () => void, onPropertyClick: (p: any) => void }) => {
+  const agentProperties = FEATURED_PROPERTIES.filter(p => agent.listings.includes(p.id));
+  
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="container mx-auto px-6 py-12"
+    >
+      <button onClick={onBack} className="flex items-center gap-2 text-brand-green font-black mb-8 hover:underline uppercase tracking-widest text-xs">
+        <ChevronLeft size={18} /> Back
+      </button>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        {/* Left: Profile Info */}
+        <div className="space-y-8">
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
+            <div className="aspect-[4/5] relative">
+              <img src={agent.img} className="w-full h-full object-cover" alt={agent.name} />
+              <div className="absolute inset-0 bg-gradient-to-t from-dark-navy/80 via-transparent to-transparent" />
+              <div className="absolute bottom-6 left-6 right-6">
+                <div className="px-3 py-1 bg-brand-green inline-block text-[10px] font-black text-white rounded-full uppercase tracking-widest mb-2">
+                  {agent.role}
+                </div>
+                <h1 className="text-2xl font-black text-white">{agent.name}</h1>
+              </div>
+            </div>
+            
+            <div className="p-8 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 p-4 rounded-2xl text-center border border-gray-100">
+                  <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Experience</div>
+                  <div className="text-lg font-black text-dark-navy">{agent.experience}</div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-2xl text-center border border-gray-100">
+                  <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Listed</div>
+                  <div className="text-lg font-black text-dark-navy">{agent.listings.length} Properties</div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <a href={`tel:${agent.phone}`} className="w-full flex items-center justify-center gap-3 bg-brand-green text-white font-black py-4 rounded-2xl hover:bg-brand-green-dark compact-transition text-sm shadow-lg shadow-brand-green/20">
+                  <Phone size={18} /> {agent.phone}
+                </a>
+                <a href={`mailto:${agent.email}`} className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-100 text-dark-navy font-black py-4 rounded-2xl hover:border-brand-green hover:text-brand-green compact-transition text-sm">
+                  <Mail size={18} /> Email Agent
+                </a>
+              </div>
+
+              <div className="flex gap-4 justify-center pt-4 border-t border-gray-100">
+                <a href="#" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-brand-green hover:text-white compact-transition"><Linkedin size={20} /></a>
+                <a href="#" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-brand-green hover:text-white compact-transition"><Facebook size={20} /></a>
+                <a href="#" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-brand-green hover:text-white compact-transition"><Instagram size={20} /></a>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
+            <h3 className="text-sm font-black text-dark-navy uppercase tracking-widest mb-6 border-b border-gray-100 pb-4">Agent Reviews</h3>
+            <div className="space-y-6">
+              {agent.reviews.length > 0 ? agent.reviews.map((rev: any, i: number) => (
+                <div key={i} className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-black text-dark-navy">{rev.user}</span>
+                    <div className="flex text-orange-400">
+                      {[...Array(rev.rating)].map((_, idx) => <Star key={idx} size={10} fill="currentColor" />)}
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 font-medium italic">"{rev.comment}"</p>
+                  <div className="text-[10px] text-gray-400 font-bold">{rev.date}</div>
+                </div>
+              )) : (
+                <div className="text-center py-8">
+                  <Star size={24} className="mx-auto text-gray-200 mb-2" />
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">No reviews yet</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Content */}
+        <div className="lg:col-span-2 space-y-12">
+          <div className="space-y-6">
+            <h2 className="text-3xl font-black text-dark-navy tracking-tight">About {agent.name.split(' ').pop()}</h2>
+            <p className="text-lg text-gray-500 font-medium leading-relaxed">{agent.bio}</p>
+          </div>
+
+          <div className="space-y-8">
+            <div className="flex justify-between items-end">
+              <div>
+                <h3 className="text-xl font-black text-dark-navy">Active Listings</h3>
+                <p className="text-sm text-gray-400 font-bold uppercase tracking-widest mt-1">Properties managed by {agent.name.split(' ').pop()}</p>
+              </div>
+              <div className="text-brand-green font-black text-sm">{agentProperties.length} Properties found</div>
+            </div>
+
+            {agentProperties.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {agentProperties.map(p => (
+                  <PropertyCard key={p.id} property={p} onClick={() => onPropertyClick(p)} />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-gray-50 rounded-3xl p-12 text-center border-2 border-dashed border-gray-200">
+                <Building2 size={48} className="mx-auto text-gray-300 mb-4" />
+                <h3 className="text-lg font-black text-dark-navy">No active listings</h3>
+                <p className="text-gray-400 font-medium mt-2">This agent currently has no properties listed for sale or rent.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const PromotionView = ({ onBack, onNavigateToAuth, onNavigateToPackages }: { onBack: () => void, onNavigateToAuth: () => void, onNavigateToPackages: () => void }) => (
+  <motion.div 
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="container mx-auto px-6 py-20 max-w-4xl"
+  >
+    <button onClick={onBack} className="flex items-center gap-2 text-brand-green font-bold mb-8 hover:underline">
+      <ChevronLeft size={20} /> Back to Home
+    </button>
+    
+    <div className="bg-white rounded-[40px] shadow-2xl overflow-hidden border border-gray-100">
+      <div className="bg-brand-green p-12 text-white text-center relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/10 rounded-full -ml-32 -mb-32 blur-3xl" />
+        
+        <motion.div 
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          className="relative z-10"
+        >
+          <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-6 backdrop-blur-md">
+            <Percent size={40} strokeWidth={3} />
+          </div>
+          <h1 className="text-5xl font-black mb-4 tracking-tighter italic">BIG SAVINGS!</h1>
+          <p className="text-2xl font-bold opacity-90 max-w-lg mx-auto">Get 10% off your first ever property ad listing on LankaProperty.lk</p>
+        </motion.div>
+      </div>
+      
+      <div className="p-12 space-y-12">
+        <div className="grid md:grid-cols-3 gap-8">
+          {[
+            { step: '01', title: 'Create Account', desc: 'Sign up for a free account in seconds.' },
+            { step: '02', title: 'Pick Package', desc: 'Choose any advertising package that fits.' },
+            { step: '03', title: 'Auto Discount', desc: '10% will be deducted from your total bill.' },
+          ].map((item, i) => (
+            <div key={i} className="text-center">
+              <div className="text-4xl font-black text-brand-green/20 mb-2">{item.step}</div>
+              <h3 className="text-lg font-bold text-dark-navy mb-2">{item.title}</h3>
+              <p className="text-sm text-gray-500 font-medium">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+        
+        <div className="bg-gray-50 rounded-3xl p-8 border border-dashed border-gray-200">
+          <h2 className="text-xl font-bold text-dark-navy mb-4 flex items-center gap-2">
+            <CheckCircle className="text-brand-green" size={24} /> Why advertise with us?
+          </h2>
+          <ul className="grid sm:grid-cols-2 gap-4">
+            {[
+              "500,000+ Monthly active buyers",
+              "Featured in Google Search results",
+              "Professional photography support",
+              "Dedicated account management",
+              "Advanced listing diagnostics",
+              "Global social media reach"
+            ].map((text, i) => (
+              <li key={i} className="flex items-center gap-3 text-gray-600 font-semibold text-sm">
+                <div className="w-1.5 h-1.5 rounded-full bg-brand-green" />
+                {text}
+              </li>
+            ))}
+          </ul>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-4 pt-4">
+          <button 
+            onClick={onNavigateToAuth}
+            className="flex-1 py-5 bg-brand-green text-white font-black text-lg rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition"
+          >
+            Claim Discount Now
+          </button>
+          <button 
+            onClick={onNavigateToPackages}
+            className="flex-1 py-5 bg-dark-navy text-white font-black text-lg rounded-2xl shadow-xl shadow-dark-navy/20 hover:bg-black compact-transition"
+          >
+            View Packages
+          </button>
+        </div>
+        
+        <p className="text-center text-xs text-gray-400 font-medium">
+          * Offer valid for new users only. Discount applicable on the first transaction only. Terms and conditions apply.
+        </p>
+      </div>
+    </div>
+  </motion.div>
+);
+
 export default function App() {
   const [recentFilter, setRecentFilter] = useState<"Sale" | "Rent">("Sale");
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth', data?: any }>({ type: 'home' });
+  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'promotion' | 'agent' | 'agents', data?: any }>({ type: 'home' });
   const [user, setUser] = useState<{ email: string } | null>(null);
 
   // Scroll to top when view changes
@@ -1857,6 +2261,7 @@ export default function App() {
                     else if (item === 'About') setCurrentView({ type: 'about' });
                     else if (item === 'Packages') setCurrentView({ type: 'packages' });
                     else if (item === 'Advertising') setCurrentView({ type: 'packages' });
+                    else if (item === 'Agents') setCurrentView({ type: 'agents' });
                     else if (item === 'Contact') setCurrentView({ type: 'contact' });
                   }}
                   className={`${(item === 'Home' && currentView.type === 'home' || item === 'About' && currentView.type === 'about' || item === 'Packages' && currentView.type === 'packages' || item === 'Advertising' && currentView.type === 'packages' || item === 'Contact' && currentView.type === 'contact') ? 'text-brand-green border-b-2 border-brand-green pb-1.5' : 'hover:text-brand-green'} compact-transition`}
@@ -1878,12 +2283,18 @@ export default function App() {
                 </button>
               </div>
             ) : (
-              <button 
+              <motion.button 
+                initial={{ backgroundColor: "#00b562" }}
+                animate={{ 
+                  backgroundColor: ["#00b562", "#00d171", "#00b562"],
+                  boxShadow: ["0 10px 15px -3px rgba(0, 181, 98, 0.2)", "0 10px 25px -3px rgba(0, 181, 98, 0.4)", "0 10px 15px -3px rgba(0, 181, 98, 0.2)"]
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
                 onClick={() => setCurrentView({ type: 'auth' })}
-                className="bg-brand-green text-white font-bold text-sm px-8 py-4 rounded-2xl hover:bg-brand-green-dark compact-transition shadow-lg shadow-brand-green/20"
+                className="bg-brand-green text-white font-bold text-sm px-8 py-4 rounded-2xl hover:bg-brand-green-dark compact-transition"
               >
                 Sign In
-              </button>
+              </motion.button>
             )}
             <button className="px-5 py-3 bg-gray-100 text-gray-700 rounded-xl text-base font-bold hover:bg-gray-200 compact-transition">
               Menu
@@ -1909,12 +2320,15 @@ export default function App() {
                     <motion.div
                       key={cat.name}
                       onClick={() => handleCategoryClick(cat.name)}
-                      whileHover={{ scale: 1.1, y: -5 }}
+                      initial={{ y: 0 }}
+                      animate={{ y: [0, -8, 0] }}
+                      transition={{ duration: 5, repeat: Infinity, delay: idx * 0.7, ease: "easeInOut" }}
+                      whileHover={{ scale: 1.1, y: -12 }}
                       whileTap={{ scale: 0.95 }}
                       className="flex flex-col items-center gap-2.5 min-w-[100px] cursor-pointer group"
                     >
-                      <div className="w-16 h-16 bg-white rounded-full shadow-md flex items-center justify-center border border-gray-100 group-hover:border-brand-green group-hover:shadow-lg group-hover:shadow-brand-green/10 compact-transition">
-                        <div className="text-gray-400 group-hover:text-brand-green group-hover:scale-110 compact-transition">
+                      <div className={`w-16 h-16 ${cat.bg} rounded-full shadow-md flex items-center justify-center border border-gray-100 group-hover:border-brand-green group-hover:shadow-lg group-hover:shadow-brand-green/10 compact-transition`}>
+                        <div className={`${cat.color} group-hover:scale-110 compact-transition`}>
                           {cat.icon}
                         </div>
                       </div>
@@ -2039,11 +2453,15 @@ export default function App() {
             onToggleFavorite={() => toggleFavorite(currentView.data.id)}
             onOpenCalculator={() => setShowCalculator(true)}
             onPropertyClick={(p) => handleDetailClick(p)}
+            onAgentClick={(agent) => setCurrentView({ type: 'agent', data: agent })}
           />
         )}
 
         {currentView.type === 'contact' && (
-          <ContactUs onBack={navigateHome} />
+          <ContactUs 
+            onBack={navigateHome} 
+            onAgentClick={(agent) => setCurrentView({ type: 'agent', data: agent })} 
+          />
         )}
 
         {currentView.type === 'about' && (
@@ -2063,6 +2481,29 @@ export default function App() {
             }} 
           />
         )}
+
+        {currentView.type === 'promotion' && (
+          <PromotionView 
+            onBack={navigateHome} 
+            onNavigateToAuth={() => setCurrentView({ type: 'auth' })} 
+            onNavigateToPackages={() => setCurrentView({ type: 'packages' })} 
+          />
+        )}
+
+        {currentView.type === 'agent' && (
+          <AgentProfileView 
+            agent={currentView.data} 
+            onBack={navigateHome} 
+            onPropertyClick={(p) => handleDetailClick(p)} 
+          />
+        )}
+
+        {currentView.type === 'agents' && (
+          <AgentsView 
+            onAgentClick={(agent) => setCurrentView({ type: 'agent', data: agent })} 
+            onBack={navigateHome} 
+          />
+        )}
       </AnimatePresence>
 
       <Footer 
@@ -2070,6 +2511,7 @@ export default function App() {
         onShowContact={() => setCurrentView({ type: 'contact' })} 
         onShowAbout={() => setCurrentView({ type: 'about' })} 
         onShowPackages={() => setCurrentView({ type: 'packages' })} 
+        onShowPromotion={() => setCurrentView({ type: 'promotion' })}
       />
 
       <MortgageCalculatorModal 
