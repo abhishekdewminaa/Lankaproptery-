@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { 
   Search, 
   MapPin, 
@@ -21,8 +24,36 @@ import {
   ArrowUp,
   Bed,
   Bath,
-  DollarSign
+  DollarSign,
+  Coffee,
+  School,
+  ShoppingBag,
+  Heart,
+  Calculator,
+  Percent,
+  CheckCircle,
+  Share2,
+  Printer,
+  MessageCircle,
+  Clock,
+  Eye,
+  Copy,
+  Wifi,
+  Tv,
+  Waves,
+  Wind,
+  Shield,
+  ExternalLink,
+  Send
 } from "lucide-react";
+
+// @ts-ignore
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 // --- Types & Data ---
 const PROPERTY_CATEGORIES = [
@@ -42,6 +73,8 @@ const FEATURED_PROPERTIES = [
     price: "Contact for Price",
     type: "Sale",
     image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800",
+    lat: 6.8259,
+    lng: 79.8804,
   },
   {
     id: 2,
@@ -50,6 +83,8 @@ const FEATURED_PROPERTIES = [
     price: "Rs. 850,000 / Perch",
     type: "Sale",
     image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800",
+    lat: 7.0873,
+    lng: 80.0957,
   },
   {
     id: 3,
@@ -58,6 +93,8 @@ const FEATURED_PROPERTIES = [
     price: "Rs. 25,000,000",
     type: "Sale",
     image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800",
+    lat: 6.9374,
+    lng: 80.6486,
   },
   {
     id: 4,
@@ -66,6 +103,8 @@ const FEATURED_PROPERTIES = [
     price: "Rs. 150,000 / Month",
     type: "Rent",
     image: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=800",
+    lat: 6.9147,
+    lng: 79.8510,
   },
   {
     id: 5,
@@ -74,6 +113,8 @@ const FEATURED_PROPERTIES = [
     price: "Rs. 450,000 / Month",
     type: "Rent",
     image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=800",
+    lat: 7.2089,
+    lng: 79.8355,
   },
   {
     id: 6,
@@ -82,7 +123,20 @@ const FEATURED_PROPERTIES = [
     price: "Rs. 250,000 / Month",
     type: "Rent",
     image: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=800",
+    lat: 6.9847,
+    lng: 79.8914,
   },
+];
+
+const AMENITIES = [
+  { name: "24/7 Security", icon: <Shield size={16} /> },
+  { name: "Swimming Pool", icon: <Waves size={16} /> },
+  { name: "High-Speed Wifi", icon: <Wifi size={16} /> },
+  { name: "Air Conditioning", icon: <Wind size={16} /> },
+  { name: "Parking Area", icon: <Building2 size={16} /> },
+  { name: "Smart TV", icon: <Tv size={16} /> },
+  { name: "Hot Water", icon: <Bath size={16} /> },
+  { name: "Gym Access", icon: <User size={16} /> },
 ];
 
 const AGENTS = [
@@ -308,15 +362,36 @@ const CategoryStrip = () => (
   </div>
 );
 
-const PropertyCard = ({ property, onClick }: { property: any, onClick?: () => void }) => (
+const PropertyCard = ({ 
+  property, 
+  onClick, 
+  isFavorited, 
+  onToggleFavorite 
+}: { 
+  property: any, 
+  onClick?: () => void,
+  isFavorited?: boolean,
+  onToggleFavorite?: (e: React.MouseEvent) => void
+}) => (
   <motion.div 
     onClick={onClick}
-    className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md overflow-hidden flex flex-col compact-transition cursor-pointer"
+    className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md overflow-hidden flex flex-col compact-transition cursor-pointer relative"
   >
+    <button 
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggleFavorite?.(e);
+      }}
+      className={`absolute top-2 right-2 z-10 p-1.5 rounded-full backdrop-blur-sm compact-transition ${
+        isFavorited ? 'bg-brand-red text-white' : 'bg-white/50 text-gray-700 hover:bg-white hover:text-brand-red'
+      }`}
+    >
+      <Heart size={12} fill={isFavorited ? "currentColor" : "none"} />
+    </button>
     <div className="relative h-36 bg-gray-200 overflow-hidden">
       <img src={property.image} alt={property.title} className="w-full h-full object-cover compact-transition group-hover:scale-105" />
       <span className="absolute top-2 left-2 bg-brand-red text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">For {property.type}</span>
-      <span className="absolute top-2 right-2 bg-white/90 text-gray-900 text-[9px] font-bold px-2 py-0.5 rounded-full">{property.location}</span>
+      <span className="absolute top-2 right-10 bg-white/90 text-gray-900 text-[9px] font-bold px-2 py-0.5 rounded-full">{property.location}</span>
     </div>
     <div className="p-3 flex flex-col gap-1">
       <div className="text-brand-green font-bold text-sm leading-none">{property.price === 'Contact for Price' ? 'LKR Contact' : property.price}</div>
@@ -329,7 +404,21 @@ const PropertyCard = ({ property, onClick }: { property: any, onClick?: () => vo
   </motion.div>
 );
 
-const PropertyDetail = ({ property, onBack }: { property: any, onBack: () => void }) => {
+const PropertyDetail = ({ 
+  property, 
+  onBack,
+  isFavorited,
+  onToggleFavorite,
+  onOpenCalculator,
+  onPropertyClick
+}: { 
+  property: any, 
+  onBack: () => void,
+  isFavorited?: boolean,
+  onToggleFavorite?: () => void,
+  onOpenCalculator?: () => void,
+  onPropertyClick?: (p: any) => void
+}) => {
   const images = Array(12).fill(property.image).map((img, i) => 
     i === 0 ? img : `https://images.unsplash.com/photo-${1512917774080 + i}-9991f1c4c750?auto=format&fit=crop&q=60&w=600`
   );
@@ -340,110 +429,265 @@ const PropertyDetail = ({ property, onBack }: { property: any, onBack: () => voi
       animate={{ opacity: 1, y: 0 }}
       className="container mx-auto px-6 py-8"
     >
-      {/* Breadcrumbs */}
-      <div className="flex items-center gap-2 text-xs text-gray-400 mb-6 font-medium">
-        <button onClick={onBack} className="hover:text-brand-green">Home</button>
-        <ChevronDown size={12} className="-rotate-90" />
-        <span className="text-gray-900">Property Details</span>
+      {/* Top Header bar */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={onBack}
+            className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 compact-transition"
+          >
+            <ArrowRight className="rotate-180" size={20} />
+          </button>
+          <div>
+            <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+              <span className="flex items-center gap-1.5"><Clock size={12} /> Posted 2 days ago</span>
+              <span className="text-gray-300">|</span>
+              <span className="flex items-center gap-1.5"><Eye size={12} /> 1,245 views</span>
+              <span className="text-gray-300">|</span>
+              <span>Ref: LP-9402</span>
+            </div>
+            <h1 className="text-2xl font-bold text-dark-navy leading-tight">{property.title}</h1>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <button 
+            onClick={onToggleFavorite}
+            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border compact-transition ${
+              isFavorited 
+              ? 'bg-brand-red text-white border-brand-red' 
+              : 'bg-white text-gray-600 border-gray-200 hover:border-brand-red hover:text-brand-red'
+            }`}
+          >
+            <Heart size={16} fill={isFavorited ? "currentColor" : "none"} />
+            {isFavorited ? 'Saved' : 'Save'}
+          </button>
+          <button className="flex items-center justify-center p-2.5 bg-white border border-gray-200 text-gray-500 rounded-xl hover:border-brand-green hover:text-brand-green compact-transition">
+            <Share2 size={18} />
+          </button>
+          <button className="flex items-center justify-center p-2.5 bg-white border border-gray-200 text-gray-500 rounded-xl hover:border-brand-green hover:text-brand-green compact-transition">
+            <Printer size={18} />
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Gallery & Details */}
         <div className="lg:col-span-2 space-y-8">
-          <div>
-            <h1 className="text-2xl font-bold text-dark-navy mb-2">{property.title}</h1>
-            <p className="text-gray-500 flex items-center gap-1 text-sm font-medium">
-              <MapPin size={14} className="text-brand-green" /> {property.location}, Sri Lanka
-            </p>
-          </div>
-
-          {/* 12 Image Gallery Grid */}
-          <div className="grid grid-cols-4 grid-rows-3 gap-2 h-[500px]">
-            <div className="col-span-2 row-span-2 rounded-xl overflow-hidden shadow-sm">
-              <img src={images[0]} className="w-full h-full object-cover hover:scale-105 compact-transition" />
+          {/* Main Gallery */}
+          <div className="grid grid-cols-4 grid-rows-3 gap-2 h-[450px]">
+            <div className="col-span-2 row-span-2 rounded-2xl overflow-hidden shadow-sm relative group cursor-pointer">
+              <img src={images[0]} className="w-full h-full object-cover group-hover:scale-105 compact-transition" />
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent compact-transition" />
             </div>
             {images.slice(1, 9).map((img, i) => (
-              <div key={i} className="rounded-xl overflow-hidden shadow-sm">
-                <img src={img} className="w-full h-full object-cover hover:scale-110 compact-transition" />
+              <div key={i} className="rounded-xl overflow-hidden shadow-sm relative group cursor-pointer">
+                <img src={img} className="w-full h-full object-cover group-hover:scale-110 compact-transition" />
+                <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent compact-transition" />
               </div>
             ))}
-            <div className="col-span-2 rounded-xl overflow-hidden shadow-sm bg-gray-100 flex items-center justify-center relative">
-              <img src={images[9]} className="w-full h-full object-cover opacity-50" />
-              <button className="absolute inset-0 flex items-center justify-center text-dark-navy font-bold text-sm bg-white/20 backdrop-blur-sm hover:bg-white/40 compact-transition">
-                + {images.length - 9} More Photos
-              </button>
+            <div className="col-span-2 rounded-xl overflow-hidden shadow-sm bg-gray-100 flex items-center justify-center relative group cursor-pointer">
+              <img src={images[9]} className="w-full h-full object-cover opacity-60" />
+              <div className="absolute inset-0 flex items-center justify-center text-dark-navy font-bold text-sm bg-white/40 backdrop-blur-[2px] group-hover:bg-white/60 compact-transition">
+                View all 12 photos
+              </div>
             </div>
           </div>
 
-          {/* Quick Specs */}
-          <div className="grid grid-cols-4 gap-4 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-            <div className="text-center">
-              <Bed className="mx-auto text-brand-green mb-2" size={20} />
-              <div className="text-sm font-bold text-dark-navy">3</div>
-              <div className="text-[10px] text-gray-400 font-bold uppercase">Bedrooms</div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2 space-y-8">
+              {/* Features section */}
+              <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-brand-green/5 rounded-bl-full -mr-4 -mt-4" />
+                <h3 className="text-lg font-bold text-dark-navy mb-6 flex items-center gap-2">
+                  <CheckCircle className="text-brand-green" size={20} /> Property Features
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                  <div>
+                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Bedrooms</div>
+                    <div className="flex items-center gap-2 text-dark-navy font-bold">
+                      <Bed size={18} className="text-brand-green" /> 04
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Bathrooms</div>
+                    <div className="flex items-center gap-2 text-dark-navy font-bold">
+                      <Bath size={18} className="text-brand-green" /> 02
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Floor Area</div>
+                    <div className="text-dark-navy font-bold">2,450 sqft</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Land Size</div>
+                    <div className="text-dark-navy font-bold">15.5 Perches</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+                <h3 className="text-lg font-bold text-dark-navy mb-4">About this property</h3>
+                <div className="prose prose-sm text-gray-600 space-y-4 max-w-none">
+                  <p>Step into luxury with this stunning architect-designed residence located in one of Colombo's most sought-after residential pockets. This property defines modern elegance through its minimalist aesthetic and functional floor plan.</p>
+                  <p>The ground floor welcomes you with a grand entrance lobby leading to a spacious living and dining area that opens onto a beautifully landscaped private garden. The high ceilings and large windows ensure the house is naturally illuminated throughout the day.</p>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-medium">
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-brand-green" /> High-quality granite flooring</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-brand-green" /> Teak doors and windows</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-brand-green" /> Rooftop entertainment space</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-brand-green" /> Maid's quarters with washroom</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Amenities Grid */}
+              <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+                <h3 className="text-lg font-bold text-dark-navy mb-6">Building Amenities</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                  {AMENITIES.map((amenity, i) => (
+                    <div key={i} className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 border border-transparent hover:border-brand-green/20 compact-transition group">
+                      <div className="text-gray-400 group-hover:text-brand-green compact-transition">
+                        {amenity.icon}
+                      </div>
+                      <span className="text-[10px] font-bold text-dark-navy group-hover:text-brand-green">{amenity.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div className="text-center">
-              <Bath className="mx-auto text-brand-green mb-2" size={20} />
-              <div className="text-sm font-bold text-dark-navy">2</div>
-              <div className="text-[10px] text-gray-400 font-bold uppercase">Bathrooms</div>
-            </div>
-            <div className="text-center">
-              <LandPlot className="mx-auto text-brand-green mb-2" size={20} />
-              <div className="text-sm font-bold text-dark-navy">15.5</div>
-              <div className="text-[10px] text-gray-400 font-bold uppercase">Perches</div>
-            </div>
-            <div className="text-center">
-              <Building2 className="mx-auto text-brand-green mb-2" size={20} />
-              <div className="text-sm font-bold text-dark-navy">2,400</div>
-              <div className="text-[10px] text-gray-400 font-bold uppercase">Sq Ft</div>
+
+            <div className="space-y-6">
+              {/* Map Section */}
+              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Location Map</h3>
+                <div className="h-[250px] w-full rounded-xl overflow-hidden relative z-0 border border-gray-100 shadow-inner">
+                  <MapContainer 
+                    center={[property.lat || 6.9271, property.lng || 79.8612]} 
+                    zoom={15} 
+                    scrollWheelZoom={false}
+                    style={{ height: "100%", width: "100%" }}
+                  >
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    <Marker position={[property.lat || 6.9271, property.lng || 79.8612]} />
+                  </MapContainer>
+                </div>
+                <div className="mt-4 flex items-center justify-between text-[10px] font-bold text-gray-500">
+                  <span className="flex items-center gap-1.5"><MapPin size={12} /> {property.location}</span>
+                  <button className="text-brand-green flex items-center gap-1">Open in Google Maps <ExternalLink size={10} /></button>
+                </div>
+              </div>
+
+              {/* Share section */}
+              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Share Listing</h3>
+                <div className="flex gap-2">
+                  <button className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#25D366] text-white rounded-xl text-[10px] font-bold hover:opacity-90 compact-transition shadow-sm">
+                    <MessageCircle size={14} /> WhatsApp
+                  </button>
+                  <button className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-brand-green/10 text-brand-green rounded-xl text-[10px] font-bold hover:bg-brand-green transition-all hover:text-white group">
+                    <Copy size={14} /> Copy Link
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-
-          {/* Description */}
-          <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-            <h3 className="text-lg font-bold text-dark-navy mb-4">Description</h3>
-            <div className="text-sm text-gray-600 leading-relaxed space-y-4">
-              <p>Experience luxurious living in this architecturally designed home. Located in a prime residential area, this property offers a perfect blend of comfort and style. The open-plan living space is flooded with natural light, complementing the high-end finishes throughout.</p>
-              <p>Key Features include modern pantry kitchen, fully tiled floors, landscaped garden, and high-security boundary walls. Only 5 minutes away from the main highway and close to supermarkets, schools, and hospitals.</p>
+          
+          {/* Similar Properties */}
+          <div className="pt-12 border-t border-gray-100">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-bold text-dark-navy">Similar Properties Nearby</h3>
+              <a href="#" className="text-xs text-brand-green font-bold">View Related &rarr;</a>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {FEATURED_PROPERTIES.slice(0, 3).map(p => (
+                <PropertyCard 
+                  key={`sim-${p.id}`} 
+                  property={p} 
+                  onClick={() => onPropertyClick?.(p)}
+                />
+              ))}
             </div>
           </div>
         </div>
 
         {/* Right Column: Contact & Action */}
         <div className="space-y-6">
-          <div className="sticky top-24 bg-white p-6 rounded-2xl border border-gray-100 shadow-xl">
-            <div className="text-2xl font-bold text-brand-green mb-1">{property.price}</div>
-            <div className="text-xs text-gray-400 font-bold uppercase mb-6">Market Value</div>
+          <div className="sticky top-24 space-y-6">
+            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-green/5 rounded-full -mr-16 -mt-16 sm:block hidden" />
+              
+              <div className="relative z-10">
+                <div className="text-xs text-gray-400 font-bold uppercase mb-2">Asking Price</div>
+                <div className="text-3xl font-extrabold text-brand-green mb-8">{property.price}</div>
 
-            <div className="flex items-center gap-4 mb-6 pt-6 border-t border-gray-50">
-              <img src="https://i.pravatar.cc/150?u=manager" className="w-14 h-14 rounded-full border-2 border-brand-green/20" />
-              <div>
-                <div className="text-sm font-bold text-dark-navy">Lalith Ratnatunga</div>
-                <div className="text-[10px] text-gray-400 font-bold uppercase">Property Manager</div>
+                <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mb-8">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="relative">
+                      <img src="https://i.pravatar.cc/150?u=manager" className="w-16 h-16 rounded-full border-2 border-brand-green" />
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-brand-green rounded-full flex items-center justify-center text-white border-2 border-white">
+                        <Shield size={12} fill="currentColor" />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-dark-navy">Lalith Ratnatunga</div>
+                      <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-bold uppercase mt-0.5">
+                        <span className="text-brand-green">Verified Agent</span>
+                        <span className="text-gray-300">•</span>
+                        <span>4.8 Rating</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center py-2 bg-white rounded-lg border border-gray-100">
+                      <div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Member Since</div>
+                      <div className="text-xs font-bold text-dark-navy">Feb 2021</div>
+                    </div>
+                    <div className="text-center py-2 bg-white rounded-lg border border-gray-100">
+                      <div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Active Ads</div>
+                      <div className="text-xs font-bold text-dark-navy">12 Listed</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <a 
+                    href="tel:+94771234567" 
+                    className="w-full flex items-center justify-center gap-3 bg-brand-green text-white font-bold py-4 rounded-xl hover:bg-brand-green-dark compact-transition text-sm shadow-lg shadow-brand-green/20"
+                  >
+                    <Phone size={18} /> Call Manager
+                  </a>
+                  <button 
+                    className="w-full flex items-center justify-center gap-3 bg-dark-navy text-white font-bold py-4 rounded-xl hover:opacity-90 compact-transition text-sm"
+                  >
+                    <Send size={18} /> Send Inquiry
+                  </button>
+                  
+                  <div className="relative py-4">
+                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
+                    <div className="relative flex justify-center text-[10px] uppercase font-bold text-gray-300 bg-white px-2">Financials</div>
+                  </div>
+
+                  <button 
+                    onClick={onOpenCalculator}
+                    className="w-full flex items-center justify-center gap-3 border-2 border-gray-100 text-gray-600 font-bold py-3.5 rounded-xl hover:border-brand-green hover:text-brand-green compact-transition text-xs"
+                  >
+                    <Calculator size={18} /> Mortgage Calculator
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <a 
-                href="tel:+94771234567" 
-                className="w-full flex items-center justify-center gap-2 bg-brand-green text-white font-bold py-3 rounded-xl hover:bg-brand-green-dark compact-transition text-sm"
-              >
-                <Phone size={16} /> Call Manager
-              </a>
-              <button 
-                className="w-full flex items-center justify-center gap-2 bg-dark-navy text-white font-bold py-3 rounded-xl hover:opacity-90 compact-transition text-sm"
-              >
-                <Mail size={16} /> Send Inquiry
-              </button>
-              <button 
-                className="w-full flex items-center justify-center gap-2 border-2 border-gray-100 text-gray-600 font-bold py-3 rounded-xl hover:border-brand-green hover:text-brand-green compact-transition text-sm"
-              >
-                Book a Viewing
-              </button>
-            </div>
-
-            <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100 italic text-[10px] text-gray-500 text-center">
-              Mention "LankaProperty Ref: LP-9402" when calling for faster assistance.
+            {/* Quick Inquiry form */}
+            <div className="bg-gray-900 border border-gray-800 p-8 rounded-2xl text-white shadow-2xl">
+              <h4 className="text-sm font-bold mb-2">Request more information</h4>
+              <p className="text-[10px] text-gray-400 mb-6 font-medium">Lalith typically responds within 2 hours.</p>
+              <div className="space-y-4">
+                <input placeholder="Your Full Name" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none" />
+                <input placeholder="Phone Number" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none" />
+                <textarea placeholder="Your Message..." rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none resize-none"></textarea>
+                <button className="w-full py-3 bg-brand-green text-white text-xs font-bold rounded-xl hover:bg-brand-green-dark compact-transition">Request Details</button>
+              </div>
             </div>
           </div>
         </div>
@@ -452,8 +696,23 @@ const PropertyDetail = ({ property, onBack }: { property: any, onBack: () => voi
   );
 };
 
-const Sidebar = () => (
+const Sidebar = ({ onOpenCalculator }: { onOpenCalculator: () => void }) => (
   <aside className="space-y-6">
+    <div 
+      onClick={onOpenCalculator}
+      className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:border-brand-green group compact-transition"
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center text-orange-500 group-hover:scale-110 compact-transition">
+          <Calculator size={20} />
+        </div>
+        <div>
+          <div className="text-xs font-bold text-dark-navy">Mortgage Calculator</div>
+          <div className="text-[10px] text-gray-400 font-medium">Estimate your monthly payments</div>
+        </div>
+      </div>
+    </div>
+
     <div>
       <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Quick Directory</h3>
       <div className="grid grid-cols-2 gap-2">
@@ -528,10 +787,110 @@ const Footer = () => (
   </footer>
 );
 
+const MortgageCalculatorModal = ({ isOpen, onClose, initialAmount = 10000000 }: { isOpen: boolean, onClose: () => void, initialAmount?: number }) => {
+  const [loanAmount, setLoanAmount] = useState(initialAmount);
+  const [interestRate, setInterestRate] = useState(12);
+  const [loanTerm, setLoanTerm] = useState(15);
+
+  const calculatePayment = () => {
+    const r = interestRate / 100 / 12;
+    const n = loanTerm * 12;
+    if (r === 0) return loanAmount / n;
+    const payment = (loanAmount * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+    return payment;
+  };
+
+  const monthlyPayment = calculatePayment();
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-dark-navy/60 backdrop-blur-sm"
+          />
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="bg-white w-full max-w-md rounded-2xl shadow-2xl relative z-10 overflow-hidden"
+          >
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <div className="flex items-center gap-2">
+                <Calculator className="text-brand-green" size={20} />
+                <h3 className="text-lg font-bold text-dark-navy">Mortgage Calculator</h3>
+              </div>
+              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 compact-transition">
+                <ArrowUp className="rotate-180" size={20} />
+              </button>
+            </div>
+            
+            <div className="p-8 space-y-6">
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Loan Amount (LKR)</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">Rs.</span>
+                  <input 
+                    type="number" 
+                    value={loanAmount}
+                    onChange={(e) => setLoanAmount(Number(e.target.value))}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-dark-navy font-bold focus:ring-2 focus:ring-brand-green outline-none compact-transition"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Interest Rate (%)</label>
+                  <div className="relative">
+                    <input 
+                      type="number" 
+                      value={interestRate}
+                      onChange={(e) => setInterestRate(Number(e.target.value))}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-dark-navy font-bold focus:ring-2 focus:ring-brand-green outline-none compact-transition"
+                    />
+                    <Percent className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Loan Term (Years)</label>
+                  <input 
+                    type="number" 
+                    value={loanTerm}
+                    onChange={(e) => setLoanTerm(Number(e.target.value))}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-dark-navy font-bold focus:ring-2 focus:ring-brand-green outline-none compact-transition"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-brand-green/10 p-6 rounded-2xl border border-brand-green/20 text-center">
+                <div className="text-[10px] text-brand-green font-bold uppercase tracking-widest mb-1">Estimated Monthly Payment</div>
+                <div className="text-3xl font-extrabold text-brand-green">
+                  Rs. {monthlyPayment.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </div>
+              </div>
+
+              <p className="text-[10px] text-gray-400 text-center leading-relaxed">
+                * This is an estimate based on the provided inputs. Exact rates and terms will depend on your bank and credit status.
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 export default function App() {
   const [recentFilter, setRecentFilter] = useState<"Sale" | "Rent">("Sale");
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail', data?: any }>({ type: 'home' });
+  const [favorites, setFavorites] = useState<Set<number>>(new Set());
+  const [showCalculator, setShowCalculator] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -543,6 +902,15 @@ export default function App() {
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const toggleFavorite = (id: number) => {
+    setFavorites(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const filteredRecent = FEATURED_PROPERTIES.filter(p => p.type === recentFilter);
@@ -652,7 +1020,15 @@ export default function App() {
                       <a href="#" className="text-xs text-brand-green font-bold hover:underline">View All &rarr;</a>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {FEATURED_PROPERTIES.slice(0,3).map(p => <PropertyCard key={p.id} property={p} onClick={() => handleDetailClick(p)} />)}
+                      {FEATURED_PROPERTIES.slice(0,3).map(p => (
+                        <PropertyCard 
+                          key={p.id} 
+                          property={p} 
+                          onClick={() => handleDetailClick(p)}
+                          isFavorited={favorites.has(p.id)}
+                          onToggleFavorite={() => toggleFavorite(p.id)}
+                        />
+                      ))}
                     </div>
                   </div>
 
@@ -667,13 +1043,18 @@ export default function App() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {filteredRecent.map(p => (
                         <motion.div key={`${recentFilter}-${p.id}`} layout transition={{ duration: 0.2 }}>
-                          <PropertyCard property={p} onClick={() => handleDetailClick(p)} />
+                          <PropertyCard 
+                            property={p} 
+                            onClick={() => handleDetailClick(p)} 
+                            isFavorited={favorites.has(p.id)}
+                            onToggleFavorite={() => toggleFavorite(p.id)}
+                          />
                         </motion.div>
                       ))}
                     </div>
                   </div>
                 </div>
-                <div className="w-full lg:w-64 shrink-0"><Sidebar /></div>
+                <div className="w-full lg:w-64 shrink-0"><Sidebar onOpenCalculator={() => setShowCalculator(true)} /></div>
               </div>
             </section>
           </motion.main>
@@ -709,18 +1090,39 @@ export default function App() {
 
             <section className="container mx-auto px-6 mt-10">
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {categoryProperties.map(p => <PropertyCard key={p.id} property={p} onClick={() => handleDetailClick(p)} />)}
+                {categoryProperties.map(p => (
+                  <PropertyCard 
+                    key={p.id} 
+                    property={p} 
+                    onClick={() => handleDetailClick(p)}
+                    isFavorited={favorites.has(p.id)}
+                    onToggleFavorite={() => toggleFavorite(p.id)}
+                  />
+                ))}
               </div>
             </section>
           </motion.main>
         )}
 
         {currentView.type === 'detail' && (
-          <PropertyDetail property={currentView.data} onBack={navigateHome} />
+          <PropertyDetail 
+            property={currentView.data} 
+            onBack={navigateHome} 
+            isFavorited={favorites.has(currentView.data.id)}
+            onToggleFavorite={() => toggleFavorite(currentView.data.id)}
+            onOpenCalculator={() => setShowCalculator(true)}
+            onPropertyClick={(p) => handleDetailClick(p)}
+          />
         )}
       </AnimatePresence>
 
       <Footer />
+
+      <MortgageCalculatorModal 
+        isOpen={showCalculator} 
+        onClose={() => setShowCalculator(false)} 
+        initialAmount={currentView.type === 'detail' ? parseInt(currentView.data.price.replace(/[^0-9]/g, '')) || 10000000 : 10000000}
+      />
 
       <AnimatePresence>
         {showScrollTop && (
