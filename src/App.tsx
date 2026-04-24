@@ -1,8 +1,32 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+
+const USD_RATE = 300;
+const EUR_RATE = 325;
+
+const convertPrice = (priceStr: string) => {
+  if (!priceStr || priceStr.toLowerCase().includes('contact')) return null;
+  
+  // Extract number
+  const numericStr = priceStr.replace(/[^0-9]/g, '');
+  const amount = parseInt(numericStr);
+  
+  if (isNaN(amount) || amount === 0) return null;
+  
+  const suffix = priceStr.includes('/') ? ` / ${priceStr.split('/').pop()?.trim()}` : '';
+  
+  const formatValue = (val: number, symbol: string) => {
+    return `${symbol} ${Math.round(val).toLocaleString()}${suffix}`;
+  };
+
+  return {
+    usd: formatValue(amount / USD_RATE, '$'),
+    eur: formatValue(amount / EUR_RATE, '€')
+  };
+};
 import { 
   Search, 
   MapPin, 
@@ -45,10 +69,67 @@ import {
   Shield,
   ExternalLink,
   Send,
-  Globe
+  Globe,
+  ChevronLeft,
+  ChevronRight,
+  Maximize,
+  Box
 } from "lucide-react";
 
-// @ts-ignore
+// ... (previous code)
+
+const VirtualTourModal = ({ isOpen, onClose, propertyTitle }: { isOpen: boolean, onClose: () => void, propertyTitle: string }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-x-0 top-0 p-6 flex justify-between items-center z-20 bg-gradient-to-b from-black/80 to-transparent"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-brand-green rounded-xl flex items-center justify-center text-white">
+                <Box size={24} />
+              </div>
+              <div>
+                <h3 className="text-white font-bold leading-none mb-1">{propertyTitle}</h3>
+                <p className="text-brand-green text-[10px] uppercase font-bold tracking-widest">360° Virtual Experience</p>
+              </div>
+            </div>
+            <button 
+              onClick={onClose}
+              className="p-3 bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md compact-transition"
+            >
+              <ArrowUp className="rotate-180" size={24} />
+            </button>
+          </motion.div>
+
+          {/* Virtual Tour Container (Simulated with high-quality 360 pano source) */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.1 }}
+            className="w-full h-full relative"
+          >
+            <iframe 
+              src="https://pannellum.org/6.0/pannellum.htm?config=https://pannellum.org/configs/tour.json"
+              className="w-full h-full border-none"
+              allowFullScreen
+            />
+            
+            {/* Overlay controls hint */}
+            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 bg-black/40 backdrop-blur-md border border-white/10 rounded-full text-white text-[10px] font-bold uppercase tracking-widest pointer-events-none">
+              Click and drag to explore the room
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -368,12 +449,7 @@ const PropertyCard = ({
   onClick, 
   isFavorited, 
   onToggleFavorite 
-}: { 
-  property: any, 
-  onClick?: () => void,
-  isFavorited?: boolean,
-  onToggleFavorite?: (e: React.MouseEvent) => void
-}) => (
+}: any) => (
   <motion.div 
     onClick={onClick}
     className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md overflow-hidden flex flex-col compact-transition cursor-pointer relative"
@@ -396,6 +472,17 @@ const PropertyCard = ({
     </div>
     <div className="p-3 flex flex-col gap-1">
       <div className="text-brand-green font-bold text-sm leading-none">{property.price === 'Contact for Price' ? 'LKR Contact' : property.price}</div>
+      {(() => {
+        const converted = convertPrice(property.price);
+        if (!converted) return null;
+        return (
+          <div className="flex gap-2 text-[8px] font-bold text-gray-400 mt-0.5">
+            <span>{converted.usd}</span>
+            <span className="opacity-40">•</span>
+            <span>{converted.eur}</span>
+          </div>
+        );
+      })()}
       <div className="text-xs font-semibold text-gray-800 line-clamp-1 leading-tight">{property.title}</div>
       <div className="flex items-center gap-3 mt-1.5 text-[10px] text-gray-500">
         <span className="flex items-center gap-1 font-medium"><Building2 size={10} /> 3 Beds</span>
@@ -421,8 +508,13 @@ const PropertyDetail = ({
   onPropertyClick?: (p: any) => void
 }) => {
   const images = Array(12).fill(property.image).map((img, i) => 
-    i === 0 ? img : `https://images.unsplash.com/photo-${1512917774080 + i}-9991f1c4c750?auto=format&fit=crop&q=60&w=600`
+    i === 0 ? img : `https://images.unsplash.com/photo-${1512917774080 + i}-9991f1c4c750?auto=format&fit=crop&q=60&w=800`
   );
+
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const nextSlide = () => setActiveIndex((prev) => (prev + 1) % images.length);
+  const prevSlide = () => setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
 
   return (
     <motion.div 
@@ -475,23 +567,60 @@ const PropertyDetail = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Gallery & Details */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Main Gallery */}
-          <div className="grid grid-cols-4 grid-rows-3 gap-2 h-[450px]">
-            <div className="col-span-2 row-span-2 rounded-2xl overflow-hidden shadow-sm relative group cursor-pointer">
-              <img src={images[0]} className="w-full h-full object-cover group-hover:scale-105 compact-transition" />
-              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent compact-transition" />
+          {/* Main Gallery Carousel */}
+          <div className="space-y-4">
+            <div className="relative aspect-[16/10] sm:aspect-[16/9] rounded-2xl overflow-hidden group shadow-lg bg-gray-100">
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={activeIndex}
+                  src={images[activeIndex]}
+                  initial={{ opacity: 0, scale: 1.05 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.4, ease: "easeInOut" }}
+                  className="w-full h-full object-cover"
+                  alt={`Property view ${activeIndex + 1}`}
+                />
+              </AnimatePresence>
+
+              {/* Navigation Controls */}
+              <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between items-center opacity-0 group-hover:opacity-100 compact-transition z-10">
+                <button 
+                  onClick={(e) => { e.stopPropagation(); prevSlide(); }}
+                  className="w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-dark-navy hover:bg-brand-green hover:text-white shadow-xl compact-transition"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); nextSlide(); }}
+                  className="w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-dark-navy hover:bg-brand-green hover:text-white shadow-xl compact-transition"
+                >
+                  <ChevronRight size={24} />
+                </button>
+              </div>
+
+              {/* Counter Overlay */}
+              <div className="absolute bottom-4 right-4 bg-dark-navy/60 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-widest uppercase z-10 flex items-center gap-2">
+                <span>{activeIndex + 1}</span>
+                <span className="opacity-40">/</span>
+                <span className="opacity-40">{images.length}</span>
+              </div>
             </div>
-            {images.slice(1, 9).map((img, i) => (
-              <div key={i} className="rounded-xl overflow-hidden shadow-sm relative group cursor-pointer">
-                <img src={img} className="w-full h-full object-cover group-hover:scale-110 compact-transition" />
-                <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent compact-transition" />
-              </div>
-            ))}
-            <div className="col-span-2 rounded-xl overflow-hidden shadow-sm bg-gray-100 flex items-center justify-center relative group cursor-pointer">
-              <img src={images[9]} className="w-full h-full object-cover opacity-60" />
-              <div className="absolute inset-0 flex items-center justify-center text-dark-navy font-bold text-sm bg-white/40 backdrop-blur-[2px] group-hover:bg-white/60 compact-transition">
-                View all 12 photos
-              </div>
+
+            {/* Thumbnails Row */}
+            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar px-1">
+              {images.map((img, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveIndex(i)}
+                  className={`relative shrink-0 w-20 h-14 rounded-lg overflow-hidden border-2 compact-transition ${
+                    activeIndex === i ? 'border-brand-green scale-105 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <img src={img} className="w-full h-full object-cover" alt={`Thumb ${i + 1}`} />
+                  {activeIndex === i && <div className="absolute inset-0 bg-brand-green/20" />}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -620,7 +749,18 @@ const PropertyDetail = ({
               
               <div className="relative z-10">
                 <div className="text-xs text-gray-400 font-bold uppercase mb-2">Asking Price</div>
-                <div className="text-3xl font-extrabold text-brand-green mb-8">{property.price}</div>
+                <div className="text-3xl font-extrabold text-brand-green mb-1">{property.price}</div>
+                {(() => {
+                  const converted = convertPrice(property.price);
+                  if (!converted) return null;
+                  return (
+                    <div className="flex items-center gap-3 text-sm font-bold text-gray-400 mb-8">
+                      <span className="flex items-center gap-1"><DollarSign size={14} /> {converted.usd}</span>
+                      <span className="opacity-30">|</span>
+                      <span className="flex items-center gap-1 font-medium">{converted.eur}</span>
+                    </div>
+                  );
+                })()}
 
                 <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mb-8">
                   <div className="flex items-center gap-4 mb-4">
@@ -674,6 +814,16 @@ const PropertyDetail = ({
                     className="w-full flex items-center justify-center gap-3 border-2 border-gray-100 text-gray-600 font-bold py-3.5 rounded-xl hover:border-brand-green hover:text-brand-green compact-transition text-xs"
                   >
                     <Calculator size={18} /> Mortgage Calculator
+                  </button>
+
+                  <button 
+                    onClick={() => {
+                      // @ts-ignore
+                      window.setShowVirtualTour(true);
+                    }}
+                    className="w-full flex items-center justify-center gap-3 bg-orange-500/10 text-orange-600 font-bold py-3.5 rounded-xl hover:bg-orange-500 hover:text-white compact-transition text-xs border border-orange-200"
+                  >
+                    <Box size={18} /> Launch 360° Virtual Tour
                   </button>
                 </div>
               </div>
@@ -923,6 +1073,19 @@ const ContactUs = ({ onBack }: { onBack: () => void }) => {
 
             <div className="p-8 bg-brand-green rounded-2xl text-white relative overflow-hidden">
               <div className="relative z-10">
+                <div className="flex items-center gap-4 mb-6 pb-6 border-b border-white/20">
+                  <div className="w-16 h-16 rounded-full border-2 border-white/50 overflow-hidden bg-white/10 shrink-0">
+                    <img 
+                      src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200" 
+                      className="w-full h-full object-cover" 
+                      alt="Lalith Ratnatunga"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold leading-tight">Lalith Ratnatunga</h3>
+                    <p className="text-xs font-medium opacity-80 uppercase tracking-widest">General Manager</p>
+                  </div>
+                </div>
                 <h3 className="text-xl font-bold mb-2">Office Hours</h3>
                 <div className="space-y-2 opacity-90 text-sm">
                   <p className="flex justify-between"><span>Mon - Fri</span> <span>9:00 AM - 6:00 PM</span></p>
@@ -993,6 +1156,13 @@ export default function App() {
   const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact', data?: any }>({ type: 'home' });
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [showCalculator, setShowCalculator] = useState(false);
+  const [showVirtualTour, setShowVirtualTour] = useState(false);
+
+  // Expose virtual tour control for global access from nested components
+  useEffect(() => {
+    // @ts-ignore
+    window.setShowVirtualTour = setShowVirtualTour;
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -1233,17 +1403,35 @@ export default function App() {
         initialAmount={currentView.type === 'detail' ? parseInt(currentView.data.price.replace(/[^0-9]/g, '')) || 10000000 : 10000000}
       />
 
+      <VirtualTourModal 
+        isOpen={showVirtualTour}
+        onClose={() => setShowVirtualTour(false)}
+        propertyTitle={currentView.type === 'detail' ? currentView.data.title : 'Selected Property'}
+      />
+
       <a 
         href="https://wa.me/94773951560" 
         target="_blank" 
         rel="noopener noreferrer"
-        className="fixed bottom-24 right-6 z-[150] w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 compact-transition group"
-        title="Chat on WhatsApp"
+        className="fixed bottom-24 right-6 z-[150] group flex flex-col items-end gap-3"
+        title="Chat with Lalith on WhatsApp"
       >
-        <MessageCircle size={30} fill="currentColor" />
-        <span className="absolute right-full mr-3 bg-white text-dark-navy text-xs font-bold py-2 px-4 rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none compact-transition whitespace-nowrap border border-gray-100">
-          Chat with Manager
+        <span className="bg-white text-dark-navy text-xs font-bold py-2 px-4 rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none compact-transition whitespace-nowrap border border-gray-100">
+          Chat with Lalith
         </span>
+        <div className="relative">
+          <div className="w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 compact-transition overflow-hidden">
+            <img 
+              src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200" 
+              className="w-full h-full object-cover group-hover:opacity-0 compact-transition" 
+              alt="Lalith"
+            />
+            <MessageCircle size={30} fill="currentColor" className="absolute opacity-0 group-hover:opacity-100 compact-transition" />
+          </div>
+          <div className="absolute -top-1 -right-1 w-5 h-5 bg-[#25D366] rounded-full border-2 border-white flex items-center justify-center p-1">
+            <MessageCircle size={10} fill="currentColor" className="text-white" />
+          </div>
+        </div>
       </a>
 
       <AnimatePresence>
