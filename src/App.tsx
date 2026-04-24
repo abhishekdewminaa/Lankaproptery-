@@ -79,7 +79,8 @@ import {
   Lock,
   LogOut,
   Youtube,
-  PenTool
+  PenTool,
+  MessageSquare,
 } from "lucide-react";
 
 // ... (previous code)
@@ -236,13 +237,14 @@ const AMENITIES = [
 const AGENTS = [
   { 
     id: "lalith-ratnatunga",
-    name: "Mr. Lalith Ratnatunga", 
-    role: "General Manager", 
+    name: "Lion Lalith Ranatunga MAF", 
+    role: "Executive Director | Real Estate Agent | Visa Consultant", 
     img: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400",
     experience: "15+ Years",
+    credentials: "B. Sc. Mgt (Sp) USJ, LICA, PGD. Real Estate Mgt (Uni of Toronto)",
     phone: "+94 77 395 1560",
     email: "lalith@lankaproperty.lk",
-    bio: "Lalith is a seasoned real estate professional with over 15 years of experience in the Sri Lankan market. As General Manager, he has overseen thousands of successful transactions and is dedicated to providing elite service to both buyers and sellers.",
+    bio: "Lalith is a seasoned real estate professional with over 15 years of experience in the Sri Lankan market. As Executive Director of LankaProperty.lk, he leads the strategic direction of our agency while offering specialized expertise in real estate investment and visa consultancy.",
     listings: [1, 2, 3],
     reviews: [
       { user: "Rohan S.", rating: 5, comment: "Lalith provided exceptional service. Very professional and knowledgeable.", date: "2 months ago" },
@@ -1307,8 +1309,8 @@ const ContactUs = ({ onBack, onAgentClick }: { onBack: () => void, onAgentClick?
                     />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold leading-tight">Lalith Ratnatunga</h3>
-                    <p className="text-xs font-medium opacity-80 uppercase tracking-widest">General Manager</p>
+                    <h3 className="text-lg font-bold leading-tight">Lion Lalith Ranatunga MAF</h3>
+                    <p className="text-xs font-medium opacity-80 uppercase tracking-widest leading-relaxed">Executive Director | Real Estate Agent | Visa Consultant</p>
                   </div>
                 </div>
                 <h3 className="text-xl font-bold mb-2">Office Hours</h3>
@@ -1513,51 +1515,55 @@ const TestimonialsSection = () => (
 
 const AD_PACKAGES = [
   {
-    name: "Starter",
-    price: "Free",
-    duration: "30 Days",
-    description: "Ideal for individuals looking to test the waters with a single property listing.",
+    name: "GOLD PACKAGE",
+    price: "Rs. 15,000",
+    duration: "12 Months",
+    description: "Fully Website Advertising with Fully Social Media Marketing across 10 major platforms.",
     features: [
-      "Standard Property Listing",
-      "Up to 3 High-Res Photos",
-      "Basic Search Visibility",
-      "Standard Email Support",
-      "Public Search Integration"
+      "12 Months Duration",
+      "Featured Property Status",
+      "LankaLand.lk, Ikman.lk, Adsme.lk",
+      "LankaProperty.lk, LankaPropertyWeb.lk",
+      "Jacktree.lk, LankAdz.lk, House.lk",
+      "AdBoom.lk, LankaBuySell.lk",
+      "Social Media (WhatsApp, FB, IG, TikTok)"
     ],
     highlight: false,
-    color: "bg-slate-100",
-    textColor: "text-slate-600"
+    color: "bg-amber-50",
+    textColor: "text-amber-600"
   },
   {
-    name: "Premium",
-    price: "Rs. 4,500",
-    duration: "60 Days",
-    description: "The most popular choice for serious sellers and professional agents.",
+    name: "PLATINUM PACKAGE",
+    price: "Rs. 25,000",
+    duration: "Until Sold",
+    description: "Advertised until sold with premium placement and multi-channel marketing.",
     features: [
-      "Featured Position (Top 5)",
-      "Up to 15 High-Res Photos",
-      "Priority Search Placement",
-      "Social Media Promotion",
-      "Direct WhatsApp Inquiry Button",
-      "Verified Seller Badge"
+      "Advertised Until Sold",
+      "Featured on 10 Major Websites",
+      "LankaLand.lk, Ikman.lk, Adsme.lk",
+      "LankaProperty.lk, LankaPropertyWeb.lk",
+      "Jacktree.lk, LankAdz.lk, House.lk",
+      "AdBoom.lk, LankaBuySell.lk",
+      "Fully Social Media Marketing",
+      "Priority Direct Support"
     ],
     highlight: true,
     color: "bg-brand-green",
     textColor: "text-white"
   },
   {
-    name: "Elite",
-    price: "Rs. 12,500",
-    duration: "90 Days",
-    description: "Maximum exposure for high-value luxury properties and commercial projects.",
+    name: "DIAMOND PACKAGE",
+    price: "Rs. 45,000",
+    duration: "Until Sold",
+    description: "Ultimate exposure with home page banners and priority cross-platform marketing.",
     features: [
-      "Top-Shelf Branding",
-      "Unlimited Professional Photos",
-      "360° Virtual Tour Creation",
+      "All Platinum Tier Features",
+      "High-Traffic Banner Placement",
+      "Priority Listing Diagnostics",
+      "Featured Ad on LankaProperty.lk",
+      "Premium Web Slider (990x340 px)",
       "Dedicated Account Manager",
-      "Weekly Performance Reports",
-      "Multi-Platform Ad Network",
-      "Drone Photography Support"
+      "Global Social Media Boost"
     ],
     highlight: false,
     color: "bg-dark-navy",
@@ -1623,6 +1629,46 @@ const PricingPackages = ({ onBack, onGetStarted }: { onBack: () => void, onGetSt
             </button>
           </motion.div>
         ))}
+      </div>
+
+      <div className="mt-16 bg-gray-50 rounded-[40px] p-10 border border-gray-100 max-w-6xl mx-auto">
+        <div className="text-center mb-8">
+          <h3 className="text-lg font-black text-dark-navy uppercase tracking-widest">All Packages Include Advertising On:</h3>
+          <p className="text-xs text-gray-400 font-bold uppercase tracking-[0.2em] mt-1">Multi-Platform Network Visibility</p>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+          {[
+            "LankaLand.lk", "Ikman.lk", "Adsme.lk", "LankaProperty.lk", "LankaPropertyWeb.lk",
+            "Jacktree.lk", "LankAdz.lk", "House.lk", "AdBoom.lk", "LankaBuySell.lk"
+          ].map((site) => (
+            <div key={site} className="bg-white px-4 py-4 rounded-2xl border border-gray-100 text-center text-xs font-black text-gray-500 hover:text-brand-green hover:border-brand-green hover:shadow-lg hover:shadow-brand-green/5 compact-transition shadow-sm">
+              {site}
+            </div>
+          ))}
+        </div>
+        <div className="mt-10 flex flex-wrap justify-center gap-8 border-t border-gray-200 pt-8">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-brand-green/10 flex items-center justify-center text-brand-green"><Phone size={20} /></div>
+            <div>
+              <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Hotline</div>
+              <div className="text-sm font-black text-dark-navy">033 222 9695</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#25D366]/10 flex items-center justify-center text-[#25D366]"><MessageSquare size={20} /></div>
+            <div>
+              <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">WhatsApp</div>
+              <div className="text-sm font-black text-dark-navy">077 395 1560</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-brand-red/10 flex items-center justify-center text-brand-red"><Mail size={20} /></div>
+            <div>
+              <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Email</div>
+              <div className="text-sm font-black text-dark-navy">ceo.lankaland@gmail.com</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="mt-20 bg-dark-navy rounded-[40px] p-12 text-white relative overflow-hidden">
@@ -1936,7 +1982,7 @@ const AgentsView = ({ onAgentClick, onBack }: { onAgentClick: (agent: any) => vo
             </div>
             <div className="text-center space-y-1">
               <h4 className="text-xl font-black text-dark-navy group-hover:text-brand-green compact-transition">{agent.name}</h4>
-              <p className="text-xs font-black text-brand-green uppercase tracking-[0.2em]">{agent.role}</p>
+              <p className="text-[10px] font-black text-brand-green uppercase tracking-[0.15em] line-clamp-2 px-4">{agent.role}</p>
               <div className="flex items-center justify-center gap-2 mt-4">
                 <div className="px-3 py-1 rounded-full bg-gray-100 text-[10px] font-black text-gray-500 uppercase tracking-widest">{agent.experience}</div>
                 <div className="px-3 py-1 rounded-full bg-brand-green/10 text-[10px] font-black text-brand-green uppercase tracking-widest">{agent.listings.length} Listings</div>
@@ -1984,7 +2030,10 @@ const AgentProfileView = ({ agent, onBack, onPropertyClick }: { agent: any, onBa
                 <div className="px-3 py-1 bg-brand-green inline-block text-[10px] font-black text-white rounded-full uppercase tracking-widest mb-2">
                   {agent.role}
                 </div>
-                <h1 className="text-2xl font-black text-white">{agent.name}</h1>
+                <h1 className="text-2xl font-black text-white leading-tight">{agent.name}</h1>
+                {agent.credentials && (
+                  <p className="text-xs font-bold text-white/80 mt-1">{agent.credentials}</p>
+                )}
               </div>
             </div>
             
