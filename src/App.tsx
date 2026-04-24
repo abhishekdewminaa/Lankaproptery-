@@ -44,7 +44,8 @@ import {
   Wind,
   Shield,
   ExternalLink,
-  Send
+  Send,
+  Globe
 } from "lucide-react";
 
 // @ts-ignore
@@ -885,10 +886,111 @@ const MortgageCalculatorModal = ({ isOpen, onClose, initialAmount = 10000000 }: 
   );
 };
 
+const ContactUs = ({ onBack }: { onBack: () => void }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="container mx-auto px-6 py-12"
+    >
+      <div className="max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+          {/* Contact Info */}
+          <div className="space-y-10">
+            <div>
+              <h1 className="text-4xl font-extrabold text-dark-navy mb-4">Contact Information</h1>
+              <p className="text-gray-500 font-medium">We're here to help you find your dream property.</p>
+            </div>
+
+            <div className="space-y-6">
+              {[
+                { icon: <Phone className="text-brand-green" />, label: "Call Us", value: "077 395 1560 / 011 492 2492" },
+                { icon: <Mail className="text-brand-green" />, label: "Email", value: "ceo.Lankaland@gmail.com" },
+                { icon: <Globe className="text-brand-green" />, label: "Website", value: "www.LankaProperty.lk" },
+                { icon: <MapPin className="text-brand-green" />, label: "Address", value: "95 Metro Complex, Kirillawala, Kadawatha." },
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-4 p-6 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md compact-transition">
+                  <div className="w-12 h-12 rounded-xl bg-brand-green/10 flex items-center justify-center shrink-0">
+                    {item.icon}
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{item.label}</div>
+                    <div className="text-sm font-bold text-dark-navy leading-relaxed">{item.value}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-8 bg-brand-green rounded-2xl text-white relative overflow-hidden">
+              <div className="relative z-10">
+                <h3 className="text-xl font-bold mb-2">Office Hours</h3>
+                <div className="space-y-2 opacity-90 text-sm">
+                  <p className="flex justify-between"><span>Mon - Fri</span> <span>9:00 AM - 6:00 PM</span></p>
+                  <p className="flex justify-between"><span>Saturday</span> <span>9:00 AM - 2:00 PM</span></p>
+                  <p className="flex justify-between"><span>Sunday</span> <span className="font-bold">Closed</span></p>
+                </div>
+              </div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16" />
+            </div>
+          </div>
+
+          {/* Contact Form */}
+          <div className="bg-white p-10 rounded-3xl border border-gray-100 shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-4 h-full bg-brand-green" />
+            <div className="relative z-10 space-y-8">
+              <div>
+                <h2 className="text-2xl font-bold text-dark-navy mb-2">Send us an inquiry</h2>
+                <p className="text-sm text-gray-400 font-medium">Fill out the form below and our team will get back to you within 24 hours.</p>
+              </div>
+
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Full Name</label>
+                    <input className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition" placeholder="John Doe" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Email Address</label>
+                    <input className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition" placeholder="john@example.com" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Phone Number</label>
+                  <input className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition" placeholder="+94 77 123 4567" />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Inquiry Type</label>
+                  <select className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition appearance-none">
+                    <option>Property Viewing</option>
+                    <option>Buy Property</option>
+                    <option>List Property</option>
+                    <option>General Support</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Message</label>
+                  <textarea rows={5} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition resize-none" placeholder="How can we help you?"></textarea>
+                </div>
+
+                <button className="w-full bg-brand-green text-white font-bold py-4 rounded-xl hover:bg-brand-green-dark compact-transition shadow-lg shadow-brand-green/20 flex items-center justify-center gap-2">
+                  <Send size={18} /> Submit Inquiry
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
 export default function App() {
   const [recentFilter, setRecentFilter] = useState<"Sale" | "Rent">("Sale");
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail', data?: any }>({ type: 'home' });
+  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact', data?: any }>({ type: 'home' });
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [showCalculator, setShowCalculator] = useState(false);
 
@@ -928,8 +1030,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
-  const navigateHome = (e?: React.MouseEvent) => {
-    if (e) e.preventDefault();
+  const navigateHome = () => {
     setCurrentView({ type: 'home' });
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
@@ -962,8 +1063,12 @@ export default function App() {
               <li key={item}>
                 <a 
                   href="#" 
-                  onClick={(e) => item === 'Home' ? navigateHome(e) : null}
-                  className={`${(item === 'Home' && currentView.type === 'home') ? 'text-brand-green border-b-2 border-brand-green pb-1' : 'hover:text-brand-green'} compact-transition`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (item === 'Home') navigateHome();
+                    else if (item === 'Contact') setCurrentView({ type: 'contact' });
+                  }}
+                  className={`${(item === 'Home' && currentView.type === 'home' || item === 'Contact' && currentView.type === 'contact') ? 'text-brand-green border-b-2 border-brand-green pb-1' : 'hover:text-brand-green'} compact-transition`}
                 >
                   {item}
                 </a>
@@ -1114,6 +1219,10 @@ export default function App() {
             onPropertyClick={(p) => handleDetailClick(p)}
           />
         )}
+
+        {currentView.type === 'contact' && (
+          <ContactUs onBack={navigateHome} />
+        )}
       </AnimatePresence>
 
       <Footer />
@@ -1123,6 +1232,19 @@ export default function App() {
         onClose={() => setShowCalculator(false)} 
         initialAmount={currentView.type === 'detail' ? parseInt(currentView.data.price.replace(/[^0-9]/g, '')) || 10000000 : 10000000}
       />
+
+      <a 
+        href="https://wa.me/94773951560" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="fixed bottom-24 right-6 z-[150] w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 compact-transition group"
+        title="Chat on WhatsApp"
+      >
+        <MessageCircle size={30} fill="currentColor" />
+        <span className="absolute right-full mr-3 bg-white text-dark-navy text-xs font-bold py-2 px-4 rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none compact-transition whitespace-nowrap border border-gray-100">
+          Chat with Manager
+        </span>
+      </a>
 
       <AnimatePresence>
         {showScrollTop && (
