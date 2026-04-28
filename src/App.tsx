@@ -82,7 +82,10 @@ import {
   PenTool,
   MessageSquare,
   Plus,
+  Languages,
+  Loader2,
 } from "lucide-react";
+import { translateToSinhala } from "./services/geminiService";
 
 const VirtualTourModal = ({ isOpen, onClose, propertyTitle }: { isOpen: boolean, onClose: () => void, propertyTitle: string }) => {
   return (
@@ -163,7 +166,8 @@ const FEATURED_PROPERTIES = [
     image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800",
     lat: 6.8259,
     lng: 79.8804,
-    agentId: "lalith-ratnatunga"
+    agentId: "lalith-ratnatunga",
+    description: "Step into luxury with this stunning architect-designed residence located in one of Ratmalana's most sought-after residential pockets. This property defines modern elegance through its minimalist aesthetic and functional floor plan."
   },
   {
     id: 2,
@@ -174,7 +178,8 @@ const FEATURED_PROPERTIES = [
     image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800",
     lat: 7.0873,
     lng: 80.0957,
-    agentId: "lalith-ratnatunga"
+    agentId: "lalith-ratnatunga",
+    description: "Valuable residential land located in the heart of Nittambuwa. Perfect for building your dream home in a quiet yet accessible neighborhood. Close to supermarkets, schools, and public transport."
   },
   {
     id: 3,
@@ -185,7 +190,8 @@ const FEATURED_PROPERTIES = [
     image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800",
     lat: 6.9374,
     lng: 80.6486,
-    agentId: "lalith-ratnatunga"
+    agentId: "lalith-ratnatunga",
+    description: "A rare opportunity to own a large plot of land in Talawakele. Contains a well-maintained house with beautiful views of the surrounding hills. Ideal for a holiday home or eco-tourism project."
   },
   {
     id: 4,
@@ -196,7 +202,8 @@ const FEATURED_PROPERTIES = [
     image: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=800",
     lat: 6.9147,
     lng: 79.8510,
-    agentId: "chamath-wickramasooriya"
+    agentId: "chamath-wickramasooriya",
+    description: "Experience urban living at its finest in this spacious 3-bedroom apartment in Colombo 03. Features modern amenities, 24/7 security, and breathtaking city views. Walking distance to major shopping malls."
   },
   {
     id: 5,
@@ -207,7 +214,8 @@ const FEATURED_PROPERTIES = [
     image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=800",
     lat: 7.2089,
     lng: 79.8355,
-    agentId: "chamath-wickramasooriya"
+    agentId: "chamath-wickramasooriya",
+    description: "Stunning beachfront guest house available for lease in Negombo. Fully furnished with 8 bedrooms, common lounge, and pool area. Perfect for seasoned hospitality entrepreneurs."
   },
   {
     id: 6,
@@ -218,7 +226,8 @@ const FEATURED_PROPERTIES = [
     image: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=800",
     lat: 6.9847,
     lng: 79.8914,
-    agentId: "barnad-fernando"
+    agentId: "barnad-fernando",
+    description: "Large warehouse space with high ceilings and wide entrance for heavy vehicle access. Located in a prime industrial zone in Wattala with easy access to the highway and port."
   },
 ];
 
@@ -632,9 +641,35 @@ const PropertyDetail = ({
   );
 
   const [activeIndex, setActiveIndex] = useState(0);
+  const [translatedDesc, setTranslatedDesc] = useState<string | null>(null);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(true);
+  const [errorStatus, setErrorStatus] = useState<string | null>(null);
 
   const nextSlide = () => setActiveIndex((prev) => (prev + 1) % images.length);
   const prevSlide = () => setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
+
+  const handleTranslate = async () => {
+    if (translatedDesc) {
+      setShowOriginal(false);
+      setErrorStatus(null);
+      return;
+    }
+
+    setIsTranslating(true);
+    setErrorStatus(null);
+    try {
+      const translation = await translateToSinhala(property.description || "");
+      setTranslatedDesc(translation);
+      setShowOriginal(false);
+    } catch (error: any) {
+      console.error("Translation failed:", error);
+      setErrorStatus("Service busy. Please try again in 1 minute.");
+      setTimeout(() => setErrorStatus(null), 5000);
+    } finally {
+      setIsTranslating(false);
+    }
+  };
 
   return (
     <motion.div 
@@ -784,12 +819,65 @@ const PropertyDetail = ({
               </div>
 
               {/* Description */}
-              <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-                <h3 className="text-lg font-bold text-dark-navy mb-4">About this property</h3>
+              <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm relative">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-lg font-bold text-dark-navy">About this property</h3>
+                  <div className="flex gap-2">
+                    {!showOriginal && (
+                      <button 
+                        onClick={() => setShowOriginal(true)}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-700 text-[10px] font-bold rounded-lg hover:bg-gray-200 compact-transition"
+                      >
+                        Show English
+                      </button>
+                    )}
+                    <button 
+                      onClick={handleTranslate}
+                      disabled={isTranslating || !showOriginal && !!translatedDesc}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold compact-transition ${
+                        !showOriginal && translatedDesc 
+                        ? 'bg-brand-green/10 text-brand-green cursor-default' 
+                        : 'bg-brand-green text-white hover:bg-brand-green-dark shadow-sm'
+                      }`}
+                    >
+                      {isTranslating ? (
+                        <>
+                          <Loader2 size={12} className="animate-spin" />
+                          Translating...
+                        </>
+                      ) : (
+                        <>
+                          <Languages size={12} />
+                          {!showOriginal && translatedDesc ? 'Sinhala View' : 'Translate to Sinhala'}
+                        </>
+                      )}
+                    </button>
+                    {errorStatus && (
+                      <motion.span 
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="absolute top-full right-0 mt-2 text-[9px] text-red-500 font-bold bg-white px-2 py-1 rounded border border-red-100 shadow-sm whitespace-nowrap z-10"
+                      >
+                        {errorStatus}
+                      </motion.span>
+                    )}
+                  </div>
+                </div>
+                
                 <div className="prose prose-sm text-gray-600 space-y-4 max-w-none">
-                  <p>Step into luxury with this stunning architect-designed residence located in one of Colombo's most sought-after residential pockets. This property defines modern elegance through its minimalist aesthetic and functional floor plan.</p>
-                  <p>The ground floor welcomes you with a grand entrance lobby leading to a spacious living and dining area that opens onto a beautifully landscaped private garden. The high ceilings and large windows ensure the house is naturally illuminated throughout the day.</p>
-                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-medium">
+                  {showOriginal ? (
+                    <p>{property.description || "No description available."}</p>
+                  ) : (
+                    <motion.p 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-brand-green-dark font-medium whitespace-pre-wrap leading-relaxed"
+                    >
+                      {translatedDesc}
+                    </motion.p>
+                  )}
+                  
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-medium border-t border-gray-50 pt-4 mt-4">
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-brand-green" /> High-quality granite flooring</li>
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-brand-green" /> Teak doors and windows</li>
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-brand-green" /> Rooftop entertainment space</li>
