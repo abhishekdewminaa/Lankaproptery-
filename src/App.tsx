@@ -333,7 +333,7 @@ const Navbar = () => (
         </div>
       </div>
       <ul className="hidden lg:flex items-center gap-6 text-sm font-medium text-slate-700">
-        {["Home", "Real Estate", "Directory", "Agents", "Advertising", "Contact"].map((item) => (
+        {["Home", "Directory", "Agents", "Advertising", "Contact"].map((item) => (
           <li key={item}>
             <a href="#" className={`${item === 'Home' ? 'text-brand-green border-b-2 border-brand-green pb-1' : 'hover:text-brand-green'} compact-transition`}>
               {item}
@@ -1154,7 +1154,7 @@ const Sidebar = ({ onOpenCalculator, onShowPackages }: { onOpenCalculator: () =>
         <p className="text-[10px] text-gray-400 mt-1 mb-4 leading-tight">List for free and reach 500k monthly buyers across the island.</p>
         <button 
           onClick={onShowPackages}
-          className="w-full py-2 bg-brand-green text-white text-[10px] font-bold rounded-lg hover:bg-brand-green-dark compact-transition"
+          className="hidden"
         >
           View Packages
         </button>
@@ -1216,9 +1216,8 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
         <div>
           <h4 className="text-white font-bold mb-6 uppercase text-sm tracking-widest">Quick Links</h4>
           <ul className="space-y-4 text-base font-medium">
-            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowAbout(); }} className="hover:text-brand-green compact-transition">About Us</a></li>
+            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowAbout(); }} className="hover:text-brand-green compact-transition">About</a></li>
             <li><a href="#" onClick={(e) => { e.preventDefault(); onShowContact(); }} className="hover:text-brand-green compact-transition">Contact Support</a></li>
-            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowPackages(); }} className="hover:text-brand-green compact-transition">Advertising Packages</a></li>
             <li><a href="#" className="hover:text-brand-green compact-transition">Terms of Service</a></li>
             <li><a href="#" className="hover:text-brand-green compact-transition">Privacy Policy</a></li>
             <li><a href="#" className="hover:text-brand-green compact-transition">Sitemap</a></li>
@@ -2227,8 +2226,8 @@ const AboutUs = ({ onBack }: { onBack: () => void }) => {
   );
 };
 
-const AuthPage = ({ onBack, onLogin }: { onBack: () => void, onLogin: (email: string) => void }) => {
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+const AuthPage = ({ onBack, onLogin, initialMode = 'login' }: { onBack: () => void, onLogin: (email: string) => void, initialMode?: 'login' | 'signup' }) => {
+  const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -2343,8 +2342,17 @@ const AuthPage = ({ onBack, onLogin }: { onBack: () => void, onLogin: (email: st
   );
 };
 
+const SRI_LANKA_DISTRICTS = [
+  "Colombo", "Gampaha", "Kalutara", "Kandy", "Matale", "Nuwara Eliya", "Galle", "Matara", 
+  "Hambantota", "Jaffna", "Kilinochchi", "Mannar", "Vavuniya", "Mullaitivu", "Batticaloa", 
+  "Ampara", "Trincomalee", "Kurunegala", "Puttalam", "Anuradhapura", "Polonnaruwa", 
+  "Badulla", "Moneragala", "Ratnapura", "Kegalle"
+];
+
 const PublishListingView = ({ onBack }: { onBack: () => void }) => {
   const [step, setStep] = useState(1);
+  const [price, setPrice] = useState<string>("");
+  const [isNegotiable, setIsNegotiable] = useState(false);
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
@@ -2377,6 +2385,17 @@ const PublishListingView = ({ onBack }: { onBack: () => void }) => {
                 <h3 className="text-xl font-bold text-dark-navy">Core Details</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Property Category</label>
+                    <select className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
+                      <option>House</option>
+                      <option>Land</option>
+                      <option>Apartment</option>
+                      <option>Building</option>
+                      <option>Hotel</option>
+                      <option>Commercial</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
                     <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Listing Title</label>
                     <input type="text" placeholder="e.g., Luxury 3BR Apartment" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
                   </div>
@@ -2391,10 +2410,75 @@ const PublishListingView = ({ onBack }: { onBack: () => void }) => {
               </div>
 
               <div className="space-y-4">
-                <h4 className="text-sm font-black text-gray-400 uppercase tracking-widest">Pricing & Location</h4>
+                <div className="flex justify-between items-end px-1">
+                  <h4 className="text-sm font-black text-gray-400 uppercase tracking-widest">Pricing & Location</h4>
+                  <button 
+                    onClick={() => setIsNegotiable(!isNegotiable)}
+                    className={`flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter transition-all ${
+                      isNegotiable ? 'bg-brand-green text-white' : 'bg-gray-100 text-gray-400'
+                    }`}
+                  >
+                    <div className={`w-2 h-2 rounded-full ${isNegotiable ? 'bg-white animate-pulse' : 'bg-gray-300'}`} />
+                    Negotiable
+                  </button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input type="text" placeholder="Price (Rs.)" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
-                  <input type="text" placeholder="City / Suburb" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">District</label>
+                    <select className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
+                      <option value="">Select District</option>
+                      {SRI_LANKA_DISTRICTS.map(district => (
+                        <option key={district} value={district}>{district}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">City / Suburb</label>
+                    <input type="text" placeholder="e.g., Kadawatha" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
+                  </div>
+                  <div className="space-y-1.5 md:col-span-2">
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Price (Rs.)</label>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                      <div className="lg:col-span-2 space-y-2">
+                        <div className="relative">
+                          <input 
+                            type="number" 
+                            value={price}
+                            onChange={(e) => setPrice(e.target.value)}
+                            placeholder="Enter amount in LKR" 
+                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-5 text-xl font-black text-dark-navy focus:ring-2 focus:ring-brand-green/20 outline-none transition-all pr-16" 
+                          />
+                          <div className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-300 font-black">LKR</div>
+                        </div>
+                        {price && (
+                          <p className="text-xl font-black text-brand-green px-1 mt-1 tracking-tight">
+                            ≈ Rs. {Number(price).toLocaleString()} LKR
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex flex-row lg:flex-col gap-3">
+                        <div className="flex-1 bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex items-center gap-4 transition-all hover:border-brand-green/30">
+                          <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 text-lg font-black">$</div>
+                          <div>
+                            <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest">USD Estimate</div>
+                            <div className="text-lg font-black text-dark-navy leading-none">
+                              {price ? (Number(price) / USD_RATE).toLocaleString(undefined, { maximumFractionDigits: 0 }) : '0'}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex-1 bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex items-center gap-4 transition-all hover:border-brand-green/30">
+                          <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 text-lg font-black">€</div>
+                          <div>
+                            <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest">EUR Estimate</div>
+                            <div className="text-lg font-black text-dark-navy leading-none">
+                              {price ? (Number(price) / EUR_RATE).toLocaleString(undefined, { maximumFractionDigits: 0 }) : '0'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2746,11 +2830,139 @@ const PromotionView = ({ onBack, onNavigateToAuth, onNavigateToPackages }: { onB
   </motion.div>
 );
 
+const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBack: () => void, onLogout: () => void, onNewAd: () => void }) => {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="container mx-auto px-6 py-20 max-w-4xl"
+    >
+      <div className="flex justify-between items-center mb-12">
+        <button onClick={onBack} className="flex items-center gap-2 text-brand-green font-bold hover:translate-x-[-4px] compact-transition group">
+          <ChevronLeft size={20} className="group-hover:scale-125" /> Back to Home
+        </button>
+        
+        {/* User Pill from Image */}
+        <div className="bg-white/50 backdrop-blur-sm border border-gray-100 rounded-full py-2 px-3 flex items-center gap-4 shadow-sm">
+          <div className="w-10 h-10 bg-brand-green rounded-full flex items-center justify-center text-white font-bold text-lg">
+            {user?.email?.charAt(0).toUpperCase() || 'A'}
+          </div>
+          <span className="text-dark-navy font-bold text-sm truncate max-w-[150px]">
+            {user?.email || 'abhishekdewminaa@gmail.com'}
+          </span>
+          <button 
+            onClick={onLogout}
+            className="p-1.5 text-gray-400 hover:text-brand-red compact-transition"
+            title="Logout"
+          >
+            <LogOut size={18} className="rotate-180" />
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-1 space-y-6">
+          <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-xl overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-brand-green/5 rounded-bl-full" />
+            <div className="relative z-10 text-center">
+              <div className="w-24 h-24 bg-brand-green mx-auto rounded-3xl flex items-center justify-center text-white text-4xl font-black mb-4 shadow-lg shadow-brand-green/20">
+                {user?.email?.charAt(0).toUpperCase() || 'A'}
+              </div>
+              <h2 className="text-xl font-black text-dark-navy mb-1 line-clamp-1">{user?.email?.split('@')[0]}</h2>
+              <p className="text-[10px] font-black text-brand-green uppercase tracking-[0.2em] mb-6">Verified Member</p>
+              
+              <div className="grid grid-cols-2 gap-3 py-6 border-y border-gray-50">
+                <div>
+                  <div className="text-lg font-black text-dark-navy">12</div>
+                  <div className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Listings</div>
+                </div>
+                <div>
+                  <div className="text-lg font-black text-dark-navy">450</div>
+                  <div className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Inquiries</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-dark-navy p-6 rounded-[32px] text-white space-y-4">
+            <h3 className="text-sm font-black uppercase tracking-widest text-brand-green">Account Settings</h3>
+            <ul className="space-y-2">
+              <li className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer compact-transition">
+                <span className="text-sm font-bold">Edit Profile</span>
+                <User size={16} className="text-gray-500" />
+              </li>
+              <li className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer compact-transition">
+                <span className="text-sm font-bold">Security</span>
+                <Shield size={16} className="text-gray-500" />
+              </li>
+              <li className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer compact-transition text-brand-red">
+                <span className="text-sm font-bold">Delete Account</span>
+                <LogOut size={16} />
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="md:col-span-2 space-y-8">
+          <div className="flex justify-between items-end">
+            <div>
+              <h3 className="text-2xl font-black text-dark-navy">Your Listings</h3>
+              <p className="text-sm text-gray-400 font-medium">Manage and track your active property advertisements</p>
+            </div>
+            <button 
+              onClick={onNewAd}
+              className="px-6 py-3 bg-brand-green text-white text-xs font-black rounded-xl hover:bg-brand-green-dark shadow-lg shadow-brand-green/20 uppercase tracking-widest compact-transition"
+            >
+              + New Ad
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {FEATURED_PROPERTIES.slice(0, 2).map((property) => (
+              <div key={property.id} className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex gap-6 group hover:border-brand-green compact-transition">
+                <div className="w-40 h-28 rounded-2xl overflow-hidden shrink-0">
+                  <img src={property.image} className="w-full h-full object-cover group-hover:scale-105 compact-transition" />
+                </div>
+                <div className="flex-1 flex flex-col justify-between py-1">
+                  <div>
+                    <h4 className="font-bold text-dark-navy group-hover:text-brand-green compact-transition">{property.title}</h4>
+                    <p className="text-xs text-gray-400 flex items-center gap-1 mt-1"><MapPin size={12} /> {property.location}</p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-brand-green font-black">{property.price}</span>
+                    <div className="flex gap-2">
+                      <button className="px-4 py-1.5 bg-gray-100 text-dark-navy text-[10px] font-bold rounded-lg hover:bg-gray-200">Edit</button>
+                      <button className="px-4 py-1.5 bg-brand-red/10 text-brand-red text-[10px] font-bold rounded-lg hover:bg-brand-red hover:text-white">Pause</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-gray-50 p-10 rounded-[40px] border border-dashed border-gray-200 text-center space-y-4">
+            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto text-gray-300 shadow-sm">
+              <Star size={32} />
+            </div>
+            <div>
+              <h4 className="font-black text-dark-navy">Need More Exposure?</h4>
+              <p className="text-xs text-gray-400 font-medium mt-1">Upgrade your listings to Gold or Platinum for 10x more leads.</p>
+            </div>
+            <button className="px-8 py-3 bg-white border border-gray-200 text-dark-navy text-xs font-black rounded-xl hover:border-brand-green compact-transition shadow-sm">
+              Explore Plans
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
 export default function App() {
   const [recentFilter, setRecentFilter] = useState<"Sale" | "Rent">("Sale");
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish', data?: any }>({ type: 'home' });
-  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile', data?: any }>({ type: 'home' });
+  const [user, setUser] = useState<{ email: string } | null>({ email: 'abhishekdewminaa@gmail.com' });
   const [compareList, setCompareList] = useState<number[]>([]);
 
   const toggleCompare = (id: number) => {
@@ -2825,19 +3037,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col relative">
       <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100 shadow-sm">
-        <div className="bg-dark-navy h-10 flex items-center">
-          <div className="container mx-auto px-6 flex justify-between items-center text-xs text-gray-300">
-            <div className="flex gap-6">
-              <span className="flex items-center gap-1.5 opacity-90">Hotline: +94 33 222 96 95</span>
-              <span className="flex items-center gap-1.5 opacity-90">Email: info@lankaproperty.lk</span>
-            </div>
-            <div className="flex items-center gap-4 font-medium">
-              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentView({ type: 'auth' }); }} className="hover:text-white compact-transition">Login</a>
-              <span className="text-gray-700 text-xs">|</span>
-              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentView({ type: 'packages' }); }} className="font-bold text-brand-green hover:text-brand-green-dark compact-transition">Post a Free Ad</a>
-            </div>
-          </div>
-        </div>
+
         <nav className="container mx-auto px-6 h-20 flex justify-between items-center">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigateHome()}>
             <div className="w-10 h-10 bg-brand-green rounded-xl flex items-center justify-center text-white font-bold text-xl">L</div>
@@ -2845,21 +3045,21 @@ export default function App() {
               <h1 className="text-2xl font-bold tracking-tight text-dark-navy leading-none">LankaProperty<span className="text-brand-green">.lk</span></h1>
             </div>
           </div>
-          <ul className="hidden lg:flex items-center gap-8 text-base font-semibold text-slate-700">
-            {["Home", "ABOUT US", "Real Estate", "Packages", "Agents", "Advertising", "Contact"].map((item) => (
+          <ul className="hidden lg:flex items-center gap-6 text-[15px] font-semibold text-slate-700">
+            {["Home", "About", "Property Wanted", "Agents", "Advertising", "Contact"].map((item) => (
               <li key={item}>
                 <a 
                   href="#" 
                   onClick={(e) => {
                     e.preventDefault();
                     if (item === 'Home') navigateHome();
-                    else if (item === 'ABOUT US') setCurrentView({ type: 'about' });
-                    else if (item === 'Packages') setCurrentView({ type: 'packages' });
+                    else if (item === 'About') setCurrentView({ type: 'about' });
                     else if (item === 'Advertising') setCurrentView({ type: 'packages' });
                     else if (item === 'Agents') setCurrentView({ type: 'agents' });
                     else if (item === 'Contact') setCurrentView({ type: 'contact' });
+                    else if (item === 'Property Wanted') setCurrentView({ type: 'packages' });
                   }}
-                  className={`${(item === 'Home' && currentView.type === 'home' || item === 'ABOUT US' && currentView.type === 'about' || item === 'Packages' && currentView.type === 'packages' || item === 'Advertising' && currentView.type === 'packages' || item === 'Contact' && currentView.type === 'contact') ? 'text-brand-green border-b-2 border-brand-green pb-1.5' : 'hover:text-brand-green'} compact-transition`}
+                  className={`${(item === 'Home' && currentView.type === 'home' || item === 'About' && currentView.type === 'about' || item === 'Advertising' && currentView.type === 'packages' || item === 'Contact' && currentView.type === 'contact') ? 'text-brand-green border-b-2 border-brand-green pb-1.5' : 'hover:text-brand-green'} whitespace-nowrap compact-transition`}
                 >
                   {item}
                 </a>
@@ -2868,13 +3068,19 @@ export default function App() {
           </ul>
           <div className="flex items-center gap-5">
             {user ? (
-              <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-full pl-1.5 pr-4 py-2">
-                <div className="w-10 h-10 rounded-full bg-brand-green flex items-center justify-center text-white text-sm font-bold">
+              <div 
+                onClick={() => setCurrentView({ type: 'profile' })}
+                className="flex items-center gap-3 bg-white/50 backdrop-blur-sm border border-gray-100 rounded-full pl-1.5 pr-2 py-1.5 cursor-pointer hover:bg-white hover:shadow-md compact-transition"
+              >
+                <div className="w-10 h-10 rounded-full bg-brand-green flex items-center justify-center text-white text-sm font-bold shadow-sm">
                   {user.email[0].toUpperCase()}
                 </div>
                 <span className="text-sm font-bold text-dark-navy truncate max-w-[140px]">{user.email}</span>
-                <button onClick={() => setUser(null)} className="text-gray-400 hover:text-red-500 ml-1">
-                  <LogOut size={16} />
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setUser(null); navigateHome(); }} 
+                  className="p-1.5 text-gray-400 hover:text-brand-red compact-transition"
+                >
+                  <LogOut size={18} className="rotate-180" />
                 </button>
               </div>
             ) : (
@@ -2891,9 +3097,23 @@ export default function App() {
                 Sign In
               </motion.button>
             )}
-            <button className="px-5 py-3 bg-gray-100 text-gray-700 rounded-xl text-base font-bold hover:bg-gray-200 compact-transition">
-              Menu
-            </button>
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              animate={{ 
+                boxShadow: ["0 0 0 rgba(0, 181, 98, 0)", "0 0 12px rgba(0, 181, 98, 0.5)", "0 0 0 rgba(0, 181, 98, 0)"]
+              }}
+              transition={{ 
+                boxShadow: { duration: 2, repeat: Infinity }
+              }}
+              onClick={() => {
+                if (user) setCurrentView({ type: 'publish' });
+                else setCurrentView({ type: 'auth', data: 'signup' });
+              }}
+              className="px-6 py-3 bg-brand-green text-white rounded-xl text-base font-bold hover:bg-brand-green-dark shadow-lg shadow-brand-green/20 compact-transition"
+            >
+              Post free ad
+            </motion.button>
           </div>
         </nav>
       </header>
@@ -3069,6 +3289,15 @@ export default function App() {
           <AboutUs onBack={navigateHome} />
         )}
 
+        {currentView.type === 'profile' && (
+          <UserProfileView 
+            user={user} 
+            onBack={navigateHome} 
+            onLogout={() => { setUser(null); navigateHome(); }} 
+            onNewAd={() => setCurrentView({ type: 'publish' })}
+          />
+        )}
+
         {currentView.type === 'packages' && (
           <PricingPackages onBack={navigateHome} onGetStarted={() => setCurrentView({ type: 'auth', data: 'publish' })} />
         )}
@@ -3076,6 +3305,7 @@ export default function App() {
         {currentView.type === 'auth' && (
           <AuthPage 
             onBack={navigateHome} 
+            initialMode={currentView.data === 'signup' ? 'signup' : 'login'}
             onLogin={(email) => {
               setUser({ email });
               if (currentView.data === 'publish') {
