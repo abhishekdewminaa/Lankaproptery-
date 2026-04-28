@@ -81,9 +81,8 @@ import {
   Youtube,
   PenTool,
   MessageSquare,
+  Plus,
 } from "lucide-react";
-
-// ... (previous code)
 
 const VirtualTourModal = ({ isOpen, onClose, propertyTitle }: { isOpen: boolean, onClose: () => void, propertyTitle: string }) => {
   return (
@@ -534,10 +533,6 @@ const CategoryStrip = () => (
           </motion.div>
         ))}
       </div>
-      <div className="flex items-center gap-4 bg-white p-1 rounded-lg border border-gray-200">
-        <button className="px-4 py-1.5 bg-brand-green text-white text-[10px] font-bold rounded-md compact-transition">Buy</button>
-        <button className="px-4 py-1.5 text-gray-400 text-[10px] font-bold hover:text-gray-600 compact-transition">Rent</button>
-      </div>
     </div>
   </div>
 );
@@ -546,12 +541,28 @@ const PropertyCard = ({
   property, 
   onClick, 
   isFavorited, 
-  onToggleFavorite 
+  onToggleFavorite,
+  isComparing,
+  onToggleCompare
 }: any) => (
   <motion.div 
     onClick={onClick}
     className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md overflow-hidden flex flex-col compact-transition cursor-pointer relative"
   >
+    <div className="absolute top-2 left-2 z-10 flex gap-2">
+      <button 
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleCompare?.(e);
+        }}
+        className={`p-2 rounded-full backdrop-blur-md compact-transition ${
+          isComparing ? 'bg-brand-green text-white shadow-lg' : 'bg-white/70 text-gray-700 hover:bg-white hover:text-brand-green shadow-sm'
+        }`}
+        title={isComparing ? "Remove from comparison" : "Add to comparison"}
+      >
+        <Copy size={14} />
+      </button>
+    </div>
     <button 
       onClick={(e) => {
         e.stopPropagation();
@@ -600,7 +611,10 @@ const PropertyDetail = ({
   onToggleFavorite,
   onOpenCalculator,
   onPropertyClick,
-  onAgentClick
+  onAgentClick,
+  favorites,
+  compareList,
+  toggleCompare
 }: { 
   property: any, 
   onBack: () => void,
@@ -608,7 +622,10 @@ const PropertyDetail = ({
   onToggleFavorite?: () => void,
   onOpenCalculator?: () => void,
   onPropertyClick?: (p: any) => void,
-  onAgentClick?: (agent: any) => void
+  onAgentClick?: (agent: any) => void,
+  favorites?: Set<number>,
+  compareList?: number[],
+  toggleCompare?: (id: number) => void
 }) => {
   const images = Array(12).fill(property.image).map((img, i) => 
     i === 0 ? img : `https://images.unsplash.com/photo-${1512917774080 + i}-9991f1c4c750?auto=format&fit=crop&q=60&w=800`
@@ -845,6 +862,10 @@ const PropertyDetail = ({
                   key={`sim-${p.id}`} 
                   property={p} 
                   onClick={() => onPropertyClick?.(p)}
+                  isFavorited={favorites?.has(p.id)}
+                  onToggleFavorite={() => onToggleFavorite?.()} // This is simplified
+                  isComparing={compareList?.includes(p.id)}
+                  onToggleCompare={() => toggleCompare?.(p.id)}
                 />
               ))}
             </div>
@@ -1529,7 +1550,7 @@ const AD_PACKAGES = [
       "Social Media (WhatsApp, FB, IG, TikTok)"
     ],
     highlight: false,
-    color: "bg-amber-50",
+    color: "bg-amber-50/50",
     textColor: "text-amber-600"
   },
   {
@@ -1548,8 +1569,8 @@ const AD_PACKAGES = [
       "Priority Direct Support"
     ],
     highlight: true,
-    color: "bg-brand-green",
-    textColor: "text-white"
+    color: "bg-white",
+    textColor: "text-brand-green"
   },
   {
     name: "DIAMOND PACKAGE",
@@ -1566,10 +1587,249 @@ const AD_PACKAGES = [
       "Global Social Media Boost"
     ],
     highlight: false,
-    color: "bg-dark-navy",
-    textColor: "text-white"
+    color: "bg-slate-50/50",
+    textColor: "text-dark-navy"
   }
 ];
+
+const NEW_PACKAGES = [
+  {
+    name: "STARTER FREE",
+    price: "FREE",
+    duration: "30 Months",
+    description: "Extended free trial for long-term project visibility and early-stage listings.",
+    features: [
+      "30 Months Extended Free Duration",
+      "Standard Property Listing",
+      "Basic Search Integration",
+      "Public Visibility on Main Portal",
+      "Email Support Only",
+      "Limited Photo Uploads"
+    ],
+    highlight: false,
+    color: "bg-blue-50/50",
+    textColor: "text-blue-600"
+  },
+  {
+    name: "PREMIUM PRO",
+    price: "Rs. 4,500",
+    duration: "2 Months",
+    description: "Performance focused 60-day package with priority placement.",
+    features: [
+      "2 Months (60 Days) Total Exposure",
+      "Featured Position (Top 10)",
+      "Multi-Site Syndication",
+      "WhatsApp Lead Generation",
+      "Direct Inquiry Dashboard",
+      "Social Media Basic Boost"
+    ],
+    highlight: false,
+    color: "bg-emerald-50/50",
+    textColor: "text-emerald-600"
+  },
+  {
+    name: "ELITE PRO",
+    price: "Rs. 8,500",
+    duration: "3 Months",
+    description: "Three months of premium marketing for quicker property turnaround.",
+    features: [
+      "3 Months (90 Days) Premium Duration",
+      "Top-Shelf Branding Options",
+      "360° Virtual Tour Base",
+      "Weekly Performance Stats",
+      "Verified Seller Badge",
+      "Cross-Platform Ad Targeting"
+    ],
+    highlight: true,
+    color: "bg-purple-50/50",
+    textColor: "text-purple-600"
+  }
+];
+
+const ComparisonBar = ({ 
+  propertyIds, 
+  onCompare, 
+  onRemove,
+  onClear
+}: { 
+  propertyIds: number[], 
+  onCompare: () => void, 
+  onRemove: (id: number) => void,
+  onClear: () => void
+}) => {
+  const properties = FEATURED_PROPERTIES.filter(p => propertyIds.includes(p.id));
+
+  return (
+    <motion.div 
+      initial={{ y: 100 }}
+      animate={{ y: 0 }}
+      exit={{ y: 200 }}
+      className="fixed bottom-0 left-0 right-0 z-[100] p-4 flex justify-center pointer-events-none"
+    >
+      <div className="bg-dark-navy/95 backdrop-blur-xl border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-3 flex items-center gap-6 pointer-events-auto max-w-full overflow-hidden">
+        <div className="hidden md:flex flex-col pl-4 pr-2 border-r border-white/10">
+          <span className="text-white font-black text-sm tracking-tight">Comparison Bar</span>
+          <span className="text-brand-green text-[10px] uppercase font-black tracking-widest">{properties.length} / 4 Selected</span>
+        </div>
+
+        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1">
+          {properties.map((p) => (
+            <div key={p.id} className="relative group shrink-0">
+              <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-brand-green/30">
+                <img src={p.image} className="w-full h-full object-cover" alt="" />
+              </div>
+              <button 
+                onClick={() => onRemove(p.id)}
+                className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white text-dark-navy rounded-full flex items-center justify-center shadow-lg hover:bg-brand-red hover:text-white compact-transition"
+              >
+                <ArrowUp className="rotate-45" size={10} />
+              </button>
+            </div>
+          ))}
+          
+          {Array(4 - properties.length).fill(null).map((_, i) => (
+            <div key={`empty-${i}`} className="w-14 h-14 rounded-2xl border-2 border-dashed border-white/10 flex items-center justify-center text-white/5 shrink-0">
+              <Plus size={20} />
+            </div>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-3 pr-2">
+          <button 
+            onClick={onClear}
+            className="md:px-4 px-2 py-3 text-white/60 hover:text-white text-xs font-bold compact-transition"
+          >
+            Clear
+          </button>
+          <button 
+            onClick={onCompare}
+            disabled={properties.length < 2}
+            className={`px-8 py-4 rounded-2xl font-black text-sm flex items-center gap-2 compact-transition ${
+              properties.length >= 2 
+                ? 'bg-brand-green text-white hover:bg-brand-green-dark shadow-xl shadow-brand-green/20' 
+                : 'bg-white/5 text-white/20 cursor-not-allowed'
+            }`}
+          >
+            Compare Now <ArrowRight size={18} />
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const ComparisonView = ({ 
+  propertyIds, 
+  onBack,
+  onRemove
+}: { 
+  propertyIds: number[], 
+  onBack: () => void,
+  onRemove: (id: number) => void
+}) => {
+  const properties = FEATURED_PROPERTIES.filter(p => propertyIds.includes(p.id));
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="container mx-auto px-6 py-12"
+    >
+      <div className="flex justify-between items-center mb-10">
+        <button onClick={onBack} className="flex items-center gap-2 text-brand-green font-bold hover:translate-x-[-4px] compact-transition group">
+          <ChevronLeft size={20} className="group-hover:scale-125" /> Back
+        </button>
+        <h2 className="text-3xl font-black text-dark-navy tracking-tight">Compare Properties</h2>
+        <div className="text-sm font-bold text-gray-400">{properties.length} Properties Selected</div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
+        {/* Features Column (Hidden on mobile or handled differently) */}
+        <div className="hidden lg:block space-y-24 mt-48">
+          <div className="h-20 flex items-center font-bold text-gray-400 uppercase tracking-widest text-[10px]">Basic Details</div>
+          <div className="font-bold text-slate-400 text-xs">Price</div>
+          <div className="font-bold text-slate-400 text-xs">Location</div>
+          <div className="font-bold text-slate-400 text-xs">Property Type</div>
+          <div className="font-bold text-slate-400 text-xs">Key Features</div>
+          <div className="font-bold text-slate-400 text-xs">Agent</div>
+        </div>
+
+        {properties.map((p) => (
+          <div key={p.id} className="bg-white rounded-3xl border border-gray-100 shadow-xl p-4 space-y-6 relative group overflow-hidden">
+            <button 
+              onClick={() => onRemove(p.id)}
+              className="absolute top-6 right-6 z-10 p-2 bg-white/90 hover:bg-red-500 hover:text-white rounded-xl shadow-lg compact-transition"
+            >
+              <ArrowUp className="rotate-45" size={16} />
+            </button>
+
+            <div className="space-y-4">
+              <div className="h-40 rounded-2xl overflow-hidden relative">
+                <img src={p.image} alt={p.title} className="w-full h-full object-cover" />
+                <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                  <div className="text-white font-bold text-sm line-clamp-1">{p.title}</div>
+                </div>
+              </div>
+
+              <div className="space-y-8">
+                <div className="pt-4 border-t border-gray-50">
+                  <div className="text-brand-green font-black text-xl mb-1">{p.price}</div>
+                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pricing Model</div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-50">
+                  <div className="text-dark-navy font-bold text-sm mb-1">{p.location}</div>
+                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Primary Suburb</div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-50">
+                  <div className="flex items-center gap-2 text-dark-navy font-bold text-sm mb-1">
+                    <Building2 size={16} className="text-brand-green" /> {p.type === 'Sale' ? 'For Sale' : 'For Rent'}
+                  </div>
+                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Listing Type</div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-50 min-h-[140px]">
+                  <div className="flex flex-wrap gap-2 mb-1">
+                    <span className="px-2 py-1 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-gray-600">3 Bedrooms</span>
+                    <span className="px-2 py-1 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-gray-600">2 Baths</span>
+                    <span className="px-2 py-1 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-gray-600">Pool Available</span>
+                  </div>
+                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Amenities & Features</div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-50">
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="w-8 h-8 rounded-full bg-brand-green flex items-center justify-center text-white text-[10px] font-bold">LR</div>
+                    <span className="text-dark-navy font-bold text-xs">Lalith Ratnatunga</span>
+                  </div>
+                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Assigned Specialist</div>
+                </div>
+              </div>
+
+              <motion.button 
+                whileTap={{ scale: 0.95 }}
+                className="w-full bg-dark-navy text-white font-bold py-4 rounded-2xl hover:bg-black compact-transition"
+              >
+                View Full Details
+              </motion.button>
+            </div>
+          </div>
+        ))}
+
+        {properties.length < 4 && (
+          <div className="bg-gray-50/50 rounded-3xl border-2 border-dashed border-gray-200 p-8 flex flex-col items-center justify-center text-center opacity-70 h-full min-h-[400px]">
+            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-gray-300 mb-4 shadow-sm">
+              <Building2 size={32} />
+            </div>
+            <p className="text-gray-400 font-bold text-sm">Add more properties<br/>to compare</p>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
 
 const PricingPackages = ({ onBack, onGetStarted }: { onBack: () => void, onGetStarted: () => void }) => {
   return (
@@ -1593,7 +1853,7 @@ const PricingPackages = ({ onBack, onGetStarted }: { onBack: () => void, onGetSt
           <motion.div
             key={idx}
             whileHover={{ y: -8 }}
-            className={`relative rounded-[32px] p-8 border border-gray-100 flex flex-col h-full bg-white shadow-xl shadow-gray-100/50 compact-transition ${pkg.highlight ? 'ring-2 ring-brand-green' : ''}`}
+            className={`relative rounded-[32px] p-8 border border-gray-100 flex flex-col h-full ${pkg.color || 'bg-white'} shadow-xl shadow-gray-100/50 compact-transition ${pkg.highlight ? 'ring-2 ring-brand-green' : ''}`}
           >
             {pkg.highlight && (
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-green text-white text-xs font-black uppercase tracking-widest px-5 py-2 rounded-full shadow-lg">
@@ -1622,10 +1882,65 @@ const PricingPackages = ({ onBack, onGetStarted }: { onBack: () => void, onGetSt
             </div>
 
             <button
+              onClick={() => {
+                const message = `Hello, I am interested in the ${pkg.name}. Please provide more details.`;
+                window.open(`https://wa.me/94773951560?text=${encodeURIComponent(message)}`, '_blank');
+              }}
+              className={`w-full py-4 rounded-2xl font-bold text-sm tracking-wide uppercase compact-transition ${pkg.highlight ? 'bg-brand-green text-white shadow-lg shadow-brand-green/20 hover:bg-brand-green-dark' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+            >
+              LIST YOUR PROPERTY
+            </button>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="text-center mt-24 mb-16 space-y-4">
+        <h2 className="text-3xl font-extrabold text-dark-navy tracking-tight">
+          Direct <span className="text-brand-green">Publishing Plans</span>
+        </h2>
+        <p className="text-gray-500 max-w-2xl mx-auto font-medium">
+          Choose a plan to instantly publish your property and manage your listings through your owner dashboard.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        {NEW_PACKAGES.map((pkg, idx) => (
+          <motion.div
+            key={idx}
+            whileHover={{ y: -8 }}
+            className={`relative rounded-[32px] p-8 border border-gray-100 flex flex-col h-full ${pkg.color || 'bg-white'} shadow-xl shadow-gray-100/50 compact-transition ${pkg.highlight ? 'ring-2 ring-brand-green' : ''}`}
+          >
+            {pkg.highlight && (
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-green text-white text-xs font-black uppercase tracking-widest px-5 py-2 rounded-full shadow-lg">
+                Best Value
+              </div>
+            )}
+
+            <div className="mb-8">
+              <h3 className="text-2xl font-bold text-dark-navy mb-2">{pkg.name}</h3>
+              <div className="flex items-baseline gap-1 mb-4">
+                <span className="text-4xl font-black text-brand-green tracking-tight">{pkg.price}</span>
+                <span className="text-gray-500 text-base font-bold">/ {pkg.duration}</span>
+              </div>
+              <p className="text-sm text-gray-400 font-medium leading-relaxed">{pkg.description}</p>
+            </div>
+
+            <div className="space-y-4 mb-10 flex-grow">
+              {pkg.features.map((feature, fIdx) => (
+                <div key={fIdx} className="flex items-start gap-3">
+                  <div className="shrink-0 w-6 h-6 rounded-full bg-brand-green/10 flex items-center justify-center text-brand-green mt-0.5">
+                    <CheckCircle size={14} fill="currentColor" className="text-brand-green flex-grow-0" />
+                  </div>
+                  <span className="text-sm font-semibold text-gray-600">{feature}</span>
+                </div>
+              ))}
+            </div>
+
+            <button
               onClick={onGetStarted}
               className={`w-full py-4 rounded-2xl font-bold text-sm tracking-wide uppercase compact-transition ${pkg.highlight ? 'bg-brand-green text-white shadow-lg shadow-brand-green/20 hover:bg-brand-green-dark' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
             >
-              Get Started
+              LIST YOUR PROPERTY
             </button>
           </motion.div>
         ))}
@@ -1940,6 +2255,112 @@ const AuthPage = ({ onBack, onLogin }: { onBack: () => void, onLogin: (email: st
   );
 };
 
+const PublishListingView = ({ onBack }: { onBack: () => void }) => {
+  const [step, setStep] = useState(1);
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="container mx-auto px-6 py-12 max-w-3xl"
+    >
+      <div className="bg-white rounded-[40px] shadow-2xl border border-gray-100 overflow-hidden">
+        <div className="bg-dark-navy p-10 text-white relative">
+          <div className="flex justify-between items-center mb-8 relative z-10">
+            <div>
+              <h2 className="text-3xl font-black mb-2">Publish Your Property</h2>
+              <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Create an impactful listing in minutes</p>
+            </div>
+            <button onClick={onBack} className="p-3 bg-white/10 rounded-2xl hover:bg-white/20 compact-transition">
+              <Plus size={24} className="rotate-45" />
+            </button>
+          </div>
+          
+          <div className="flex gap-2 relative z-10">
+            {[1, 2, 3].map((s) => (
+              <div key={s} className={`h-1.5 flex-1 rounded-full ${s <= step ? 'bg-brand-green' : 'bg-white/10'}`} />
+            ))}
+          </div>
+        </div>
+
+        <div className="p-10 space-y-8">
+          {step === 1 && (
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-dark-navy">Core Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Listing Title</label>
+                    <input type="text" placeholder="e.g., Luxury 3BR Apartment" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Listing Type</label>
+                    <select className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
+                      <option>For Sale</option>
+                      <option>For Rent</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-sm font-black text-gray-400 uppercase tracking-widest">Pricing & Location</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input type="text" placeholder="Price (Rs.)" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
+                  <input type="text" placeholder="City / Suburb" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-6">
+              <h3 className="text-xl font-bold text-dark-navy">Upload Media</h3>
+              <div className="aspect-video bg-gray-50 border-2 border-dashed border-gray-200 rounded-[32px] flex flex-col items-center justify-center text-center p-8 group cursor-pointer hover:border-brand-green hover:bg-brand-green/5 compact-transition">
+                <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-gray-300 mb-4 group-hover:text-brand-green compact-transition">
+                  <Maximize size={32} />
+                </div>
+                <p className="text-sm font-bold text-gray-400">Drag and drop your photos here<br/><span className="text-xs font-medium">Or click to browse files</span></p>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="text-center space-y-6 pt-6">
+              <div className="w-20 h-20 bg-brand-green/10 text-brand-green rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle size={48} />
+              </div>
+              <div>
+                <h3 className="text-2xl font-black text-dark-navy mb-2">Ready to Publish</h3>
+                <p className="text-gray-500 font-medium max-w-sm mx-auto">Your listing will be reviewed by our team and published within 24 hours.</p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-between pt-6">
+            {step > 1 && (
+              <button 
+                onClick={() => setStep(s => s - 1)}
+                className="px-8 py-4 text-dark-navy font-bold hover:bg-gray-50 rounded-2xl compact-transition"
+              >
+                Back
+              </button>
+            )}
+            <button 
+              onClick={() => {
+                if (step < 3) setStep(s => s + 1);
+                else onBack();
+              }}
+              className="ml-auto px-10 py-5 bg-brand-green text-white font-black text-lg rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition"
+            >
+              {step === 3 ? 'Publish Now' : 'Continue'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
 const AgentsView = ({ onAgentClick, onBack }: { onAgentClick: (agent: any) => void, onBack: () => void }) => {
   return (
     <motion.div 
@@ -2006,7 +2427,23 @@ const AgentsView = ({ onAgentClick, onBack }: { onAgentClick: (agent: any) => vo
   );
 };
 
-const AgentProfileView = ({ agent, onBack, onPropertyClick }: { agent: any, onBack: () => void, onPropertyClick: (p: any) => void }) => {
+const AgentProfileView = ({ 
+  agent, 
+  onBack, 
+  onPropertyClick,
+  favorites,
+  toggleFavorite,
+  compareList,
+  toggleCompare
+}: { 
+  agent: any, 
+  onBack: () => void, 
+  onPropertyClick: (p: any) => void,
+  favorites?: Set<number>,
+  toggleFavorite?: (id: number) => void,
+  compareList?: number[],
+  toggleCompare?: (id: number) => void
+}) => {
   const agentProperties = FEATURED_PROPERTIES.filter(p => agent.listings.includes(p.id));
   
   return (
@@ -2109,7 +2546,15 @@ const AgentProfileView = ({ agent, onBack, onPropertyClick }: { agent: any, onBa
             {agentProperties.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {agentProperties.map(p => (
-                  <PropertyCard key={p.id} property={p} onClick={() => onPropertyClick(p)} />
+                  <PropertyCard 
+                    key={p.id} 
+                    property={p} 
+                    onClick={() => onPropertyClick(p)} 
+                    isFavorited={favorites?.has(p.id)}
+                    onToggleFavorite={() => toggleFavorite?.(p.id)}
+                    isComparing={compareList?.includes(p.id)}
+                    onToggleCompare={() => toggleCompare?.(p.id)}
+                  />
                 ))}
               </div>
             ) : (
@@ -2216,8 +2661,21 @@ const PromotionView = ({ onBack, onNavigateToAuth, onNavigateToPackages }: { onB
 export default function App() {
   const [recentFilter, setRecentFilter] = useState<"Sale" | "Rent">("Sale");
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'promotion' | 'agent' | 'agents', data?: any }>({ type: 'home' });
+  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish', data?: any }>({ type: 'home' });
   const [user, setUser] = useState<{ email: string } | null>(null);
+  const [compareList, setCompareList] = useState<number[]>([]);
+
+  const toggleCompare = (id: number) => {
+    setCompareList(prev => {
+      if (prev.includes(id)) return prev.filter(item => item !== id);
+      if (prev.length >= 4) return prev;
+      return [...prev, id];
+    });
+  };
+
+  const removeCompare = (id: number) => {
+    setCompareList(prev => prev.filter(item => item !== id));
+  };
 
   // Scroll to top when view changes
   useEffect(() => {
@@ -2300,20 +2758,20 @@ export default function App() {
             </div>
           </div>
           <ul className="hidden lg:flex items-center gap-8 text-base font-semibold text-slate-700">
-            {["Home", "About", "Real Estate", "Packages", "Agents", "Advertising", "Contact"].map((item) => (
+            {["Home", "ABOUT US", "Real Estate", "Packages", "Agents", "Advertising", "Contact"].map((item) => (
               <li key={item}>
                 <a 
                   href="#" 
                   onClick={(e) => {
                     e.preventDefault();
                     if (item === 'Home') navigateHome();
-                    else if (item === 'About') setCurrentView({ type: 'about' });
+                    else if (item === 'ABOUT US') setCurrentView({ type: 'about' });
                     else if (item === 'Packages') setCurrentView({ type: 'packages' });
                     else if (item === 'Advertising') setCurrentView({ type: 'packages' });
                     else if (item === 'Agents') setCurrentView({ type: 'agents' });
                     else if (item === 'Contact') setCurrentView({ type: 'contact' });
                   }}
-                  className={`${(item === 'Home' && currentView.type === 'home' || item === 'About' && currentView.type === 'about' || item === 'Packages' && currentView.type === 'packages' || item === 'Advertising' && currentView.type === 'packages' || item === 'Contact' && currentView.type === 'contact') ? 'text-brand-green border-b-2 border-brand-green pb-1.5' : 'hover:text-brand-green'} compact-transition`}
+                  className={`${(item === 'Home' && currentView.type === 'home' || item === 'ABOUT US' && currentView.type === 'about' || item === 'Packages' && currentView.type === 'packages' || item === 'Advertising' && currentView.type === 'packages' || item === 'Contact' && currentView.type === 'contact') ? 'text-brand-green border-b-2 border-brand-green pb-1.5' : 'hover:text-brand-green'} compact-transition`}
                 >
                   {item}
                 </a>
@@ -2363,8 +2821,8 @@ export default function App() {
           >
             <Hero onDirectInquiry={() => setCurrentView({ type: 'contact' })} />
             <div className="bg-gray-50 border-b border-gray-100 py-6">
-              <div className="container mx-auto px-6 flex justify-between items-center">
-                <div className="flex gap-8 overflow-x-auto pb-4 no-scrollbar">
+              <div className="container mx-auto px-6 flex justify-center items-center">
+                <div className="flex justify-center gap-8 overflow-x-auto pb-4 no-scrollbar w-full">
                   {PROPERTY_CATEGORIES.map((cat, idx) => (
                     <motion.div
                       key={cat.name}
@@ -2385,10 +2843,7 @@ export default function App() {
                     </motion.div>
                   ))}
                 </div>
-                <div className="flex items-center gap-8 bg-white p-2 rounded-2xl border border-gray-200 shadow-sm ml-6">
-                  <button className="px-10 py-3 bg-brand-green text-white text-sm font-black rounded-xl compact-transition hover:bg-brand-green-dark shadow-lg shadow-brand-green/20">Buy</button>
-                  <button className="px-10 py-3 text-gray-500 text-sm font-black hover:text-dark-navy compact-transition">Rent</button>
-                </div>
+
               </div>
             </div>
 
@@ -2410,6 +2865,8 @@ export default function App() {
                           onClick={() => handleDetailClick(p)}
                           isFavorited={favorites.has(p.id)}
                           onToggleFavorite={() => toggleFavorite(p.id)}
+                          isComparing={compareList.includes(p.id)}
+                          onToggleCompare={() => toggleCompare(p.id)}
                         />
                       ))}
                     </div>
@@ -2431,6 +2888,8 @@ export default function App() {
                             onClick={() => handleDetailClick(p)} 
                             isFavorited={favorites.has(p.id)}
                             onToggleFavorite={() => toggleFavorite(p.id)}
+                            isComparing={compareList.includes(p.id)}
+                            onToggleCompare={() => toggleCompare(p.id)}
                           />
                         </motion.div>
                       ))}
@@ -2487,6 +2946,8 @@ export default function App() {
                     onClick={() => handleDetailClick(p)}
                     isFavorited={favorites.has(p.id)}
                     onToggleFavorite={() => toggleFavorite(p.id)}
+                    isComparing={compareList.includes(p.id)}
+                    onToggleCompare={() => toggleCompare(p.id)}
                   />
                 ))}
               </div>
@@ -2503,6 +2964,9 @@ export default function App() {
             onOpenCalculator={() => setShowCalculator(true)}
             onPropertyClick={(p) => handleDetailClick(p)}
             onAgentClick={(agent) => setCurrentView({ type: 'agent', data: agent })}
+            favorites={favorites}
+            compareList={compareList}
+            toggleCompare={toggleCompare}
           />
         )}
 
@@ -2518,7 +2982,7 @@ export default function App() {
         )}
 
         {currentView.type === 'packages' && (
-          <PricingPackages onBack={navigateHome} onGetStarted={() => setCurrentView({ type: 'auth' })} />
+          <PricingPackages onBack={navigateHome} onGetStarted={() => setCurrentView({ type: 'auth', data: 'publish' })} />
         )}
 
         {currentView.type === 'auth' && (
@@ -2526,9 +2990,17 @@ export default function App() {
             onBack={navigateHome} 
             onLogin={(email) => {
               setUser({ email });
-              setCurrentView({ type: 'home' });
+              if (currentView.data === 'publish') {
+                setCurrentView({ type: 'publish' });
+              } else {
+                setCurrentView({ type: 'home' });
+              }
             }} 
           />
+        )}
+
+        {currentView.type === 'publish' && (
+          <PublishListingView onBack={navigateHome} />
         )}
 
         {currentView.type === 'promotion' && (
@@ -2544,6 +3016,10 @@ export default function App() {
             agent={currentView.data} 
             onBack={navigateHome} 
             onPropertyClick={(p) => handleDetailClick(p)} 
+            favorites={favorites}
+            toggleFavorite={toggleFavorite}
+            compareList={compareList}
+            toggleCompare={toggleCompare}
           />
         )}
 
@@ -2551,6 +3027,25 @@ export default function App() {
           <AgentsView 
             onAgentClick={(agent) => setCurrentView({ type: 'agent', data: agent })} 
             onBack={navigateHome} 
+          />
+        )}
+
+        {currentView.type === 'compare' && (
+          <ComparisonView 
+            propertyIds={compareList} 
+            onBack={navigateHome} 
+            onRemove={removeCompare} 
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {compareList.length > 0 && currentView.type !== 'compare' && (
+          <ComparisonBar 
+            propertyIds={compareList} 
+            onCompare={() => setCurrentView({ type: 'compare' })}
+            onRemove={removeCompare}
+            onClear={() => setCompareList([])}
           />
         )}
       </AnimatePresence>
