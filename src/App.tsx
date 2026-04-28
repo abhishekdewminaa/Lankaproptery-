@@ -59,6 +59,8 @@ import {
   Camera,
   Maximize,
   Plus,
+  CreditCard,
+  Tag,
   Share2,
   Printer,
   MessageCircle,
@@ -2350,17 +2352,61 @@ const SRI_LANKA_DISTRICTS = [
   "Badulla", "Moneragala", "Ratnapura", "Kegalle"
 ];
 
+const TIER_PRICES = {
+  "FREE": 0,
+  "PREMIUM PRO": 4500,
+  "ELITE PRO": 8500
+};
+
 const PublishListingView = ({ onBack }: { onBack: () => void }) => {
   const [step, setStep] = useState(1);
   const [price, setPrice] = useState<string>("");
+  const [title, setTitle] = useState("");
+  const [district, setDistrict] = useState("Colombo");
+  const [propertyType, setPropertyType] = useState("Apartment");
+  const [listingType, setListingType] = useState("For Sale");
+  const [landArea, setLandArea] = useState("");
+  const [floorArea, setFloorArea] = useState("");
+  const [floors, setFloors] = useState("");
+  const [rooms, setRooms] = useState("");
+  const [bathrooms, setBathrooms] = useState("");
   const [isNegotiable, setIsNegotiable] = useState(false);
   const [selectedTier, setSelectedTier] = useState<"FREE" | "PREMIUM PRO" | "ELITE PRO">("FREE");
   const [images, setImages] = useState<string[]>([]);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState(0);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState("");
 
   const limits = {
     "FREE": 3,
     "PREMIUM PRO": 6,
     "ELITE PRO": 9
+  };
+
+  const subtotal = TIER_PRICES[selectedTier];
+  const discount = Math.min(appliedDiscount, subtotal);
+  const total = Math.max(0, subtotal - discount);
+
+  const handleApplyCoupon = () => {
+    setIsApplyingCoupon(true);
+    setCouponError("");
+    
+    // Simulate API call
+    setTimeout(() => {
+      const code = couponCode.toUpperCase();
+      if (code === "WELCOME10") {
+        setAppliedDiscount(subtotal * 0.1);
+      } else if (code === "SAVE500") {
+        setAppliedDiscount(500);
+      } else if (code === "LANKAPRO") {
+        setAppliedDiscount(subtotal * 0.25);
+      } else {
+        setCouponError("Invalid or expired coupon code");
+        setAppliedDiscount(0);
+      }
+      setIsApplyingCoupon(false);
+    }, 800);
   };
 
   const handleImageUpload = () => {
@@ -2392,7 +2438,7 @@ const PublishListingView = ({ onBack }: { onBack: () => void }) => {
           </div>
           
           <div className="flex gap-2 relative z-10">
-            {[1, 2, 3].map((s) => (
+            {[1, 2, 3, 4, 5].map((s) => (
               <div key={s} className={`h-1.5 flex-1 rounded-full ${s <= step ? 'bg-brand-green' : 'bg-white/10'}`} />
             ))}
           </div>
@@ -2438,17 +2484,25 @@ const PublishListingView = ({ onBack }: { onBack: () => void }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5 md:col-span-2">
                     <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Listing Type</label>
-                    <select className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
+                    <select 
+                      value={listingType}
+                      onChange={(e) => setListingType(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition"
+                    >
                       <option>For Sale</option>
                       <option>For Rent</option>
                     </select>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Property Category</label>
-                    <select className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
+                    <select 
+                      value={propertyType}
+                      onChange={(e) => setPropertyType(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition"
+                    >
+                      <option>Apartment</option>
                       <option>House</option>
                       <option>Land</option>
-                      <option>Apartment</option>
                       <option>Building</option>
                       <option>Hotel</option>
                       <option>Commercial</option>
@@ -2456,7 +2510,13 @@ const PublishListingView = ({ onBack }: { onBack: () => void }) => {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Listing Title</label>
-                    <input type="text" placeholder="e.g., Luxury 3BR Apartment" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
+                    <input 
+                      type="text" 
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="e.g., Luxury 3BR Apartment" 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" 
+                    />
                   </div>
                 </div>
               </div>
@@ -2466,23 +2526,53 @@ const PublishListingView = ({ onBack }: { onBack: () => void }) => {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Land Area</label>
-                    <input type="text" placeholder="e.g., 10 Perches" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
+                    <input 
+                      type="text" 
+                      value={landArea}
+                      onChange={(e) => setLandArea(e.target.value)}
+                      placeholder="e.g., 10 Perches" 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" 
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Floor Area</label>
-                    <input type="text" placeholder="Sq. Ft" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
+                    <input 
+                      type="text" 
+                      value={floorArea}
+                      onChange={(e) => setFloorArea(e.target.value)}
+                      placeholder="Sq. Ft" 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" 
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Floors</label>
-                    <input type="number" placeholder="0" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
+                    <input 
+                      type="number" 
+                      value={floors}
+                      onChange={(e) => setFloors(e.target.value)}
+                      placeholder="0" 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" 
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Rooms</label>
-                    <input type="number" placeholder="0" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
+                    <input 
+                      type="number" 
+                      value={rooms}
+                      onChange={(e) => setRooms(e.target.value)}
+                      placeholder="0" 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" 
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Bathrooms</label>
-                    <input type="number" placeholder="0" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
+                    <input 
+                      type="number" 
+                      value={bathrooms}
+                      onChange={(e) => setBathrooms(e.target.value)}
+                      placeholder="0" 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" 
+                    />
                   </div>
                 </div>
               </div>
@@ -2503,10 +2593,14 @@ const PublishListingView = ({ onBack }: { onBack: () => void }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">District</label>
-                    <select className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
+                    <select 
+                      value={district}
+                      onChange={(e) => setDistrict(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition"
+                    >
                       <option value="">Select District</option>
-                      {SRI_LANKA_DISTRICTS.map(district => (
-                        <option key={district} value={district}>{district}</option>
+                      {SRI_LANKA_DISTRICTS.map(d => (
+                        <option key={d} value={d}>{d}</option>
                       ))}
                     </select>
                   </div>
@@ -2639,19 +2733,209 @@ const PublishListingView = ({ onBack }: { onBack: () => void }) => {
           )}
 
           {step === 3 && (
-            <div className="text-center space-y-6 pt-6">
-              <div className="w-20 h-20 bg-brand-green/10 text-brand-green rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle size={48} />
+            <div className="space-y-8">
+              <div className="flex items-center gap-4 bg-brand-green/5 p-6 rounded-[32px] border border-brand-green/10">
+                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-brand-green shadow-sm">
+                  <CheckCircle size={32} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-dark-navy">Listing Details Verified</h3>
+                  <p className="text-sm font-medium text-gray-500">Your information is ready for the final step.</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-2xl font-black text-dark-navy mb-2">Ready to Publish</h3>
-                <p className="text-gray-500 font-medium max-w-sm mx-auto">Your listing will be reviewed by our team and published within 24 hours.</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-gray-50 p-6 rounded-3xl space-y-4">
+                  <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">Billing Summary</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm font-bold">
+                      <span className="text-gray-500">Selected Package</span>
+                      <span className="text-dark-navy">{selectedTier}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-bold">
+                      <span className="text-gray-500">Package Price</span>
+                      <span className="text-dark-navy">Rs. {subtotal.toLocaleString()}</span>
+                    </div>
+                    {discount > 0 && (
+                      <div className="flex justify-between text-sm font-bold text-brand-green">
+                        <span>Discount Applied</span>
+                        <span>- Rs. {discount.toLocaleString()}</span>
+                      </div>
+                    )}
+                    <div className="pt-3 border-t border-gray-200 flex justify-between items-center">
+                      <span className="text-sm font-black text-dark-navy uppercase">Total Payable</span>
+                      <span className="text-2xl font-black text-brand-green">Rs. {total.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Apply Promotion</h4>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                      <input 
+                        type="text" 
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value)}
+                        placeholder="Coupon Code" 
+                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none transition-all uppercase"
+                      />
+                    </div>
+                    <button 
+                      onClick={handleApplyCoupon}
+                      disabled={!couponCode || isApplyingCoupon}
+                      className="px-6 bg-dark-navy text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-gray-800 disabled:opacity-50 transition-all"
+                    >
+                      {isApplyingCoupon ? '...' : 'Apply'}
+                    </button>
+                  </div>
+                  {couponError && <p className="text-[10px] font-bold text-red-500 px-1">{couponError}</p>}
+                  {appliedDiscount > 0 && <p className="text-[10px] font-bold text-brand-green px-1">Coupon successfully applied!</p>}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="space-y-8 py-4">
+              <div className="text-center space-y-2">
+                <h3 className="text-2xl font-black text-dark-navy">Secure Payment</h3>
+                <p className="text-sm font-medium text-gray-500">Complete your transaction to go live instantly.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-6 bg-white border-2 border-brand-green rounded-[32px] shadow-xl shadow-brand-green/10 flex flex-col items-center gap-4 group cursor-pointer">
+                  <div className="w-12 h-12 bg-brand-green/10 text-brand-green rounded-2xl flex items-center justify-center">
+                    <CreditCard size={24} />
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm font-black text-dark-navy uppercase">Card Payment</div>
+                    <div className="text-[10px] font-bold text-gray-400">Visa / Master / Amex</div>
+                  </div>
+                </div>
+
+                <div className="p-6 bg-gray-50 border border-gray-100 rounded-[32px] flex flex-col items-center gap-4 hover:border-brand-green/30 transition-all cursor-pointer">
+                  <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-600">
+                    <img src="https://img.icons8.com/color/48/bank-transfer.png" alt="Bank" className="w-6 h-6" />
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm font-black text-dark-navy uppercase">Bank Transfer</div>
+                    <div className="text-[10px] font-bold text-gray-400">Manual verification</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-dark-navy text-white p-8 rounded-[32px] space-y-6">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-black uppercase tracking-widest opacity-60">Amount to Pay</span>
+                  <span className="text-3xl font-black tracking-tight">Rs. {total.toLocaleString()}</span>
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase tracking-widest opacity-40">Card Number</label>
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center gap-3">
+                      <CreditCard size={18} className="opacity-40" />
+                      <input type="text" placeholder="0000 0000 0000 0000" className="bg-transparent outline-none flex-1 font-mono text-sm" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest opacity-40">Expiry</label>
+                      <input type="text" placeholder="MM / YY" className="bg-white/5 border border-white/10 rounded-xl p-4 w-full outline-none font-mono text-sm" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest opacity-40">CVC</label>
+                      <input type="text" placeholder="***" className="bg-white/5 border border-white/10 rounded-xl p-4 w-full outline-none font-mono text-sm" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 5 && (
+            <div className="space-y-8 py-4">
+              <div className="text-center space-y-4">
+                <div className="w-20 h-20 bg-brand-green text-white rounded-[32px] flex items-center justify-center mx-auto shadow-2xl shadow-brand-green/30 transform rotate-6">
+                  <CheckCircle size={40} />
+                </div>
+                <div>
+                  <h3 className="text-3xl font-black text-dark-navy">Congratulations!</h3>
+                  <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mt-1">Your property advertisement is now live</p>
+                </div>
+              </div>
+
+              <div className="max-w-md mx-auto space-y-4">
+                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] text-center">Listing Appearance Preview</h4>
+                <div className="bg-white border-2 border-gray-100 rounded-[40px] overflow-hidden shadow-2xl shadow-gray-200/50">
+                  <div className="relative h-64">
+                    <img 
+                      src={images[0] || "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800"} 
+                      className="w-full h-full object-cover"
+                      alt="Property"
+                    />
+                    <div className="absolute top-6 left-6 flex gap-2">
+                      <span className="bg-brand-green text-white text-[10px] font-black uppercase px-4 py-2 rounded-full shadow-lg">{listingType}</span>
+                      {isNegotiable && (
+                        <span className="bg-dark-navy text-white text-[10px] font-black uppercase px-4 py-2 rounded-full shadow-lg">Negotiable</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="p-8 space-y-6">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-gray-400">
+                        <MapPin size={14} className="text-brand-green" />
+                        <span className="text-xs font-black uppercase tracking-widest">{district || "Location"}, Sri Lanka</span>
+                      </div>
+                      <h3 className="text-2xl font-black text-dark-navy tracking-tight">{title || "Your Property Title"}</h3>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 py-4 border-y border-gray-50">
+                      <div className="text-center">
+                        <div className="text-[10px] font-black text-gray-300 uppercase tracking-tighter">Rooms</div>
+                        <div className="text-lg font-black text-dark-navy">{rooms || "0"}</div>
+                      </div>
+                      <div className="text-center border-x border-gray-50">
+                        <div className="text-[10px] font-black text-gray-300 uppercase tracking-tighter">Baths</div>
+                        <div className="text-lg font-black text-dark-navy">{bathrooms || "0"}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-[10px] font-black text-gray-300 uppercase tracking-tighter">Sq. Ft</div>
+                        <div className="text-lg font-black text-dark-navy">{floorArea || "0"}</div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <div className="text-xs font-black text-brand-green uppercase tracking-widest">Pricing</div>
+                        <div className="text-3xl font-black text-dark-navy tracking-tighter">Rs. {Number(price).toLocaleString()}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[10px] font-black text-gray-400 leading-none">$ {(Number(price) / USD_RATE).toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+                        <div className="text-[10px] font-black text-gray-400 leading-none">€ {(Number(price) / EUR_RATE).toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center space-y-4">
+                <p className="text-[10px] font-bold text-gray-400 uppercase px-12 tracking-wide">Listing ID: LANKA-{Math.floor(Math.random()*90000) + 10000} • Level: {selectedTier}</p>
+                <div className="flex items-center justify-center gap-4">
+                  <button className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-dark-navy font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-gray-200 transition-all">
+                    <Share2 size={16} /> Share Ad
+                  </button>
+                  <button className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-dark-navy font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-gray-200 transition-all">
+                    <Printer size={16} /> Print Ad
+                  </button>
+                </div>
               </div>
             </div>
           )}
 
           <div className="flex justify-between pt-6">
-            {step > 1 && (
+            {step > 1 && step < 5 && (
               <button 
                 onClick={() => setStep(s => s - 1)}
                 className="px-8 py-4 text-dark-navy font-bold hover:bg-gray-50 rounded-2xl compact-transition"
@@ -2661,12 +2945,19 @@ const PublishListingView = ({ onBack }: { onBack: () => void }) => {
             )}
             <button 
               onClick={() => {
-                if (step < 3) setStep(s => s + 1);
-                else onBack();
+                if (step < 5) {
+                  if (step === 3 && selectedTier === "FREE") {
+                    setStep(5); // Free users jump to preview
+                  } else {
+                    setStep(s => s + 1);
+                  }
+                } else {
+                  onBack(); // Final return to home
+                }
               }}
               className="ml-auto px-10 py-5 bg-brand-green text-white font-black text-lg rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition"
             >
-              {step === 3 ? 'Publish Now' : 'Continue'}
+              {step === 5 ? 'Done' : step === 4 ? 'Pay Now & Publish' : step === 3 && selectedTier === "FREE" ? 'Publish Now' : 'Continue'}
             </button>
           </div>
         </div>
