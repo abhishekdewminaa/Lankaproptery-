@@ -56,6 +56,9 @@ import {
   Calculator,
   Percent,
   CheckCircle,
+  Camera,
+  Maximize,
+  Plus,
   Share2,
   Printer,
   MessageCircle,
@@ -72,7 +75,6 @@ import {
   Globe,
   ChevronLeft,
   ChevronRight,
-  Maximize,
   Box,
   Quote,
   Star,
@@ -81,7 +83,6 @@ import {
   Youtube,
   PenTool,
   MessageSquare,
-  Plus,
   Languages,
   Loader2,
 } from "lucide-react";
@@ -2353,6 +2354,25 @@ const PublishListingView = ({ onBack }: { onBack: () => void }) => {
   const [step, setStep] = useState(1);
   const [price, setPrice] = useState<string>("");
   const [isNegotiable, setIsNegotiable] = useState(false);
+  const [selectedTier, setSelectedTier] = useState<"FREE" | "PREMIUM PRO" | "ELITE PRO">("FREE");
+  const [images, setImages] = useState<string[]>([]);
+
+  const limits = {
+    "FREE": 3,
+    "PREMIUM PRO": 6,
+    "ELITE PRO": 9
+  };
+
+  const handleImageUpload = () => {
+    if (images.length < limits[selectedTier]) {
+      // Simulate adding an image
+      setImages([...images, `https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=400&h=300&random=${Date.now()}`]);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages(images.filter((_, i) => i !== index));
+  };
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
@@ -2382,8 +2402,47 @@ const PublishListingView = ({ onBack }: { onBack: () => void }) => {
           {step === 1 && (
             <div className="space-y-6">
               <div className="space-y-4">
+                <h3 className="text-xl font-bold text-dark-navy">Select Your Package</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {(["FREE", "PREMIUM PRO", "ELITE PRO"] as const).map((tier) => (
+                    <button
+                      key={tier}
+                      onClick={() => {
+                        setSelectedTier(tier);
+                        if (images.length > limits[tier]) {
+                          setImages(images.slice(0, limits[tier]));
+                        }
+                      }}
+                      className={`relative px-4 py-6 rounded-[24px] text-[10px] font-black tracking-widest uppercase transition-all border-2 flex flex-col items-center justify-center gap-2 ${
+                        selectedTier === tier 
+                          ? 'bg-brand-green border-brand-green text-white shadow-xl shadow-brand-green/20 scale-[1.02]' 
+                          : 'bg-white border-gray-100 text-gray-400 hover:border-brand-green/30 active:scale-95'
+                      }`}
+                    >
+                      {selectedTier === tier && (
+                        <div className="absolute -top-2 -right-2 bg-white text-brand-green p-1 rounded-full shadow-lg">
+                          <CheckCircle size={16} />
+                        </div>
+                      )}
+                      <div className="text-[14px] leading-tight">{tier}</div>
+                      <div className={`text-[9px] font-bold ${selectedTier === tier ? 'text-white/80' : 'text-gray-300'}`}>
+                        Max {limits[tier]} Photos
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-4">
                 <h3 className="text-xl font-bold text-dark-navy">Core Details</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5 md:col-span-2">
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Listing Type</label>
+                    <select className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
+                      <option>For Sale</option>
+                      <option>For Rent</option>
+                    </select>
+                  </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Property Category</label>
                     <select className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
@@ -2399,12 +2458,31 @@ const PublishListingView = ({ onBack }: { onBack: () => void }) => {
                     <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Listing Title</label>
                     <input type="text" placeholder="e.g., Luxury 3BR Apartment" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
                   </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-sm font-black text-gray-400 uppercase tracking-widest pl-1">Property Specifications</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Listing Type</label>
-                    <select className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
-                      <option>For Sale</option>
-                      <option>For Rent</option>
-                    </select>
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Land Area</label>
+                    <input type="text" placeholder="e.g., 10 Perches" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Floor Area</label>
+                    <input type="text" placeholder="Sq. Ft" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Floors</label>
+                    <input type="number" placeholder="0" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Rooms</label>
+                    <input type="number" placeholder="0" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Bathrooms</label>
+                    <input type="number" placeholder="0" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
                   </div>
                 </div>
               </div>
@@ -2486,13 +2564,77 @@ const PublishListingView = ({ onBack }: { onBack: () => void }) => {
 
           {step === 2 && (
             <div className="space-y-6">
-              <h3 className="text-xl font-bold text-dark-navy">Upload Media</h3>
-              <div className="aspect-video bg-gray-50 border-2 border-dashed border-gray-200 rounded-[32px] flex flex-col items-center justify-center text-center p-8 group cursor-pointer hover:border-brand-green hover:bg-brand-green/5 compact-transition">
-                <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-gray-300 mb-4 group-hover:text-brand-green compact-transition">
-                  <Maximize size={32} />
+              <div className="flex justify-between items-end">
+                <div>
+                  <h3 className="text-xl font-bold text-dark-navy">Upload Media</h3>
+                  <p className="text-xs font-bold text-gray-400 mt-1">
+                    {selectedTier} Plan: {images.length} of {limits[selectedTier]} photos used
+                  </p>
                 </div>
-                <p className="text-sm font-bold text-gray-400">Drag and drop your photos here<br/><span className="text-xs font-medium">Or click to browse files</span></p>
+                {images.length < limits[selectedTier] && (
+                  <span className="text-[10px] font-black text-brand-green uppercase bg-brand-green/5 px-2 py-1 rounded-md">
+                    {limits[selectedTier] - images.length} Spots Left
+                  </span>
+                )}
               </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {images.map((img, idx) => (
+                  <div key={idx} className="relative aspect-video rounded-2xl overflow-hidden group border border-gray-200 shadow-sm">
+                    <img src={img} alt={`Upload ${idx}`} className="w-full h-full object-cover" />
+                    <button 
+                      onClick={() => removeImage(idx)}
+                      className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 shadow-lg"
+                    >
+                      <Plus size={16} className="rotate-45" />
+                    </button>
+                    {idx === 0 && (
+                      <div className="absolute bottom-2 left-2 bg-brand-green text-white text-[8px] font-black uppercase px-2 py-1 rounded-md shadow-lg">
+                        Thumbnail
+                      </div>
+                    )}
+                  </div>
+                ))}
+                
+                {images.length < limits[selectedTier] && (
+                  <button 
+                    onClick={handleImageUpload}
+                    className="aspect-video bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-center p-4 hover:border-brand-green hover:bg-brand-green/5 transition-all group"
+                  >
+                    <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-gray-300 mb-2 group-hover:text-brand-green transition-all">
+                      <Camera size={20} />
+                    </div>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Add Photo</p>
+                  </button>
+                )}
+              </div>
+
+              {images.length === 0 && (
+                <div onClick={handleImageUpload} className="aspect-video bg-gray-50 border-2 border-dashed border-gray-200 rounded-[32px] flex flex-col items-center justify-center text-center p-8 group cursor-pointer hover:border-brand-green hover:bg-brand-green/5 compact-transition">
+                  <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-gray-300 mb-4 group-hover:text-brand-green compact-transition">
+                    <Camera size={32} />
+                  </div>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Upload your property photos<br/><span className="text-[10px] font-medium grayscale">Click here to add images ({images.length}/{limits[selectedTier]})</span></p>
+                </div>
+              )}
+
+              {images.length >= limits[selectedTier] && (
+                <div className="bg-brand-green/5 border border-brand-green/20 rounded-2xl p-4 flex items-center gap-4">
+                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-brand-green">
+                    <CheckCircle size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black text-dark-navy uppercase tracking-widest">Image Limit Reached</h4>
+                    <p className="text-[10px] font-bold text-gray-500">Upgrade to a higher plan to add more photos.</p>
+                  </div>
+                  <button 
+                    onClick={() => setStep(1)}
+                    className="ml-auto px-4 py-2 bg-brand-green text-white text-[10px] font-black uppercase rounded-lg shadow-sm"
+                  >
+                    Upgrade
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
