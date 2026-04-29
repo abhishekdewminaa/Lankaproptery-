@@ -621,7 +621,8 @@ const PropertyCard = ({
       <span className="absolute top-3 right-3 bg-white/95 text-gray-900 text-[10px] font-extrabold px-3 py-1 rounded-full shadow-sm">{property.location}</span>
     </div>
     <div className="p-4 flex flex-col gap-1.5">
-      <div className="flex items-baseline gap-1.5">
+      <div className="text-sm font-bold text-dark-navy line-clamp-1 leading-tight">{property.title}</div>
+      <div className="flex items-baseline gap-1.5 mt-1">
         <span className="text-brand-green font-black text-lg leading-none">
           {property.price === 'Contact for Price' ? 'LKR Contact' : property.price}
         </span>
@@ -636,7 +637,6 @@ const PropertyCard = ({
           </div>
         );
       })()}
-      <div className="text-sm font-bold text-dark-navy line-clamp-1 leading-tight mt-1">{property.title}</div>
       <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 font-semibold">
         <span className="flex items-center gap-1.5"><Building2 size={14} className="text-brand-green opacity-70" /> 3 Beds</span>
         <span className="flex items-center gap-1.5"><LandPlot size={14} className="text-brand-green opacity-70" /> 15 Perch</span>
@@ -734,6 +734,19 @@ const PropertyDetail = ({
               <span>Ref: LP-9402</span>
             </div>
             <h1 className="text-2xl font-bold text-dark-navy leading-tight">{property.title}</h1>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-xl font-black text-brand-green">{property.price}</span>
+              {(() => {
+                const converted = convertPrice(property.price);
+                if (!converted) return null;
+                return (
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
+                    <span className="bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100">{converted.usd}</span>
+                    <span className="bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100">{converted.eur}</span>
+                  </div>
+                );
+              })()}
+            </div>
           </div>
         </div>
 
