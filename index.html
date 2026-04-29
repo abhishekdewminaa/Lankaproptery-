@@ -8,6 +8,29 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Fix for "undefined" is not valid JSON
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (localStorage.getItem(key) === "undefined") {
+            console.warn(`Removing invalid 'undefined' value from localStorage key: ${key}`);
+            localStorage.removeItem(key);
+          }
+        }
+      } catch (e) {
+        console.error("Error clearing localStorage:", e);
+      }
+
+      // Safety check for fetch redefinition
+      const originalFetch = window.fetch;
+      try {
+        const descriptor = Object.getOwnPropertyDescriptor(window, 'fetch');
+        if (descriptor && !descriptor.writable && !descriptor.configurable) {
+          console.warn("window.fetch is read-only. Preventing accidental redefinition.");
+        }
+      } catch (e) {}
+    </script>
   </body>
 </html>
 

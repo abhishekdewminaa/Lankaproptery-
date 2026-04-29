@@ -1167,7 +1167,7 @@ const Sidebar = ({ onOpenCalculator, onShowPackages }: { onOpenCalculator: () =>
   </aside>
 );
 
-const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, onShowPromotion }: { onNavigateHome: () => void, onShowContact: () => void, onShowAbout: () => void, onShowPackages: () => void, onShowPromotion: () => void }) => (
+const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, onShowPromotion, onShowAgentAccess }: { onNavigateHome: () => void, onShowContact: () => void, onShowAbout: () => void, onShowPackages: () => void, onShowPromotion: () => void, onShowAgentAccess: () => void }) => (
   <footer className="bg-[#0c1a2e] text-gray-400 pt-20 pb-10">
     <div className="container mx-auto px-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
@@ -1269,7 +1269,12 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
             <span className="group-hover:text-brand-green compact-transition">Platform Status: Online</span>
           </div>
           <div className="w-px h-5 bg-white/10" />
-          <a href="#" className="text-xs font-bold text-brand-green hover:underline uppercase tracking-widest underline-offset-4">Agent Access</a>
+          <button 
+            onClick={onShowAgentAccess}
+            className="text-xs font-bold text-brand-green hover:underline uppercase tracking-widest underline-offset-4"
+          >
+            Agent Access
+          </button>
         </div>
       </div>
     </div>
@@ -2358,7 +2363,7 @@ const TIER_PRICES = {
   "ELITE PRO": 8500
 };
 
-const PublishListingView = ({ onBack }: { onBack: () => void }) => {
+const PublishListingView = ({ onBack, user }: { onBack: () => void, user?: any }) => {
   const [step, setStep] = useState(1);
   const [price, setPrice] = useState<string>("");
   const [title, setTitle] = useState("");
@@ -2952,13 +2957,542 @@ const PublishListingView = ({ onBack }: { onBack: () => void }) => {
                     setStep(s => s + 1);
                   }
                 } else {
-                  onBack(); // Final return to home
+                  onBack();
                 }
               }}
               className="ml-auto px-10 py-5 bg-brand-green text-white font-black text-lg rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition"
             >
               {step === 5 ? 'Done' : step === 4 ? 'Pay Now & Publish' : step === 3 && selectedTier === "FREE" ? 'Publish Now' : 'Continue'}
             </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: any }) => {
+  const [step, setStep] = useState(1);
+  const [price, setPrice] = useState<string>("");
+  const [title, setTitle] = useState("");
+  const [district, setDistrict] = useState("Colombo");
+  const [city, setCity] = useState("");
+  const [propertyType, setPropertyType] = useState("Apartment");
+  const [listingType, setListingType] = useState("For Sale");
+  const [landArea, setLandArea] = useState("");
+  const [floorArea, setFloorArea] = useState("");
+  const [floors, setFloors] = useState("0");
+  const [rooms, setRooms] = useState("0");
+  const [bathrooms, setBathrooms] = useState("0");
+  const [isNegotiable, setIsNegotiable] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
+
+  const limit = 12;
+  const LKR_TO_USD = 1/310;
+  const LKR_TO_EUR = 1/335;
+
+  const getEstimate = (val: string, rate: number) => {
+    const num = parseFloat(val) || 0;
+    return (num * rate).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  };
+
+  const handleImageUpload = () => {
+    if (images.length < limit) {
+      setImages([...images, `https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=400&h=300&random=${Date.now()}`]);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages(images.filter((_, i) => i !== index));
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="container mx-auto px-6 py-12 max-w-4xl"
+    >
+      <div className="bg-white rounded-[40px] shadow-2xl border border-gray-100 overflow-hidden">
+        <div className="bg-dark-navy p-10 text-white relative">
+          <div className="flex justify-between items-center mb-8 relative z-10">
+            <div>
+              <h2 className="text-3xl font-black mb-2 tracking-tight">Agent Property Portal</h2>
+              <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Manager Level Access • Unlimited Listings</p>
+            </div>
+            <button onClick={onBack} className="p-3 bg-white/10 rounded-2xl hover:bg-white/20 compact-transition">
+              <Plus size={24} className="rotate-45" />
+            </button>
+          </div>
+          
+          <div className="flex gap-2 relative z-10">
+            {[1, 2, 3].map((s) => (
+              <div key={s} className={`h-1.5 flex-1 rounded-full ${s <= step ? 'bg-brand-green' : 'bg-white/10'}`} />
+            ))}
+          </div>
+        </div>
+
+        <div className="p-10 space-y-12">
+          {step === 1 && (
+            <div className="space-y-12">
+              {/* Core Details */}
+              <div className="space-y-6">
+                <h3 className="text-2xl font-black text-dark-navy tracking-tight">Core Details</h3>
+                
+                <div className="space-y-6">
+                  <div className="space-y-1.5 w-full">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Listing Type</label>
+                    <select 
+                      value={listingType}
+                      onChange={(e) => setListingType(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_1.25rem_center] bg-no-repeat"
+                    >
+                      <option>For Sale</option>
+                      <option>For Rent</option>
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Property Category</label>
+                      <select 
+                        value={propertyType}
+                        onChange={(e) => setPropertyType(e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_1.25rem_center] bg-no-repeat"
+                      >
+                        <option>Apartment</option>
+                        <option>House</option>
+                        <option>Land</option>
+                        <option>Commercial</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Listing Title</label>
+                      <input 
+                        type="text" 
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="e.g., Luxury 3BR Apartment" 
+                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" 
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Property Specifications */}
+              <div className="space-y-6">
+                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Property Specifications</h3>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Land Area</label>
+                    <input 
+                      type="text" 
+                      value={landArea}
+                      onChange={(e) => setLandArea(e.target.value)}
+                      placeholder="e.g., 10 Pe" 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" 
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Floor Area</label>
+                    <input 
+                      type="text" 
+                      value={floorArea}
+                      onChange={(e) => setFloorArea(e.target.value)}
+                      placeholder="Sq. Ft" 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" 
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Floors</label>
+                    <input 
+                      type="number" 
+                      value={floors}
+                      onChange={(e) => setFloors(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none text-center" 
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Rooms</label>
+                    <input 
+                      type="number" 
+                      value={rooms}
+                      onChange={(e) => setRooms(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none text-center" 
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Bathrooms</label>
+                    <input 
+                      type="number" 
+                      value={bathrooms}
+                      onChange={(e) => setBathrooms(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none text-center" 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Pricing & Location */}
+              <div className="space-y-6">
+                <div className="flex justify-between items-center pr-1">
+                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Pricing & Location</h3>
+                  <button 
+                    onClick={() => setIsNegotiable(!isNegotiable)}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest compact-transition border ${
+                      isNegotiable ? 'bg-brand-green/10 border-brand-green text-brand-green' : 'bg-gray-50 border-gray-100 text-gray-400'
+                    }`}
+                  >
+                    <div className={`w-1.5 h-1.5 rounded-full ${isNegotiable ? 'bg-brand-green' : 'bg-gray-300'}`} />
+                    Negotiable
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1.5 text-left">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">District</label>
+                    <select 
+                      value={district}
+                      onChange={(e) => setDistrict(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_1.25rem_center] bg-no-repeat"
+                    >
+                      {["Colombo", "Kandy", "Galle", "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Gampaha", "Hambantota", "Jaffna", "Kalutara", "Kegalle", "Kilinochchi", "Kurunegala", "Mannar", "Matale", "Matara", "Moneragala", "Mullaitivu", "Nuwara Eliya", "Polonnaruwa", "Puttalam", "Ratnapura", "Trincomalee", "Vavuniya"].map(d => (
+                        <option key={d}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5 text-left">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">City / Suburb</label>
+                    <input 
+                      type="text" 
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="e.g., Kadawatha" 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" 
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-2 space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Price (Rs.)</label>
+                    <div className="relative">
+                      <input 
+                        type="number" 
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        placeholder="Enter amount in LKR" 
+                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl pl-6 pr-16 py-6 text-xl font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition placeholder:text-gray-300" 
+                      />
+                      <span className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 font-black text-sm">LKR</span>
+                    </div>
+                  </div>
+                  <div className="md:col-span-1 space-y-3 pt-5.5">
+                    <div className="bg-white border border-gray-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center font-black text-xs">$</div>
+                        <div>
+                          <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">USD Estimate</p>
+                          <p className="text-lg font-black text-dark-navy tracking-tight">{getEstimate(price, LKR_TO_USD)}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-white border border-gray-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center font-black text-xs">€</div>
+                        <div>
+                          <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">EUR Estimate</p>
+                          <p className="text-lg font-black text-dark-navy tracking-tight">{getEstimate(price, LKR_TO_EUR)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-end">
+                <div>
+                  <h3 className="text-xl font-bold text-dark-navy">Property Media</h3>
+                  <p className="text-xs font-bold text-gray-400 mt-1">Professional manager limit: {images.length} of 12 photos</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {images.map((img, idx) => (
+                  <div key={idx} className="relative aspect-video rounded-2xl overflow-hidden group border border-gray-200">
+                    <img src={img} alt={`Upload ${idx}`} className="w-full h-full object-cover" />
+                    <button 
+                      onClick={() => removeImage(idx)}
+                      className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-lg"
+                    >
+                      <Plus size={16} className="rotate-45" />
+                    </button>
+                  </div>
+                ))}
+                
+                {images.length < 12 && (
+                  <button 
+                    onClick={handleImageUpload}
+                    className="aspect-video bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-center p-4 hover:border-brand-green hover:bg-brand-green/5 transition-all"
+                  >
+                    <Camera size={24} className="text-gray-300 mb-2" />
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Add Photo</p>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="space-y-12 py-10 animate-in fade-in zoom-in duration-700">
+              <div className="text-center space-y-8">
+                <div className="relative">
+                  <div className="w-28 h-28 bg-brand-green text-white rounded-[40px] flex items-center justify-center mx-auto shadow-2xl shadow-brand-green/40 transform rotate-12 relative z-10">
+                    <CheckCircle size={56} />
+                  </div>
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-brand-green/20 rounded-full blur-3xl -z-0"></div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="inline-block px-4 py-1.5 bg-brand-green/10 text-brand-green rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-2">
+                    Professional Listing Live
+                  </div>
+                  <h3 className="text-4xl font-black text-dark-navy tracking-tight leading-tight">Property Advertisement<br />Published Successfully</h3>
+                  <p className="text-sm font-medium text-gray-500 max-w-sm mx-auto leading-relaxed">
+                    As an authorized Manager, your listing is now active on our global network. No fees applied.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-between pt-6">
+            {step < 3 && (
+              <button 
+                onClick={() => setStep(s => Math.max(1, s - 1))}
+                className={`px-8 py-4 text-dark-navy font-bold hover:bg-gray-50 rounded-2xl compact-transition ${step === 1 ? 'opacity-0 pointer-events-none' : ''}`}
+              >
+                Back
+              </button>
+            )}
+            <button 
+              onClick={() => {
+                if (step < 3) {
+                  setStep(s => s + 1);
+                } else {
+                  onBack();
+                }
+              }}
+              className="ml-auto px-10 py-5 bg-brand-green text-white font-black text-lg rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition"
+            >
+              {step === 3 ? 'Go to Dashboard' : 'Continue to Publish'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const AgentAccessView = ({ onBack, user, onLogin, onNewProperty }: { onBack: () => void, user: any, onLogin: (email: string) => void, onNewProperty: () => void }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  if (user) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="container mx-auto px-6 py-20 max-w-4xl"
+      >
+        <div className="flex items-center gap-4 mb-12">
+          <button 
+            onClick={onBack}
+            className="p-3 bg-gray-100 rounded-2xl hover:bg-gray-200 text-gray-500 compact-transition"
+          >
+            <ArrowRight className="rotate-180" size={20} />
+          </button>
+          <div>
+            <h1 className="text-3xl font-black text-dark-navy">Agent Portal</h1>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Manage your agency and listings</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="md:col-span-1 space-y-6">
+            <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-xl shadow-gray-200/50 text-center">
+              <div className="w-24 h-24 bg-brand-green mx-auto rounded-3xl flex items-center justify-center text-white text-4xl font-black mb-4 shadow-lg shadow-brand-green/20">
+                {user.email.charAt(0).toUpperCase()}
+              </div>
+              <h2 className="text-xl font-black text-dark-navy mb-1 line-clamp-1">{user.email.split('@')[0]}</h2>
+              <p className="text-[10px] font-black text-brand-green uppercase tracking-[0.2em] mb-6">Certified Agent</p>
+              
+              <div className="grid grid-cols-2 gap-3 pt-6 border-t border-gray-50">
+                <div>
+                  <div className="text-lg font-black text-dark-navy">24</div>
+                  <div className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Active Ads</div>
+                </div>
+                <div>
+                  <div className="text-lg font-black text-dark-navy">1.2k</div>
+                  <div className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Leads</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-dark-navy p-6 rounded-[32px] text-white space-y-6">
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 cursor-pointer compact-transition group">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-brand-green/20 flex items-center justify-center text-brand-green group-hover:bg-brand-green group-hover:text-white compact-transition">
+                    <User size={20} />
+                  </div>
+                  <span className="text-sm font-bold">Edit Profile</span>
+                </div>
+                <ArrowRight size={16} className="text-gray-600 group-hover:text-white compact-transition" />
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 cursor-pointer compact-transition group">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white compact-transition">
+                    <Shield size={20} />
+                  </div>
+                  <span className="text-sm font-bold">Security</span>
+                </div>
+                <ArrowRight size={16} className="text-gray-600 group-hover:text-white compact-transition" />
+              </div>
+              
+              <div className="pt-4 mt-4 border-t border-white/5">
+                <button className="w-full py-4 bg-brand-red text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-red-900/20 hover:bg-red-600 compact-transition">
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="md:col-span-2 space-y-6">
+            <div className="bg-gray-50 border border-gray-100 p-10 rounded-[40px] flex flex-col items-center justify-center text-center space-y-4">
+              <div className="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center text-gray-300">
+                <Building2 size={32} />
+              </div>
+              <h3 className="text-xl font-bold text-dark-navy">Agency Manager Access</h3>
+              <p className="text-sm text-gray-500 max-w-xs mx-auto font-medium">You have unrestricted access to list unlimited properties with up to 12 high-resolution images per listing.</p>
+              <button className="text-xs font-black text-brand-green uppercase tracking-widest hover:underline">View Public Profile</button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-8 bg-white border border-gray-100 rounded-[32px] shadow-sm hover:shadow-md compact-transition group cursor-pointer">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white compact-transition">
+                    <MessageSquare size={24} />
+                  </div>
+                  <span className="bg-gray-100 text-[8px] font-black px-2 py-1 rounded-full text-gray-400">12 NEW</span>
+                </div>
+                <h4 className="font-bold text-dark-navy">Customer Inquiries</h4>
+                <p className="text-xs text-gray-400 mt-1">Manage your incoming leads</p>
+              </div>
+
+              <div 
+                onClick={onNewProperty}
+                className="p-8 bg-white border border-gray-100 rounded-[40px] shadow-sm hover:shadow-xl hover:-translate-y-1 compact-transition group cursor-pointer"
+              >
+                <div className="flex justify-between items-start mb-6">
+                  <div className="w-14 h-14 bg-[#FFF9ED] text-[#F59E0B] rounded-[24px] flex items-center justify-center group-hover:bg-[#F59E0B] group-hover:text-white compact-transition">
+                    <Plus size={28} />
+                  </div>
+                </div>
+                <h4 className="text-lg font-bold text-dark-navy">Add New Property</h4>
+                <p className="text-sm text-gray-400 mt-1 font-medium">List a new property for sale/rent</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="container mx-auto px-6 py-20 flex justify-center"
+    >
+      <div className="w-full max-w-md">
+        <div className="bg-dark-navy p-12 rounded-[48px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] border border-white/5 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-brand-green/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+          
+          <div className="relative z-10 space-y-8">
+            <div className="text-center space-y-2">
+              <div className="w-16 h-16 bg-brand-green mx-auto rounded-2xl flex items-center justify-center text-white mb-6 transform rotate-3">
+                <Lock size={32} />
+              </div>
+              <h2 className="text-3xl font-black text-white uppercase tracking-tight">Agent Access</h2>
+              <p className="text-gray-400 font-bold uppercase tracking-[0.2em] text-[10px]">Professional Portal Only</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Agent ID / Email</label>
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3 focus-within:border-brand-green compact-transition">
+                  <Mail size={18} className="text-gray-600" />
+                  <input 
+                    type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="agent@lankaproperty.lk" 
+                    className="bg-transparent outline-none flex-1 text-white text-sm font-medium" 
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between pl-1 pr-1">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Password</label>
+                  <button className="text-[8px] font-black text-brand-green uppercase tracking-widest hover:underline">Forgot?</button>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3 focus-within:border-brand-green compact-transition">
+                  <Lock size={18} className="text-gray-600" />
+                  <input 
+                    type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••" 
+                    className="bg-transparent outline-none flex-1 text-white text-sm font-medium" 
+                  />
+                </div>
+              </div>
+
+              <button 
+                onClick={() => {
+                  setIsLoggingIn(true);
+                  setTimeout(() => {
+                    onLogin(email || "agent@lankaproperty.lk");
+                    setIsLoggingIn(false);
+                  }, 1200);
+                }}
+                disabled={isLoggingIn}
+                className="w-full py-5 bg-brand-green text-white font-black rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition text-sm uppercase tracking-widest mt-4 flex items-center justify-center gap-2"
+              >
+                {isLoggingIn ? (
+                  <Loader2 className="animate-spin" size={20} />
+                ) : (
+                  <>Secure Login <ArrowRight size={18} /></>
+                )}
+              </button>
+            </div>
+
+            <div className="text-center pt-8 border-t border-white/5">
+              <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-4">Not a registered agent yet?</p>
+              <button 
+                onClick={onBack}
+                className="text-white font-black text-xs hover:text-brand-green compact-transition uppercase tracking-widest"
+              >
+                Apply to Join
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -3394,7 +3928,7 @@ const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBac
 export default function App() {
   const [recentFilter, setRecentFilter] = useState<"Sale" | "Rent">("Sale");
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile', data?: any }>({ type: 'home' });
+  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'agent_publish', data?: any }>({ type: 'home' });
   const [user, setUser] = useState<{ email: string } | null>({ email: 'abhishekdewminaa@gmail.com' });
   const [compareList, setCompareList] = useState<number[]>([]);
 
@@ -3751,7 +4285,7 @@ export default function App() {
         )}
 
         {currentView.type === 'publish' && (
-          <PublishListingView onBack={navigateHome} />
+          <PublishListingView onBack={navigateHome} user={user} />
         )}
 
         {currentView.type === 'promotion' && (
@@ -3771,6 +4305,22 @@ export default function App() {
             toggleFavorite={toggleFavorite}
             compareList={compareList}
             toggleCompare={toggleCompare}
+          />
+        )}
+
+        {currentView.type === 'agent_access' && (
+          <AgentAccessView 
+            onBack={navigateHome} 
+            user={user} 
+            onLogin={(email) => setUser({ email })} 
+            onNewProperty={() => setCurrentView({ type: 'agent_publish' })}
+          />
+        )}
+
+        {currentView.type === 'agent_publish' && (
+          <AgentPublishListingView 
+            onBack={() => setCurrentView({ type: 'agent_access' })} 
+            user={user} 
           />
         )}
 
@@ -3807,6 +4357,7 @@ export default function App() {
         onShowAbout={() => setCurrentView({ type: 'about' })} 
         onShowPackages={() => setCurrentView({ type: 'packages' })} 
         onShowPromotion={() => setCurrentView({ type: 'promotion' })}
+        onShowAgentAccess={() => setCurrentView({ type: 'agent_access' })}
       />
 
       <MortgageCalculatorModal 
