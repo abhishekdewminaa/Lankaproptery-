@@ -22,14 +22,6 @@
         console.error("Error clearing localStorage:", e);
       }
 
-      // Safety check for fetch redefinition
-      const originalFetch = window.fetch;
-      try {
-        const descriptor = Object.getOwnPropertyDescriptor(window, 'fetch');
-        if (descriptor && !descriptor.writable && !descriptor.configurable) {
-          console.warn("window.fetch is read-only. Preventing accidental redefinition.");
-        }
-      } catch (e) {}
     </script>
   </body>
 </html>

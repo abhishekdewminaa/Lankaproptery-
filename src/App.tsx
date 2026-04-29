@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -27,6 +27,7 @@ const convertPrice = (priceStr: string) => {
     eur: formatValue(amount / EUR_RATE, '€')
   };
 };
+import { GoogleGenAI, Type } from "@google/genai";
 import { 
   Search, 
   MapPin, 
@@ -38,6 +39,7 @@ import {
   Instagram, 
   Linkedin,
   LandPlot,
+  Smartphone,
   Home as HomeIcon,
   Building2,
   Building,
@@ -87,6 +89,10 @@ import {
   MessageSquare,
   Languages,
   Loader2,
+  Sparkles,
+  Wand2,
+  X,
+  Info
 } from "lucide-react";
 import { translateToSinhala } from "./services/geminiService";
 
@@ -2984,8 +2990,84 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
   const [floors, setFloors] = useState("0");
   const [rooms, setRooms] = useState("0");
   const [bathrooms, setBathrooms] = useState("0");
+  const [description, setDescription] = useState("");
+  const [additionalInfo, setAdditionalInfo] = useState("");
   const [isNegotiable, setIsNegotiable] = useState(false);
+  const [contacts, setContacts] = useState<{ type: 'Mobile' | 'Landline', number: string }[]>([{ type: 'Mobile', number: "" }]);
   const [images, setImages] = useState<string[]>([]);
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [pastedText, setPastedText] = useState("");
+  const [isExtracting, setIsExtracting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAIImport = async () => {
+    if (!pastedText.trim()) return;
+    setIsExtracting(true);
+    
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: `Extract property details from the following text. 
+        IMPORTANT: 
+        1. Extract ONLY English text for description and additional information. Skip Sinhala translations.
+        2. Format numbers clearly.
+        3. If a field is not found, leave it as an empty string (or 0 for numbers).
+        4. Listing type should be either "For Sale" or "For Rent".
+        5. Property Type should be "Apartment", "House", "Land", or "Commercial".
+        
+        Text to process:
+        ${pastedText}`,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              title: { type: Type.STRING },
+              description: { type: Type.STRING },
+              district: { type: Type.STRING },
+              city: { type: Type.STRING },
+              propertyType: { type: Type.STRING },
+              listingType: { type: Type.STRING },
+              landArea: { type: Type.STRING },
+              floorArea: { type: Type.STRING },
+              floors: { type: Type.STRING },
+              rooms: { type: Type.STRING },
+              bathrooms: { type: Type.STRING },
+              isNegotiable: { type: Type.BOOLEAN },
+              additionalInfo: { type: Type.STRING },
+              price: { type: Type.STRING }
+            }
+          }
+        }
+      });
+
+      const data = JSON.parse(response.text || "{}");
+      
+      if (data.title) setTitle(data.title);
+      if (data.description) setDescription(data.description);
+      if (data.district) setDistrict(data.district);
+      if (data.city) setCity(data.city);
+      if (data.propertyType) setPropertyType(data.propertyType);
+      if (data.listingType) setListingType(data.listingType);
+      if (data.landArea) setLandArea(data.landArea);
+      if (data.floorArea) setFloorArea(data.floorArea);
+      if (data.floors) setFloors(data.floors);
+      if (data.rooms) setRooms(data.rooms);
+      if (data.bathrooms) setBathrooms(data.bathrooms);
+      if (data.isNegotiable !== undefined) setIsNegotiable(data.isNegotiable);
+      if (data.additionalInfo) setAdditionalInfo(data.additionalInfo);
+      if (data.price) setPrice(data.price);
+
+      setShowAIModal(false);
+      setPastedText("");
+    } catch (error) {
+      console.error("AI Extraction failed:", error);
+      alert("Failed to extract details. Please check your text and try again.");
+    } finally {
+      setIsExtracting(false);
+    }
+  };
 
   const limit = 12;
   const LKR_TO_USD = 1/310;
@@ -2997,9 +3079,23 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
   };
 
   const handleImageUpload = () => {
-    if (images.length < limit) {
-      setImages([...images, `https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=400&h=300&random=${Date.now()}`]);
-    }
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const remainingSlots = 12 - images.length;
+    const filesToProcess = files.slice(0, remainingSlots);
+
+    filesToProcess.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImages(prev => [...prev, reader.result as string].slice(0, 12));
+      };
+      reader.readAsDataURL(file as File);
+    });
+    // Reset so same file can be chosen if removed
+    e.target.value = '';
   };
 
   const removeImage = (index: number) => {
@@ -3007,29 +3103,49 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="container mx-auto px-6 py-12 max-w-4xl"
-    >
-      <div className="bg-white rounded-[40px] shadow-2xl border border-gray-100 overflow-hidden">
-        <div className="bg-dark-navy p-10 text-white relative">
-          <div className="flex justify-between items-center mb-8 relative z-10">
-            <div>
-              <h2 className="text-3xl font-black mb-2 tracking-tight">Agent Property Portal</h2>
-              <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Manager Level Access • Unlimited Listings</p>
+    <>
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="container mx-auto px-6 py-12 max-w-4xl"
+      >
+        <div className="bg-white rounded-[40px] shadow-2xl border border-gray-100 overflow-hidden">
+          <div className="bg-dark-navy p-10 text-white relative">
+            <div className="flex justify-between items-center mb-8 relative z-10">
+              <div>
+                <h2 className="text-3xl font-black mb-2 tracking-tight">Agent Property Portal</h2>
+                <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Manager Level Access • Unlimited Listings</p>
+              </div>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setShowAIModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-brand-green/20 text-brand-green border border-brand-green/30 rounded-xl hover:bg-brand-green/30 transition-all font-black text-[10px] uppercase tracking-widest"
+                >
+                  <Sparkles size={14} />
+                  Quick AI Import
+                </button>
+                <button onClick={onBack} className="p-3 bg-white/10 rounded-2xl hover:bg-white/20 compact-transition">
+                  <Plus size={24} className="rotate-45" />
+                </button>
+              </div>
             </div>
-            <button onClick={onBack} className="p-3 bg-white/10 rounded-2xl hover:bg-white/20 compact-transition">
-              <Plus size={24} className="rotate-45" />
-            </button>
+            
+            <div className="flex gap-2 relative z-10">
+              {[1, 2, 3].map((s) => (
+                <div key={s} className={`h-1.5 flex-1 rounded-full ${s <= step ? 'bg-brand-green' : 'bg-white/10'}`} />
+              ))}
+            </div>
           </div>
-          
-          <div className="flex gap-2 relative z-10">
-            {[1, 2, 3].map((s) => (
-              <div key={s} className={`h-1.5 flex-1 rounded-full ${s <= step ? 'bg-brand-green' : 'bg-white/10'}`} />
-            ))}
-          </div>
-        </div>
+
+          {/* Hidden File Input */}
+          <input 
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            multiple
+            accept="image/*"
+            className="hidden"
+          />
 
         <div className="p-10 space-y-12">
           {step === 1 && (
@@ -3133,6 +3249,98 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
                 </div>
               </div>
 
+              {/* Descriptions */}
+              <div className="space-y-6">
+                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Property Narration</h3>
+                <div className="space-y-6">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Property Description</label>
+                    <textarea 
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Detailed overview of the property, features, and surroundings..." 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-3xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition min-h-[150px] resize-none" 
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Additional Information</label>
+                    <textarea 
+                      value={additionalInfo}
+                      onChange={(e) => setAdditionalInfo(e.target.value)}
+                      placeholder="Key highlights, nearby landmarks, or specific agent notes..." 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-3xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition min-h-[100px] resize-none" 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div className="space-y-6">
+                <div className="flex justify-between items-center pr-1">
+                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Contact Information</h3>
+                  <p className="text-[9px] font-bold text-gray-300">Max 3 Numbers</p>
+                </div>
+                <div className="space-y-4">
+                  {contacts.map((contact, idx) => (
+                    <div key={idx} className="flex gap-4 items-center animate-in slide-in-from-left duration-300" style={{ animationDelay: `${idx * 100}ms` }}>
+                      <div className="flex bg-gray-50 rounded-2xl p-1 border border-gray-100">
+                        {(['Mobile', 'Landline'] as const).map((t) => (
+                          <button
+                            key={t}
+                            onClick={() => {
+                              const newContacts = [...contacts];
+                              newContacts[idx].type = t;
+                              setContacts(newContacts);
+                            }}
+                            className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                              contact.type === t 
+                                ? 'bg-white text-dark-navy shadow-sm' 
+                                : 'text-gray-400 hover:text-gray-600'
+                            }`}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="relative flex-1">
+                        <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-300">
+                          {contact.type === 'Mobile' ? <Smartphone size={16} /> : <Phone size={16} />}
+                        </div>
+                        <input 
+                          type="tel" 
+                          value={contact.number}
+                          onChange={(e) => {
+                            const newContacts = [...contacts];
+                            newContacts[idx].number = e.target.value;
+                            setContacts(newContacts);
+                          }}
+                          placeholder={contact.type === 'Mobile' ? "07X XXX XXXX" : "011 XXX XXXX"}
+                          className="w-full bg-gray-50 border border-gray-100 rounded-2xl pl-12 pr-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition"
+                        />
+                      </div>
+                      {contacts.length > 1 && (
+                        <button 
+                          onClick={() => setContacts(contacts.filter((_, i) => i !== idx))}
+                          className="p-4 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
+                        >
+                          <Plus size={20} className="rotate-45" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  
+                  {contacts.length < 3 && (
+                    <button 
+                      onClick={() => setContacts([...contacts, { type: 'Mobile', number: "" }])}
+                      className="w-full py-4 border-2 border-dashed border-gray-100 rounded-3xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:border-brand-green/30 hover:text-brand-green hover:bg-brand-green/5 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Plus size={14} />
+                      Add Another Number
+                    </button>
+                  )}
+                </div>
+              </div>
+
               {/* Pricing & Location */}
               <div className="space-y-6">
                 <div className="flex justify-between items-center pr-1">
@@ -3221,28 +3429,30 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {images.map((img, idx) => (
-                  <div key={idx} className="relative aspect-video rounded-2xl overflow-hidden group border border-gray-200">
-                    <img src={img} alt={`Upload ${idx}`} className="w-full h-full object-cover" />
-                    <button 
-                      onClick={() => removeImage(idx)}
-                      className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-lg"
-                    >
-                      <Plus size={16} className="rotate-45" />
-                    </button>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {Array.from({ length: 12 }).map((_, idx) => (
+                  <div key={idx} className="relative aspect-video">
+                    {images[idx] ? (
+                      <div className="w-full h-full rounded-2xl overflow-hidden group border border-gray-200 relative">
+                        <img src={images[idx]} alt={`Upload ${idx}`} className="w-full h-full object-cover" />
+                        <button 
+                          onClick={() => removeImage(idx)}
+                          className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-lg z-20"
+                        >
+                          <Plus size={16} className="rotate-45" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={handleImageUpload}
+                        className="w-full h-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-center p-4 hover:border-brand-green hover:bg-brand-green/5 transition-all group"
+                      >
+                        <Camera size={24} className="text-gray-300 mb-2 group-hover:text-brand-green transition-colors" />
+                        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest group-hover:text-brand-green transition-colors">Add Photo</p>
+                      </button>
+                    )}
                   </div>
                 ))}
-                
-                {images.length < 12 && (
-                  <button 
-                    onClick={handleImageUpload}
-                    className="aspect-video bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-center p-4 hover:border-brand-green hover:bg-brand-green/5 transition-all"
-                  >
-                    <Camera size={24} className="text-gray-300 mb-2" />
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Add Photo</p>
-                  </button>
-                )}
               </div>
             </div>
           )}
@@ -3294,7 +3504,69 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
           </div>
         </div>
       </div>
+
+      {showAIModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-dark-navy/60 backdrop-blur-md">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white w-full max-w-2xl rounded-[40px] shadow-2xl overflow-hidden border border-gray-100"
+          >
+            <div className="p-8 border-b border-gray-50 flex justify-between items-center">
+              <div>
+                <h3 className="text-2xl font-black text-dark-navy">Quick AI Import</h3>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Paste your property description below</p>
+              </div>
+              <button onClick={() => setShowAIModal(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-all">
+                <X size={24} className="text-gray-400" />
+              </button>
+            </div>
+            <div className="p-8 space-y-6">
+              <div className="bg-brand-green/5 p-4 rounded-2xl border border-brand-green/10 flex items-start gap-4">
+                <div className="p-2 bg-brand-green text-white rounded-xl">
+                  <Info size={20} />
+                </div>
+                <p className="text-xs font-medium text-gray-500 leading-relaxed">
+                  Our AI will automatically extract the title, price, location, and specifications from your text. It will filter out any Sinhala translations and keep only the English content.
+                </p>
+              </div>
+              <textarea 
+                value={pastedText}
+                onChange={(e) => setPastedText(e.target.value)}
+                placeholder="Paste the description here..."
+                className="w-full h-[300px] bg-gray-50 border border-gray-100 rounded-3xl p-6 text-sm font-medium focus:ring-2 focus:ring-brand-green/20 outline-none resize-none transition-all"
+              />
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setShowAIModal(false)}
+                  className="flex-1 py-5 rounded-3xl text-dark-navy font-black text-xs uppercase tracking-widest hover:bg-gray-50 transition-all border border-gray-100"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleAIImport}
+                  disabled={!pastedText.trim() || isExtracting}
+                  className="flex-[2] py-5 bg-brand-green text-white rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark disabled:opacity-50 transition-all flex items-center justify-center gap-3"
+                >
+                  {isExtracting ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      Extracting Details...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 size={18} />
+                      Import & Auto-Fill
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </motion.div>
+    </>
   );
 };
 
