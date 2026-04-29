@@ -115,6 +115,9 @@ import {
   Info
 } from "lucide-react";
 import { translateToSinhala } from "./services/geminiService";
+import PropertyWanted from "./components/PropertyWanted";
+import CustomerInquiries from "./components/CustomerInquiries";
+import { useProperties, Property } from "./hooks/useProperties";
 
 const VirtualTourModal = ({ isOpen, onClose, propertyTitle }: { isOpen: boolean, onClose: () => void, propertyTitle: string }) => {
   return (
@@ -1193,7 +1196,7 @@ const Sidebar = ({ onOpenCalculator, onShowPackages }: { onOpenCalculator: () =>
   </aside>
 );
 
-const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, onShowPromotion, onShowAgentAccess }: { onNavigateHome: () => void, onShowContact: () => void, onShowAbout: () => void, onShowPackages: () => void, onShowPromotion: () => void, onShowAgentAccess: () => void }) => (
+const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, onShowPromotion, onShowAgentAccess, onShowWanted }: { onNavigateHome: () => void, onShowContact: () => void, onShowAbout: () => void, onShowPackages: () => void, onShowPromotion: () => void, onShowAgentAccess: () => void, onShowWanted: () => void }) => (
   <footer className="bg-[#0c1a2e] text-gray-400 pt-20 pb-10">
     <div className="container mx-auto px-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
@@ -1246,6 +1249,7 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
           <h4 className="text-white font-bold mb-6 uppercase text-sm tracking-widest">Quick Links</h4>
           <ul className="space-y-4 text-base font-medium">
             <li><a href="#" onClick={(e) => { e.preventDefault(); onShowAbout(); }} className="hover:text-brand-green compact-transition">About</a></li>
+            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowWanted(); }} className="hover:text-brand-green compact-transition">Property Wanted</a></li>
             <li><a href="#" onClick={(e) => { e.preventDefault(); onShowContact(); }} className="hover:text-brand-green compact-transition">Contact Support</a></li>
             <li><a href="#" className="hover:text-brand-green compact-transition">Terms of Service</a></li>
             <li><a href="#" className="hover:text-brand-green compact-transition">Privacy Policy</a></li>
@@ -3728,7 +3732,7 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
   );
 };
 
-const AgentAccessView = ({ onBack, user, onLogin, onNewProperty }: { onBack: () => void, user: any, onLogin: (email: string) => void, onNewProperty: () => void }) => {
+const AgentAccessView = ({ onBack, user, onLogin, onNewProperty, onShowInquiries }: { onBack: () => void, user: any, onLogin: (email: string) => void, onNewProperty: () => void, onShowInquiries: () => void }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -3814,7 +3818,10 @@ const AgentAccessView = ({ onBack, user, onLogin, onNewProperty }: { onBack: () 
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-8 bg-white border border-gray-100 rounded-[32px] shadow-sm hover:shadow-md compact-transition group cursor-pointer">
+              <div 
+                onClick={onShowInquiries}
+                className="p-8 bg-white border border-gray-100 rounded-[32px] shadow-sm hover:shadow-md compact-transition group cursor-pointer"
+              >
                 <div className="flex justify-between items-start mb-4">
                   <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white compact-transition">
                     <MessageSquare size={24} />
@@ -4356,9 +4363,10 @@ const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBac
 };
 
 export default function App() {
+  const { properties: supabaseProperties, loading: listingsLoading } = useProperties();
   const [recentFilter, setRecentFilter] = useState<"Sale" | "Rent">("Sale");
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'agent_publish', data?: any }>({ type: 'home' });
+  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'agent_publish' | 'wanted' | 'inquiries', data?: any }>({ type: 'home' });
   const [user, setUser] = useState<{ email: string } | null>({ email: 'abhishekdewminaa@gmail.com' });
   const [compareList, setCompareList] = useState<number[]>([]);
 
@@ -4411,9 +4419,10 @@ export default function App() {
     });
   };
 
-  const filteredRecent = FEATURED_PROPERTIES.filter(p => p.type === recentFilter);
+  const displayedProperties = supabaseProperties.length > 0 ? supabaseProperties : FEATURED_PROPERTIES;
+  const filteredRecent = displayedProperties.filter(p => p.type === recentFilter);
   const categoryProperties = currentView.type === 'category' 
-    ? FEATURED_PROPERTIES // Simplified: showing all for demo
+    ? displayedProperties // Simplified: showing all for demo
     : [];
 
   const handleCategoryClick = (category: string) => {
@@ -4454,9 +4463,9 @@ export default function App() {
                     else if (item === 'Advertising') setCurrentView({ type: 'packages' });
                     else if (item === 'Agents') setCurrentView({ type: 'agents' });
                     else if (item === 'Contact') setCurrentView({ type: 'contact' });
-                    else if (item === 'Property Wanted') setCurrentView({ type: 'packages' });
+                    else if (item === 'Property Wanted') setCurrentView({ type: 'wanted' });
                   }}
-                  className={`${(item === 'Home' && currentView.type === 'home' || item === 'About' && currentView.type === 'about' || item === 'Advertising' && currentView.type === 'packages' || item === 'Contact' && currentView.type === 'contact') ? 'text-brand-green border-b-2 border-brand-green pb-1.5' : 'hover:text-brand-green'} whitespace-nowrap compact-transition`}
+                  className={`${(item === 'Home' && currentView.type === 'home' || item === 'About' && currentView.type === 'about' || item === 'Advertising' && currentView.type === 'packages' || item === 'Contact' && currentView.type === 'contact' || item === 'Property Wanted' && currentView.type === 'wanted') ? 'text-brand-green border-b-2 border-brand-green pb-1.5' : 'hover:text-brand-green'} whitespace-nowrap compact-transition`}
                 >
                   {item}
                 </a>
@@ -4563,17 +4572,24 @@ export default function App() {
                       <a href="#" className="text-sm text-brand-green font-bold hover:underline">View All &rarr;</a>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {FEATURED_PROPERTIES.slice(0,3).map(p => (
-                        <PropertyCard 
-                          key={p.id} 
-                          property={p} 
-                          onClick={() => handleDetailClick(p)}
-                          isFavorited={favorites.has(p.id)}
-                          onToggleFavorite={() => toggleFavorite(p.id)}
-                          isComparing={compareList.includes(p.id)}
-                          onToggleCompare={() => toggleCompare(p.id)}
-                        />
-                      ))}
+                      {listingsLoading ? (
+                        <div className="col-span-full flex flex-col items-center justify-center py-12 gap-3 text-gray-400">
+                          <Loader2 className="animate-spin" size={32} />
+                          <p className="text-sm font-bold uppercase tracking-widest">Loading Listings...</p>
+                        </div>
+                      ) : (
+                        displayedProperties.slice(0,3).map(p => (
+                          <PropertyCard 
+                            key={p.id} 
+                            property={p} 
+                            onClick={() => handleDetailClick(p)}
+                            isFavorited={favorites.has(p.id)}
+                            onToggleFavorite={() => toggleFavorite(p.id)}
+                            isComparing={compareList.includes(p.id)}
+                            onToggleCompare={() => toggleCompare(p.id)}
+                          />
+                        ))
+                      )}
                     </div>
                   </div>
 
@@ -4744,6 +4760,7 @@ export default function App() {
             user={user} 
             onLogin={(email) => setUser({ email })} 
             onNewProperty={() => setCurrentView({ type: 'agent_publish' })}
+            onShowInquiries={() => setCurrentView({ type: 'inquiries' })}
           />
         )}
 
@@ -4759,6 +4776,23 @@ export default function App() {
             onAgentClick={(agent) => setCurrentView({ type: 'agent', data: agent })} 
             onBack={navigateHome} 
           />
+        )}
+
+        {currentView.type === 'wanted' && (
+          <PropertyWanted />
+        )}
+
+        {currentView.type === 'inquiries' && (
+          <div className="pt-20">
+            <button 
+              onClick={() => setCurrentView({ type: 'agent_access' })}
+              className="fixed top-24 left-6 z-50 p-3 bg-white shadow-xl rounded-2xl hover:bg-gray-50 text-dark-navy flex items-center gap-2 font-black text-xs uppercase tracking-widest compact-transition border border-gray-100"
+            >
+              <ArrowRight className="rotate-180" size={16} />
+              Back to Portal
+            </button>
+            <CustomerInquiries />
+          </div>
         )}
 
         {currentView.type === 'compare' && (
@@ -4788,6 +4822,7 @@ export default function App() {
         onShowPackages={() => setCurrentView({ type: 'packages' })} 
         onShowPromotion={() => setCurrentView({ type: 'promotion' })}
         onShowAgentAccess={() => setCurrentView({ type: 'agent_access' })}
+        onShowWanted={() => setCurrentView({ type: 'wanted' })}
       />
 
       <MortgageCalculatorModal 

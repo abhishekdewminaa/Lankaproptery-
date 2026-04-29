@@ -13,6 +13,10 @@ export default defineConfig(({mode}) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
+        'formdata-polyfill': path.resolve(__dirname, 'src/empty.js'),
+        'node-fetch': path.resolve(__dirname, 'src/empty.js'),
+        'whatwg-fetch': path.resolve(__dirname, 'src/empty.js'),
+        'isomorphic-fetch': path.resolve(__dirname, 'src/empty.js'),
       },
     },
     server: {
