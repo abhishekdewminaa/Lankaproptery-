@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { GoogleGenAI, Type } from "@google/genai";
+import { supabase } from "./supabaseClient";
 import { motion, AnimatePresence } from "motion/react";
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -27,7 +29,25 @@ const convertPrice = (priceStr: string) => {
     eur: formatValue(amount / EUR_RATE, '€')
   };
 };
-import { GoogleGenAI, Type } from "@google/genai";
+
+import { 
+  DndContext, 
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  rectSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { 
   Search, 
   MapPin, 
@@ -2977,6 +2997,47 @@ const PublishListingView = ({ onBack, user }: { onBack: () => void, user?: any }
   );
 };
 
+const SortableImageItem = ({ image, onRemove }: { image: { id: string, url: string }, onRemove: (id: string) => void, key?: any }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: image.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : 1,
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      {...attributes} 
+      className={`relative aspect-video rounded-2xl overflow-hidden group border border-gray-200 transition-shadow ${isDragging ? 'shadow-2xl ring-2 ring-brand-green z-50' : ''}`}
+    >
+      <img src={image.url} alt="Listing" className="w-full h-full object-cover select-none" />
+      <div 
+        {...listeners} 
+        className="absolute inset-0 bg-transparent cursor-grab active:cursor-grabbing z-10" 
+      />
+      <button 
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove(image.id);
+        }}
+        className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-lg z-20"
+      >
+        <Plus size={16} className="rotate-45" />
+      </button>
+    </div>
+  );
+};
+
 const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: any }) => {
   const [step, setStep] = useState(1);
   const [price, setPrice] = useState<string>("");
@@ -2994,11 +3055,31 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [isNegotiable, setIsNegotiable] = useState(false);
   const [contacts, setContacts] = useState<{ type: 'Mobile' | 'Landline', number: string }[]>([{ type: 'Mobile', number: "" }]);
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<{ id: string, url: string }[]>([]);
+  const [locationLink, setLocationLink] = useState("");
+  const [isPublishing, setIsPublishing] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
   const [pastedText, setPastedText] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setImages((items) => {
+        const oldIndex = items.findIndex((i) => i.id === active.id);
+        const newIndex = items.findIndex((i) => i.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
 
   const handleAIImport = async () => {
     if (!pastedText.trim()) return;
@@ -3036,6 +3117,7 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
               bathrooms: { type: Type.STRING },
               isNegotiable: { type: Type.BOOLEAN },
               additionalInfo: { type: Type.STRING },
+              locationLink: { type: Type.STRING },
               price: { type: Type.STRING }
             }
           }
@@ -3057,6 +3139,7 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
       if (data.bathrooms) setBathrooms(data.bathrooms);
       if (data.isNegotiable !== undefined) setIsNegotiable(data.isNegotiable);
       if (data.additionalInfo) setAdditionalInfo(data.additionalInfo);
+      if (data.locationLink) setLocationLink(data.locationLink);
       if (data.price) setPrice(data.price);
 
       setShowAIModal(false);
@@ -3090,7 +3173,8 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
     filesToProcess.forEach(file => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImages(prev => [...prev, reader.result as string].slice(0, 12));
+        const id = Math.random().toString(36).substr(2, 9);
+        setImages(prev => [...prev, { id, url: reader.result as string }].slice(0, 12));
       };
       reader.readAsDataURL(file as File);
     });
@@ -3098,8 +3182,52 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
     e.target.value = '';
   };
 
-  const removeImage = (index: number) => {
-    setImages(images.filter((_, i) => i !== index));
+  const removeImage = (id: string) => {
+    setImages(prev => prev.filter(img => img.id !== id));
+  };
+
+  const handlePublish = async () => {
+    setIsPublishing(true);
+    try {
+      if (!supabase) {
+        throw new Error("Supabase client is not initialized.");
+      }
+
+      const listingData = {
+        title,
+        price,
+        district,
+        city,
+        property_type: propertyType,
+        listing_type: listingType,
+        land_area: landArea,
+        floor_area: floorArea,
+        floors,
+        rooms,
+        bathrooms,
+        description,
+        additional_info: additionalInfo,
+        is_negotiable: isNegotiable,
+        contacts,
+        images: images.map(img => img.url), // Store just the base64 URLs
+        location_link: locationLink,
+        agent_id: user?.uid || 'anonymous',
+        created_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase
+        .from('listings')
+        .insert([listingData]);
+
+      if (error) throw error;
+      
+      setStep(3);
+    } catch (error) {
+      console.error("Error publishing listing:", error);
+      alert("Failed to publish listing. Please check if your database 'listings' table is ready.");
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   return (
@@ -3274,6 +3402,23 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
                 </div>
               </div>
 
+              {/* Google Location Link */}
+              <div className="space-y-6">
+                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Google Maps Location</h3>
+                <div className="relative group">
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-brand-green transition-colors">
+                    <MapPin size={18} />
+                  </div>
+                  <input 
+                    type="url"
+                    value={locationLink || ""}
+                    onChange={(e) => setLocationLink(e.target.value)}
+                    placeholder="Paste Google Maps location link here..."
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl pl-12 pr-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition"
+                  />
+                </div>
+              </div>
+
               {/* Contact Information */}
               <div className="space-y-6">
                 <div className="flex justify-between items-center pr-1">
@@ -3429,33 +3574,36 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {Array.from({ length: 12 }).map((_, idx) => (
-                  <div key={idx} className="relative aspect-video">
-                    {images[idx] ? (
-                      <div className="w-full h-full rounded-2xl overflow-hidden group border border-gray-200 relative">
-                        <img src={images[idx]} alt={`Upload ${idx}`} className="w-full h-full object-cover" />
+              <DndContext 
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <SortableContext 
+                      items={images.map(img => img.id)}
+                      strategy={rectSortingStrategy}
+                    >
+                      {images.map((img: { id: string, url: string }) => (
+                        <SortableImageItem key={img.id} image={img} onRemove={removeImage} />
+                      ))}
+                    </SortableContext>
+                    
+                    {Array.from({ length: 12 - images.length }).map((_, idx) => (
+                      <div key={`empty-${idx}`} className="relative aspect-video">
                         <button 
-                          onClick={() => removeImage(idx)}
-                          className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-lg z-20"
+                          onClick={handleImageUpload}
+                          className="w-full h-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-center p-4 hover:border-brand-green hover:bg-brand-green/5 transition-all group"
                         >
-                          <Plus size={16} className="rotate-45" />
+                          <Camera size={24} className="text-gray-300 mb-2 group-hover:text-brand-green transition-colors" />
+                          <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest group-hover:text-brand-green transition-colors">Add Photo</p>
                         </button>
                       </div>
-                    ) : (
-                      <button 
-                        onClick={handleImageUpload}
-                        className="w-full h-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-center p-4 hover:border-brand-green hover:bg-brand-green/5 transition-all group"
-                      >
-                        <Camera size={24} className="text-gray-300 mb-2 group-hover:text-brand-green transition-colors" />
-                        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest group-hover:text-brand-green transition-colors">Add Photo</p>
-                      </button>
-                    )}
-                  </div>
-                ))}
+                    ))}
               </div>
-            </div>
-          )}
+            </DndContext>
+          </div>
+        )}
 
           {step === 3 && (
             <div className="space-y-12 py-10 animate-in fade-in zoom-in duration-700">
@@ -3491,15 +3639,25 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
             )}
             <button 
               onClick={() => {
-                if (step < 3) {
-                  setStep(s => s + 1);
+                if (step === 1) {
+                  setStep(2);
+                } else if (step === 2) {
+                  handlePublish();
                 } else {
                   onBack();
                 }
               }}
-              className="ml-auto px-10 py-5 bg-brand-green text-white font-black text-lg rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition"
+              disabled={isPublishing}
+              className="ml-auto px-10 py-5 bg-brand-green text-white font-black text-lg rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition flex items-center gap-3"
             >
-              {step === 3 ? 'Go to Dashboard' : 'Continue to Publish'}
+              {isPublishing ? (
+                <>
+                  <div className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                  Publishing...
+                </>
+              ) : (
+                step === 3 ? 'Go to Dashboard' : 'Continue to Publish'
+              )}
             </button>
           </div>
         </div>
