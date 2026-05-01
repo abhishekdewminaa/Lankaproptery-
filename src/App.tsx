@@ -2518,9 +2518,13 @@ const PublishListingView = ({ onBack, user, onRefresh }: { onBack: () => void, u
     try {
       if (!supabase) throw new Error("Supabase client is not initialized.");
 
+      const toNumber = (val: string | number | undefined) => val === '' || val === undefined || val === null ? null : Number(val);
+
       const propertyData = {
         listing_title: title,
-        price_lkr: price,
+        price_lkr: toNumber(price),
+        usd_estimate: price ? toNumber(Number(price) / USD_RATE) : null,
+        eur_estimate: price ? toNumber(Number(price) / EUR_RATE) : null,
         district,
         city,
         city_suburb: city,
@@ -2528,9 +2532,9 @@ const PublishListingView = ({ onBack, user, onRefresh }: { onBack: () => void, u
         listing_type: listingType,
         land_area: landArea,
         floor_area: floorArea,
-        floors: floors || "0",
-        rooms: rooms || "0",
-        bathrooms: bathrooms || "0",
+        floors: toNumber(floors),
+        rooms: toNumber(rooms),
+        bathrooms: toNumber(bathrooms),
         property_description: description || title,
         is_negotiable: isNegotiable,
         images: images,
@@ -3349,12 +3353,15 @@ const AgentPublishListingView = ({ onBack, user, onRefresh }: { onBack: () => vo
       const matchingAgent = AGENTS.find(a => a.email.toLowerCase() === user?.email?.toLowerCase());
       const agentId = matchingAgent ? matchingAgent.id : (user?.email || 'anonymous');
 
+      const toNumber = (val: string | number | undefined) => val === '' || val === undefined || val === null ? null : Number(val);
       const mobile = contacts.find(c => c.type === 'Mobile')?.number || '';
       const landline = contacts.find(c => c.type === 'Landline')?.number || '';
 
       const listingData = {
         listing_title: title,
-        price_lkr: price,
+        price_lkr: toNumber(price),
+        usd_estimate: price ? toNumber(Number(price) / USD_RATE) : null,
+        eur_estimate: price ? toNumber(Number(price) / EUR_RATE) : null,
         district,
         city,
         city_suburb: city,
@@ -3362,9 +3369,9 @@ const AgentPublishListingView = ({ onBack, user, onRefresh }: { onBack: () => vo
         listing_type: listingType,
         land_area: landArea,
         floor_area: floorArea,
-        floors: floors || "0",
-        rooms: rooms || "0",
-        bathrooms: bathrooms || "0",
+        floors: toNumber(floors),
+        rooms: toNumber(rooms),
+        bathrooms: toNumber(bathrooms),
         property_description: description,
         additional_info: additionalInfo,
         mobile,
