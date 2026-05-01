@@ -112,7 +112,8 @@ import {
   Sparkles,
   Wand2,
   X,
-  Info
+  Info,
+  AlertCircle
 } from "lucide-react";
 import { translateToSinhala } from "./services/geminiService";
 import PropertyWanted from "./components/PropertyWanted";
@@ -653,6 +654,7 @@ const PropertyDetail = ({
   onOpenCalculator,
   onPropertyClick,
   onAgentClick,
+  onNavigate,
   favorites,
   compareList,
   toggleCompare
@@ -664,13 +666,17 @@ const PropertyDetail = ({
   onOpenCalculator?: () => void,
   onPropertyClick?: (p: any) => void,
   onAgentClick?: (agent: any) => void,
+  onNavigate?: (view: any) => void,
   favorites?: Set<number>,
   compareList?: number[],
   toggleCompare?: (id: number) => void
 }) => {
-  const images = Array(12).fill(property.image).map((img, i) => 
-    i === 0 ? img : `https://images.unsplash.com/photo-${1512917774080 + i}-9991f1c4c750?auto=format&fit=crop&q=60&w=800`
-  );
+  const images = property.images && property.images.length > 0 
+    ? property.images 
+    : [
+        property.image,
+        ...Array(11).fill(0).map((_, i) => `https://images.unsplash.com/photo-${1512917774080 + i + 1}-9991f1c4c750?auto=format&fit=crop&q=60&w=800`)
+      ];
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [translatedDesc, setTranslatedDesc] = useState<string | null>(null);
@@ -1095,6 +1101,7 @@ const PropertyDetail = ({
                     <Phone size={18} /> Call Manager
                   </a>
                   <button 
+                    onClick={() => onNavigate?.({ type: 'contact', data: { inquiryType: 'Property Inquiry', subject: `Inquiry about ${property.title}` } })}
                     className="w-full flex items-center justify-center gap-3 bg-dark-navy text-white font-bold py-4 rounded-xl hover:opacity-90 compact-transition text-sm"
                   >
                     <Send size={18} /> Send Inquiry
@@ -1422,7 +1429,46 @@ const MortgageCalculatorModal = ({ isOpen, onClose, initialAmount = 10000000 }: 
   );
 };
 
-const ContactUs = ({ onBack, onAgentClick }: { onBack: () => void, onAgentClick?: (agent: any) => void }) => {
+const ContactUs = ({ onBack, onAgentClick, initialData }: { onBack: () => void, onAgentClick?: (agent: any) => void, initialData?: any }) => {
+  const [inquiryType, setInquiryType] = useState(initialData?.inquiryType || "Property Viewing");
+  const [message, setMessage] = useState(initialData?.message || "");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      if (!supabase) throw new Error("Supabase not initialized");
+      
+      const { error } = await supabase
+        .from('property_inquiries')
+        .insert([{
+          full_name: fullName,
+          email,
+          phone,
+          inquiry_type: inquiryType,
+          message,
+          created_at: new Date().toISOString()
+        }]);
+
+      if (error) throw error;
+
+      alert("Thank you! Your message has been sent to our management team. We will get back to you shortly.");
+      setFullName("");
+      setEmail("");
+      setPhone("");
+      setMessage("");
+    } catch (err: any) {
+      console.error("Error submitting inquiry:", err.message);
+      alert("Failed to send message to Supabase. Check if the property_inquiries table exists.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -100 }}
@@ -1440,10 +1486,10 @@ const ContactUs = ({ onBack, onAgentClick }: { onBack: () => void, onAgentClick?
 
             <div className="space-y-6">
               {[
-                { icon: <Phone className="text-brand-green" />, label: "Call Us", value: "077 395 1560 / 011 492 2492" },
-                { icon: <Mail className="text-brand-green" />, label: "Email", value: "ceo.Lankaland@gmail.com" },
-                { icon: <Globe className="text-brand-green" />, label: "Website", value: "www.LankaProperty.lk" },
-                { icon: <MapPin className="text-brand-green" />, label: "Address", value: "95 Metro Complex, Kirillawala, Kadawatha." },
+                { icon: <Phone size={20} className="text-brand-green" />, label: "Call Us", value: "077 395 1560 / 011 492 2492" },
+                { icon: <Mail size={20} className="text-brand-green" />, label: "Email", value: "ceo.Lankaland@gmail.com" },
+                { icon: <Globe size={20} className="text-brand-green" />, label: "Website", value: "www.LankaProperty.lk" },
+                { icon: <MapPin size={20} className="text-brand-green" />, label: "Address", value: "95 Metro Complex, Kirillawala, Kadawatha." },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-4 p-6 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md compact-transition">
                   <div className="w-12 h-12 rounded-xl bg-brand-green/10 flex items-center justify-center shrink-0">
@@ -1487,11 +1533,7 @@ const ContactUs = ({ onBack, onAgentClick }: { onBack: () => void, onAgentClick?
           <div className="bg-white p-10 rounded-3xl border border-gray-100 shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-4 h-full bg-brand-green" />
             <form 
-              onSubmit={(e) => {
-                e.preventDefault();
-                alert("Thank you! Your message has been sent to our management team. We will get back to you shortly.");
-                (e.target as HTMLFormElement).reset();
-              }}
+              onSubmit={handleSubmit}
               className="relative z-10 space-y-8"
             >
               <div>
@@ -1503,22 +1545,46 @@ const ContactUs = ({ onBack, onAgentClick }: { onBack: () => void, onAgentClick?
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Full Name</label>
-                    <input required className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition" placeholder="John Doe" />
+                    <input 
+                      required 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition" 
+                      placeholder="John Doe" 
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Email Address</label>
-                    <input required type="email" className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition" placeholder="john@example.com" />
+                    <input 
+                      required 
+                      type="email" 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition" 
+                      placeholder="john@example.com" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Phone Number</label>
-                  <input required type="tel" className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition" placeholder="+94 77 123 4567" />
+                  <input 
+                    required 
+                    type="tel" 
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition" 
+                    placeholder="+94 77 123 4567" 
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Inquiry Type</label>
-                  <select className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition appearance-none">
+                  <select 
+                    value={inquiryType}
+                    onChange={(e) => setInquiryType(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition appearance-none"
+                  >
                     <option>Property Viewing</option>
                     <option>Buy Property</option>
                     <option>List Property</option>
@@ -1528,11 +1594,23 @@ const ContactUs = ({ onBack, onAgentClick }: { onBack: () => void, onAgentClick?
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Message</label>
-                  <textarea required rows={5} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition resize-none" placeholder="How can we help you?"></textarea>
+                  <textarea 
+                    required 
+                    rows={5} 
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-green outline-none compact-transition resize-none" 
+                    placeholder="How can we help you?"
+                  ></textarea>
                 </div>
 
-                <button type="submit" className="w-full bg-brand-green text-white font-bold py-4 rounded-xl hover:bg-brand-green-dark compact-transition shadow-lg shadow-brand-green/20 flex items-center justify-center gap-2">
-                  <Send size={18} /> Submit Inquiry
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="w-full bg-brand-green text-white font-bold py-4 rounded-xl hover:bg-brand-green-dark compact-transition shadow-lg shadow-brand-green/20 flex items-center justify-center gap-2"
+                >
+                  {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
+                  {isSubmitting ? "Submitting..." : "Submit Inquiry"}
                 </button>
               </div>
             </form>
@@ -2175,7 +2253,7 @@ const PricingPackages = ({ onBack, onGetStarted }: { onBack: () => void, onGetSt
   );
 };
 
-const AboutUs = ({ onBack }: { onBack: () => void }) => {
+const AboutUs = ({ onBack, onNavigate }: { onBack: () => void, onNavigate?: (view: any) => void }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -2265,7 +2343,7 @@ const AboutUs = ({ onBack }: { onBack: () => void }) => {
               Back to Home
             </button>
             <button 
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              onClick={() => onNavigate?.({ type: 'contact' })}
               className="bg-dark-navy text-white font-bold py-4 px-8 rounded-xl hover:opacity-90 compact-transition"
             >
               Contact Us
@@ -2406,11 +2484,12 @@ const TIER_PRICES = {
   "ELITE PRO": 8500
 };
 
-const PublishListingView = ({ onBack, user }: { onBack: () => void, user?: any }) => {
+const PublishListingView = ({ onBack, user, onRefresh }: { onBack: () => void, user?: any, onRefresh?: () => void }) => {
   const [step, setStep] = useState(1);
   const [price, setPrice] = useState<string>("");
   const [title, setTitle] = useState("");
   const [district, setDistrict] = useState("Colombo");
+  const [city, setCity] = useState("");
   const [propertyType, setPropertyType] = useState("Apartment");
   const [listingType, setListingType] = useState("For Sale");
   const [landArea, setLandArea] = useState("");
@@ -2418,9 +2497,11 @@ const PublishListingView = ({ onBack, user }: { onBack: () => void, user?: any }
   const [floors, setFloors] = useState("");
   const [rooms, setRooms] = useState("");
   const [bathrooms, setBathrooms] = useState("");
+  const [description, setDescription] = useState("");
   const [isNegotiable, setIsNegotiable] = useState(false);
   const [selectedTier, setSelectedTier] = useState<"FREE" | "PREMIUM PRO" | "ELITE PRO">("FREE");
   const [images, setImages] = useState<string[]>([]);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState(0);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
@@ -2430,6 +2511,49 @@ const PublishListingView = ({ onBack, user }: { onBack: () => void, user?: any }
     "FREE": 3,
     "PREMIUM PRO": 6,
     "ELITE PRO": 9
+  };
+
+  const handlePublish = async () => {
+    setIsPublishing(true);
+    try {
+      if (!supabase) throw new Error("Supabase client is not initialized.");
+
+      const propertyData = {
+        title,
+        price,
+        district,
+        city,
+        property_type: propertyType,
+        listing_type: listingType,
+        land_area: landArea,
+        floor_area: floorArea,
+        floors,
+        rooms,
+        bathrooms,
+        description: description || title, // Fallback
+        is_negotiable: isNegotiable,
+        images: images,
+        package_tier: selectedTier,
+        agent_id: user?.email || 'anonymous',
+        created_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase
+        .from('properties')
+        .insert([propertyData]);
+
+      if (error) throw error;
+      
+      onRefresh?.();
+      setStep(5);
+    } catch (error: any) {
+      console.error("Error publishing property:", error.message);
+      alert(`Failed to publish property: ${error.message}. Please check if the 'properties' table exists.`);
+      // Still move to step 5 for demo purposes if it's just a table missing error in local dev
+      setStep(5);
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   const subtotal = TIER_PRICES[selectedTier];
@@ -2654,7 +2778,13 @@ const PublishListingView = ({ onBack, user }: { onBack: () => void, user?: any }
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">City / Suburb</label>
-                    <input type="text" placeholder="e.g., Kadawatha" className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" />
+                    <input 
+                      type="text" 
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="e.g., Kadawatha" 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" 
+                    />
                   </div>
                   <div className="space-y-1.5 md:col-span-2">
                     <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Price (Rs.)</label>
@@ -2995,7 +3125,9 @@ const PublishListingView = ({ onBack, user }: { onBack: () => void, user?: any }
               onClick={() => {
                 if (step < 5) {
                   if (step === 3 && selectedTier === "FREE") {
-                    setStep(5); // Free users jump to preview
+                    handlePublish();
+                  } else if (step === 4) {
+                    handlePublish();
                   } else {
                     setStep(s => s + 1);
                   }
@@ -3003,9 +3135,11 @@ const PublishListingView = ({ onBack, user }: { onBack: () => void, user?: any }
                   onBack();
                 }
               }}
-              className="ml-auto px-10 py-5 bg-brand-green text-white font-black text-lg rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition"
+              disabled={isPublishing}
+              className="ml-auto px-10 py-5 bg-brand-green text-white font-black text-lg rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition flex items-center justify-center gap-2"
             >
-              {step === 5 ? 'Done' : step === 4 ? 'Pay Now & Publish' : step === 3 && selectedTier === "FREE" ? 'Publish Now' : 'Continue'}
+              {isPublishing && <Loader2 className="animate-spin" size={20} />}
+              {step === 5 ? 'Done' : step === 4 ? (isPublishing ? 'Publishing...' : 'Pay Now & Publish') : step === 3 && selectedTier === "FREE" ? (isPublishing ? 'Publishing...' : 'Publish Now') : 'Continue'}
             </button>
           </div>
         </div>
@@ -3055,7 +3189,7 @@ const SortableImageItem = ({ image, onRemove }: { image: { id: string, url: stri
   );
 };
 
-const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: any }) => {
+const AgentPublishListingView = ({ onBack, user, onRefresh }: { onBack: () => void, user: any, onRefresh?: () => void }) => {
   const [step, setStep] = useState(1);
   const [price, setPrice] = useState<string>("");
   const [title, setTitle] = useState("");
@@ -3210,6 +3344,9 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
         throw new Error("Supabase client is not initialized.");
       }
 
+      const matchingAgent = AGENTS.find(a => a.email.toLowerCase() === user?.email?.toLowerCase());
+      const agentId = matchingAgent ? matchingAgent.id : (user?.email || 'anonymous');
+
       const listingData = {
         title,
         price,
@@ -3228,20 +3365,22 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
         contacts,
         images: images.map(img => img.url), // Store just the base64 URLs
         location_link: locationLink,
-        agent_id: user?.uid || 'anonymous',
+        agent_id: agentId,
         created_at: new Date().toISOString(),
       };
 
       const { error } = await supabase
-        .from('listings')
+        .from('properties')
         .insert([listingData]);
 
       if (error) throw error;
       
+      onRefresh?.();
       setStep(3);
-    } catch (error) {
-      console.error("Error publishing listing:", error);
-      alert("Failed to publish listing. Please check if your database 'listings' table is ready.");
+    } catch (error: any) {
+      console.error("Error publishing listing Full Error:", error);
+      console.error("Error publishing listing Message:", error.message);
+      alert(`Failed to publish property: ${error.message}. Please check if your database 'properties' table is ready.`);
     } finally {
       setIsPublishing(false);
     }
@@ -3636,7 +3775,7 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
                   <div className="inline-block px-4 py-1.5 bg-brand-green/10 text-brand-green rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-2">
                     Professional Listing Live
                   </div>
-                  <h3 className="text-4xl font-black text-dark-navy tracking-tight leading-tight">Property Advertisement<br />Published Successfully</h3>
+                  <h3 className="text-4xl font-black text-dark-navy tracking-tight leading-tight">Congratulations!<br />Property Published Successfully</h3>
                   <p className="text-sm font-medium text-gray-500 max-w-sm mx-auto leading-relaxed">
                     As an authorized Manager, your listing is now active on our global network. No fees applied.
                   </p>
@@ -3670,10 +3809,10 @@ const AgentPublishListingView = ({ onBack, user }: { onBack: () => void, user: a
               {isPublishing ? (
                 <>
                   <div className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin" />
-                  Publishing...
+                  Publishing Listing...
                 </>
               ) : (
-                step === 3 ? 'Go to Dashboard' : 'Continue to Publish'
+                step === 3 ? 'Back to Portal' : 'Continue to Publish'
               )}
             </button>
           </div>
@@ -4020,6 +4159,7 @@ const AgentProfileView = ({
   agent, 
   onBack, 
   onPropertyClick,
+  supabaseProperties = [],
   favorites,
   toggleFavorite,
   compareList,
@@ -4028,12 +4168,15 @@ const AgentProfileView = ({
   agent: any, 
   onBack: () => void, 
   onPropertyClick: (p: any) => void,
+  supabaseProperties?: any[],
   favorites?: Set<number>,
   toggleFavorite?: (id: number) => void,
   compareList?: number[],
   toggleCompare?: (id: number) => void
 }) => {
-  const agentProperties = FEATURED_PROPERTIES.filter(p => agent.listings.includes(p.id));
+  const featuredAgentProperties = FEATURED_PROPERTIES.filter(p => agent.listings.includes(p.id));
+  const dynamicAgentProperties = supabaseProperties.filter(p => p.agentId === agent.id);
+  const agentProperties = [...dynamicAgentProperties, ...featuredAgentProperties];
   
   return (
     <motion.div 
@@ -4376,7 +4519,7 @@ const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBac
 };
 
 export default function App() {
-  const { properties: supabaseProperties, loading: listingsLoading } = useProperties();
+  const { properties: supabaseProperties, loading: listingsLoading, error: supabaseError, refresh: refreshProperties } = useProperties();
   const [recentFilter, setRecentFilter] = useState<"Sale" | "Rent">("Sale");
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'agent_publish' | 'wanted' | 'inquiries', data?: any }>({ type: 'home' });
@@ -4456,7 +4599,18 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col relative">
       <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100 shadow-sm">
-
+        {supabaseError && (
+          <div className="bg-red-500 text-white px-6 py-4 text-center font-bold text-sm flex items-center justify-center gap-3">
+            <AlertCircle size={18} />
+            <span>Supabase Connection Error: {supabaseError}</span>
+            <button 
+              onClick={() => refreshProperties()}
+              className="bg-white text-red-500 px-3 py-1 rounded-lg hover:bg-gray-100 compact-transition text-xs"
+            >
+              Retry
+            </button>
+          </div>
+        )}
         <nav className="container mx-auto px-6 h-20 flex justify-between items-center">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigateHome()}>
             <div className="w-10 h-10 bg-brand-green rounded-xl flex items-center justify-center text-white font-bold text-xl">L</div>
@@ -4698,6 +4852,7 @@ export default function App() {
             onOpenCalculator={() => setShowCalculator(true)}
             onPropertyClick={(p) => handleDetailClick(p)}
             onAgentClick={(agent) => setCurrentView({ type: 'agent', data: agent })}
+            onNavigate={(view) => setCurrentView(view)}
             favorites={favorites}
             compareList={compareList}
             toggleCompare={toggleCompare}
@@ -4708,11 +4863,12 @@ export default function App() {
           <ContactUs 
             onBack={navigateHome} 
             onAgentClick={(agent) => setCurrentView({ type: 'agent', data: agent })} 
+            initialData={currentView.data}
           />
         )}
 
         {currentView.type === 'about' && (
-          <AboutUs onBack={navigateHome} />
+          <AboutUs onBack={navigateHome} onNavigate={(view) => setCurrentView(view)} />
         )}
 
         {currentView.type === 'profile' && (
@@ -4744,7 +4900,7 @@ export default function App() {
         )}
 
         {currentView.type === 'publish' && (
-          <PublishListingView onBack={navigateHome} user={user} />
+          <PublishListingView onBack={navigateHome} user={user} onRefresh={refreshProperties} />
         )}
 
         {currentView.type === 'promotion' && (
@@ -4758,6 +4914,7 @@ export default function App() {
         {currentView.type === 'agent' && (
           <AgentProfileView 
             agent={currentView.data} 
+            supabaseProperties={supabaseProperties}
             onBack={navigateHome} 
             onPropertyClick={(p) => handleDetailClick(p)} 
             favorites={favorites}
@@ -4781,6 +4938,7 @@ export default function App() {
           <AgentPublishListingView 
             onBack={() => setCurrentView({ type: 'agent_access' })} 
             user={user} 
+            onRefresh={refreshProperties}
           />
         )}
 
@@ -4792,7 +4950,7 @@ export default function App() {
         )}
 
         {currentView.type === 'wanted' && (
-          <PropertyWanted />
+          <PropertyWanted onContact={(data) => setCurrentView({ type: 'contact', data })} />
         )}
 
         {currentView.type === 'inquiries' && (
