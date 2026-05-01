@@ -2519,22 +2519,24 @@ const PublishListingView = ({ onBack, user, onRefresh }: { onBack: () => void, u
       if (!supabase) throw new Error("Supabase client is not initialized.");
 
       const propertyData = {
-        title,
-        price,
+        listing_title: title,
+        price_lkr: price,
         district,
         city,
-        property_type: propertyType,
+        city_suburb: city,
+        property_category: propertyType,
         listing_type: listingType,
         land_area: landArea,
         floor_area: floorArea,
-        floors,
-        rooms,
-        bathrooms,
-        description: description || title, // Fallback
+        floors: floors || "0",
+        rooms: rooms || "0",
+        bathrooms: bathrooms || "0",
+        property_description: description || title,
         is_negotiable: isNegotiable,
         images: images,
         package_tier: selectedTier,
         agent_id: user?.email || 'anonymous',
+        status: 'Active',
         created_at: new Date().toISOString(),
       };
 
@@ -3347,25 +3349,31 @@ const AgentPublishListingView = ({ onBack, user, onRefresh }: { onBack: () => vo
       const matchingAgent = AGENTS.find(a => a.email.toLowerCase() === user?.email?.toLowerCase());
       const agentId = matchingAgent ? matchingAgent.id : (user?.email || 'anonymous');
 
+      const mobile = contacts.find(c => c.type === 'Mobile')?.number || '';
+      const landline = contacts.find(c => c.type === 'Landline')?.number || '';
+
       const listingData = {
-        title,
-        price,
+        listing_title: title,
+        price_lkr: price,
         district,
         city,
-        property_type: propertyType,
+        city_suburb: city,
+        property_category: propertyType,
         listing_type: listingType,
         land_area: landArea,
         floor_area: floorArea,
-        floors,
-        rooms,
-        bathrooms,
-        description,
+        floors: floors || "0",
+        rooms: rooms || "0",
+        bathrooms: bathrooms || "0",
+        property_description: description,
         additional_info: additionalInfo,
+        mobile,
+        landline,
         is_negotiable: isNegotiable,
-        contacts,
-        images: images.map(img => img.url), // Store just the base64 URLs
-        location_link: locationLink,
+        images: images.map(img => img.url),
+        google_maps_link: locationLink,
         agent_id: agentId,
+        status: 'Active',
         created_at: new Date().toISOString(),
       };
 
