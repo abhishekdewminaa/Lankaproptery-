@@ -2540,7 +2540,7 @@ const PublishListingView = ({ onBack, user, onRefresh }: { onBack: () => void, u
         images: images,
         package_tier: selectedTier,
         agent_id: user?.email || 'anonymous',
-        status: 'Active',
+        status: 'active',
         created_at: new Date().toISOString(),
       };
 
@@ -3380,7 +3380,7 @@ const AgentPublishListingView = ({ onBack, user, onRefresh }: { onBack: () => vo
         images: images.map(img => img.url),
         google_maps_link: locationLink,
         agent_id: agentId,
-        status: 'Active',
+        status: 'active',
         created_at: new Date().toISOString(),
       };
 
