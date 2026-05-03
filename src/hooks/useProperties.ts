@@ -23,6 +23,15 @@ export interface Property {
   landArea?: string;
   floorArea?: string;
   floors?: number;
+  additionalInfo?: string;
+  isNegotiable?: boolean;
+  locationLink?: string;
+  contacts?: { type: 'Mobile' | 'Landline', number: string }[];
+  status?: 'active' | 'paused' | string;
+  views_count?: number;
+  leads_count?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export function useProperties() {
@@ -48,8 +57,6 @@ export function useProperties() {
       }
 
       if (data) {
-        console.log("Supabase Connection Success! Fetched rows:", data.length);
-        console.table(data.slice(0, 5)); // Show first 5 rows in a table format for clarity
         const formattedData = data.map((item: any) => {
           let price = item.price_lkr || item.price;
           if (price && !isNaN(Number(price)) && String(price).length > 0 && !String(price).includes('Contact')) {
@@ -79,6 +86,7 @@ export function useProperties() {
             additionalInfo: item.additional_info || item.additional_information || '',
             isNegotiable: item.is_negotiable,
             locationLink: item.google_maps_link || item.location_link,
+            status: item.status || 'active',
             contacts: [
               ...(item.mobile ? [{ type: 'Mobile', number: item.mobile }] : []),
               ...(item.landline ? [{ type: 'Landline', number: item.landline }] : [])

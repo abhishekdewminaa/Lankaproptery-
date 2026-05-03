@@ -16,10 +16,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY, {
     autoRefreshToken: true,
   },
   global: {
-    // FIX for "Uncaught TypeError: Cannot set property fetch of #<Window> which has only a getter"
-    // and "Invalid path" errors. Explicitly binding to window fetch ensures we don't
-    // trigger polyfill attempts that try to write to read-only window properties.
-    fetch: (input: RequestInfo | URL, init?: RequestInit) => window.fetch(input, init),
+    fetch: (input, init) => fetch(input, init),
   },
 });
 

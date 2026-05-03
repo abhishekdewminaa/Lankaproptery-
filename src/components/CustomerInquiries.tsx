@@ -14,18 +14,25 @@ interface Inquiry {
   status: 'new' | 'contacted' | 'closed';
 }
 
-export default function CustomerInquiries() {
+export default function CustomerInquiries({ user }: { user?: any }) {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'following'>('all');
 
   const fetchInquiries = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('property_inquiries')
         .select('*')
         .order('created_at', { ascending: false });
+
+      if (user?.email) {
+        query = query.eq('agent_id', user.email);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -74,6 +81,42 @@ export default function CustomerInquiries() {
   useEffect(() => {
     fetchInquiries();
   }, []);
+
+  const updateStatus = async (id: string, newStatus: 'new' | 'contacted' | 'closed') => {
+    try {
+      const { error } = await supabase
+        .from('property_inquiries')
+        .update({ status: newStatus })
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      setInquiries(inquiries.map(i => i.id === id ? { ...i, status: newStatus } : i));
+    } catch (err: any) {
+      console.warn("Failed to update status:", err);
+      // Fallback update for mock data
+      setInquiries(inquiries.map(i => i.id === id ? { ...i, status: newStatus } : i));
+    }
+  };
+
+  const deleteInquiry = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this inquiry?")) return;
+    
+    try {
+      const { error } = await supabase
+        .from('property_inquiries')
+        .delete()
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      setInquiries(inquiries.filter(i => i.id !== id));
+    } catch (err: any) {
+      console.warn("Failed to delete inquiry:", err);
+      // Fallback delete for mock data
+      setInquiries(inquiries.filter(i => i.id !== id));
+    }
+  };
 
   const newCount = inquiries.filter(i => i.status === 'new').length;
 
@@ -141,9 +184,24 @@ export default function CustomerInquiries() {
         <div className="bg-white rounded-[32px] shadow-xl border border-gray-100 overflow-hidden">
           <div className="p-6 border-b border-gray-50 flex justify-between items-center text-sm font-bold bg-gray-50/50">
             <div className="flex gap-8">
-              <button className="text-brand-green border-b-2 border-brand-green pb-1">All Leads</button>
-              <button className="text-gray-400 hover:text-dark-navy">Unread</button>
-              <button className="text-gray-400 hover:text-dark-navy">Following Up</button>
+              <button 
+                onClick={() => setActiveTab('all')}
+                className={`${activeTab === 'all' ? 'text-brand-green border-b-2 border-brand-green' : 'text-gray-400 hover:text-dark-navy'} pb-1`}
+              >
+                All Leads
+              </button>
+              <button 
+                onClick={() => setActiveTab('unread')}
+                className={`${activeTab === 'unread' ? 'text-brand-green border-b-2 border-brand-green' : 'text-gray-400 hover:text-dark-navy'} pb-1`}
+              >
+                Unread
+              </button>
+              <button 
+                onClick={() => setActiveTab('following')}
+                className={`${activeTab === 'following' ? 'text-brand-green border-b-2 border-brand-green' : 'text-gray-400 hover:text-dark-navy'} pb-1`}
+              >
+                Following Up
+              </button>
             </div>
           </div>
           
@@ -153,8 +211,10 @@ export default function CustomerInquiries() {
                 <Loader2 className="animate-spin text-brand-green" size={48} />
                 <p className="text-gray-400 font-bold uppercase tracking-widest text-sm text-center px-4">Syncing with Supabase...</p>
               </div>
-            ) : inquiries.length > 0 ? (
-              inquiries.map((inquiry, idx) => (
+            ) : inquiries.filter(i => activeTab === 'all' || (activeTab === 'unread' && i.status === 'new') || (activeTab === 'following' && i.status === 'contacted')).length > 0 ? (
+              inquiries
+                .filter(i => activeTab === 'all' || (activeTab === 'unread' && i.status === 'new') || (activeTab === 'following' && i.status === 'contacted'))
+                .map((inquiry, idx) => (
                 <motion.div 
                   key={inquiry.id}
                   initial={{ opacity: 0, y: 10 }}
@@ -200,13 +260,22 @@ export default function CustomerInquiries() {
                       <span className="truncate">{inquiry.email}</span>
                     </div>
                     <div className="flex gap-2 pt-2">
-                      <button className="flex-1 py-2.5 rounded-xl bg-brand-dark-blue text-white text-[10px] font-black uppercase tracking-widest hover:translate-y-[-2px] transition-all shadow-md">
-                        Reply
+                      <button 
+                        onClick={() => updateStatus(inquiry.id, 'contacted')}
+                        className="flex-1 py-2.5 rounded-xl bg-brand-dark-blue text-white text-[10px] font-black uppercase tracking-widest hover:translate-y-[-2px] transition-all shadow-md"
+                      >
+                        {inquiry.status === 'contacted' ? 'Contacted' : 'Reply'}
                       </button>
-                      <button className="w-10 h-10 rounded-xl border border-gray-100 text-gray-400 flex items-center justify-center hover:bg-brand-red/10 hover:text-brand-red transition-all">
+                      <button 
+                        onClick={() => deleteInquiry(inquiry.id)}
+                        className="w-10 h-10 rounded-xl border border-gray-100 text-gray-400 flex items-center justify-center hover:bg-brand-red/10 hover:text-brand-red transition-all"
+                      >
                         <Trash2 size={16} />
                       </button>
-                      <button className="w-10 h-10 rounded-xl border border-gray-100 text-gray-400 flex items-center justify-center hover:bg-brand-green/10 hover:text-brand-green transition-all">
+                      <button 
+                        onClick={() => updateStatus(inquiry.id, inquiry.status === 'closed' ? 'new' : 'closed')}
+                        className={`w-10 h-10 rounded-xl border ${inquiry.status === 'closed' ? 'bg-brand-green border-brand-green text-white' : 'border-gray-100 text-gray-400 hover:bg-brand-green/10 hover:text-brand-green'} flex items-center justify-center transition-all`}
+                      >
                         <CheckCircle size={16} />
                       </button>
                     </div>

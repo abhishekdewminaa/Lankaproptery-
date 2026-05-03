@@ -113,8 +113,17 @@ import {
   Wand2,
   X,
   Info,
-  AlertCircle
+  AlertCircle,
+  Trash2,
+  AlertTriangle,
+  TrendingUp,
+  MousePointer2,
+  Users,
+  Flame,
+  Zap,
+  Activity
 } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, Cell, PieChart, Pie } from 'recharts';
 import { translateToSinhala } from "./services/geminiService";
 import PropertyWanted from "./components/PropertyWanted";
 import CustomerInquiries from "./components/CustomerInquiries";
@@ -585,7 +594,8 @@ const PropertyCard = ({
   isFavorited, 
   onToggleFavorite,
   isComparing,
-  onToggleCompare
+  onToggleCompare,
+  showAnalytics
 }: any) => (
   <motion.div 
     onClick={onClick}
@@ -618,10 +628,55 @@ const PropertyCard = ({
     </button>
     <div className="relative h-44 bg-gray-200 overflow-hidden">
       <img src={property.image} alt={property.title} className="w-full h-full object-cover compact-transition group-hover:scale-105" />
-      <span className="absolute top-3 left-3 bg-brand-red text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">For {property.type}</span>
+      
+      {/* Top Left Tags */}
+      <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
+        <span className="bg-brand-red text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">For {property.type}</span>
+      </div>
+
+      {/* Top Right Location */}
       <span className="absolute top-3 right-3 bg-white/95 text-gray-900 text-[10px] font-extrabold px-3 py-1 rounded-full shadow-sm">{property.location}</span>
+
+      {/* Bottom Performance Badges */}
+      <div className="absolute bottom-2 left-2 flex gap-1.5 flex-wrap z-10 pointer-events-none pr-4">
+        {(Number(property.views_count) || 0) > 300 && (
+          <div className="flex items-center gap-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-wider shadow-md">
+            <Flame size={10} fill="currentColor" /> Trending
+          </div>
+        )}
+        {(Number(property.leads_count) || 0) > 10 && (
+          <div className="flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-wider shadow-md">
+            <Zap size={10} fill="currentColor" /> High Demand
+          </div>
+        )}
+        {property.created_at && (new Date().getTime() - new Date(property.created_at).getTime()) < 7 * 24 * 60 * 60 * 1000 && (
+          <div className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-wider shadow-md">
+            <Sparkles size={10} /> New
+          </div>
+        )}
+      </div>
     </div>
-    <div className="p-4 flex flex-col gap-1.5">
+    <div className="p-4 flex flex-col gap-1.5 relative">
+      {/* Agent specific Analytics Overlay */}
+      {showAnalytics && (
+        <div className="flex gap-4 items-center mb-2 pb-2 border-b border-gray-100">
+          <div className="flex items-center gap-1.5 text-blue-500" title="Total Views">
+            <Eye size={14} />
+            <span className="text-xs font-black">{property.views_count || 0}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-emerald-500" title="Total Leads/Inquiries">
+            <Users size={14} />
+            <span className="text-xs font-black">{property.leads_count || 0}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-brand-green" title="Click-through/Conversion Rate">
+            <Activity size={14} />
+            <span className="text-xs font-black">
+              {property.views_count ? ((Number(property.leads_count||0) / Number(property.views_count)) * 100).toFixed(1) : 0}%
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="text-sm font-bold text-dark-navy line-clamp-1 leading-tight">{property.title}</div>
       <div className="flex items-baseline gap-1.5 mt-1">
         <span className="text-brand-green font-black text-lg leading-none">
@@ -1101,7 +1156,7 @@ const PropertyDetail = ({
                     <Phone size={18} /> Call Manager
                   </a>
                   <button 
-                    onClick={() => onNavigate?.({ type: 'contact', data: { inquiryType: 'Property Inquiry', subject: `Inquiry about ${property.title}` } })}
+                    onClick={() => onNavigate?.({ type: 'contact', data: { inquiryType: 'Property Inquiry', subject: `Inquiry about ${property.title}`, propertyId: property.id, agentId: property.agentId || property.agent_id } })}
                     className="w-full flex items-center justify-center gap-3 bg-dark-navy text-white font-bold py-4 rounded-xl hover:opacity-90 compact-transition text-sm"
                   >
                     <Send size={18} /> Send Inquiry
@@ -1451,7 +1506,9 @@ const ContactUs = ({ onBack, onAgentClick, initialData }: { onBack: () => void, 
           phone,
           inquiry_type: inquiryType,
           message,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          property_id: initialData?.propertyId || null,
+          agent_id: initialData?.agentId || null
         }]);
 
       if (error) throw error;
@@ -3195,25 +3252,31 @@ const SortableImageItem = ({ image, onRemove }: { image: { id: string, url: stri
   );
 };
 
-const AgentPublishListingView = ({ onBack, user, onRefresh }: { onBack: () => void, user: any, onRefresh?: () => void }) => {
+const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onBack: () => void, user: any, onRefresh?: () => void, initialData?: Property }) => {
   const [step, setStep] = useState(1);
-  const [price, setPrice] = useState<string>("");
-  const [title, setTitle] = useState("");
-  const [district, setDistrict] = useState("Colombo");
-  const [city, setCity] = useState("");
-  const [propertyType, setPropertyType] = useState("Apartment");
-  const [listingType, setListingType] = useState("For Sale");
-  const [landArea, setLandArea] = useState("");
-  const [floorArea, setFloorArea] = useState("");
-  const [floors, setFloors] = useState("0");
-  const [rooms, setRooms] = useState("0");
-  const [bathrooms, setBathrooms] = useState("0");
-  const [description, setDescription] = useState("");
-  const [additionalInfo, setAdditionalInfo] = useState("");
-  const [isNegotiable, setIsNegotiable] = useState(false);
-  const [contacts, setContacts] = useState<{ type: 'Mobile' | 'Landline', number: string }[]>([{ type: 'Mobile', number: "" }]);
-  const [images, setImages] = useState<{ id: string, url: string }[]>([]);
-  const [locationLink, setLocationLink] = useState("");
+  const [price, setPrice] = useState<string>(initialData?.price.replace(/[^0-9]/g, '') || "");
+  const [title, setTitle] = useState(initialData?.title || "");
+  const [district, setDistrict] = useState(initialData?.district || "Colombo");
+  const [city, setCity] = useState(initialData?.city || "");
+  const [propertyType, setPropertyType] = useState(initialData?.propertyType || "Apartment");
+  const [listingType, setListingType] = useState(initialData?.listingType || "For Sale");
+  const [landArea, setLandArea] = useState(initialData?.landArea || "");
+  const [floorArea, setFloorArea] = useState(initialData?.floorArea || "");
+  const [floors, setFloors] = useState(initialData?.floors?.toString() || "0");
+  const [rooms, setRooms] = useState(initialData?.rooms?.toString() || "0");
+  const [bathrooms, setBathrooms] = useState(initialData?.bathrooms?.toString() || "0");
+  const [description, setDescription] = useState(initialData?.description || "");
+  const [additionalInfo, setAdditionalInfo] = useState(initialData?.additionalInfo || "");
+  const [isNegotiable, setIsNegotiable] = useState(initialData?.isNegotiable || false);
+  const [contacts, setContacts] = useState<{ type: 'Mobile' | 'Landline', number: string }[]>(
+    initialData?.contacts && initialData.contacts.length > 0 
+      ? initialData.contacts 
+      : [{ type: 'Mobile', number: "" }]
+  );
+  const [images, setImages] = useState<{ id: string, url: string }[]>(
+    initialData?.images?.map(url => ({ id: Math.random().toString(36).substr(2, 9), url })) || []
+  );
+  const [locationLink, setLocationLink] = useState(initialData?.locationLink || "");
   const [isPublishing, setIsPublishing] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
   const [pastedText, setPastedText] = useState("");
@@ -3380,13 +3443,18 @@ const AgentPublishListingView = ({ onBack, user, onRefresh }: { onBack: () => vo
         images: images.map(img => img.url),
         google_maps_link: locationLink,
         agent_id: agentId,
-        status: 'active',
-        created_at: new Date().toISOString(),
+        status: initialData?.status || 'active',
+        created_at: initialData?.id ? undefined : new Date().toISOString(),
       };
 
-      const { error } = await supabase
-        .from('properties')
-        .insert([listingData]);
+      const { error } = initialData?.id 
+        ? await supabase
+          .from('properties')
+          .update(listingData)
+          .eq('id', initialData.id)
+        : await supabase
+          .from('properties')
+          .insert([listingData]);
 
       if (error) throw error;
       
@@ -3824,10 +3892,10 @@ const AgentPublishListingView = ({ onBack, user, onRefresh }: { onBack: () => vo
               {isPublishing ? (
                 <>
                   <div className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin" />
-                  Publishing Listing...
+                  {initialData ? 'Updating Listing...' : 'Publishing Listing...'}
                 </>
               ) : (
-                step === 3 ? 'Back to Portal' : 'Continue to Publish'
+                step === 3 ? 'Back to Portal' : (initialData ? 'Update Now' : 'Continue to Publish')
               )}
             </button>
           </div>
@@ -3899,7 +3967,492 @@ const AgentPublishListingView = ({ onBack, user, onRefresh }: { onBack: () => vo
   );
 };
 
-const AgentAccessView = ({ onBack, user, onLogin, onNewProperty, onShowInquiries }: { onBack: () => void, user: any, onLogin: (email: string) => void, onNewProperty: () => void, onShowInquiries: () => void }) => {
+const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShowToast }: { onBack: () => void, properties: Property[], onEdit: (p: Property) => void, onRefresh: () => void, user: any, onShowToast: (msg: string, type: 'success' | 'error') => void }) => {
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [localProperties, setLocalProperties] = useState<Property[]>(properties);
+
+  // Sync local properties with prop properties when they change
+  useEffect(() => {
+    setLocalProperties(properties);
+  }, [properties]);
+
+  const toggleStatus = async (property: Property) => {
+    const newStatus = property.status === 'active' ? 'paused' : 'active';
+    setUpdatingId(property.id);
+    try {
+      const { error } = await supabase
+        .from('properties')
+        .update({ status: newStatus })
+        .eq('id', property.id);
+      if (error) throw error;
+      await onRefresh();
+    } catch (err) {
+      console.error("Error updating status:", err);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const deleteListing = async (id: number) => {
+    setUpdatingId(id);
+    try {
+      // Optimistically remove from UI
+      setLocalProperties(prev => prev.filter(p => p.id !== id));
+
+      const { error } = await supabase
+        .from('properties')
+        .delete()
+        .eq('id', id)
+        .eq('agent_id', user?.email || 'anonymous');
+
+      if (error) throw error;
+
+      onShowToast("✅ Listing deleted successfully", 'success');
+      await onRefresh();
+    } catch (err) {
+      console.error("Error deleting listing:", err);
+      onShowToast("❌ Failed to delete. Please try again", 'error');
+      // Revert if failed
+      setLocalProperties(properties);
+    } finally {
+      setUpdatingId(null);
+      setDeleteConfirmId(null);
+    }
+  };
+
+  return (
+    <>
+    {/* Delete Confirmation Modal */}
+    {deleteConfirmId && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-0">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          onClick={() => setDeleteConfirmId(null)}
+          className="absolute inset-0 bg-dark-navy/60 backdrop-blur-md"
+        />
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className="bg-white rounded-[40px] shadow-2xl p-8 sm:p-10 max-w-md w-full relative overflow-hidden text-center"
+        >
+          <div className="absolute top-0 left-0 w-full h-1 bg-red-500" />
+          
+          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+              <AlertTriangle className="text-red-500" size={32} />
+            </div>
+          </div>
+
+          <h3 className="text-2xl font-black text-dark-navy mb-4">Delete Listing?</h3>
+          <p className="text-gray-500 font-medium mb-8 leading-relaxed">
+            Do you want to delete this listing permanently? This action cannot be undone.
+          </p>
+
+          <div className="flex flex-col gap-3">
+            <button 
+              onClick={() => deleteListing(deleteConfirmId)}
+              disabled={updatingId === deleteConfirmId}
+              className="w-full py-4 bg-red-500 text-white font-black uppercase tracking-widest rounded-2xl hover:bg-red-600 shadow-xl shadow-red-500/20 active:scale-95 compact-transition inline-flex items-center justify-center gap-2"
+            >
+              {updatingId === deleteConfirmId ? (
+                <>
+                  <Loader2 className="animate-spin" size={18} />
+                  Deleting...
+                </>
+              ) : (
+                'Delete Permanently'
+              )}
+            </button>
+            <button 
+              onClick={() => setDeleteConfirmId(null)}
+              disabled={updatingId === deleteConfirmId}
+              className="w-full py-4 bg-white border-2 border-gray-100 text-gray-500 font-black uppercase tracking-widest rounded-2xl hover:bg-gray-50 active:scale-95 compact-transition"
+            >
+              Cancel
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    )}
+
+    <motion.div 
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="container mx-auto px-6 py-12 max-w-4xl"
+    >
+      <div className="flex items-center gap-4 mb-8">
+        <button 
+          onClick={onBack}
+          className="p-3 bg-white shadow-sm border border-gray-100 rounded-2xl hover:bg-gray-50 text-gray-500 compact-transition"
+        >
+          <ArrowRight className="rotate-180" size={20} />
+        </button>
+          <div>
+            <h2 className="text-3xl font-black text-dark-navy">My Listings</h2>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">{localProperties.length} Total Advertisements</p>
+          </div>
+        </div>
+
+      <div className="space-y-4">
+        {localProperties.length === 0 ? (
+          <div className="bg-white p-20 rounded-[40px] border border-dashed border-gray-200 text-center space-y-4">
+            <div className="w-20 h-20 bg-gray-50 rounded-3xl flex items-center justify-center mx-auto text-gray-300">
+              <Building2 size={40} />
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-dark-navy">No listings found</h3>
+              <p className="text-sm text-gray-400">You haven't listed any properties yet.</p>
+            </div>
+          </div>
+        ) : (
+          localProperties.map((property) => (
+            <div key={property.id} className={`bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col sm:flex-row gap-6 group hover:border-brand-green compact-transition ${property.status === 'paused' ? 'opacity-60 grayscale-[0.5]' : ''}`}>
+              <div className="w-full sm:w-48 h-32 rounded-2xl overflow-hidden shrink-0 relative">
+                <img src={property.image} className="w-full h-full object-cover group-hover:scale-110 compact-transition" />
+                {property.status === 'paused' && (
+                  <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center">
+                    <span className="bg-gray-900/80 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Paused</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 flex flex-col justify-between py-1">
+                <div>
+                  <div className="flex justify-between items-start">
+                    <h4 className="font-bold text-dark-navy text-lg group-hover:text-brand-green compact-transition line-clamp-1">{property.title}</h4>
+                    <div className="flex items-center gap-2">
+                       <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${property.type === 'Sale' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'}`}>
+                        For {property.type}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 flex items-center gap-1 mt-1 font-medium"><MapPin size={12} className="text-brand-green" /> {property.location}</p>
+                </div>
+                <div className="flex items-center justify-between mt-4 sm:mt-0">
+                  <div className="flex flex-col">
+                    <span className="text-brand-green font-black text-lg">{property.price}</span>
+                    <button 
+                      onClick={() => toggleStatus(property)}
+                      disabled={updatingId === property.id}
+                      className={`flex items-center gap-2 mt-1 text-[10px] font-black uppercase tracking-widest compact-transition ${property.status === 'paused' ? 'text-gray-400 hover:text-brand-green' : 'text-brand-green hover:text-brand-red'}`}
+                    >
+                      {updatingId === property.id ? (
+                        <Loader2 className="animate-spin" size={12} />
+                      ) : (
+                        <div className={`w-9 h-5 rounded-full relative compact-transition border ${property.status === 'paused' ? 'bg-gray-100 border-gray-200' : 'bg-brand-green text-brand-green shadow-[0_0_10px_rgba(0,181,98,0.3)]'}`}>
+                          <div className={`absolute top-[1px] w-4 h-4 rounded-full shadow-sm compact-transition ${property.status === 'paused' ? 'left-0.5 bg-gray-400' : 'left-[18px] bg-white'}`} />
+                        </div>
+                      )}
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${property.status === 'paused' ? 'text-gray-400' : 'text-brand-green'}`}>
+                        {property.status === 'paused' ? 'Listing is Paused' : 'Listing is Live'}
+                      </span>
+                    </button>
+                  </div>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => onEdit(property)}
+                      className="px-6 py-2.5 bg-dark-navy text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-brand-green compact-transition shadow-lg shadow-dark-navy/10"
+                    >
+                      Edit Listing
+                    </button>
+                    <button 
+                      onClick={() => setDeleteConfirmId(property.id)}
+                      disabled={updatingId === property.id}
+                      className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-red-50 hover:text-red-500 compact-transition border border-transparent hover:border-red-100"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </motion.div>
+    </>
+  );
+};
+
+const AnalyticsOverview = ({ user }: { user: any }) => {
+  const [selectedCategory, setSelectedCategory] = useState<'all' | 'house' | 'land' | 'apartment'>('all');
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<any>({
+    all: { reach: '0', leads: '0', clicks: '0%' },
+    house: { reach: '0', leads: '0', clicks: '0%' },
+    land: { reach: '0', leads: '0', clicks: '0%' },
+    apartment: { reach: '0', leads: '0', clicks: '0%' },
+  });
+  const [trendData, setTrendData] = useState<any>({ all: [], house: [], land: [], apartment: [] });
+  const [distributionData, setDistributionData] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      if (!user?.email) return;
+      setLoading(true);
+      try {
+        const { data: properties, error } = await supabase
+          .from('properties')
+          .select('property_category, views_count, leads_count, created_at')
+          .eq('agent_id', user.email);
+
+        if (error) throw error;
+
+        // 1. Process Overall Stats & Category Stats
+        const newStats: any = {
+          all: { reach: 0, leads: 0 },
+          house: { reach: 0, leads: 0 },
+          land: { reach: 0, leads: 0 },
+          apartment: { reach: 0, leads: 0 },
+        };
+
+        const categoryCounts: Record<string, number> = {};
+
+        properties?.forEach(p => {
+          const cat = (p.property_category || 'other').toLowerCase();
+          const pViews = Number(p.views_count || 0);
+          const pLeads = Number(p.leads_count || 0);
+
+          newStats.all.reach += pViews;
+          newStats.all.leads += pLeads;
+
+          if (newStats[cat]) {
+            newStats[cat].reach += pViews;
+            newStats[cat].leads += pLeads;
+          }
+
+          categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+        });
+
+        // Calculate click rates and format
+        const formatStats = (s: any) => ({
+          reach: s.reach >= 1000 ? (s.reach / 1000).toFixed(1) + 'k' : s.reach.toString(),
+          leads: s.leads.toString(),
+          clicks: s.reach > 0 ? ((s.leads / s.reach) * 100).toFixed(1) + '%' : '0%'
+        });
+
+        setStats({
+          all: formatStats(newStats.all),
+          house: formatStats(newStats.house),
+          land: formatStats(newStats.land),
+          apartment: formatStats(newStats.apartment),
+        });
+
+        // 2. Market Share (Donut Chart)
+        const totalListings = properties?.length || 1;
+        setDistributionData([
+          { name: 'Houses', value: Math.round(((categoryCounts['house'] || 0) / totalListings) * 100), color: '#00b562' },
+          { name: 'Lands', value: Math.round(((categoryCounts['land'] || 0) / totalListings) * 100), color: '#3b82f6' },
+          { name: 'Apartments', value: Math.round(((categoryCounts['apartment'] || 0) / totalListings) * 100), color: '#6366f1' },
+        ].filter(d => d.value > 0));
+
+        // 3. Performance Velocity (Listings per day this week)
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const weekTrends: any = { all: [], house: [], land: [], apartment: [] };
+        
+        days.forEach(day => {
+          ['all', 'house', 'land', 'apartment'].forEach(cat => {
+            weekTrends[cat].push({ name: day, views: 0 });
+          });
+        });
+
+        properties?.forEach(p => {
+          const date = new Date(p.created_at);
+          const dayName = days[date.getDay()];
+          const cat = (p.property_category || 'other').toLowerCase();
+          const pViews = Number(p.views_count || 0);
+
+          const allDay = weekTrends.all.find((d: any) => d.name === dayName);
+          if (allDay) allDay.views += pViews;
+
+          if (weekTrends[cat]) {
+            const catDay = weekTrends[cat].find((d: any) => d.name === dayName);
+            if (catDay) catDay.views += pViews;
+          }
+        });
+
+        setTrendData(weekTrends);
+
+      } catch (err) {
+        console.error("Error fetching analytics:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, [user?.email]);
+
+  const categories = [
+    { id: 'all', label: 'All Property' },
+    { id: 'house', label: 'Houses' },
+    { id: 'land', label: 'Lands' },
+    { id: 'apartment', label: 'Apartments' },
+  ];
+
+  if (loading) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="flex gap-2 mb-2 p-1.5 bg-gray-50 rounded-3xl w-fit">
+          {[1,2,3,4].map(i => <div key={i} className="w-24 h-10 bg-gray-200 rounded-2xl" />)}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[1,2,3].map(i => <div key={i} className="h-28 bg-white border border-gray-100 rounded-[32px]" />)}
+        </div>
+        <div className="h-[400px] bg-white border border-gray-100 rounded-[40px]" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Category Tabs */}
+      <div className="flex flex-wrap gap-2 mb-2 p-1.5 bg-gray-50 rounded-3xl w-fit">
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => setSelectedCategory(cat.id as any)}
+            className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest compact-transition ${
+              selectedCategory === cat.id 
+                ? 'bg-brand-green text-white shadow-lg shadow-brand-green/20' 
+                : 'text-gray-400 hover:text-dark-navy'
+            }`}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          { label: 'Total Reach', value: stats[selectedCategory].reach, change: '+12.5%', icon: Eye, color: 'text-blue-500', bg: 'bg-blue-50' },
+          { label: 'Total Leads', value: stats[selectedCategory].leads, change: '+8.2%', icon: Users, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+          { label: 'Avg. Clicks', value: stats[selectedCategory].clicks, change: '+5.1%', icon: MousePointer2, color: 'text-brand-green', bg: 'bg-brand-green/10' },
+        ].map((stat, i) => (
+          <div key={i} className="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm flex items-center justify-between group hover:border-brand-green compact-transition">
+            <div className="space-y-1">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{stat.label}</p>
+              <div className="flex items-baseline gap-2">
+                <h4 className="text-2xl font-black text-dark-navy">{stat.value}</h4>
+                <span className="text-[10px] font-bold text-brand-green">{stat.change}</span>
+              </div>
+            </div>
+            <div className={`w-12 h-12 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center transform group-hover:scale-110 compact-transition`}>
+              <stat.icon size={24} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3 bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm overflow-hidden relative group h-full">
+          <div className="absolute top-0 right-0 p-8">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-brand-green/10 text-brand-green rounded-full">
+              <TrendingUp size={14} />
+              <span className="text-[10px] font-black uppercase tracking-widest">LIVE TRENDS</span>
+            </div>
+          </div>
+          
+          <div className="mb-8">
+            <h3 className="text-xl font-black text-dark-navy">Performance Velocity</h3>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1"> engagement vs leads</p>
+          </div>
+
+          <div className="h-[240px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={trendData[selectedCategory]}>
+                <defs>
+                  <linearGradient id="colorViewsCat" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={selectedCategory === 'land' ? '#3b82f6' : selectedCategory === 'apartment' ? '#6366f1' : '#00b562'} stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor={selectedCategory === 'land' ? '#3b82f6' : selectedCategory === 'apartment' ? '#6366f1' : '#00b562'} stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }} 
+                  dy={10}
+                />
+                <YAxis hide />
+                <Tooltip 
+                  contentStyle={{ 
+                    borderRadius: '16px', 
+                    border: 'none', 
+                    boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
+                    fontSize: '12px',
+                    fontWeight: 'bold'
+                  }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="views" 
+                  stroke={selectedCategory === 'land' ? '#3b82f6' : selectedCategory === 'apartment' ? '#6366f1' : '#00b562'} 
+                  strokeWidth={4}
+                  fillOpacity={1} 
+                  fill="url(#colorViewsCat)" 
+                  animationDuration={1500}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="lg:col-span-2 bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm flex flex-col justify-between">
+          <div>
+            <h3 className="text-xl font-black text-dark-navy">Market Share</h3>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Listing density by category</p>
+          </div>
+
+          <div className="h-[200px] w-full my-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={distributionData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={8}
+                  dataKey="value"
+                  animationDuration={1500}
+                >
+                  {distributionData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    borderRadius: '16px', 
+                    border: 'none', 
+                    boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
+                    fontSize: '12px'
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="space-y-3">
+            {distributionData.map((item, i) => (
+              <div key={i} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-dark-navy">{item.name}</span>
+                </div>
+                <span className="text-[10px] font-black text-gray-400">{item.value}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AgentAccessView = ({ onBack, user, onLogin, onNewProperty, onShowInquiries, onShowListings, onLogout, agentPropertiesCount, agentLeadsTotal }: { onBack: () => void, user: any, onLogin: (email: string) => void, onNewProperty: () => void, onShowInquiries: () => void, onShowListings: () => void, onLogout: () => void, agentPropertiesCount: number, agentLeadsTotal: number }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -3935,11 +4488,11 @@ const AgentAccessView = ({ onBack, user, onLogin, onNewProperty, onShowInquiries
               
               <div className="grid grid-cols-2 gap-3 pt-6 border-t border-gray-50">
                 <div>
-                  <div className="text-lg font-black text-dark-navy">24</div>
+                  <div className="text-lg font-black text-dark-navy">{agentPropertiesCount}</div>
                   <div className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Active Ads</div>
                 </div>
                 <div>
-                  <div className="text-lg font-black text-dark-navy">1.2k</div>
+                  <div className="text-lg font-black text-dark-navy">{agentLeadsTotal >= 1000 ? (agentLeadsTotal/1000).toFixed(1) + 'k' : agentLeadsTotal}</div>
                   <div className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Leads</div>
                 </div>
               </div>
@@ -3967,7 +4520,10 @@ const AgentAccessView = ({ onBack, user, onLogin, onNewProperty, onShowInquiries
               </div>
               
               <div className="pt-4 mt-4 border-t border-white/5">
-                <button className="w-full py-4 bg-brand-red text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-red-900/20 hover:bg-red-600 compact-transition">
+                <button 
+                  onClick={onLogout}
+                  className="w-full py-4 bg-brand-red text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-red-900/20 hover:bg-red-600 compact-transition"
+                >
                   Logout
                 </button>
               </div>
@@ -3975,16 +4531,22 @@ const AgentAccessView = ({ onBack, user, onLogin, onNewProperty, onShowInquiries
           </div>
 
           <div className="md:col-span-2 space-y-6">
-            <div className="bg-gray-50 border border-gray-100 p-10 rounded-[40px] flex flex-col items-center justify-center text-center space-y-4">
-              <div className="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center text-gray-300">
-                <Building2 size={32} />
+            <AnalyticsOverview user={user} />
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div 
+                onClick={onShowListings}
+                className="p-8 bg-white border border-gray-100 rounded-[32px] shadow-sm hover:shadow-md compact-transition group cursor-pointer"
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white compact-transition">
+                    <Building size={24} />
+                  </div>
+                </div>
+                <h4 className="font-bold text-dark-navy">My Listings</h4>
+                <p className="text-xs text-gray-400 mt-1">Manage & Edit properties</p>
               </div>
-              <h3 className="text-xl font-bold text-dark-navy">Agency Manager Access</h3>
-              <p className="text-sm text-gray-500 max-w-xs mx-auto font-medium">You have unrestricted access to list unlimited properties with up to 12 high-resolution images per listing.</p>
-              <button className="text-xs font-black text-brand-green uppercase tracking-widest hover:underline">View Public Profile</button>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div 
                 onClick={onShowInquiries}
                 className="p-8 bg-white border border-gray-100 rounded-[32px] shadow-sm hover:shadow-md compact-transition group cursor-pointer"
@@ -4301,6 +4863,7 @@ const AgentProfileView = ({
                     onToggleFavorite={() => toggleFavorite?.(p.id)}
                     isComparing={compareList?.includes(p.id)}
                     onToggleCompare={() => toggleCompare?.(p.id)}
+                    showAnalytics={true}
                   />
                 ))}
               </div>
@@ -4537,9 +5100,22 @@ export default function App() {
   const { properties: supabaseProperties, loading: listingsLoading, error: supabaseError, refresh: refreshProperties } = useProperties();
   const [recentFilter, setRecentFilter] = useState<"Sale" | "Rent">("Sale");
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'agent_publish' | 'wanted' | 'inquiries', data?: any }>({ type: 'home' });
+  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings', data?: any }>({ type: 'home' });
   const [user, setUser] = useState<{ email: string } | null>({ email: 'abhishekdewminaa@gmail.com' });
   const [compareList, setCompareList] = useState<number[]>([]);
+  const [editingProperty, setEditingProperty] = useState<Property | null>(null);
+  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+  };
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const toggleCompare = (id: number) => {
     setCompareList(prev => {
@@ -4590,7 +5166,9 @@ export default function App() {
     });
   };
 
-  const displayedProperties = supabaseProperties.length > 0 ? supabaseProperties : FEATURED_PROPERTIES;
+  const displayedProperties = (supabaseProperties.length > 0 ? supabaseProperties : FEATURED_PROPERTIES)
+    .filter(p => p.status === 'active' || !p.status);
+  
   const filteredRecent = displayedProperties.filter(p => p.type === recentFilter);
   const categoryProperties = currentView.type === 'category' 
     ? displayedProperties // Simplified: showing all for demo
@@ -4612,7 +5190,24 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col relative">
+    <>
+      {/* Toast Notifications */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: 50, x: '-50%' }}
+            className={`fixed bottom-8 left-1/2 z-[300] px-6 py-3 rounded-2xl shadow-2xl font-black uppercase tracking-widest text-[10px] flex items-center gap-3 ${
+              toast.type === 'success' ? 'bg-brand-green text-white shadow-brand-green/20' : 'bg-red-500 text-white shadow-red-500/20'
+            }`}
+          >
+            {toast.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="min-h-screen bg-slate-50 flex flex-col relative">
       <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100 shadow-sm">
         {supabaseError && (
           <div className="bg-red-500 text-white px-6 py-4 text-center font-bold text-sm flex items-center justify-center gap-3">
@@ -4943,16 +5538,44 @@ export default function App() {
           <AgentAccessView 
             onBack={navigateHome} 
             user={user} 
-            onLogin={(email) => setUser({ email })} 
-            onNewProperty={() => setCurrentView({ type: 'agent_publish' })}
+            agentPropertiesCount={supabaseProperties.filter(p => p.agentId === user?.email).length}
+            agentLeadsTotal={supabaseProperties
+              .filter(p => p.agentId === user?.email)
+              .reduce((sum, p) => sum + (Number(p.leads_count) || 0), 0)
+            }
+            onLogin={(email) => setUser({ email })}
+            onNewProperty={() => {
+              setEditingProperty(null);
+              setCurrentView({ type: 'agent_publish' });
+            }}
             onShowInquiries={() => setCurrentView({ type: 'inquiries' })}
+            onShowListings={() => setCurrentView({ type: 'agent_listings' })}
+            onLogout={() => setUser(null)}
           />
         )}
 
         {currentView.type === 'agent_publish' && (
           <AgentPublishListingView 
-            onBack={() => setCurrentView({ type: 'agent_access' })} 
             user={user} 
+            initialData={editingProperty || undefined}
+            onBack={() => setCurrentView({ type: 'agent_access' })} 
+            onRefresh={refreshProperties}
+          />
+        )}
+
+        {currentView.type === 'agent_listings' && (
+          <AgentListingsView 
+            user={user}
+            onShowToast={showToast}
+            onBack={() => setCurrentView({ type: 'agent_access' })}
+            properties={supabaseProperties.filter(p => {
+              const matchingAgent = AGENTS.find(a => a.email.toLowerCase() === user?.email?.toLowerCase());
+              return p.agentId === (matchingAgent?.id || user?.email);
+            })}
+            onEdit={(p) => {
+              setEditingProperty(p);
+              setCurrentView({ type: 'agent_publish' });
+            }}
             onRefresh={refreshProperties}
           />
         )}
@@ -4977,7 +5600,7 @@ export default function App() {
               <ArrowRight className="rotate-180" size={16} />
               Back to Portal
             </button>
-            <CustomerInquiries />
+            <CustomerInquiries user={user} />
           </div>
         )}
 
@@ -5062,6 +5685,7 @@ export default function App() {
         )}
       </AnimatePresence>
     </div>
+    </>
   );
 }
 
