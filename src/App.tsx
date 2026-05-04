@@ -638,20 +638,23 @@ const PropertyCard = ({
       <span className="absolute top-3 right-3 bg-white/95 text-gray-900 text-[10px] font-extrabold px-3 py-1 rounded-full shadow-sm">{property.location}</span>
 
       {/* Bottom Performance Badges */}
-      <div className="absolute bottom-2 left-2 flex gap-1.5 flex-wrap z-10 pointer-events-none pr-4">
+      <div className="absolute bottom-3 left-3 right-3 flex flex-wrap gap-2 z-10 pointer-events-none">
         {(Number(property.views_count) || 0) > 300 && (
-          <div className="flex items-center gap-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-wider shadow-md">
-            <Flame size={10} fill="currentColor" /> Trending
+          <div className="flex items-center gap-1.5 backdrop-blur-md bg-black/40 border border-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg">
+            <Flame size={12} className="text-orange-400" fill="currentColor" />
+            <span className="drop-shadow-md tracking-wide">Trending</span>
           </div>
         )}
         {(Number(property.leads_count) || 0) > 10 && (
-          <div className="flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-wider shadow-md">
-            <Zap size={10} fill="currentColor" /> High Demand
+          <div className="flex items-center gap-1.5 backdrop-blur-md bg-black/40 border border-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg">
+            <Zap size={12} className="text-emerald-400" fill="currentColor" />
+            <span className="drop-shadow-md tracking-wide">High Demand</span>
           </div>
         )}
         {property.created_at && (new Date().getTime() - new Date(property.created_at).getTime()) < 7 * 24 * 60 * 60 * 1000 && (
-          <div className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-wider shadow-md">
-            <Sparkles size={10} /> New
+          <div className="flex items-center gap-1.5 backdrop-blur-md bg-black/40 border border-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg">
+            <Sparkles size={12} className="text-blue-400" />
+            <span className="drop-shadow-md tracking-wide">Just Listed</span>
           </div>
         )}
       </div>
@@ -659,18 +662,24 @@ const PropertyCard = ({
     <div className="p-4 flex flex-col gap-1.5 relative">
       {/* Agent specific Analytics Overlay */}
       {showAnalytics && (
-        <div className="flex gap-4 items-center mb-2 pb-2 border-b border-gray-100">
-          <div className="flex items-center gap-1.5 text-blue-500" title="Total Views">
-            <Eye size={14} />
-            <span className="text-xs font-black">{property.views_count || 0}</span>
+        <div className="grid grid-cols-3 gap-2 mb-3 pb-3 border-b border-gray-100">
+          <div className="flex flex-col items-start bg-gray-50/80 p-2 rounded-xl border border-gray-200/60" title="Total Views">
+            <div className="flex items-center gap-1 text-[9px] uppercase font-bold tracking-wider text-gray-400 mb-1">
+              <Eye size={10} /> Views
+            </div>
+            <span className="text-[15px] font-black text-gray-700 leading-none">{property.views_count || 0}</span>
           </div>
-          <div className="flex items-center gap-1.5 text-emerald-500" title="Total Leads/Inquiries">
-            <Users size={14} />
-            <span className="text-xs font-black">{property.leads_count || 0}</span>
+          <div className="flex flex-col items-start bg-emerald-50/50 p-2 rounded-xl border border-emerald-100" title="Total Leads/Inquiries">
+            <div className="flex items-center gap-1 text-[9px] uppercase font-bold tracking-wider text-emerald-500 mb-1">
+              <Users size={10} /> Leads
+            </div>
+            <span className="text-[15px] font-black text-emerald-700 leading-none">{property.leads_count || 0}</span>
           </div>
-          <div className="flex items-center gap-1.5 text-brand-green" title="Click-through/Conversion Rate">
-            <Activity size={14} />
-            <span className="text-xs font-black">
+          <div className="flex flex-col items-start bg-blue-50/50 p-2 rounded-xl border border-blue-100" title="Click-through/Conversion Rate">
+            <div className="flex items-center gap-1 text-[9px] uppercase font-bold tracking-wider text-blue-500 mb-1">
+              <Activity size={10} /> Conv
+            </div>
+            <span className="text-[15px] font-black text-blue-700 leading-none">
               {property.views_count ? ((Number(property.leads_count||0) / Number(property.views_count)) * 100).toFixed(1) : 0}%
             </span>
           </div>
@@ -2412,15 +2421,134 @@ const AboutUs = ({ onBack, onNavigate }: { onBack: () => void, onNavigate?: (vie
   );
 };
 
-const AuthPage = ({ onBack, onLogin, initialMode = 'login' }: { onBack: () => void, onLogin: (email: string) => void, initialMode?: 'login' | 'signup' }) => {
-  const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
+const AuthPage = ({ onBack, onLogin, initialMode = 'login', onForgotPassword, onVerifyEmailMessage }: { onBack: () => void, onLogin: (user: any) => void, initialMode?: 'login' | 'signup' | 'forgot_password', onForgotPassword?: () => void, onVerifyEmailMessage?: () => void }) => {
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot_password'>(initialMode);
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [agency, setAgency] = useState('');
+  
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && password) {
-      onLogin(email);
+    if (!email || !password) {
+      setErrorMsg('Please enter email and password');
+      return;
+    }
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      if (error) throw error;
+      onLogin(data.user);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Error signing in');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password || !fullName || !phone) {
+      setErrorMsg('Please fill in all required fields');
+      return;
+    }
+    if (password.length < 8) {
+      setErrorMsg('Password must be at least 8 characters');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setErrorMsg('Passwords do not match');
+      return;
+    }
+
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            phone: phone,
+            agency: agency
+          },
+          emailRedirectTo: `${window.location.origin}/` 
+        }
+      });
+      
+      if (error) throw error;
+
+      if (data?.user) {
+         const { error: insertError } = await supabase.from('agents').insert({
+            id: data.user.id,
+            name: fullName,
+            email: email,
+            phone: phone,
+            agency: agency,
+            created_at: new Date().toISOString()
+         });
+         if (insertError) console.error("Agent insert error", insertError);
+      }
+      
+      if (onVerifyEmailMessage) {
+        onVerifyEmailMessage();
+      } else {
+        setSuccessMsg("✅ Verification email sent! Please check your inbox and click the link to activate your account.");
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Error signing up');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      setErrorMsg('Please enter your email');
+      return;
+    }
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/` 
+      });
+      if (error) throw error;
+      setSuccessMsg('✅ Password reset link sent to your email!');
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Error sending reset link');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOAuth = async (provider: 'google' | 'facebook') => {
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      setErrorMsg(err.message || `Error with ${provider} sign in`);
+      setLoading(false);
     }
   };
 
@@ -2432,18 +2560,81 @@ const AuthPage = ({ onBack, onLogin, initialMode = 'login' }: { onBack: () => vo
     >
       <div className="bg-white rounded-[40px] shadow-2xl shadow-gray-200 border border-gray-100 p-10 max-w-md w-full relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-brand-green/5 rounded-full -mr-16 -mt-16"></div>
+        <button onClick={onBack} className="absolute top-8 left-8 text-gray-400 hover:text-dark-navy z-20 compact-transition">
+          <ChevronLeft size={24} />
+        </button>
         
-        <div className="relative z-10 space-y-8">
+        <div className="relative z-10 space-y-8 mt-4">
           <div className="text-center space-y-2">
             <h2 className="text-3xl font-black text-dark-navy tracking-tight">
-              {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+              {mode === 'login' ? 'Welcome Back' : mode === 'signup' ? 'Create Account' : 'Reset Password'}
             </h2>
             <p className="text-gray-400 text-sm font-medium">
-              {mode === 'login' ? 'Enter your details to access your account' : 'Join Sri Lanka\'s premier property network'}
+              {mode === 'login' ? 'Enter your details to access your account' : mode === 'signup' ? 'Join Sri Lanka\'s premier property network' : 'Enter your email to receive a reset link'}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {errorMsg && (
+            <div className="bg-red-50 text-brand-red p-4 rounded-2xl text-sm font-bold border border-red-100 flex items-start gap-3">
+              <AlertTriangle size={20} className="shrink-0 mt-0.5" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
+
+          {successMsg && (
+            <div className="bg-brand-green/10 text-brand-green p-4 rounded-2xl text-sm font-bold border border-brand-green/20">
+              {successMsg}
+            </div>
+          )}
+
+          <form onSubmit={mode === 'login' ? handleSignIn : mode === 'signup' ? handleSignUp : handleForgotPassword} className="space-y-4">
+            
+            {mode === 'signup' && (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Full Name</label>
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    <input 
+                      type="text" 
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="John Doe"
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Phone Number</label>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    <input 
+                      type="tel" 
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="077 123 4567"
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Agency Name <span className="lowercase text-[10px] text-gray-400">(Optional)</span></label>
+                  <div className="relative">
+                    <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    <input 
+                      type="text" 
+                      value={agency}
+                      onChange={(e) => setAgency(e.target.value)}
+                      placeholder="Agency LLC"
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Email Address</label>
               <div className="relative">
@@ -2453,14 +2644,209 @@ const AuthPage = ({ onBack, onLogin, initialMode = 'login' }: { onBack: () => vo
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-5 pl-12 pr-4 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
                   required
                 />
               </div>
             </div>
 
+            {mode !== 'forgot_password' && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <input 
+                    type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
+                    required
+                    minLength={8}
+                  />
+                </div>
+              </div>
+            )}
+
+            {mode === 'signup' && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Confirm Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <input 
+                    type="password" 
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
+                    required
+                    minLength={8}
+                  />
+                </div>
+              </div>
+            )}
+
+            {mode === 'login' && (
+              <div className="text-right">
+                <button type="button" onClick={() => setMode('forgot_password')} className="text-xs font-bold text-brand-green hover:underline">Forgot Password?</button>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 bg-brand-green text-white font-bold py-4 rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition mt-4 disabled:opacity-50"
+            >
+              {loading && <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"/>}
+              {mode === 'login' ? (loading ? 'Signing in...' : 'Sign In') : mode === 'signup' ? (loading ? 'Creating Account...' : 'Create Account') : (loading ? 'Sending...' : 'Send Reset Link')}
+            </button>
+          </form>
+
+          {mode !== 'forgot_password' && (
+            <>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
+                <div className="relative flex justify-center text-xs uppercase font-bold"><span className="bg-white px-2 text-gray-300">Or continue with</span></div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <button type="button" onClick={() => handleOAuth('google')} disabled={loading} className="flex items-center justify-center gap-2 border border-gray-100 rounded-2xl py-3 hover:bg-gray-50 compact-transition disabled:opacity-50">
+                  <img src="https://www.iconpacks.net/icons/2/free-google-logo-icon-2422-thumb.png" className="h-5" alt="Google" />
+                  <span className="text-sm font-bold text-gray-600">Google</span>
+                </button>
+                <button type="button" onClick={() => handleOAuth('facebook')} disabled={loading} className="flex items-center justify-center gap-2 border border-gray-100 rounded-2xl py-3 hover:bg-gray-50 compact-transition disabled:opacity-50">
+                  <Facebook className="text-[#1877f2]" size={20} fill="currentColor" />
+                  <span className="text-sm font-bold text-gray-600">Facebook</span>
+                </button>
+              </div>
+            </>
+          )}
+
+          <div className="text-center">
+            {mode === 'forgot_password' ? (
+              <button 
+                onClick={() => setMode('login')}
+                className="text-brand-green font-bold text-sm hover:underline flex items-center justify-center gap-2 mx-auto"
+              >
+                <ChevronLeft size={16} /> Back to Sign In
+              </button>
+            ) : (
+              <p className="text-sm text-gray-400 font-medium">
+                {mode === 'login' ? "Don't have an account?" : "Already have an account?"}{' '}
+                <button 
+                  onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                  className="text-brand-green font-bold hover:underline"
+                >
+                  {mode === 'login' ? 'Sign Up' : 'Log In'}
+                </button>
+              </p>
+            )}
+          </div>
+
+          <button 
+            type="button"
+            onClick={onBack}
+            className="w-full text-gray-400 text-xs font-bold hover:text-gray-600 compact-transition"
+          >
+            Go Back
+          </button>
+
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const EmailVerificationPage = ({ onDashboard }: { onDashboard: () => void }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="container mx-auto px-6 py-12 flex items-center justify-center min-h-[70vh]"
+    >
+      <div className="bg-white rounded-[40px] shadow-2xl shadow-gray-200 border border-gray-100 p-10 max-w-md w-full relative overflow-hidden text-center space-y-6">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-green/5 rounded-full -mr-16 -mt-16"></div>
+        <div className="w-20 h-20 bg-brand-green/10 rounded-full flex items-center justify-center mx-auto mt-4">
+          <CheckCircle size={40} className="text-brand-green" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-3xl font-black text-dark-navy tracking-tight">Email Verified Successfully!</h2>
+          <p className="text-gray-400 font-medium pb-4">Welcome to <span className="text-brand-green font-bold">LankaProperty.lk</span>! Your account is now active.</p>
+        </div>
+        <button
+          onClick={onDashboard}
+          className="w-full bg-brand-green text-white font-bold py-4 rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition"
+        >
+          Go to Dashboard
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
+const ResetPasswordPage = ({ onLogin }: { onLogin: () => void }) => {
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password.length < 8) {
+      setErrorMsg('Password must be at least 8 characters');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setErrorMsg('Passwords do not match');
+      return;
+    }
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: password
+      });
+      if (error) throw error;
+      setSuccessMsg('✅ Password updated successfully!');
+      setTimeout(() => onLogin(), 3000);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Error updating password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="container mx-auto px-6 py-12 flex items-center justify-center min-h-[70vh]"
+    >
+      <div className="bg-white rounded-[40px] shadow-2xl shadow-gray-200 border border-gray-100 p-10 max-w-md w-full relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-green/5 rounded-full -mr-16 -mt-16"></div>
+        <div className="relative z-10 space-y-8 mt-4">
+          <div className="text-center space-y-2">
+            <h2 className="text-3xl font-black text-dark-navy tracking-tight">Reset Password</h2>
+            <p className="text-gray-400 text-sm font-medium">Enter your new password below</p>
+          </div>
+
+          {errorMsg && (
+            <div className="bg-red-50 text-brand-red p-4 rounded-2xl text-sm font-bold border border-red-100 flex items-start gap-3">
+              <AlertTriangle size={20} className="shrink-0 mt-0.5" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
+
+          {successMsg && (
+            <div className="bg-brand-green/10 text-brand-green p-4 rounded-2xl text-sm font-bold border border-brand-green/20">
+              {successMsg} Let's sign you in...
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Password</label>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">New Password</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input 
@@ -2468,60 +2854,38 @@ const AuthPage = ({ onBack, onLogin, initialMode = 'login' }: { onBack: () => vo
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-5 pl-12 pr-4 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
                   required
+                  minLength={8}
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Confirm New Password</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <input 
+                  type="password" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
+                  required
+                  minLength={8}
                 />
               </div>
             </div>
 
-            {mode === 'login' && (
-              <div className="text-right">
-                <a href="#" className="text-xs font-bold text-brand-green hover:underline">Forgot Password?</a>
-              </div>
-            )}
-
             <button
               type="submit"
-              className="w-full bg-brand-green text-white font-bold py-4 rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition mt-4"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 bg-brand-green text-white font-bold py-4 rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition mt-4 disabled:opacity-50"
             >
-              {mode === 'login' ? 'Sign In' : 'Create Account'}
+              {loading && <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"/>}
+              {loading ? 'Updating...' : 'Update Password'}
             </button>
           </form>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
-            <div className="relative flex justify-center text-xs uppercase font-bold"><span className="bg-white px-2 text-gray-300">Or continue with</span></div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <button className="flex items-center justify-center gap-2 border border-gray-100 rounded-2xl py-3 hover:bg-gray-50 compact-transition">
-              <img src="https://www.iconpacks.net/icons/2/free-google-logo-icon-2422-thumb.png" className="h-5" alt="Google" />
-              <span className="text-sm font-bold text-gray-600">Google</span>
-            </button>
-            <button className="flex items-center justify-center gap-2 border border-gray-100 rounded-2xl py-3 hover:bg-gray-50 compact-transition">
-              <Facebook className="text-[#1877f2]" size={20} fill="currentColor" />
-              <span className="text-sm font-bold text-gray-600">Facebook</span>
-            </button>
-          </div>
-
-          <div className="text-center">
-            <p className="text-sm text-gray-400 font-medium">
-              {mode === 'login' ? "Don't have an account?" : "Already have an account?"}{' '}
-              <button 
-                onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-                className="text-brand-green font-bold hover:underline"
-              >
-                {mode === 'login' ? 'Sign Up' : 'Log In'}
-              </button>
-            </p>
-          </div>
-
-          <button 
-            onClick={onBack}
-            className="w-full text-gray-400 text-xs font-bold hover:text-gray-600 compact-transition"
-          >
-            Go Back
-          </button>
         </div>
       </div>
     </motion.div>
@@ -4324,22 +4688,33 @@ const AnalyticsOverview = ({ user }: { user: any }) => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8 mt-2">
         {[
-          { label: 'Total Reach', value: stats[selectedCategory].reach, change: '+12.5%', icon: Eye, color: 'text-blue-500', bg: 'bg-blue-50' },
-          { label: 'Total Leads', value: stats[selectedCategory].leads, change: '+8.2%', icon: Users, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-          { label: 'Avg. Clicks', value: stats[selectedCategory].clicks, change: '+5.1%', icon: MousePointer2, color: 'text-brand-green', bg: 'bg-brand-green/10' },
+          { label: 'Total Reach', value: stats[selectedCategory].reach, change: '+12.5%', icon: Eye, primary: true },
+          { label: 'Total Leads', value: stats[selectedCategory].leads, change: '+8.2%', icon: Users, primary: false },
+          { label: 'Avg. Clicks', value: stats[selectedCategory].clicks, change: '+5.1%', icon: MousePointer2, primary: false },
         ].map((stat, i) => (
-          <div key={i} className="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm flex items-center justify-between group hover:border-brand-green compact-transition">
-            <div className="space-y-1">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{stat.label}</p>
-              <div className="flex items-baseline gap-2">
-                <h4 className="text-2xl font-black text-dark-navy">{stat.value}</h4>
-                <span className="text-[10px] font-bold text-brand-green">{stat.change}</span>
+          <div key={i} className={`relative p-6 rounded-[32px] border flex flex-col justify-between group overflow-hidden compact-transition ${stat.primary ? 'bg-dark-navy border-dark-navy text-white shadow-xl shadow-dark-navy/20' : 'bg-white border-gray-100 text-dark-navy hover:border-gray-200 hover:shadow-md'}`}>
+            
+            {/* Background decoration for primary card */}
+            {stat.primary && (
+              <div className="absolute -top-12 -right-12 w-32 h-32 bg-brand-green rounded-full blur-[60px] opacity-30 pointer-events-none" />
+            )}
+
+            <div className="flex justify-between items-start mb-6">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transform group-hover:scale-110 compact-transition ${stat.primary ? 'bg-white/10 text-brand-green backdrop-blur-md border border-white/10 z-10 relative' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
+                <stat.icon size={22} className={stat.primary ? 'stroke-[2.5px]' : 'stroke-2'} />
+              </div>
+              
+              <div className={`flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded-full z-10 relative ${stat.primary ? 'bg-brand-green/20 text-brand-green border border-brand-green/20' : 'bg-brand-green/10 text-brand-green border border-brand-green/10'}`}>
+                <TrendingUp size={12} className={stat.primary ? "stroke-[3px]" : "stroke-2"} />
+                {stat.change}
               </div>
             </div>
-            <div className={`w-12 h-12 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center transform group-hover:scale-110 compact-transition`}>
-              <stat.icon size={24} />
+
+            <div className="space-y-1 relative z-10">
+              <p className={`text-[10px] font-black uppercase tracking-widest ${stat.primary ? 'text-gray-400' : 'text-gray-400'}`}>{stat.label}</p>
+              <h4 className={`text-4xl font-black tracking-tight ${stat.primary ? 'text-white' : 'text-dark-navy'}`}>{stat.value}</h4>
             </div>
           </div>
         ))}
@@ -4456,6 +4831,118 @@ const AgentAccessView = ({ onBack, user, onLogin, onNewProperty, onShowInquiries
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'editProfile' | 'security'>('dashboard');
+
+  const [formData, setFormData] = useState({
+    firstName: user?.email ? user.email.split('@')[0] : '',
+    lastName: '',
+    email: user?.email || '',
+    phone: '',
+    agency: ''
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [passToast, setPassToast] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    if (user && activeTab === 'editProfile') {
+      supabase.from('agents').select('*').eq('id', user.id).single()
+        .then(({ data }) => {
+          if (data) {
+             const parts = (data.name || '').split(' ');
+             setFormData({
+               firstName: parts[0] || '',
+               lastName: parts.slice(1).join(' ') || '',
+               email: data.email || user.email || '',
+               phone: data.phone || '',
+               agency: data.agency || ''
+             });
+          }
+        });
+    }
+  }, [user, activeTab]);
+
+  const handleSaveProfile = async () => {
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('agents')
+        .update({
+          name: `${formData.firstName} ${formData.lastName}`.trim(),
+          email: formData.email,
+          agency: formData.agency,
+          phone: formData.phone,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      setToastMessage({ type: 'success', text: 'Profile updated successfully!' });
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch (err: any) {
+      console.error(err);
+      setToastMessage({ type: 'error', text: err.message || 'Error updating profile' });
+      setTimeout(() => setToastMessage(null), 3000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      setPassToast({ type: 'error', text: "Passwords do not match" });
+      setTimeout(() => setPassToast(null), 3000);
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPassToast({ type: 'error', text: "Password must be at least 6 characters" });
+      setTimeout(() => setPassToast(null), 3000);
+      return;
+    }
+    setIsUpdatingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      if (error) throw error;
+      setPassToast({ type: 'success', text: "Password updated successfully!" });
+      setNewPassword('');
+      setConfirmPassword('');
+      setCurrentPassword('');
+      setTimeout(() => setPassToast(null), 3000);
+    } catch (err: any) {
+      console.error(err);
+      setPassToast({ type: 'error', text: err.message || 'Error updating password' });
+      setTimeout(() => setPassToast(null), 3000);
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase.auth.admin.deleteUser(user.id);
+      if (error) throw error;
+      setShowDeleteConfirm(false);
+      onLogout();
+    } catch (err: any) {
+      console.error(err);
+      setPassToast({ type: 'error', text: err.message || 'Error deleting account. Contact support.' });
+      setTimeout(() => setPassToast(null), 5000);
+      setShowDeleteConfirm(false);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (user) {
     return (
@@ -4466,14 +4953,24 @@ const AgentAccessView = ({ onBack, user, onLogin, onNewProperty, onShowInquiries
       >
         <div className="flex items-center gap-4 mb-12">
           <button 
-            onClick={onBack}
+            onClick={() => {
+              if (activeTab === 'dashboard') {
+                onBack();
+              } else {
+                setActiveTab('dashboard');
+              }
+            }}
             className="p-3 bg-gray-100 rounded-2xl hover:bg-gray-200 text-gray-500 compact-transition"
           >
             <ArrowRight className="rotate-180" size={20} />
           </button>
           <div>
-            <h1 className="text-3xl font-black text-dark-navy">Agent Portal</h1>
-            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Manage your agency and listings</p>
+            <h1 className="text-3xl font-black text-dark-navy">
+              {activeTab === 'dashboard' ? 'Agent Portal' : activeTab === 'editProfile' ? 'Edit Profile' : 'Security Settings'}
+            </h1>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+              {activeTab === 'dashboard' ? 'Manage your agency and listings' : activeTab === 'editProfile' ? 'Update your personal information' : 'Manage your account security'}
+            </p>
           </div>
         </div>
 
@@ -4499,24 +4996,30 @@ const AgentAccessView = ({ onBack, user, onLogin, onNewProperty, onShowInquiries
             </div>
 
             <div className="bg-dark-navy p-6 rounded-[32px] text-white space-y-6">
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 cursor-pointer compact-transition group">
+              <div 
+                onClick={() => setActiveTab('editProfile')}
+                className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer compact-transition group ${activeTab === 'editProfile' ? 'bg-white/10' : 'bg-white/5 hover:bg-white/10'}`}
+              >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-brand-green/20 flex items-center justify-center text-brand-green group-hover:bg-brand-green group-hover:text-white compact-transition">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center compact-transition ${activeTab === 'editProfile' ? 'bg-brand-green text-white' : 'bg-brand-green/20 text-brand-green group-hover:bg-brand-green group-hover:text-white'}`}>
                     <User size={20} />
                   </div>
                   <span className="text-sm font-bold">Edit Profile</span>
                 </div>
-                <ArrowRight size={16} className="text-gray-600 group-hover:text-white compact-transition" />
+                <ArrowRight size={16} className={`compact-transition ${activeTab === 'editProfile' ? 'text-white' : 'text-gray-600 group-hover:text-white'}`} />
               </div>
 
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 cursor-pointer compact-transition group">
+              <div 
+                onClick={() => setActiveTab('security')}
+                className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer compact-transition group ${activeTab === 'security' ? 'bg-white/10' : 'bg-white/5 hover:bg-white/10'}`}
+              >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white compact-transition">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center compact-transition ${activeTab === 'security' ? 'bg-blue-500 text-white' : 'bg-blue-500/20 text-blue-500 group-hover:bg-blue-500 group-hover:text-white'}`}>
                     <Shield size={20} />
                   </div>
                   <span className="text-sm font-bold">Security</span>
                 </div>
-                <ArrowRight size={16} className="text-gray-600 group-hover:text-white compact-transition" />
+                <ArrowRight size={16} className={`compact-transition ${activeTab === 'security' ? 'text-white' : 'text-gray-600 group-hover:text-white'}`} />
               </div>
               
               <div className="pt-4 mt-4 border-t border-white/5">
@@ -4531,49 +5034,180 @@ const AgentAccessView = ({ onBack, user, onLogin, onNewProperty, onShowInquiries
           </div>
 
           <div className="md:col-span-2 space-y-6">
-            <AnalyticsOverview user={user} />
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div 
-                onClick={onShowListings}
-                className="p-8 bg-white border border-gray-100 rounded-[32px] shadow-sm hover:shadow-md compact-transition group cursor-pointer"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white compact-transition">
-                    <Building size={24} />
+            {activeTab === 'dashboard' && (
+              <>
+                <AnalyticsOverview user={user} />
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div 
+                    onClick={onShowListings}
+                    className="p-8 bg-white border border-gray-100 rounded-[32px] shadow-sm hover:shadow-md compact-transition group cursor-pointer"
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white compact-transition">
+                        <Building size={24} />
+                      </div>
+                    </div>
+                    <h4 className="font-bold text-dark-navy">My Listings</h4>
+                    <p className="text-xs text-gray-400 mt-1">Manage & Edit properties</p>
                   </div>
-                </div>
-                <h4 className="font-bold text-dark-navy">My Listings</h4>
-                <p className="text-xs text-gray-400 mt-1">Manage & Edit properties</p>
-              </div>
 
-              <div 
-                onClick={onShowInquiries}
-                className="p-8 bg-white border border-gray-100 rounded-[32px] shadow-sm hover:shadow-md compact-transition group cursor-pointer"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white compact-transition">
-                    <MessageSquare size={24} />
+                  <div 
+                    onClick={onShowInquiries}
+                    className="p-8 bg-white border border-gray-100 rounded-[32px] shadow-sm hover:shadow-md compact-transition group cursor-pointer"
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white compact-transition">
+                        <MessageSquare size={24} />
+                      </div>
+                      <span className="bg-gray-100 text-[8px] font-black px-2 py-1 rounded-full text-gray-400">12 NEW</span>
+                    </div>
+                    <h4 className="font-bold text-dark-navy">Customer Inquiries</h4>
+                    <p className="text-xs text-gray-400 mt-1">Manage your incoming leads</p>
                   </div>
-                  <span className="bg-gray-100 text-[8px] font-black px-2 py-1 rounded-full text-gray-400">12 NEW</span>
-                </div>
-                <h4 className="font-bold text-dark-navy">Customer Inquiries</h4>
-                <p className="text-xs text-gray-400 mt-1">Manage your incoming leads</p>
-              </div>
 
-              <div 
-                onClick={onNewProperty}
-                className="p-8 bg-white border border-gray-100 rounded-[40px] shadow-sm hover:shadow-xl hover:-translate-y-1 compact-transition group cursor-pointer"
-              >
-                <div className="flex justify-between items-start mb-6">
-                  <div className="w-14 h-14 bg-[#FFF9ED] text-[#F59E0B] rounded-[24px] flex items-center justify-center group-hover:bg-[#F59E0B] group-hover:text-white compact-transition">
-                    <Plus size={28} />
+                  <div 
+                    onClick={onNewProperty}
+                    className="p-8 bg-white border border-gray-100 rounded-[40px] shadow-sm hover:shadow-xl hover:-translate-y-1 compact-transition group cursor-pointer"
+                  >
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="w-14 h-14 bg-[#FFF9ED] text-[#F59E0B] rounded-[24px] flex items-center justify-center group-hover:bg-[#F59E0B] group-hover:text-white compact-transition">
+                        <Plus size={28} />
+                      </div>
+                    </div>
+                    <h4 className="text-lg font-bold text-dark-navy">Add New Property</h4>
+                    <p className="text-sm text-gray-400 mt-1 font-medium">List a new property for sale/rent</p>
                   </div>
                 </div>
-                <h4 className="text-lg font-bold text-dark-navy">Add New Property</h4>
-                <p className="text-sm text-gray-400 mt-1 font-medium">List a new property for sale/rent</p>
+              </>
+            )}
+
+            {activeTab === 'editProfile' && (
+              <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm relative overflow-hidden">
+                {toastMessage && (
+                  <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-xl text-sm font-bold shadow-md z-20 flex items-center gap-2 ${toastMessage.type === 'success' ? 'bg-brand-green/10 text-brand-green border border-brand-green/20' : 'bg-red-50 text-red-500 border border-red-100'}`}>
+                    {toastMessage.type === 'success' ? <User size={16} /> : <Eye size={16} />}
+                    {toastMessage.text}
+                  </div>
+                )}
+                <h3 className="text-xl font-black text-dark-navy mb-6">Profile Information</h3>
+                <div className="space-y-6">
+                  <div className="flex items-center gap-6">
+                    <div className="w-20 h-20 bg-brand-green/10 text-brand-green rounded-3xl flex items-center justify-center text-3xl font-black">
+                      {user.email.charAt(0).toUpperCase()}
+                    </div>
+                    <button className="px-6 py-2.5 bg-gray-50 text-dark-navy text-sm font-bold rounded-xl border border-gray-200 hover:bg-gray-100 compact-transition">
+                      Change Avatar
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">First Name</label>
+                      <input type="text" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-medium" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Last Name</label>
+                      <input type="text" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} placeholder="Doe" className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-medium" />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Display Email</label>
+                      <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-medium" />
+                      <p className="text-xs text-gray-400 pl-1">Update your display contact email.</p>
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Phone Number</label>
+                      <input type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} placeholder="+1 (555) 000-0000" className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-medium" />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Agency/Company Name</label>
+                      <input type="text" value={formData.agency} onChange={(e) => setFormData({...formData, agency: e.target.value})} placeholder="Supa Estates LLC" className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-medium" />
+                    </div>
+                  </div>
+
+                  <div className="pt-6 flex justify-end">
+                    <button onClick={handleSaveProfile} disabled={isSaving} className="px-8 py-4 bg-brand-green text-white text-sm font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-brand-green/20 hover:scale-105 compact-transition disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2">
+                      {isSaving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>}
+                      Save Changes
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {activeTab === 'security' && (
+              <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm relative overflow-hidden">
+                {passToast && (
+                  <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-xl text-sm font-bold shadow-md z-20 flex items-center gap-2 ${passToast.type === 'success' ? 'bg-brand-green/10 text-brand-green border border-brand-green/20' : 'bg-red-50 text-red-500 border border-red-100'}`}>
+                    {passToast.type === 'success' ? <Shield size={16} /> : <AlertTriangle size={16} />}
+                    {passToast.text}
+                  </div>
+                )}
+                {showDeleteConfirm && (
+                  <div className="absolute inset-0 bg-white/80 backdrop-blur-md z-30 flex items-center justify-center p-8">
+                    <div className="bg-white p-6 rounded-3xl shadow-2xl border border-red-100 max-w-sm w-full text-center">
+                      <div className="w-12 h-12 bg-red-50 text-brand-red rounded-full flex items-center justify-center mx-auto mb-4">
+                        <AlertTriangle size={24} />
+                      </div>
+                      <h4 className="text-lg font-black text-dark-navy mb-2">Delete Account?</h4>
+                      <p className="text-sm text-gray-500 mb-6">This action cannot be undone. All your properties and data will be permanently removed.</p>
+                      <div className="flex gap-3">
+                        <button onClick={() => setShowDeleteConfirm(false)} disabled={isDeleting} className="flex-1 py-3 bg-gray-50 text-gray-600 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-gray-100 compact-transition disabled:opacity-50">Cancel</button>
+                        <button onClick={handleDeleteAccount} disabled={isDeleting} className="flex-1 py-3 bg-brand-red text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-600 shadow-lg shadow-red-900/20 compact-transition disabled:opacity-50 flex items-center justify-center gap-2">
+                          {isDeleting ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/> : 'Delete'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <h3 className="text-xl font-black text-dark-navy mb-6">Security Settings</h3>
+                <div className="space-y-8">
+                  <div className="space-y-6 border-b border-gray-100 pb-8">
+                    <div>
+                      <h4 className="text-sm font-bold text-dark-navy mb-1">Change Password</h4>
+                      <p className="text-xs text-gray-500">Ensure your account is using a long, random password to stay secure.</p>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Current Password</label>
+                        <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="••••••••" className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-blue-500 focus:bg-white compact-transition font-medium" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">New Password</label>
+                        <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-blue-500 focus:bg-white compact-transition font-medium" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Confirm New Password</label>
+                        <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-blue-500 focus:bg-white compact-transition font-medium" />
+                      </div>
+                      <div className="pt-2">
+                        <button onClick={handleUpdatePassword} disabled={isUpdatingPassword} className="px-6 py-3 bg-dark-navy text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-gray-800 compact-transition shadow-lg disabled:opacity-50 flex items-center gap-2">
+                          {isUpdatingPassword && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>}
+                          Update Password
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="text-sm font-bold text-brand-red mb-1">Danger Zone</h4>
+                      <p className="text-xs text-gray-500">Irreversible actions for your account.</p>
+                    </div>
+                    <div className="p-6 border border-red-100 bg-red-50/50 rounded-3xl flex flex-col sm:flex-row justify-between items-center gap-4">
+                      <div>
+                        <h5 className="font-bold text-dark-navy text-sm">Delete Account</h5>
+                        <p className="text-xs text-gray-500 mt-1">Once you delete your account, there is no going back. Please be certain.</p>
+                      </div>
+                      <button onClick={() => setShowDeleteConfirm(true)} className="px-6 py-3 bg-white text-brand-red border border-red-200 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-brand-red hover:text-white compact-transition whitespace-nowrap">
+                        Delete Account
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </motion.div>
@@ -4969,6 +5603,94 @@ const PromotionView = ({ onBack, onNavigateToAuth, onNavigateToPackages }: { onB
 );
 
 const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBack: () => void, onLogout: () => void, onNewAd: () => void }) => {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'editProfile' | 'security'>('dashboard');
+
+  const [formData, setFormData] = useState({
+    firstName: user?.email ? user.email.split('@')[0] : '',
+    lastName: '',
+    email: user?.email || '',
+    phone: ''
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [passToast, setPassToast] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleSaveProfile = async () => {
+    setIsSaving(true);
+    try {
+      // In a full app, this would update a 'profiles' table.
+      // For now, we simulate success
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setToastMessage({ type: 'success', text: 'Profile updated successfully!' });
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch (err: any) {
+      console.error(err);
+      setToastMessage({ type: 'error', text: err.message || 'Error updating profile' });
+      setTimeout(() => setToastMessage(null), 3000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      setPassToast({ type: 'error', text: "Passwords do not match" });
+      setTimeout(() => setPassToast(null), 3000);
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPassToast({ type: 'error', text: "Password must be at least 6 characters" });
+      setTimeout(() => setPassToast(null), 3000);
+      return;
+    }
+    setIsUpdatingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      if (error) throw error;
+      setPassToast({ type: 'success', text: "Password updated successfully!" });
+      setNewPassword('');
+      setConfirmPassword('');
+      setCurrentPassword('');
+      setTimeout(() => setPassToast(null), 3000);
+    } catch (err: any) {
+      console.error(err);
+      setPassToast({ type: 'error', text: err.message || 'Error updating password' });
+      setTimeout(() => setPassToast(null), 3000);
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      if (user?.id) {
+        // user.id may not be present if just `{ email: string }` dummy.
+        const { error } = await supabase.auth.admin.deleteUser(user.id);
+        if (error) throw error;
+      }
+      setShowDeleteConfirm(false);
+      onLogout();
+    } catch (err: any) {
+      console.error(err);
+      setPassToast({ type: 'error', text: err.message || 'Error deleting account. Contact support.' });
+      setTimeout(() => setPassToast(null), 5000);
+      setShowDeleteConfirm(false);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
@@ -4976,24 +5698,29 @@ const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBac
       className="container mx-auto px-6 py-20 max-w-4xl"
     >
       <div className="flex justify-between items-center mb-12">
-        <button onClick={onBack} className="flex items-center gap-2 text-brand-green font-bold hover:translate-x-[-4px] compact-transition group">
-          <ChevronLeft size={20} className="group-hover:scale-125" /> Back to Home
+        <button onClick={() => {
+            if (activeTab === 'dashboard') {
+              onBack();
+            } else {
+              setActiveTab('dashboard');
+            }
+          }} 
+          className="flex items-center gap-2 text-brand-green font-bold hover:translate-x-[-4px] compact-transition group"
+        >
+          <ChevronLeft size={20} className="group-hover:scale-125" /> {activeTab === 'dashboard' ? 'Back to Home' : 'Back to Dashboard'}
         </button>
         
         {/* User Pill from Image */}
-        <div className="bg-white/50 backdrop-blur-sm border border-gray-100 rounded-full py-2 px-3 flex items-center gap-4 shadow-sm">
+        <div className="bg-white/50 backdrop-blur-sm border border-gray-100 rounded-full py-1.5 pl-1.5 pr-2 flex items-center gap-2 shadow-sm">
           <div className="w-10 h-10 bg-brand-green rounded-full flex items-center justify-center text-white font-bold text-lg">
             {user?.email?.charAt(0).toUpperCase() || 'A'}
           </div>
-          <span className="text-dark-navy font-bold text-sm truncate max-w-[150px]">
-            {user?.email || 'abhishekdewminaa@gmail.com'}
-          </span>
           <button 
             onClick={onLogout}
-            className="p-1.5 text-gray-400 hover:text-brand-red compact-transition"
+            className="p-1.5 flex items-center justify-center text-gray-400 hover:text-brand-red compact-transition bg-gray-50 rounded-full hover:bg-red-50"
             title="Logout"
           >
-            <LogOut size={18} className="rotate-180" />
+            <LogOut size={16} className="rotate-180" />
           </button>
         </div>
       </div>
@@ -5025,15 +5752,15 @@ const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBac
           <div className="bg-dark-navy p-6 rounded-[32px] text-white space-y-4">
             <h3 className="text-sm font-black uppercase tracking-widest text-brand-green">Account Settings</h3>
             <ul className="space-y-2">
-              <li className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer compact-transition">
+              <li onClick={() => setActiveTab('editProfile')} className={`flex items-center justify-between p-3 rounded-xl cursor-pointer compact-transition ${activeTab === 'editProfile' ? 'bg-white/10' : 'bg-white/5 hover:bg-white/10'}`}>
                 <span className="text-sm font-bold">Edit Profile</span>
-                <User size={16} className="text-gray-500" />
+                <User size={16} className={activeTab === 'editProfile' ? 'text-white' : 'text-gray-500'} />
               </li>
-              <li className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer compact-transition">
+              <li onClick={() => setActiveTab('security')} className={`flex items-center justify-between p-3 rounded-xl cursor-pointer compact-transition ${activeTab === 'security' ? 'bg-white/10' : 'bg-white/5 hover:bg-white/10'}`}>
                 <span className="text-sm font-bold">Security</span>
-                <Shield size={16} className="text-gray-500" />
+                <Shield size={16} className={activeTab === 'security' ? 'text-white' : 'text-gray-500'} />
               </li>
-              <li className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer compact-transition text-brand-red">
+              <li onClick={() => setShowDeleteConfirm(true)} className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer compact-transition text-brand-red">
                 <span className="text-sm font-bold">Delete Account</span>
                 <LogOut size={16} />
               </li>
@@ -5042,54 +5769,165 @@ const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBac
         </div>
 
         <div className="md:col-span-2 space-y-8">
-          <div className="flex justify-between items-end">
-            <div>
-              <h3 className="text-2xl font-black text-dark-navy">Your Listings</h3>
-              <p className="text-sm text-gray-400 font-medium">Manage and track your active property advertisements</p>
-            </div>
-            <button 
-              onClick={onNewAd}
-              className="px-6 py-3 bg-brand-green text-white text-xs font-black rounded-xl hover:bg-brand-green-dark shadow-lg shadow-brand-green/20 uppercase tracking-widest compact-transition"
-            >
-              + New Ad
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            {FEATURED_PROPERTIES.slice(0, 2).map((property) => (
-              <div key={property.id} className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex gap-6 group hover:border-brand-green compact-transition">
-                <div className="w-40 h-28 rounded-2xl overflow-hidden shrink-0">
-                  <img src={property.image} className="w-full h-full object-cover group-hover:scale-105 compact-transition" />
+          {activeTab === 'dashboard' && (
+            <>
+              <div className="flex justify-between items-end">
+                <div>
+                  <h3 className="text-2xl font-black text-dark-navy">Your Listings</h3>
+                  <p className="text-sm text-gray-400 font-medium">Manage and track your active property advertisements</p>
                 </div>
-                <div className="flex-1 flex flex-col justify-between py-1">
-                  <div>
-                    <h4 className="font-bold text-dark-navy group-hover:text-brand-green compact-transition">{property.title}</h4>
-                    <p className="text-xs text-gray-400 flex items-center gap-1 mt-1"><MapPin size={12} /> {property.location}</p>
+                <button 
+                  onClick={onNewAd}
+                  className="px-6 py-3 bg-brand-green text-white text-xs font-black rounded-xl hover:bg-brand-green-dark shadow-lg shadow-brand-green/20 uppercase tracking-widest compact-transition"
+                >
+                  + New Ad
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {FEATURED_PROPERTIES.slice(0, 2).map((property) => (
+                  <div key={property.id} className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex gap-6 group hover:border-brand-green compact-transition">
+                    <div className="w-40 h-28 rounded-2xl overflow-hidden shrink-0">
+                      <img src={property.image} className="w-full h-full object-cover group-hover:scale-105 compact-transition" />
+                    </div>
+                    <div className="flex-1 flex flex-col justify-between py-1">
+                      <div>
+                        <h4 className="font-bold text-dark-navy group-hover:text-brand-green compact-transition">{property.title}</h4>
+                        <p className="text-xs text-gray-400 flex items-center gap-1 mt-1"><MapPin size={12} /> {property.location}</p>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-brand-green font-black">{property.price}</span>
+                        <div className="flex gap-2">
+                          <button className="px-4 py-1.5 bg-gray-100 text-dark-navy text-[10px] font-bold rounded-lg hover:bg-gray-200">Edit</button>
+                          <button className="px-4 py-1.5 bg-brand-red/10 text-brand-red text-[10px] font-bold rounded-lg hover:bg-brand-red hover:text-white">Pause</button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-brand-green font-black">{property.price}</span>
-                    <div className="flex gap-2">
-                      <button className="px-4 py-1.5 bg-gray-100 text-dark-navy text-[10px] font-bold rounded-lg hover:bg-gray-200">Edit</button>
-                      <button className="px-4 py-1.5 bg-brand-red/10 text-brand-red text-[10px] font-bold rounded-lg hover:bg-brand-red hover:text-white">Pause</button>
+                ))}
+              </div>
+
+              <div className="bg-gray-50 p-10 rounded-[40px] border border-dashed border-gray-200 text-center space-y-4">
+                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto text-gray-300 shadow-sm">
+                  <Star size={32} />
+                </div>
+                <div>
+                  <h4 className="font-black text-dark-navy">Need More Exposure?</h4>
+                  <p className="text-xs text-gray-400 font-medium mt-1">Upgrade your listings to Gold or Platinum for 10x more leads.</p>
+                </div>
+                <button className="px-8 py-3 bg-white border border-gray-200 text-dark-navy text-xs font-black rounded-xl hover:border-brand-green compact-transition shadow-sm">
+                  Explore Plans
+                </button>
+              </div>
+            </>
+          )}
+
+          {activeTab === 'editProfile' && (
+            <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm relative overflow-hidden">
+              {toastMessage && (
+                <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-xl text-sm font-bold shadow-md z-20 flex items-center gap-2 ${toastMessage.type === 'success' ? 'bg-brand-green/10 text-brand-green border border-brand-green/20' : 'bg-red-50 text-red-500 border border-red-100'}`}>
+                  {toastMessage.type === 'success' ? <User size={16} /> : <AlertTriangle size={16} />}
+                  {toastMessage.text}
+                </div>
+              )}
+              <h3 className="text-xl font-black text-dark-navy mb-6">Profile Information</h3>
+              <div className="space-y-6">
+                <div className="flex items-center gap-6">
+                  <div className="w-20 h-20 bg-brand-green/10 text-brand-green rounded-3xl flex items-center justify-center text-3xl font-black">
+                    {user?.email?.charAt(0).toUpperCase() || 'A'}
+                  </div>
+                  <button className="px-6 py-2.5 bg-gray-50 text-dark-navy text-sm font-bold rounded-xl border border-gray-200 hover:bg-gray-100 compact-transition">
+                    Change Avatar
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">First Name</label>
+                    <input type="text" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-medium" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Last Name</label>
+                    <input type="text" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} placeholder="Doe" className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-medium" />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Display Email</label>
+                    <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-medium" />
+                    <p className="text-xs text-gray-400 pl-1">Update your display contact email.</p>
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Phone Number</label>
+                    <input type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} placeholder="+1 (555) 000-0000" className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-medium" />
+                  </div>
+                </div>
+
+                <div className="pt-6 flex justify-end">
+                  <button onClick={handleSaveProfile} disabled={isSaving} className="px-8 py-4 bg-brand-green text-white text-sm font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-brand-green/20 hover:scale-105 compact-transition disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2">
+                    {isSaving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>}
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'security' && (
+            <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm relative overflow-hidden">
+              {passToast && (
+                <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-xl text-sm font-bold shadow-md z-20 flex items-center gap-2 ${passToast.type === 'success' ? 'bg-brand-green/10 text-brand-green border border-brand-green/20' : 'bg-red-50 text-red-500 border border-red-100'}`}>
+                  {passToast.type === 'success' ? <Shield size={16} /> : <AlertTriangle size={16} />}
+                  {passToast.text}
+                </div>
+              )}
+              {showDeleteConfirm && (
+                <div className="absolute inset-0 bg-white/80 backdrop-blur-md z-30 flex items-center justify-center p-8">
+                  <div className="bg-white p-6 rounded-3xl shadow-2xl border border-red-100 max-w-sm w-full text-center">
+                    <div className="w-12 h-12 bg-red-50 text-brand-red rounded-full flex items-center justify-center mx-auto mb-4">
+                      <AlertTriangle size={24} />
+                    </div>
+                    <h4 className="text-lg font-black text-dark-navy mb-2">Delete Account?</h4>
+                    <p className="text-sm text-gray-500 mb-6">This action cannot be undone. All your properties and data will be permanently removed.</p>
+                    <div className="flex gap-3">
+                      <button onClick={() => setShowDeleteConfirm(false)} disabled={isDeleting} className="flex-1 py-3 bg-gray-50 text-gray-600 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-gray-100 compact-transition disabled:opacity-50">Cancel</button>
+                      <button onClick={handleDeleteAccount} disabled={isDeleting} className="flex-1 py-3 bg-brand-red text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-600 shadow-lg shadow-red-900/20 compact-transition disabled:opacity-50 flex items-center justify-center gap-2">
+                        {isDeleting ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/> : 'Delete'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <h3 className="text-xl font-black text-dark-navy mb-6">Security Settings</h3>
+              <div className="space-y-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="text-sm font-bold text-dark-navy mb-1">Change Password</h4>
+                    <p className="text-xs text-gray-500">Ensure your account is using a long, random password to stay secure.</p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Current Password</label>
+                      <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="••••••••" className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-blue-500 focus:bg-white compact-transition font-medium" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">New Password</label>
+                      <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-blue-500 focus:bg-white compact-transition font-medium" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Confirm New Password</label>
+                      <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-blue-500 focus:bg-white compact-transition font-medium" />
+                    </div>
+                    <div className="pt-2">
+                      <button onClick={handleUpdatePassword} disabled={isUpdatingPassword} className="px-6 py-3 bg-dark-navy text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-gray-800 compact-transition shadow-lg disabled:opacity-50 flex items-center gap-2">
+                        {isUpdatingPassword && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>}
+                        Update Password
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-
-          <div className="bg-gray-50 p-10 rounded-[40px] border border-dashed border-gray-200 text-center space-y-4">
-            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto text-gray-300 shadow-sm">
-              <Star size={32} />
             </div>
-            <div>
-              <h4 className="font-black text-dark-navy">Need More Exposure?</h4>
-              <p className="text-xs text-gray-400 font-medium mt-1">Upgrade your listings to Gold or Platinum for 10x more leads.</p>
-            </div>
-            <button className="px-8 py-3 bg-white border border-gray-200 text-dark-navy text-xs font-black rounded-xl hover:border-brand-green compact-transition shadow-sm">
-              Explore Plans
-            </button>
-          </div>
+          )}
         </div>
       </div>
     </motion.div>
@@ -5100,11 +5938,33 @@ export default function App() {
   const { properties: supabaseProperties, loading: listingsLoading, error: supabaseError, refresh: refreshProperties } = useProperties();
   const [recentFilter, setRecentFilter] = useState<"Sale" | "Rent">("Sale");
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings', data?: any }>({ type: 'home' });
-  const [user, setUser] = useState<{ email: string } | null>({ email: 'abhishekdewminaa@gmail.com' });
+  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'verify' | 'reset-password' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings', data?: any }>({ type: 'home' });
+  const [user, setUser] = useState<any | null>(null);
   const [compareList, setCompareList] = useState<number[]>([]);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && hash.includes("type=recovery")) {
+      setCurrentView({ type: 'reset-password' });
+    } else if (hash && hash.includes("type=signup")) {
+      // they just verified email
+      setCurrentView({ type: 'verify' });
+    }
+  }, []);
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
@@ -5253,32 +6113,26 @@ export default function App() {
             {user ? (
               <div 
                 onClick={() => setCurrentView({ type: 'profile' })}
-                className="flex items-center gap-3 bg-white/50 backdrop-blur-sm border border-gray-100 rounded-full pl-1.5 pr-2 py-1.5 cursor-pointer hover:bg-white hover:shadow-md compact-transition"
+                className="flex items-center gap-2 bg-white/50 backdrop-blur-sm border border-gray-100 rounded-full pl-1.5 pr-2 py-1.5 cursor-pointer hover:bg-white hover:shadow-md compact-transition"
               >
                 <div className="w-10 h-10 rounded-full bg-brand-green flex items-center justify-center text-white text-sm font-bold shadow-sm">
                   {user.email[0].toUpperCase()}
                 </div>
-                <span className="text-sm font-bold text-dark-navy truncate max-w-[140px]">{user.email}</span>
                 <button 
                   onClick={(e) => { e.stopPropagation(); setUser(null); navigateHome(); }} 
-                  className="p-1.5 text-gray-400 hover:text-brand-red compact-transition"
+                  className="p-1.5 flex items-center justify-center text-gray-400 hover:text-brand-red compact-transition bg-gray-50 rounded-full hover:bg-red-50"
+                  title="Logout"
                 >
-                  <LogOut size={18} className="rotate-180" />
+                  <LogOut size={16} className="rotate-180" />
                 </button>
               </div>
             ) : (
-              <motion.button 
-                initial={{ backgroundColor: "#00b562" }}
-                animate={{ 
-                  backgroundColor: ["#00b562", "#00d171", "#00b562"],
-                  boxShadow: ["0 10px 15px -3px rgba(0, 181, 98, 0.2)", "0 10px 25px -3px rgba(0, 181, 98, 0.4)", "0 10px 15px -3px rgba(0, 181, 98, 0.2)"]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
+              <button 
                 onClick={() => setCurrentView({ type: 'auth' })}
-                className="bg-brand-green text-white font-bold text-sm px-8 py-4 rounded-2xl hover:bg-brand-green-dark compact-transition"
+                className="text-dark-navy font-bold text-sm px-4 py-2 hover:text-brand-green compact-transition"
               >
                 Sign In
-              </motion.button>
+              </button>
             )}
             <motion.button 
               whileHover={{ scale: 1.05 }}
@@ -5498,15 +6352,24 @@ export default function App() {
           <AuthPage 
             onBack={navigateHome} 
             initialMode={currentView.data === 'signup' ? 'signup' : 'login'}
-            onLogin={(email) => {
-              setUser({ email });
+            onLogin={(u) => {
+              // Now user is managed by the supabase listener
               if (currentView.data === 'publish') {
                 setCurrentView({ type: 'publish' });
               } else {
-                setCurrentView({ type: 'home' });
+                setCurrentView({ type: 'agent' });
               }
             }} 
+            onVerifyEmailMessage={() => setCurrentView({ type: 'verify' })}
           />
+        )}
+
+        {currentView.type === 'verify' && (
+          <EmailVerificationPage onDashboard={() => setCurrentView({ type: 'agent' })} />
+        )}
+
+        {currentView.type === 'reset-password' && (
+          <ResetPasswordPage onLogin={() => setCurrentView({ type: 'auth', data: 'login' })} />
         )}
 
         {currentView.type === 'publish' && (
