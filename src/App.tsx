@@ -2111,7 +2111,7 @@ const ComparisonView = ({
   );
 };
 
-const PricingPackages = ({ onBack, onGetStarted }: { onBack: () => void, onGetStarted: () => void }) => {
+const PricingPackages = ({ onBack, onGetStarted }: { onBack: () => void, onGetStarted: (pkgName: string) => void }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -2217,7 +2217,7 @@ const PricingPackages = ({ onBack, onGetStarted }: { onBack: () => void, onGetSt
             </div>
 
             <button
-              onClick={onGetStarted}
+              onClick={() => onGetStarted(pkg.name)}
               className={`w-full py-4 rounded-2xl font-bold text-sm tracking-wide uppercase compact-transition ${pkg.highlight ? 'bg-brand-green text-white shadow-lg shadow-brand-green/20 hover:bg-brand-green-dark' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
             >
               LIST YOUR PROPERTY
@@ -2903,7 +2903,7 @@ const TIER_PRICES = {
   "ELITE PRO": 8500
 };
 
-const PublishListingView = ({ onBack, user, onRefresh }: { onBack: () => void, user?: any, onRefresh?: () => void }) => {
+const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }: { onBack: () => void, user?: any, onRefresh?: () => void, initialPackage?: "FREE" | "PREMIUM PRO" | "ELITE PRO" }) => {
   const [step, setStep] = useState(1);
   const [price, setPrice] = useState<string>("");
   const [title, setTitle] = useState("");
@@ -2918,7 +2918,7 @@ const PublishListingView = ({ onBack, user, onRefresh }: { onBack: () => void, u
   const [bathrooms, setBathrooms] = useState("");
   const [description, setDescription] = useState("");
   const [isNegotiable, setIsNegotiable] = useState(false);
-  const [selectedTier, setSelectedTier] = useState<"FREE" | "PREMIUM PRO" | "ELITE PRO">("FREE");
+  const [selectedTier, setSelectedTier] = useState<"FREE" | "PREMIUM PRO" | "ELITE PRO">(initialPackage);
   const [images, setImages] = useState<string[]>([]);
   const [isPublishing, setIsPublishing] = useState(false);
   const [couponCode, setCouponCode] = useState("");
@@ -2939,6 +2939,16 @@ const PublishListingView = ({ onBack, user, onRefresh }: { onBack: () => void, u
 
       const toNumber = (val: string | number | undefined) => val === '' || val === undefined || val === null ? null : Number(val);
 
+      const packageMap: Record<string, string> = {
+        "FREE": "Starter Free",
+        "PREMIUM PRO": "Premium Pro",
+        "ELITE PRO": "Elite Pro"
+      };
+
+      const daysToAdd = selectedTier === "FREE" ? 900 : selectedTier === "PREMIUM PRO" ? 60 : 90;
+      const expiresAtDate = new Date();
+      expiresAtDate.setDate(expiresAtDate.getDate() + daysToAdd);
+
       const propertyData = {
         listing_title: title,
         price_lkr: toNumber(price),
@@ -2957,10 +2967,12 @@ const PublishListingView = ({ onBack, user, onRefresh }: { onBack: () => void, u
         property_description: description || title,
         is_negotiable: isNegotiable,
         images: images,
-        package_tier: selectedTier,
+        package_tier: packageMap[selectedTier] || 'Starter Free',
+        published_by: 'user',
         agent_id: user?.email || 'anonymous',
         status: 'active',
         created_at: new Date().toISOString(),
+        expires_at: expiresAtDate.toISOString()
       };
 
       const { error } = await supabase
@@ -3403,55 +3415,20 @@ const PublishListingView = ({ onBack, user, onRefresh }: { onBack: () => void, u
           {step === 4 && (
             <div className="space-y-8 py-4">
               <div className="text-center space-y-2">
-                <h3 className="text-2xl font-black text-dark-navy">Secure Payment</h3>
+                <h3 className="text-2xl font-black text-dark-navy">Secure Payment with PayHere</h3>
                 <p className="text-sm font-medium text-gray-500">Complete your transaction to go live instantly.</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-6 bg-white border-2 border-brand-green rounded-[32px] shadow-xl shadow-brand-green/10 flex flex-col items-center gap-4 group cursor-pointer">
-                  <div className="w-12 h-12 bg-brand-green/10 text-brand-green rounded-2xl flex items-center justify-center">
-                    <CreditCard size={24} />
-                  </div>
-                  <div className="text-center">
-                    <div className="text-sm font-black text-dark-navy uppercase">Card Payment</div>
-                    <div className="text-[10px] font-bold text-gray-400">Visa / Master / Amex</div>
-                  </div>
+              <div className="bg-white border-2 border-gray-100 rounded-[32px] p-8 text-center max-w-md mx-auto shadow-sm">
+                <div className="w-24 h-24 bg-gray-50 rounded-full mx-auto flex items-center justify-center mb-6">
+                  <CreditCard size={40} className="text-blue-600" />
                 </div>
-
-                <div className="p-6 bg-gray-50 border border-gray-100 rounded-[32px] flex flex-col items-center gap-4 hover:border-brand-green/30 transition-all cursor-pointer">
-                  <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-600">
-                    <img src="https://img.icons8.com/color/48/bank-transfer.png" alt="Bank" className="w-6 h-6" />
-                  </div>
-                  <div className="text-center">
-                    <div className="text-sm font-black text-dark-navy uppercase">Bank Transfer</div>
-                    <div className="text-[10px] font-bold text-gray-400">Manual verification</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-dark-navy text-white p-8 rounded-[32px] space-y-6">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-black uppercase tracking-widest opacity-60">Amount to Pay</span>
-                  <span className="text-3xl font-black tracking-tight">Rs. {total.toLocaleString()}</span>
-                </div>
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest opacity-40">Card Number</label>
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center gap-3">
-                      <CreditCard size={18} className="opacity-40" />
-                      <input type="text" placeholder="0000 0000 0000 0000" className="bg-transparent outline-none flex-1 font-mono text-sm" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black uppercase tracking-widest opacity-40">Expiry</label>
-                      <input type="text" placeholder="MM / YY" className="bg-white/5 border border-white/10 rounded-xl p-4 w-full outline-none font-mono text-sm" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black uppercase tracking-widest opacity-40">CVC</label>
-                      <input type="text" placeholder="***" className="bg-white/5 border border-white/10 rounded-xl p-4 w-full outline-none font-mono text-sm" />
-                    </div>
-                  </div>
+                <h4 className="text-lg font-bold text-dark-navy mb-2">PayHere Secure Checkout</h4>
+                <p className="text-sm text-gray-500 mb-6">You will be redirected to the secure PayHere payment gateway to complete your payment of <b>Rs. {total.toLocaleString()}</b>.</p>
+                <div className="flex gap-4 justify-center items-center opacity-60">
+                   <img src="https://img.icons8.com/color/48/visa.png" alt="Visa" className="h-8 object-contain" />
+                   <img src="https://img.icons8.com/color/48/mastercard.png" alt="Mastercard" className="h-8 object-contain" />
+                   <img src="https://img.icons8.com/color/48/amex.png" alt="Amex" className="h-8 object-contain" />
                 </div>
               </div>
             </div>
@@ -3465,7 +3442,7 @@ const PublishListingView = ({ onBack, user, onRefresh }: { onBack: () => void, u
                 </div>
                 <div>
                   <h3 className="text-3xl font-black text-dark-navy">Congratulations!</h3>
-                  <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mt-1">Your property advertisement is now live</p>
+                  <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mt-1">✅ Your ad is now LIVE on LankaProperty.lk!</p>
                 </div>
               </div>
 
@@ -4456,11 +4433,326 @@ const PropertyAdminCard = ({ property, onEdit, setDeleteConfirmId, updatingId, t
   );
 };
 
+const AdminEditPropertyModal = ({ propertyId, onClose, onRefresh, onShowToast }: { propertyId: number, onClose: () => void, onRefresh: () => void, onShowToast: (msg: string, type: 'success' | 'error') => void }) => {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchProperty = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('properties')
+          .select('*')
+          .eq('id', propertyId)
+          .single();
+        if (error) throw error;
+        setFormData(data);
+      } catch (err) {
+        console.error("Error fetching property:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProperty();
+  }, [propertyId]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const toNumber = (val: any) => val === '' || val === undefined || val === null ? null : Number(val);
+      const { error } = await supabase
+        .from('properties')
+        .update({
+          listing_type: formData.listing_type,
+          property_category: formData.property_category,
+          listing_title: formData.listing_title,
+          property_description: formData.property_description,
+          district: formData.district,
+          city: formData.city,
+          price_lkr: toNumber(formData.price_lkr),
+          rooms: toNumber(formData.rooms),
+          bathrooms: toNumber(formData.bathrooms),
+          floors: toNumber(formData.floors),
+          land_area: formData.land_area,
+          floor_area: formData.floor_area,
+          mobile: formData.mobile,
+          landline: formData.landline,
+          package_tier: formData.package_tier,
+          status: formData.status,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', propertyId);
+
+      if (error) throw error;
+      onShowToast('✅ Property updated successfully!', 'success');
+      onRefresh();
+      onClose();
+    } catch (err: any) {
+      console.error("Error saving property:", err);
+      onShowToast('Failed to update: ' + err.message, 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="bg-white p-8 rounded-3xl flex items-center gap-4 shadow-2xl">
+          <Loader2 className="animate-spin text-brand-green" size={24} />
+          <span className="font-bold text-dark-navy">Loading property details...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!formData) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 sm:p-6 overflow-y-auto">
+      <div className="bg-white w-full max-w-4xl rounded-[32px] overflow-hidden shadow-2xl relative mt-32 sm:my-auto my-0 mb-auto">
+        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 sticky top-0 z-10">
+          <div>
+            <h3 className="text-xl font-black text-dark-navy">Edit Property Details</h3>
+            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">ID: {propertyId}</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500">
+            <X size={20} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSave} className="p-6 sm:p-8 space-y-8 max-h-[70vh] overflow-y-auto">
+          {/* Main info row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Listing Type</label>
+              <select
+                value={formData.listing_type || ''}
+                onChange={(e) => setFormData({...formData, listing_type: e.target.value})}
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-brand-green/20 font-bold text-sm"
+              >
+                <option>For Sale</option>
+                <option>For Rent</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Property Category</label>
+              <select
+                value={formData.property_category || ''}
+                onChange={(e) => setFormData({...formData, property_category: e.target.value})}
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-brand-green/20 font-bold text-sm"
+              >
+                <option>House</option>
+                <option>Land</option>
+                <option>Apartment</option>
+                <option>Commercial</option>
+                <option>Room</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Listing Title</label>
+            <input
+              required
+              type="text"
+              value={formData.listing_title || ''}
+              onChange={(e) => setFormData({...formData, listing_title: e.target.value})}
+              className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-brand-green/20 font-bold text-sm"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Property Description</label>
+            <textarea
+              required
+              rows={5}
+              value={formData.property_description || ''}
+              onChange={(e) => setFormData({...formData, property_description: e.target.value})}
+              className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-brand-green/20 font-bold text-sm resize-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="space-y-2 md:col-span-1 border-r border-gray-100 pr-4">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Price (LKR)</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">Rs.</span>
+                <input
+                  required
+                  type="number"
+                  value={formData.price_lkr || ''}
+                  onChange={(e) => setFormData({...formData, price_lkr: e.target.value})}
+                  className="w-full p-4 pl-12 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-brand-green/20 font-bold text-sm"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">District</label>
+              <input
+                type="text"
+                value={formData.district || ''}
+                onChange={(e) => setFormData({...formData, district: e.target.value})}
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-brand-green/20 font-bold text-sm"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">City</label>
+              <input
+                type="text"
+                value={formData.city || ''}
+                onChange={(e) => setFormData({...formData, city: e.target.value})}
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-brand-green/20 font-bold text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Rooms</label>
+              <input
+                type="number"
+                value={formData.rooms || ''}
+                onChange={(e) => setFormData({...formData, rooms: e.target.value})}
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-brand-green/20 font-bold text-sm"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Bathrooms</label>
+              <input
+                type="number"
+                value={formData.bathrooms || ''}
+                onChange={(e) => setFormData({...formData, bathrooms: e.target.value})}
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-brand-green/20 font-bold text-sm"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Floors</label>
+              <input
+                type="number"
+                value={formData.floors || ''}
+                onChange={(e) => setFormData({...formData, floors: e.target.value})}
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-brand-green/20 font-bold text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Land Area</label>
+              <input
+                type="text"
+                value={formData.land_area || ''}
+                onChange={(e) => setFormData({...formData, land_area: e.target.value})}
+                placeholder="e.g. 15 Perches"
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-brand-green/20 font-bold text-sm"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Floor Area</label>
+              <input
+                type="text"
+                value={formData.floor_area || ''}
+                onChange={(e) => setFormData({...formData, floor_area: e.target.value})}
+                placeholder="e.g. 2000 sqft"
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-brand-green/20 font-bold text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Mobile Contact</label>
+              <input
+                type="text"
+                value={formData.mobile || ''}
+                onChange={(e) => setFormData({...formData, mobile: e.target.value})}
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-brand-green/20 font-bold text-sm"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Landline</label>
+              <input
+                type="text"
+                value={formData.landline || ''}
+                onChange={(e) => setFormData({...formData, landline: e.target.value})}
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-brand-green/20 font-bold text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pb-4">
+             <div className="space-y-2">
+              <label className="text-xs font-black text-purple-400 uppercase tracking-widest pl-1">Package Tier</label>
+              <select
+                value={formData.package_tier || 'Starter Free'}
+                onChange={(e) => setFormData({...formData, package_tier: e.target.value})}
+                className="w-full p-4 bg-purple-50 border border-purple-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500/20 font-bold text-purple-900 text-sm"
+              >
+                <option>Starter Free</option>
+                <option>Premium Pro</option>
+                <option>Elite Pro</option>
+              </select>
+            </div>
+             <div className="space-y-2">
+              <label className="text-xs font-black text-blue-400 uppercase tracking-widest pl-1">Status</label>
+               <select
+                value={formData.status || 'active'}
+                onChange={(e) => setFormData({...formData, status: e.target.value})}
+                className="w-full p-4 bg-blue-50 border border-blue-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20 font-bold text-blue-900 text-sm"
+              >
+                <option value="active">Active</option>
+                <option value="paused">Paused</option>
+                <option value="pending">Pending</option>
+                <option value="expired">Expired</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="space-y-2 pb-4">
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Images ({formData.images?.length || 0})</label>
+            <div className="flex gap-2 overflow-x-auto pb-4">
+               {formData.images?.map((img: string, i: number) => (
+                 <div key={i} className="w-24 h-24 shrink-0 rounded-xl overflow-hidden border border-gray-200">
+                    <img src={img} className="w-full h-full object-cover" />
+                 </div>
+               ))}
+               {!formData.images?.length && <p className="text-sm text-gray-400">No images uploaded</p>}
+            </div>
+          </div>
+
+          <div className="sticky bottom-0 bg-white border-t border-gray-100 p-6 flex justify-end gap-3 rounded-b-[32px] -mx-6 sm:-mx-8 sm:px-8 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)]">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={saving}
+              className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-8 py-3 rounded-xl font-bold text-white bg-dark-navy hover:bg-black transition-colors flex items-center gap-2"
+            >
+              {saving ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />}
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShowToast }: { onBack: () => void, properties: Property[], onEdit: (p: Property) => void, onRefresh: () => void, user: any, onShowToast: (msg: string, type: 'success' | 'error') => void }) => {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [localProperties, setLocalProperties] = useState<Property[]>(properties);
   const [filterTab, setFilterTab] = useState<'all' | 'admin' | 'agent' | 'package'>('all');
+  const [adminEditPropertyId, setAdminEditPropertyId] = useState<number | null>(null);
 
   // Sync local properties with prop properties when they change
   useEffect(() => {
@@ -4516,6 +4808,14 @@ const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShow
 
   return (
     <>
+    {adminEditPropertyId && (
+      <AdminEditPropertyModal 
+        propertyId={adminEditPropertyId} 
+        onClose={() => setAdminEditPropertyId(null)} 
+        onRefresh={onRefresh} 
+        onShowToast={onShowToast}
+      />
+    )}
     {/* Delete Confirmation Modal */}
     {deleteConfirmId && (
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-0">
@@ -4651,7 +4951,7 @@ const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShow
                 <p className="text-[10px] text-gray-400 font-bold text-center mt-1">{localProperties.filter(p => !p.package_tier || p.package_tier === 'Starter Free' || p.package_tier === 'FREE').length} Listings</p>
               </div>
               {localProperties.filter(p => !p.package_tier || p.package_tier === 'Starter Free' || p.package_tier === 'FREE').map((property) => (
-                <PropertyAdminCard key={property.id} property={property} onEdit={onEdit} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
+                <PropertyAdminCard key={property.id} property={property} onEdit={(p: any) => setAdminEditPropertyId(p.id)} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
               ))}
             </div>
             
@@ -4662,7 +4962,7 @@ const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShow
                 <p className="text-[10px] text-blue-400 font-bold text-center mt-1">{localProperties.filter(p => p.package_tier === 'Premium Pro' || p.package_tier === 'PREMIUM PRO').length} Listings</p>
               </div>
               {localProperties.filter(p => p.package_tier === 'Premium Pro' || p.package_tier === 'PREMIUM PRO').map((property) => (
-                <PropertyAdminCard key={property.id} property={property} onEdit={onEdit} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
+                <PropertyAdminCard key={property.id} property={property} onEdit={(p: any) => setAdminEditPropertyId(p.id)} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
               ))}
             </div>
 
@@ -4673,7 +4973,7 @@ const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShow
                 <p className="text-[10px] text-green-500 font-bold text-center mt-1">{localProperties.filter(p => p.package_tier === 'Elite Pro' || p.package_tier === 'ELITE PRO').length} Listings</p>
               </div>
               {localProperties.filter(p => p.package_tier === 'Elite Pro' || p.package_tier === 'ELITE PRO').map((property) => (
-                <PropertyAdminCard key={property.id} property={property} onEdit={onEdit} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
+                <PropertyAdminCard key={property.id} property={property} onEdit={(p: any) => setAdminEditPropertyId(p.id)} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
               ))}
             </div>
           </div>
@@ -4684,7 +4984,7 @@ const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShow
             if (filterTab === 'agent') return p.published_by !== 'admin' && p.agentId !== 'ADMIN';
             return true;
           }).map((property) => (
-            <PropertyAdminCard key={property.id} property={property} onEdit={onEdit} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
+            <PropertyAdminCard key={property.id} property={property} onEdit={(p: any) => setAdminEditPropertyId(p.id)} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
           ))
         )}
       </div>
@@ -6728,17 +7028,26 @@ export default function App() {
         )}
 
         {currentView.type === 'packages' && (
-          <PricingPackages onBack={navigateHome} onGetStarted={() => setCurrentView({ type: 'auth', data: 'publish' })} />
+          <PricingPackages 
+            onBack={navigateHome} 
+            onGetStarted={(pkgName) => {
+              if (user) {
+                setCurrentView({ type: 'publish', data: { packageTier: pkgName } });
+              } else {
+                setCurrentView({ type: 'auth', data: { target: 'publish', packageTier: pkgName } });
+              }
+            }} 
+          />
         )}
 
         {currentView.type === 'auth' && (
           <AuthPage 
             onBack={navigateHome} 
-            initialMode={currentView.data === 'signup' ? 'signup' : 'login'}
+            initialMode={(typeof currentView.data === 'string' ? currentView.data : currentView.data?.target) === 'signup' ? 'signup' : 'login'}
             onLogin={(u) => {
-              // Now user is managed by the supabase listener
-              if (currentView.data === 'publish') {
-                setCurrentView({ type: 'publish' });
+              const target = typeof currentView.data === 'string' ? currentView.data : currentView.data?.target;
+              if (target === 'publish') {
+                setCurrentView({ type: 'publish', data: { packageTier: currentView.data?.packageTier } });
               } else {
                 setCurrentView({ type: 'profile' });
               }
@@ -6756,7 +7065,12 @@ export default function App() {
         )}
 
         {currentView.type === 'publish' && (
-          <PublishListingView onBack={navigateHome} user={user} onRefresh={refreshProperties} />
+          <PublishListingView 
+            onBack={navigateHome} 
+            user={user} 
+            onRefresh={refreshProperties} 
+            initialPackage={currentView.data?.packageTier === 'STARTER FREE' ? 'FREE' : currentView.data?.packageTier === 'PREMIUM PRO' ? 'PREMIUM PRO' : currentView.data?.packageTier === 'ELITE PRO' ? 'ELITE PRO' : 'FREE'} 
+          />
         )}
 
         {currentView.type === 'promotion' && (
