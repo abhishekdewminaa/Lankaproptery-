@@ -1280,7 +1280,7 @@ const Sidebar = ({ onOpenCalculator, onShowPackages }: { onOpenCalculator: () =>
   </aside>
 );
 
-const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, onShowPromotion, onShowAgentAccess, onShowWanted }: { onNavigateHome: () => void, onShowContact: () => void, onShowAbout: () => void, onShowPackages: () => void, onShowPromotion: () => void, onShowAgentAccess: () => void, onShowWanted: () => void }) => (
+const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, onShowPromotion, onShowWanted, onShowSecretLogin }: { onNavigateHome: () => void, onShowContact: () => void, onShowAbout: () => void, onShowPackages: () => void, onShowPromotion: () => void, onShowWanted: () => void, onShowSecretLogin: () => void }) => (
   <footer className="bg-[#0c1a2e] text-gray-400 pt-20 pb-10">
     <div className="container mx-auto px-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
@@ -1374,21 +1374,19 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
       </div>
 
       <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-        <div className="text-[11px] font-bold text-gray-500 tracking-wider">
-          &copy; 2026 LANKAPROPERTY.LK. ALL RIGHTS RESERVED. DESIGNED FOR EXCELLENCE.
+        <div className="flex flex-col gap-2">
+          <div className="text-[11px] font-bold text-gray-500 tracking-wider">
+            &copy; 2026 LANKAPROPERTY.LK. ALL RIGHTS RESERVED. DESIGNED FOR EXCELLENCE.
+          </div>
+          <div>
+            <button onClick={onShowSecretLogin} className="text-xs text-gray-600 hover:text-gray-400">Admin Access</button>
+          </div>
         </div>
         <div className="flex gap-8 items-center">
           <div className="flex items-center gap-2 text-sm font-bold text-white group cursor-pointer">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
             <span className="group-hover:text-brand-green compact-transition">Platform Status: Online</span>
           </div>
-          <div className="w-px h-5 bg-white/10" />
-          <button 
-            onClick={onShowAgentAccess}
-            className="text-xs font-bold text-brand-green hover:underline uppercase tracking-widest underline-offset-4"
-          >
-            Agent Access
-          </button>
         </div>
       </div>
     </div>
@@ -3637,6 +3635,9 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
       ? initialData.contacts 
       : [{ type: 'Mobile', number: "" }]
   );
+  const [selectedTier, setSelectedTier] = useState<"Starter Free" | "Premium Pro" | "Elite Pro">(
+    (initialData?.package_tier as "Starter Free" | "Premium Pro" | "Elite Pro") || "Starter Free"
+  );
   const [images, setImages] = useState<{ id: string, url: string }[]>(
     initialData?.images?.map(url => ({ id: Math.random().toString(36).substr(2, 9), url })) || []
   );
@@ -3806,7 +3807,9 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
         is_negotiable: isNegotiable,
         images: images.map(img => img.url),
         google_maps_link: locationLink,
-        agent_id: agentId,
+        agent_id: 'ADMIN',
+        published_by: 'admin',
+        package_tier: selectedTier,
         status: initialData?.status || 'active',
         created_at: initialData?.id ? undefined : new Date().toISOString(),
       };
@@ -3844,7 +3847,7 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
           <div className="bg-dark-navy p-10 text-white relative">
             <div className="flex justify-between items-center mb-8 relative z-10">
               <div>
-                <h2 className="text-3xl font-black mb-2 tracking-tight">Agent Property Portal</h2>
+                <h2 className="text-3xl font-black mb-2 tracking-tight">Admin Property Portal</h2>
                 <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Manager Level Access • Unlimited Listings</p>
               </div>
               <div className="flex gap-3">
@@ -3881,6 +3884,30 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
         <div className="p-10 space-y-12">
           {step === 1 && (
             <div className="space-y-12">
+              <div className="space-y-6">
+                <h3 className="text-2xl font-black text-dark-navy tracking-tight">Select Package</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {(["Starter Free", "Premium Pro", "Elite Pro"] as const).map((tier) => (
+                    <button
+                      key={tier}
+                      onClick={() => setSelectedTier(tier)}
+                      className={`relative px-4 py-6 rounded-[24px] text-[10px] font-black tracking-widest uppercase transition-all border-2 flex flex-col items-center justify-center gap-2 ${
+                        selectedTier === tier 
+                          ? 'bg-brand-green border-brand-green text-white shadow-xl shadow-brand-green/20 scale-[1.02]' 
+                          : 'bg-white border-gray-100 text-gray-400 hover:border-brand-green/30 active:scale-95'
+                      }`}
+                    >
+                      {selectedTier === tier && (
+                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md">
+                          <CheckCircle size={14} className="text-brand-green" />
+                        </div>
+                      )}
+                      <span className="text-center">{tier}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Core Details */}
               <div className="space-y-6">
                 <h3 className="text-2xl font-black text-dark-navy tracking-tight">Core Details</h3>
@@ -4331,10 +4358,109 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
   );
 };
 
+const PropertyAdminCard = ({ property, onEdit, setDeleteConfirmId, updatingId, toggleStatus }: any) => {
+  const isAdminPosted = property.published_by === 'admin' || property.agentId === 'ADMIN';
+  const packageTier = property.package_tier?.toUpperCase() || 'STARTER FREE';
+  const tierColors: Record<string, string> = {
+    'STARTER FREE': 'bg-gray-100 text-gray-600',
+    'FREE': 'bg-gray-100 text-gray-600',
+    'PREMIUM PRO': 'bg-blue-100 text-blue-600',
+    'ELITE PRO': 'bg-green-100 text-green-600'
+  };
+  const tierBadges: Record<string, string> = {
+    'STARTER FREE': 'FREE',
+    'FREE': 'FREE',
+    'PREMIUM PRO': 'Rs. 4,500',
+    'ELITE PRO': 'Rs. 8,500'
+  };
+
+  return (
+    <div className={`bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col sm:flex-row gap-6 group hover:border-brand-green compact-transition ${property.status === 'paused' ? 'opacity-60 grayscale-[0.5]' : ''}`}>
+      <div className="w-full sm:w-48 h-32 rounded-2xl overflow-hidden shrink-0 relative">
+        <img src={property.image} className="w-full h-full object-cover group-hover:scale-110 compact-transition" />
+        {property.status === 'paused' && (
+          <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center">
+            <span className="bg-gray-900/80 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Paused</span>
+          </div>
+        )}
+      </div>
+      <div className="flex-1 flex flex-col justify-between py-1">
+        <div>
+          <div className="flex flex-wrap justify-between items-start gap-2">
+            <h4 className="font-bold text-dark-navy text-lg group-hover:text-brand-green compact-transition line-clamp-1 flex-1">{property.title}</h4>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${tierColors[packageTier] || tierColors['STARTER FREE']}`}>
+                {tierBadges[packageTier] || tierBadges['STARTER FREE']}
+              </span>
+              <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${isAdminPosted ? 'bg-purple-100 text-purple-600' : 'bg-orange-100 text-orange-600'}`}>
+                {isAdminPosted ? 'ADMIN' : 'AGENT'}
+              </span>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 flex items-center gap-1 mt-1 font-medium"><MapPin size={12} className="text-brand-green" /> {property.location}</p>
+          {!isAdminPosted && property.agentId && (
+            <p className="text-[10px] text-gray-400 mt-1">By: {property.agentId}</p>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center justify-between mt-4 sm:mt-0 gap-4">
+          <div className="flex flex-col">
+            <span className="text-brand-green font-black text-lg">{property.price}</span>
+            <button 
+              onClick={() => toggleStatus(property)}
+              disabled={updatingId === property.id}
+              className={`flex items-center gap-2 mt-1 text-[10px] font-black uppercase tracking-widest compact-transition ${property.status === 'paused' ? 'text-gray-400 hover:text-brand-green' : 'text-brand-green hover:text-brand-red'}`}
+            >
+              {updatingId === property.id ? (
+                <Loader2 className="animate-spin" size={12} />
+              ) : (
+                <div className={`w-9 h-5 rounded-full relative compact-transition border ${property.status === 'paused' ? 'bg-gray-100 border-gray-200' : 'bg-brand-green text-brand-green shadow-[0_0_10px_rgba(0,181,98,0.3)]'}`}>
+                  <div className={`absolute top-[1px] w-4 h-4 rounded-full shadow-sm compact-transition ${property.status === 'paused' ? 'left-0.5 bg-gray-400' : 'left-[18px] bg-white'}`} />
+                </div>
+              )}
+              <span className={`text-[10px] font-black uppercase tracking-widest ${property.status === 'paused' ? 'text-gray-400' : 'text-brand-green'}`}>
+                {property.status === 'paused' ? 'Paused' : 'Live'}
+              </span>
+            </button>
+          </div>
+          <div className="flex gap-2">
+            <a 
+              href={`/property/${property.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2.5 bg-gray-50 text-gray-500 rounded-xl hover:bg-brand-green hover:text-white compact-transition"
+              onClick={(e) => {
+                // Prevent navigation if it's meant to be handled by app router? 
+                // Normally we would use a Link component or onClick handler.
+                // But native a tag with target="_blank" is easier for "View on website"
+              }}
+            >
+              <ExternalLink size={18} />
+            </a>
+            <button 
+              onClick={() => onEdit(property)}
+              className="px-6 py-2.5 bg-dark-navy text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-brand-green compact-transition shadow-lg shadow-dark-navy/10"
+            >
+              Edit
+            </button>
+            <button 
+              onClick={() => setDeleteConfirmId(property.id)}
+              disabled={updatingId === property.id}
+              className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-red-50 hover:text-red-500 compact-transition border border-transparent hover:border-red-100"
+            >
+              <Trash2 size={18} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShowToast }: { onBack: () => void, properties: Property[], onEdit: (p: Property) => void, onRefresh: () => void, user: any, onShowToast: (msg: string, type: 'success' | 'error') => void }) => {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [localProperties, setLocalProperties] = useState<Property[]>(properties);
+  const [filterTab, setFilterTab] = useState<'all' | 'admin' | 'agent' | 'package'>('all');
 
   // Sync local properties with prop properties when they change
   useEffect(() => {
@@ -4358,27 +4484,30 @@ const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShow
     }
   };
 
-  const deleteListing = async (id: number) => {
-    setUpdatingId(id);
+  const deleteProperty = async (propertyId: number) => {
+    setUpdatingId(propertyId);
     try {
-      // Optimistically remove from UI
-      setLocalProperties(prev => prev.filter(p => p.id !== id));
-
       const { error } = await supabase
         .from('properties')
         .delete()
-        .eq('id', id)
-        .eq('agent_id', user?.email || 'anonymous');
+        .eq('id', propertyId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Delete error:', error);
+        alert('Failed to delete: ' + error.message);
+        return;
+      }
 
-      onShowToast("✅ Listing deleted successfully", 'success');
+      // Remove from UI immediately
+      setLocalProperties(prev => prev.filter(p => p.id !== propertyId));
+      
+      // Show success message
+      alert('✅ Property deleted successfully!');
+      
       await onRefresh();
-    } catch (err) {
-      console.error("Error deleting listing:", err);
-      onShowToast("❌ Failed to delete. Please try again", 'error');
-      // Revert if failed
-      setLocalProperties(properties);
+    } catch (err: any) {
+      console.error('Delete error:', err);
+      alert('Failed to delete: ' + err.message);
     } finally {
       setUpdatingId(null);
       setDeleteConfirmId(null);
@@ -4411,12 +4540,12 @@ const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShow
 
           <h3 className="text-2xl font-black text-dark-navy mb-4">Delete Listing?</h3>
           <p className="text-gray-500 font-medium mb-8 leading-relaxed">
-            Do you want to delete this listing permanently? This action cannot be undone.
+            Are you sure you want to delete this property permanently?
           </p>
 
           <div className="flex flex-col gap-3">
             <button 
-              onClick={() => deleteListing(deleteConfirmId)}
+              onClick={() => deleteProperty(deleteConfirmId)}
               disabled={updatingId === deleteConfirmId}
               className="w-full py-4 bg-red-500 text-white font-black uppercase tracking-widest rounded-2xl hover:bg-red-600 shadow-xl shadow-red-500/20 active:scale-95 compact-transition inline-flex items-center justify-center gap-2"
             >
@@ -4444,20 +4573,63 @@ const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShow
     <motion.div 
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="container mx-auto px-6 py-12 max-w-4xl"
+      className="container mx-auto px-6 py-12 max-w-7xl"
     >
-      <div className="flex items-center gap-4 mb-8">
+      <div className="flex items-center gap-4 mb-4">
         <button 
           onClick={onBack}
           className="p-3 bg-white shadow-sm border border-gray-100 rounded-2xl hover:bg-gray-50 text-gray-500 compact-transition"
         >
           <ArrowRight className="rotate-180" size={20} />
         </button>
-          <div>
-            <h2 className="text-3xl font-black text-dark-navy">My Listings</h2>
-            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">{localProperties.length} Total Advertisements</p>
-          </div>
+        <div>
+          <h2 className="text-3xl font-black text-dark-navy">All Properties Network</h2>
+          <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">{localProperties.length} Total Platform Advertisements</p>
         </div>
+      </div>
+
+      {/* Admin Stats Bar */}
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center">
+          <div className="text-2xl font-black text-dark-navy">{localProperties.length}</div>
+          <div className="text-[9px] font-black uppercase text-gray-400 tracking-widest mt-1">Total Props</div>
+        </div>
+        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center border-b-4 border-b-purple-500">
+          <div className="text-2xl font-black text-purple-600">{localProperties.filter(p => p.published_by === 'admin' || p.agentId === 'ADMIN').length}</div>
+          <div className="text-[9px] font-black uppercase text-purple-400 tracking-widest mt-1">Admin Posted</div>
+        </div>
+        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center border-b-4 border-b-orange-400">
+          <div className="text-2xl font-black text-orange-500">{localProperties.filter(p => p.published_by !== 'admin' && p.agentId !== 'ADMIN').length}</div>
+          <div className="text-[9px] font-black uppercase text-gray-400 tracking-widest mt-1">Agent Posted</div>
+        </div>
+        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center">
+          <div className="text-2xl font-black text-gray-700">{localProperties.filter(p => !p.package_tier || p.package_tier === 'Starter Free' || p.package_tier === 'FREE').length}</div>
+          <div className="text-[9px] font-black uppercase text-gray-400 tracking-widest mt-1">Starter Free</div>
+        </div>
+        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center">
+          <div className="text-2xl font-black text-blue-600">{localProperties.filter(p => p.package_tier === 'Premium Pro' || p.package_tier === 'PREMIUM PRO').length}</div>
+          <div className="text-[9px] font-black uppercase text-gray-400 tracking-widest mt-1">Premium Pro</div>
+        </div>
+        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center">
+          <div className="text-2xl font-black text-brand-green">{localProperties.filter(p => p.package_tier === 'Elite Pro' || p.package_tier === 'ELITE PRO').length}</div>
+          <div className="text-[9px] font-black uppercase text-gray-400 tracking-widest mt-1">Elite Pro</div>
+        </div>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="flex flex-wrap gap-3 mb-8">
+        {(['all', 'admin', 'agent', 'package'] as const).map(tab => (
+          <button 
+            key={tab}
+            onClick={() => setFilterTab(tab)}
+            className={`px-6 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest compact-transition border-2 ${
+              filterTab === tab ? 'bg-dark-navy text-white border-dark-navy shadow-lg shadow-dark-navy/20' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'
+            }`}
+          >
+            {tab === 'all' ? 'All Listings' : tab === 'admin' ? 'Admin Posted' : tab === 'agent' ? 'Agent Posted' : 'By Package'}
+          </button>
+        ))}
+      </div>
 
       <div className="space-y-4">
         {localProperties.length === 0 ? (
@@ -4467,70 +4639,52 @@ const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShow
             </div>
             <div>
               <h3 className="text-xl font-black text-dark-navy">No listings found</h3>
-              <p className="text-sm text-gray-400">You haven't listed any properties yet.</p>
+              <p className="text-sm text-gray-400">The platform currently has no properties.</p>
+            </div>
+          </div>
+        ) : filterTab === 'package' ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* STARTER FREE */}
+            <div className="space-y-4">
+              <div className="bg-gray-100 p-4 rounded-2xl border border-gray-200">
+                <h4 className="text-sm font-black text-gray-600 uppercase tracking-widest text-center">Starter Free</h4>
+                <p className="text-[10px] text-gray-400 font-bold text-center mt-1">{localProperties.filter(p => !p.package_tier || p.package_tier === 'Starter Free' || p.package_tier === 'FREE').length} Listings</p>
+              </div>
+              {localProperties.filter(p => !p.package_tier || p.package_tier === 'Starter Free' || p.package_tier === 'FREE').map((property) => (
+                <PropertyAdminCard key={property.id} property={property} onEdit={onEdit} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
+              ))}
+            </div>
+            
+            {/* PREMIUM PRO */}
+            <div className="space-y-4">
+              <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100">
+                <h4 className="text-sm font-black text-blue-600 uppercase tracking-widest text-center">Premium Pro</h4>
+                <p className="text-[10px] text-blue-400 font-bold text-center mt-1">{localProperties.filter(p => p.package_tier === 'Premium Pro' || p.package_tier === 'PREMIUM PRO').length} Listings</p>
+              </div>
+              {localProperties.filter(p => p.package_tier === 'Premium Pro' || p.package_tier === 'PREMIUM PRO').map((property) => (
+                <PropertyAdminCard key={property.id} property={property} onEdit={onEdit} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
+              ))}
+            </div>
+
+            {/* ELITE PRO */}
+            <div className="space-y-4">
+              <div className="bg-green-50 p-4 rounded-2xl border border-green-100">
+                <h4 className="text-sm font-black text-green-600 uppercase tracking-widest text-center">Elite Pro</h4>
+                <p className="text-[10px] text-green-500 font-bold text-center mt-1">{localProperties.filter(p => p.package_tier === 'Elite Pro' || p.package_tier === 'ELITE PRO').length} Listings</p>
+              </div>
+              {localProperties.filter(p => p.package_tier === 'Elite Pro' || p.package_tier === 'ELITE PRO').map((property) => (
+                <PropertyAdminCard key={property.id} property={property} onEdit={onEdit} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
+              ))}
             </div>
           </div>
         ) : (
-          localProperties.map((property) => (
-            <div key={property.id} className={`bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col sm:flex-row gap-6 group hover:border-brand-green compact-transition ${property.status === 'paused' ? 'opacity-60 grayscale-[0.5]' : ''}`}>
-              <div className="w-full sm:w-48 h-32 rounded-2xl overflow-hidden shrink-0 relative">
-                <img src={property.image} className="w-full h-full object-cover group-hover:scale-110 compact-transition" />
-                {property.status === 'paused' && (
-                  <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center">
-                    <span className="bg-gray-900/80 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Paused</span>
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 flex flex-col justify-between py-1">
-                <div>
-                  <div className="flex justify-between items-start">
-                    <h4 className="font-bold text-dark-navy text-lg group-hover:text-brand-green compact-transition line-clamp-1">{property.title}</h4>
-                    <div className="flex items-center gap-2">
-                       <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${property.type === 'Sale' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'}`}>
-                        For {property.type}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-400 flex items-center gap-1 mt-1 font-medium"><MapPin size={12} className="text-brand-green" /> {property.location}</p>
-                </div>
-                <div className="flex items-center justify-between mt-4 sm:mt-0">
-                  <div className="flex flex-col">
-                    <span className="text-brand-green font-black text-lg">{property.price}</span>
-                    <button 
-                      onClick={() => toggleStatus(property)}
-                      disabled={updatingId === property.id}
-                      className={`flex items-center gap-2 mt-1 text-[10px] font-black uppercase tracking-widest compact-transition ${property.status === 'paused' ? 'text-gray-400 hover:text-brand-green' : 'text-brand-green hover:text-brand-red'}`}
-                    >
-                      {updatingId === property.id ? (
-                        <Loader2 className="animate-spin" size={12} />
-                      ) : (
-                        <div className={`w-9 h-5 rounded-full relative compact-transition border ${property.status === 'paused' ? 'bg-gray-100 border-gray-200' : 'bg-brand-green text-brand-green shadow-[0_0_10px_rgba(0,181,98,0.3)]'}`}>
-                          <div className={`absolute top-[1px] w-4 h-4 rounded-full shadow-sm compact-transition ${property.status === 'paused' ? 'left-0.5 bg-gray-400' : 'left-[18px] bg-white'}`} />
-                        </div>
-                      )}
-                      <span className={`text-[10px] font-black uppercase tracking-widest ${property.status === 'paused' ? 'text-gray-400' : 'text-brand-green'}`}>
-                        {property.status === 'paused' ? 'Listing is Paused' : 'Listing is Live'}
-                      </span>
-                    </button>
-                  </div>
-                  <div className="flex gap-2">
-                    <button 
-                      onClick={() => onEdit(property)}
-                      className="px-6 py-2.5 bg-dark-navy text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-brand-green compact-transition shadow-lg shadow-dark-navy/10"
-                    >
-                      Edit Listing
-                    </button>
-                    <button 
-                      onClick={() => setDeleteConfirmId(property.id)}
-                      disabled={updatingId === property.id}
-                      className="p-2.5 bg-gray-50 text-gray-400 rounded-xl hover:bg-red-50 hover:text-red-500 compact-transition border border-transparent hover:border-red-100"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+          localProperties.filter(p => {
+            if (filterTab === 'all') return true;
+            if (filterTab === 'admin') return p.published_by === 'admin' || p.agentId === 'ADMIN';
+            if (filterTab === 'agent') return p.published_by !== 'admin' && p.agentId !== 'ADMIN';
+            return true;
+          }).map((property) => (
+            <PropertyAdminCard key={property.id} property={property} onEdit={onEdit} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
           ))
         )}
       </div>
@@ -4734,7 +4888,7 @@ const AnalyticsOverview = ({ user }: { user: any }) => {
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1"> engagement vs leads</p>
           </div>
 
-          <div className="h-[240px] w-full">
+          <div style={{ width: '100%', height: '300px', minWidth: '0' }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trendData[selectedCategory]}>
                 <defs>
@@ -4781,18 +4935,19 @@ const AnalyticsOverview = ({ user }: { user: any }) => {
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Listing density by category</p>
           </div>
 
-          <div className="h-[200px] w-full my-4">
+          <div style={{ width: '100%', height: '300px', minWidth: '0' }} className="my-4 relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={distributionData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={8}
+                  innerRadius={85}
+                  outerRadius={110}
+                  paddingAngle={5}
                   dataKey="value"
                   animationDuration={1500}
+                  stroke="none"
                 >
                   {distributionData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
@@ -4803,11 +4958,17 @@ const AnalyticsOverview = ({ user }: { user: any }) => {
                     borderRadius: '16px', 
                     border: 'none', 
                     boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
-                    fontSize: '12px'
+                    fontSize: '12px',
+                    fontWeight: 'bold'
+                  }}
+                  itemStyle={{
+                    color: '#1e293b'
                   }}
                 />
               </PieChart>
             </ResponsiveContainer>
+            
+            {/* If there's only 1 category, maybe we can show a nice big number inside? Or just rely on nice thick donut */}
           </div>
 
           <div className="space-y-3">
@@ -4827,10 +4988,117 @@ const AnalyticsOverview = ({ user }: { user: any }) => {
   );
 };
 
-const AgentAccessView = ({ onBack, user, onLogin, onNewProperty, onShowInquiries, onShowListings, onLogout, agentPropertiesCount, agentLeadsTotal }: { onBack: () => void, user: any, onLogin: (email: string) => void, onNewProperty: () => void, onShowInquiries: () => void, onShowListings: () => void, onLogout: () => void, agentPropertiesCount: number, agentLeadsTotal: number }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
+const SecretLoginView = ({ onBack, onSuccess }: { onBack: () => void, onSuccess: (email: string) => void }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg('');
+    if (!email || !password) return;
+    
+    setIsLoading(true);
+    try {
+      let { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+      
+      const isFallbackCreds = (email.toLowerCase() === 'abhishekdewminaa@gmail.com' && password === 'LANKApMAX2026$') || (email.toLowerCase() === 'ceo.lankaland@gmail.com' && password === 'CEOlankaP2026$');
+
+      if (authError && isFallbackCreds) {
+        // Auto sign up the admin if they don't exist yet
+        const { error: signUpError } = await supabase.auth.signUp({ email, password });
+        if (!signUpError) {
+           authError = null; // Successfully created and logged in
+        }
+      }
+
+      if (authError) {
+        setIsLoading(false);
+        setErrorMsg(authError.message);
+        return;
+      }
+      
+      const { data: isAdmin, error: adminError } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('email', email)
+        .single();
+        
+      if (adminError && adminError.code !== 'PGRST116') {
+        console.error("Error querying admin_users:", adminError);
+      }
+        
+      // Fallback for Abhishek if table check fails entirely (e.g. table not created yet)
+      const allowedEmails = ['abhishekdewminaa@gmail.com', 'ceo.lankaland@gmail.com'];
+      const isFallbackAdmin = allowedEmails.includes(email.toLowerCase());
+      if (!isAdmin && !isFallbackAdmin) {
+        onBack();
+        return;
+      }
+      
+      onSuccess(email);
+    } catch (err) {
+      console.error("Login exception:", err);
+      onBack();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="min-h-screen flex items-center justify-center bg-gray-50 px-6 py-20"
+    >
+      <div className="w-full max-w-md bg-white p-12 rounded-[40px] shadow-sm border border-gray-100">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-brand-green/10 mx-auto rounded-full flex items-center justify-center text-brand-green mb-6">
+            <Lock size={32} />
+          </div>
+          <h2 className="text-2xl font-black text-dark-navy mb-2">Sign In</h2>
+          <p className="text-sm text-gray-500 font-medium">Access your account</p>
+        </div>
+        
+        <form onSubmit={handleLogin} className="space-y-6">
+          {errorMsg && (
+            <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-sm font-bold text-center">
+              {errorMsg}
+            </div>
+          )}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Email address</label>
+            <input 
+              type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-medium text-dark-navy"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Password</label>
+            <input 
+              type="password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-medium text-dark-navy"
+            />
+          </div>
+          <button 
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-4 bg-brand-green text-white font-bold rounded-2xl shadow-lg shadow-brand-green/20 hover:bg-brand-green-dark compact-transition flex items-center justify-center"
+          >
+            {isLoading ? <Loader2 className="animate-spin" size={24} /> : 'Sign In'}
+          </button>
+        </form>
+      </div>
+    </motion.div>
+  );
+};
+
+const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowListings, onLogout, agentPropertiesCount, agentLeadsTotal }: { onBack: () => void, user: any, onNewProperty: () => void, onShowInquiries: () => void, onShowListings: () => void, onLogout: () => void, agentPropertiesCount: number, agentLeadsTotal: number }) => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'editProfile' | 'security'>('dashboard');
 
   const [formData, setFormData] = useState({
@@ -4851,6 +5119,92 @@ const AgentAccessView = ({ onBack, user, onLogin, onNewProperty, onShowInquiries
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isCheckingAdmin, setIsCheckingAdmin] = useState(true);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        
+        // Use actively logged in user or the fallback user prop passed from login
+        const activeEmail = currentUser?.email || user?.email;
+
+        if (!activeEmail) {
+          onBack();
+          return;
+        }
+
+        const { data: isAdmin, error: adminError } = await supabase
+          .from('admin_users')
+          .select('id')
+          .eq('email', activeEmail)
+          .single();
+
+        if (adminError && adminError.code !== 'PGRST116') {
+          console.error("Error querying admin_users in Agent Access:", adminError);
+        }
+
+        const allowedEmails = ['abhishekdewminaa@gmail.com', 'ceo.lankaland@gmail.com'];
+        const isFallbackAdmin = allowedEmails.includes(activeEmail.toLowerCase());
+        if (!isAdmin && !isFallbackAdmin) {
+          onBack();
+          return;
+        }
+
+        setIsAuthorized(true);
+      } catch (err) {
+        console.error("Agent Access catch err:", err);
+        onBack();
+      } finally {
+        setIsCheckingAdmin(false);
+      }
+    };
+    
+    checkAdmin();
+  }, [user, onBack]);
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarUrl(URL.createObjectURL(file));
+
+      if (user?.id) {
+        try {
+          const { data, error } = await supabase.storage
+            .from('avatars')
+            .upload(
+              `agent-${user.id}-${Date.now()}.jpg`, 
+              file,
+              { upsert: true }
+            );
+
+          if (error) throw error;
+
+          const { data: urlData } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(data.path);
+
+          const { error: updateError } = await supabase
+            .from('agents')
+            .update({ avatar_url: urlData.publicUrl })
+            .eq('id', user.id);
+            
+          if (updateError) throw updateError;
+
+          setToastMessage({ type: 'success', text: '✅ Profile photo updated!' });
+          setTimeout(() => setToastMessage(null), 3000);
+
+        } catch (err: any) {
+          console.error("Avatar upload error:", err);
+          setToastMessage({ type: 'error', text: 'Failed to update profile photo.' });
+          setTimeout(() => setToastMessage(null), 3000);
+        }
+      }
+    }
+  };
 
   useEffect(() => {
     if (user && activeTab === 'editProfile') {
@@ -4944,16 +5298,19 @@ const AgentAccessView = ({ onBack, user, onLogin, onNewProperty, onShowInquiries
     }
   };
 
-  if (user) {
-    return (
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="container mx-auto px-6 py-20 max-w-4xl"
-      >
-        <div className="flex items-center gap-4 mb-12">
-          <button 
-            onClick={() => {
+  if (isCheckingAdmin || !isAuthorized) {
+    return null;
+  }
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="container mx-auto px-6 py-20 max-w-6xl"
+    >
+      <div className="flex items-center gap-4 mb-12">
+        <button 
+          onClick={() => {
               if (activeTab === 'dashboard') {
                 onBack();
               } else {
@@ -4966,10 +5323,10 @@ const AgentAccessView = ({ onBack, user, onLogin, onNewProperty, onShowInquiries
           </button>
           <div>
             <h1 className="text-3xl font-black text-dark-navy">
-              {activeTab === 'dashboard' ? 'Agent Portal' : activeTab === 'editProfile' ? 'Edit Profile' : 'Security Settings'}
+              {activeTab === 'dashboard' ? 'Admin Portal' : activeTab === 'editProfile' ? 'Edit Profile' : 'Security Settings'}
             </h1>
             <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">
-              {activeTab === 'dashboard' ? 'Manage your agency and listings' : activeTab === 'editProfile' ? 'Update your personal information' : 'Manage your account security'}
+              {activeTab === 'dashboard' ? 'Manage platform and listings' : activeTab === 'editProfile' ? 'Update your personal information' : 'Manage your account security'}
             </p>
           </div>
         </div>
@@ -4978,10 +5335,10 @@ const AgentAccessView = ({ onBack, user, onLogin, onNewProperty, onShowInquiries
           <div className="md:col-span-1 space-y-6">
             <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-xl shadow-gray-200/50 text-center">
               <div className="w-24 h-24 bg-brand-green mx-auto rounded-3xl flex items-center justify-center text-white text-4xl font-black mb-4 shadow-lg shadow-brand-green/20">
-                {user.email.charAt(0).toUpperCase()}
+                {user?.email?.charAt(0).toUpperCase()}
               </div>
-              <h2 className="text-xl font-black text-dark-navy mb-1 line-clamp-1">{user.email.split('@')[0]}</h2>
-              <p className="text-[10px] font-black text-brand-green uppercase tracking-[0.2em] mb-6">Certified Agent</p>
+              <h2 className="text-xl font-black text-dark-navy mb-1 line-clamp-1">{user?.email?.split('@')[0]}</h2>
+              <p className="text-[10px] font-black text-brand-green uppercase tracking-[0.2em] mb-6">System Admin</p>
               
               <div className="grid grid-cols-2 gap-3 pt-6 border-t border-gray-50">
                 <div>
@@ -5093,12 +5450,26 @@ const AgentAccessView = ({ onBack, user, onLogin, onNewProperty, onShowInquiries
                 <h3 className="text-xl font-black text-dark-navy mb-6">Profile Information</h3>
                 <div className="space-y-6">
                   <div className="flex items-center gap-6">
-                    <div className="w-20 h-20 bg-brand-green/10 text-brand-green rounded-3xl flex items-center justify-center text-3xl font-black">
-                      {user.email.charAt(0).toUpperCase()}
+                    <div className="w-20 h-20 bg-brand-green/10 text-brand-green rounded-3xl flex items-center justify-center text-3xl font-black overflow-hidden relative">
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        user?.email?.charAt(0).toUpperCase() || 'A'
+                      )}
                     </div>
-                    <button className="px-6 py-2.5 bg-gray-50 text-dark-navy text-sm font-bold rounded-xl border border-gray-200 hover:bg-gray-100 compact-transition">
+                    <button 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="cursor-pointer px-6 py-2.5 bg-gray-50 text-dark-navy text-sm font-bold rounded-xl border border-gray-200 hover:bg-gray-100 compact-transition inline-block"
+                    >
                       Change Avatar
                     </button>
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="hidden" 
+                      accept="image/*" 
+                      onChange={handleAvatarChange}
+                    />
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -5211,92 +5582,6 @@ const AgentAccessView = ({ onBack, user, onLogin, onNewProperty, onShowInquiries
           </div>
         </div>
       </motion.div>
-    );
-  }
-
-  return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="container mx-auto px-6 py-20 flex justify-center"
-    >
-      <div className="w-full max-w-md">
-        <div className="bg-dark-navy p-12 rounded-[48px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] border border-white/5 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-brand-green/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
-          
-          <div className="relative z-10 space-y-8">
-            <div className="text-center space-y-2">
-              <div className="w-16 h-16 bg-brand-green mx-auto rounded-2xl flex items-center justify-center text-white mb-6 transform rotate-3">
-                <Lock size={32} />
-              </div>
-              <h2 className="text-3xl font-black text-white uppercase tracking-tight">Agent Access</h2>
-              <p className="text-gray-400 font-bold uppercase tracking-[0.2em] text-[10px]">Professional Portal Only</p>
-            </div>
-
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Agent ID / Email</label>
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3 focus-within:border-brand-green compact-transition">
-                  <Mail size={18} className="text-gray-600" />
-                  <input 
-                    type="email" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="agent@lankaproperty.lk" 
-                    className="bg-transparent outline-none flex-1 text-white text-sm font-medium" 
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between pl-1 pr-1">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Password</label>
-                  <button className="text-[8px] font-black text-brand-green uppercase tracking-widest hover:underline">Forgot?</button>
-                </div>
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3 focus-within:border-brand-green compact-transition">
-                  <Lock size={18} className="text-gray-600" />
-                  <input 
-                    type="password" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••" 
-                    className="bg-transparent outline-none flex-1 text-white text-sm font-medium" 
-                  />
-                </div>
-              </div>
-
-              <button 
-                onClick={() => {
-                  setIsLoggingIn(true);
-                  setTimeout(() => {
-                    onLogin(email || "agent@lankaproperty.lk");
-                    setIsLoggingIn(false);
-                  }, 1200);
-                }}
-                disabled={isLoggingIn}
-                className="w-full py-5 bg-brand-green text-white font-black rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition text-sm uppercase tracking-widest mt-4 flex items-center justify-center gap-2"
-              >
-                {isLoggingIn ? (
-                  <Loader2 className="animate-spin" size={20} />
-                ) : (
-                  <>Secure Login <ArrowRight size={18} /></>
-                )}
-              </button>
-            </div>
-
-            <div className="text-center pt-8 border-t border-white/5">
-              <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-4">Not a registered agent yet?</p>
-              <button 
-                onClick={onBack}
-                className="text-white font-black text-xs hover:text-brand-green compact-transition uppercase tracking-widest"
-              >
-                Apply to Join
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
   );
 };
 
@@ -5622,6 +5907,49 @@ const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBac
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarUrl(URL.createObjectURL(file));
+
+      if (user?.id) {
+        try {
+          const { data, error } = await supabase.storage
+            .from('avatars')
+            .upload(
+              `agent-${user.id}-${Date.now()}.jpg`, 
+              file,
+              { upsert: true }
+            );
+
+          if (error) throw error;
+
+          const { data: urlData } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(data.path);
+
+          // Using profile table here just in case, but let's stick to agents table since the prompt asked for agents table
+          const { error: updateError } = await supabase
+            .from('agents')
+            .update({ avatar_url: urlData.publicUrl })
+            .eq('id', user.id);
+            
+          if (updateError) throw updateError;
+
+          setToastMessage({ type: 'success', text: '✅ Profile photo updated!' });
+          setTimeout(() => setToastMessage(null), 3000);
+
+        } catch (err: any) {
+          console.error("Avatar upload error:", err);
+          setToastMessage({ type: 'error', text: 'Failed to update profile photo.' });
+          setTimeout(() => setToastMessage(null), 3000);
+        }
+      }
+    }
+  };
 
   const handleSaveProfile = async () => {
     setIsSaving(true);
@@ -5695,7 +6023,7 @@ const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBac
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="container mx-auto px-6 py-20 max-w-4xl"
+      className="container mx-auto px-6 py-20 max-w-6xl"
     >
       <div className="flex justify-between items-center mb-12">
         <button onClick={() => {
@@ -5760,9 +6088,13 @@ const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBac
                 <span className="text-sm font-bold">Security</span>
                 <Shield size={16} className={activeTab === 'security' ? 'text-white' : 'text-gray-500'} />
               </li>
+              <li onClick={onLogout} className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer compact-transition">
+                <span className="text-sm font-bold">Log Out</span>
+                <LogOut size={16} className="text-gray-500" />
+              </li>
               <li onClick={() => setShowDeleteConfirm(true)} className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer compact-transition text-brand-red">
                 <span className="text-sm font-bold">Delete Account</span>
-                <LogOut size={16} />
+                <Trash2 size={16} />
               </li>
             </ul>
           </div>
@@ -5833,12 +6165,26 @@ const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBac
               <h3 className="text-xl font-black text-dark-navy mb-6">Profile Information</h3>
               <div className="space-y-6">
                 <div className="flex items-center gap-6">
-                  <div className="w-20 h-20 bg-brand-green/10 text-brand-green rounded-3xl flex items-center justify-center text-3xl font-black">
-                    {user?.email?.charAt(0).toUpperCase() || 'A'}
+                  <div className="w-20 h-20 bg-brand-green/10 text-brand-green rounded-3xl flex items-center justify-center text-3xl font-black overflow-hidden relative">
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        user?.email?.charAt(0).toUpperCase() || 'A'
+                      )}
                   </div>
-                  <button className="px-6 py-2.5 bg-gray-50 text-dark-navy text-sm font-bold rounded-xl border border-gray-200 hover:bg-gray-100 compact-transition">
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="cursor-pointer px-6 py-2.5 bg-gray-50 text-dark-navy text-sm font-bold rounded-xl border border-gray-200 hover:bg-gray-100 compact-transition inline-block"
+                  >
                     Change Avatar
                   </button>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    className="hidden" 
+                    accept="image/*" 
+                    onChange={handleAvatarChange}
+                  />
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -5938,7 +6284,7 @@ export default function App() {
   const { properties: supabaseProperties, loading: listingsLoading, error: supabaseError, refresh: refreshProperties } = useProperties();
   const [recentFilter, setRecentFilter] = useState<"Sale" | "Rent">("Sale");
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'verify' | 'reset-password' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings', data?: any }>({ type: 'home' });
+  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'verify' | 'reset-password' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'secret_login' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings', data?: any }>({ type: 'home' });
   const [user, setUser] = useState<any | null>(null);
   const [compareList, setCompareList] = useState<number[]>([]);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
@@ -5946,11 +6292,11 @@ export default function App() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+      setUser((currentUser: any) => currentUser?.email ? currentUser : (session?.user ?? null));
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      setUser((currentUser: any) => currentUser?.email && !session ? currentUser : (session?.user ?? null));
     });
 
     return () => subscription.unsubscribe();
@@ -5958,7 +6304,11 @@ export default function App() {
 
   useEffect(() => {
     const hash = window.location.hash;
-    if (hash && hash.includes("type=recovery")) {
+    const path = window.location.pathname;
+
+    if (path === '/admin-lk2026') {
+      setCurrentView({ type: 'secret_login' });
+    } else if (hash && hash.includes("type=recovery")) {
       setCurrentView({ type: 'reset-password' });
     } else if (hash && hash.includes("type=signup")) {
       // they just verified email
@@ -6031,7 +6381,12 @@ export default function App() {
   
   const filteredRecent = displayedProperties.filter(p => p.type === recentFilter);
   const categoryProperties = currentView.type === 'category' 
-    ? displayedProperties // Simplified: showing all for demo
+    ? displayedProperties.filter(p => {
+        const cat = currentView.data?.toLowerCase() || '';
+        const propType = p.propertyType?.toLowerCase() || '';
+        const title = p.title?.toLowerCase() || '';
+        return propType === cat || title.includes(cat);
+      })
     : [];
 
   const handleCategoryClick = (category: string) => {
@@ -6046,8 +6401,32 @@ export default function App() {
 
   const navigateHome = () => {
     setCurrentView({ type: 'home' });
+    if (window.location.pathname !== '/') {
+      window.history.pushState({}, '', '/');
+    }
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input, textarea, or contenteditable
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target instanceof HTMLSelectElement ||
+        (e.target as HTMLElement).isContentEditable
+      ) {
+        return;
+      }
+
+      if (e.key === 'h' || e.key === 'H') {
+        navigateHome();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <>
@@ -6339,7 +6718,11 @@ export default function App() {
           <UserProfileView 
             user={user} 
             onBack={navigateHome} 
-            onLogout={() => { setUser(null); navigateHome(); }} 
+            onLogout={() => { 
+              supabase.auth.signOut();
+              setUser(null); 
+              navigateHome(); 
+            }} 
             onNewAd={() => setCurrentView({ type: 'publish' })}
           />
         )}
@@ -6357,7 +6740,7 @@ export default function App() {
               if (currentView.data === 'publish') {
                 setCurrentView({ type: 'publish' });
               } else {
-                setCurrentView({ type: 'agent' });
+                setCurrentView({ type: 'profile' });
               }
             }} 
             onVerifyEmailMessage={() => setCurrentView({ type: 'verify' })}
@@ -6365,7 +6748,7 @@ export default function App() {
         )}
 
         {currentView.type === 'verify' && (
-          <EmailVerificationPage onDashboard={() => setCurrentView({ type: 'agent' })} />
+          <EmailVerificationPage onDashboard={() => setCurrentView({ type: 'profile' })} />
         )}
 
         {currentView.type === 'reset-password' && (
@@ -6397,6 +6780,16 @@ export default function App() {
           />
         )}
 
+        {currentView.type === 'secret_login' && (
+          <SecretLoginView 
+            onBack={navigateHome}
+            onSuccess={(email) => {
+              setUser({ ...user, email });
+              setCurrentView({ type: 'agent_access' });
+            }}
+          />
+        )}
+
         {currentView.type === 'agent_access' && (
           <AgentAccessView 
             onBack={navigateHome} 
@@ -6406,14 +6799,16 @@ export default function App() {
               .filter(p => p.agentId === user?.email)
               .reduce((sum, p) => sum + (Number(p.leads_count) || 0), 0)
             }
-            onLogin={(email) => setUser({ email })}
             onNewProperty={() => {
               setEditingProperty(null);
               setCurrentView({ type: 'agent_publish' });
             }}
             onShowInquiries={() => setCurrentView({ type: 'inquiries' })}
             onShowListings={() => setCurrentView({ type: 'agent_listings' })}
-            onLogout={() => setUser(null)}
+            onLogout={() => {
+              supabase.auth.signOut();
+              setUser(null);
+            }}
           />
         )}
 
@@ -6431,10 +6826,7 @@ export default function App() {
             user={user}
             onShowToast={showToast}
             onBack={() => setCurrentView({ type: 'agent_access' })}
-            properties={supabaseProperties.filter(p => {
-              const matchingAgent = AGENTS.find(a => a.email.toLowerCase() === user?.email?.toLowerCase());
-              return p.agentId === (matchingAgent?.id || user?.email);
-            })}
+            properties={supabaseProperties}
             onEdit={(p) => {
               setEditingProperty(p);
               setCurrentView({ type: 'agent_publish' });
@@ -6493,8 +6885,12 @@ export default function App() {
         onShowAbout={() => setCurrentView({ type: 'about' })} 
         onShowPackages={() => setCurrentView({ type: 'packages' })} 
         onShowPromotion={() => setCurrentView({ type: 'promotion' })}
-        onShowAgentAccess={() => setCurrentView({ type: 'agent_access' })}
         onShowWanted={() => setCurrentView({ type: 'wanted' })}
+        onShowSecretLogin={() => {
+          window.history.pushState({}, '', '/admin-lk2026');
+          setCurrentView({ type: 'secret_login' });
+          window.scrollTo({ top: 0, behavior: 'instant' });
+        }}
       />
 
       <MortgageCalculatorModal 

@@ -14,7 +14,7 @@ try {
     // by ensuring globalThis has it and maybe any local variables that look for it.
   }
 } catch (e) {
-  console.warn("Fetch guard initialization warning:", e);
+  // Suppress fetch guard initialization warning
 }
 
 createRoot(document.getElementById('root')!).render(

@@ -32,6 +32,8 @@ export interface Property {
   leads_count?: number;
   created_at?: string;
   updated_at?: string;
+  published_by?: 'admin' | 'agent' | 'user' | string;
+  package_tier?: 'Starter Free' | 'Premium Pro' | 'Elite Pro' | string;
 }
 
 export function useProperties() {
