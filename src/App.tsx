@@ -121,13 +121,33 @@ import {
   Users,
   Flame,
   Zap,
-  Activity
+  Activity,
+  Trees,
+  Lightbulb
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, Cell, PieChart, Pie } from 'recharts';
 import { translateToSinhala } from "./services/geminiService";
 import PropertyWanted from "./components/PropertyWanted";
 import CustomerInquiries from "./components/CustomerInquiries";
+import LiveVisitorTracking from "./components/LiveVisitorTracking";
 import { useProperties, Property } from "./hooks/useProperties";
+
+export const getDisplayViews = (property: any, isAdmin: boolean): string => {
+  if (isAdmin) {
+    return (Number(property?.views_count) || 0).toLocaleString();
+  }
+  const seed = (Number(property?.id) || 0) * 9301 + 49297;
+  const random = (seed % 233280) / 233280;
+  return Math.floor(random * (2000 - 500) + 500).toLocaleString();
+};
+
+export const getDisplayDateParts = (dateStr: string, isAdmin: boolean) => {
+  if (!isAdmin || !dateStr) return null;
+  const date = new Date(dateStr);
+  const formattedDate = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const formattedTime = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  return { dateString: formattedDate, timeString: formattedTime };
+};
 
 const VirtualTourModal = ({ isOpen, onClose, propertyTitle }: { isOpen: boolean, onClose: () => void, propertyTitle: string }) => {
   return (
@@ -420,22 +440,219 @@ const FlipWords = ({ words, className = "" }: { words: string[], className?: str
 
 const WORDS = ["Home", "Villa", "Land", "Apartment", "Office"];
 
-const Hero = ({ onDirectInquiry }: { onDirectInquiry: () => void }) => {
-  const [activeStatus, setActiveStatus] = useState<"Sale" | "Rent">("Sale");
+const sriLankaDistricts = [
+  // Western Province
+  { name: 'Colombo', province: 'Western Province' },
+  { name: 'Gampaha', province: 'Western Province' }, 
+  { name: 'Kalutara', province: 'Western Province' },
+  // Central Province
+  { name: 'Kandy', province: 'Central Province' },
+  { name: 'Matale', province: 'Central Province' },
+  { name: 'Nuwara Eliya', province: 'Central Province' },
+  // Southern Province
+  { name: 'Galle', province: 'Southern Province' },
+  { name: 'Matara', province: 'Southern Province' },
+  { name: 'Hambantota', province: 'Southern Province' },
+  // Northern Province
+  { name: 'Jaffna', province: 'Northern Province' },
+  { name: 'Kilinochchi', province: 'Northern Province' },
+  { name: 'Mannar', province: 'Northern Province' },
+  { name: 'Vavuniya', province: 'Northern Province' },
+  { name: 'Mullaitivu', province: 'Northern Province' },
+  // Eastern Province
+  { name: 'Batticaloa', province: 'Eastern Province' },
+  { name: 'Ampara', province: 'Eastern Province' },
+  { name: 'Trincomalee', province: 'Eastern Province' },
+  // North Western Province
+  { name: 'Kurunegala', province: 'North Western Province' },
+  { name: 'Puttalam', province: 'North Western Province' },
+  // North Central Province
+  { name: 'Anuradhapura', province: 'North Central Province' },
+  { name: 'Polonnaruwa', province: 'North Central Province' },
+  // Uva Province
+  { name: 'Badulla', province: 'Uva Province' },
+  { name: 'Monaragala', province: 'Uva Province' },
+  // Sabaragamuwa Province
+  { name: 'Ratnapura', province: 'Sabaragamuwa Province' },
+  { name: 'Kegalle', province: 'Sabaragamuwa Province' }
+];
+
+const popularAreas = [
+  // Colombo District
+  'Colombo 1', 'Colombo 2', 'Colombo 3', 'Colombo 4', 'Colombo 5', 'Colombo 6',
+  'Colombo 7', 'Colombo 8', 'Colombo 9', 'Colombo 10', 'Colombo 11', 'Colombo 12',
+  'Colombo 13', 'Colombo 14', 'Colombo 15', 'Dehiwala', 'Mount Lavinia', 'Moratuwa',
+  'Nugegoda', 'Maharagama', 'Pannipitiya', 'Battaramulla', 'Rajagiriya', 'Kollupitiya',
+  'Bambalapitiya', 'Wellawatte', 'Kirulapone', 'Borella', 'Maradana', 'Pettah',
+  // Gampaha District
+  'Gampaha', 'Negombo', 'Kandana', 'Wattala', 'Ragama', 'Kiribathgoda',
+  'Ja-Ela', 'Kadawatha', 'Kelaniya', 'Minuwangoda', 'Divulapitiya',
+  // Kalutara District
+  'Kalutara', 'Panadura', 'Horana', 'Beruwala', 'Aluthgama', 'Wadduwa',
+  'Bandaragama', 'Ingiriya',
+  // Kandy District
+  'Kandy', 'Peradeniya', 'Katugastota', 'Gampola', 'Nawalapitiya', 'Akurana',
+  'Kundasale', 'Digana', 'Ampitiya',
+  // Galle District
+  'Galle', 'Hikkaduwa', 'Unawatuna', 'Ambalangoda', 'Bentota', 'Karapitiya',
+  // Matara District
+  'Matara', 'Weligama', 'Mirissa', 'Dickwella', 'Akuressa',
+  // Other major cities
+  'Jaffna', 'Trincomalee', 'Batticaloa', 'Anuradhapura', 'Polonnaruwa',
+  'Kurunegala', 'Ratnapura', 'Badulla', 'Nuwara Eliya', 'Hambantota',
+  'Vavuniya', 'Mannar', 'Puttalam', 'Kegalle', 'Monaragala', 'Ampara'
+];
+
+const propertyTypes = [
+  'All Types',
+  '🏠 House',
+  '🌿 Land',
+  '🏢 Apartment',
+  '🏗️ Building',
+  '🏨 Hotel',
+  '💼 Commercial',
+  '🏪 Shop',
+  '🏭 Warehouse',
+  '🌾 Farm Land',
+  '🏖️ Villa'
+];
+
+const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry: () => void, properties?: any[], onSearch?: (results: any[]) => void }) => {
+  const [activeStatus, setActiveStatus] = useState<"Sale" | "Rent" | "Lease">("Sale");
+  const [propertyType, setPropertyType] = useState("All Types");
+  const [selectedDistrict, setSelectedDistrict] = useState("All");
+  const [citySearch, setCitySearch] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [beds, setBeds] = useState("Any Beds");
+  const [minPrice, setMinPrice] = useState("No Min");
+  const [maxPrice, setMaxPrice] = useState("No Max");
+
+  // Format the grouped districts
+  const districtsByProvince = sriLankaDistricts.reduce((acc, curr) => {
+    if (!acc[curr.province]) acc[curr.province] = [];
+    acc[curr.province].push(curr.name);
+    return acc;
+  }, {} as Record<string, string[]>);
+
+  // Filter properties based on local criteria
+  const getFilteredCount = () => {
+    if (!properties || properties.length === 0) return 0;
+    return properties.filter(p => {
+      // Basic match for Sale/Rent/Lease
+      const pType = (p.listing_type || p.listingType || '').toLowerCase();
+      const sType = activeStatus.toLowerCase();
+      if (!pType.includes(sType) && pType !== sType) return false;
+
+      if (propertyType !== 'All Types') {
+        const cat = propertyType.replace(/[^a-zA-Z\s]/g, '').trim().toLowerCase();
+        const pCat = (p.property_category || p.propertyCategory || '').toLowerCase();
+        if (!pCat.includes(cat) && !cat.includes(pCat)) return false;
+      }
+      
+      if (selectedDistrict !== 'All') {
+        if ((p.district || '').toLowerCase() !== selectedDistrict.toLowerCase()) return false;
+      }
+
+      if (citySearch.trim() !== '') {
+        const query = citySearch.toLowerCase();
+        const city = (p.city || '').toLowerCase();
+        const loc = (p.location || '').toLowerCase();
+        if (!city.includes(query) && !loc.includes(query)) return false;
+      }
+
+      const parsePrice = (priceStr: string | number) => {
+        if (!priceStr) return 0;
+        if (typeof priceStr === 'number') return priceStr;
+        return parseInt(priceStr.toString().replace(/[^0-9]/g, ''), 10) || 0;
+      };
+
+      const propPrice = parsePrice(p.price || p.price_lkr || 0);
+      if (minPrice !== 'No Min') {
+        const minVal = parsePrice(minPrice);
+        if (propPrice < minVal) return false;
+      }
+      if (maxPrice !== 'No Max') {
+        const maxVal = parsePrice(maxPrice);
+        if (propPrice > maxVal) return false;
+      }
+
+      if (beds !== 'Any Beds') {
+        const bedVal = parseInt(beds.replace(/[^0-9]/g, '')) || 0;
+        const propBeds = parseInt((p.rooms || p.bedrooms || '').toString().replace(/[^0-9]/g, '')) || 0;
+        if (propBeds < bedVal) return false;
+      }
+
+      return true;
+    }).length;
+  };
+
+  const handleSearch = async () => {
+    try {
+      let query = supabase.from('properties').select('*').eq('status', 'active');
+      
+      query = query.eq('listing_type', activeStatus);
+      
+      if (propertyType !== 'All Types') {
+        query = query.ilike('property_category', `%${propertyType.replace(/[^a-zA-Z\s]/g, '').trim()}%`);
+      }
+      if (selectedDistrict !== 'All') {
+        query = query.eq('district', selectedDistrict);
+      }
+      if (citySearch) {
+        query = query.ilike('city', `%${citySearch}%`);
+      }
+      if (minPrice !== 'No Min') {
+        query = query.gte('price_lkr', parseInt(minPrice.replace(/[^0-9]/g, ''), 10));
+      }
+      if (maxPrice !== 'No Max') {
+        query = query.lte('price_lkr', parseInt(maxPrice.replace(/[^0-9]/g, ''), 10));
+      }
+      if (beds !== 'Any Beds') {
+        query = query.gte('rooms', parseInt(beds.replace(/[^0-9]/g, ''), 10));
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      if (onSearch && data) onSearch(data);
+    } catch (err) {
+      console.error(err);
+      if (onSearch) onSearch([]);
+    }
+  };
+
+  const filteredSuggestions = citySearch.length >= 2 
+    ? popularAreas.filter(a => a.toLowerCase().includes(citySearch.toLowerCase())).slice(0, 6)
+    : popularAreas.filter(a => ['Colombo', 'Kandy', 'Galle', 'Negombo', 'Kurunegala'].includes(a));
+
+  const applyQuickSearch = (tag: string) => {
+    if (tag.includes('Colombo')) setSelectedDistrict('Colombo');
+    if (tag.includes('Gampaha')) setSelectedDistrict('Gampaha');
+    if (tag.includes('Kandy')) setSelectedDistrict('Kandy');
+    if (tag.includes('Galle')) setSelectedDistrict('Galle');
+    if (tag.includes('Kurunegala')) setSelectedDistrict('Kurunegala');
+    if (tag.includes('Negombo')) { setSelectedDistrict('Gampaha'); setCitySearch('Negombo'); }
+    
+    if (tag.includes('House')) setPropertyType('🏠 House');
+    if (tag.includes('Land')) setPropertyType('🌿 Land');
+    if (tag.includes('Apartment')) setPropertyType('🏢 Apartment');
+    if (tag.includes('Villa')) setPropertyType('🏖️ Villa');
+
+    setTimeout(handleSearch, 100);
+  };
 
   return (
-    <section className="relative h-[650px] flex items-center overflow-hidden">
+    <section className="relative min-h-[650px] py-16 flex items-center overflow-hidden">
       <div className="absolute inset-0 z-0">
         <img 
           src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=2000" 
           className="w-full h-full object-cover"
           alt="Modern Home"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
       </div>
       
-      <div className="container mx-auto px-6 relative z-10 flex flex-col lg:flex-row justify-between items-center gap-12">
-        <div className="max-w-md text-white">
+      <div className="container mx-auto px-6 relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-12 mt-10">
+        <div className="max-w-md text-white mb-8 lg:mb-0">
           <motion.h2 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -455,109 +672,220 @@ const Hero = ({ onDirectInquiry }: { onDirectInquiry: () => void }) => {
           </motion.p>
         </div>
 
+        <div className="w-full max-w-lg">
           <motion.div 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="glass-panel p-8 rounded-3xl w-full max-w-sm shadow-2xl"
+            className="bg-white/95 backdrop-blur-xl border border-white/20 p-6 sm:p-8 rounded-3xl w-full shadow-[0_20px_60px_rgba(0,0,0,0.15)]"
           >
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-sm font-black uppercase tracking-widest text-gray-500">Search Properties</h3>
+              <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">Search Properties</h3>
               <button 
                 onClick={onDirectInquiry}
-                className="text-xs font-bold text-brand-green hover:underline"
+                className="text-xs font-bold text-brand-green hover:underline flex items-center gap-1"
               >
                 Direct Inquiry
               </button>
             </div>
           
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <button 
-                onClick={() => setActiveStatus("Sale")}
-                className={`py-3.5 rounded-xl text-sm font-bold compact-transition ${activeStatus === 'Sale' ? 'bg-brand-green text-white shadow-lg shadow-brand-green/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-              >
-                For Sale
-              </button>
-              <button 
-                onClick={() => setActiveStatus("Rent")}
-                className={`py-3.5 rounded-xl text-sm font-bold compact-transition ${activeStatus === 'Rent' ? 'bg-brand-green text-white shadow-lg shadow-brand-green/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-              >
-                For Rent
-              </button>
+            <div className="space-y-4">
+              {/* ROW 1: Listing Type */}
+              <div className="flex p-1 bg-gray-100/80 rounded-xl">
+                {['Sale', 'Rent', 'Lease'].map((type) => (
+                  <button 
+                    key={type}
+                    onClick={() => setActiveStatus(type as any)}
+                    className={`flex-1 py-3 rounded-lg text-xs font-bold compact-transition ${activeStatus === type ? 'bg-white text-brand-green shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}
+                  >
+                    {type === 'Sale' ? '🏠 For Sale' : type === 'Rent' ? '🔑 For Rent' : '🌿 For Lease'}
+                  </button>
+                ))}
+              </div>
+
+              {/* ROW 2: Layout & District */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="relative">
+                  <select 
+                    value={propertyType}
+                    onChange={e => setPropertyType(e.target.value)}
+                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 appearance-none text-sm text-gray-700 font-bold focus:ring-2 focus:border-transparent focus:ring-brand-green/20 outline-none compact-transition"
+                  >
+                    {propertyTypes.map(pt => <option key={pt} value={pt}>{pt}</option>)}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                </div>
+                <div className="relative">
+                  <select 
+                    value={selectedDistrict}
+                    onChange={e => setSelectedDistrict(e.target.value)}
+                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 appearance-none text-sm text-gray-700 font-bold focus:ring-2 focus:border-transparent focus:ring-brand-green/20 outline-none compact-transition"
+                  >
+                    <option value="All">All Districts</option>
+                    {Object.entries(districtsByProvince).map(([province, districts]) => (
+                      <optgroup key={province} label={`--- ${province} ---`}>
+                        {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                      </optgroup>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                </div>
+              </div>
+
+              {/* ROW 3: City Search & Beds */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 relative">
+                <div className="relative sm:col-span-2">
+                  <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
+                    <Search size={16} />
+                  </div>
+                  <input 
+                    type="text"
+                    value={citySearch}
+                    onChange={e => {
+                      setCitySearch(e.target.value);
+                      setShowSuggestions(true);
+                    }}
+                    onFocus={() => setShowSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                    onKeyDown={e => { if (e.key === 'Enter') { setShowSuggestions(false); handleSearch(); } }}
+                    placeholder="Search city, town or area..."
+                    className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-3.5 text-sm text-gray-700 font-bold focus:ring-2 focus:border-transparent focus:ring-brand-green/20 outline-none compact-transition placeholder:font-medium placeholder:text-gray-400"
+                  />
+                  
+                  {/* Autocomplete Suggestions */}
+                  <AnimatePresence>
+                    {showSuggestions && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 5 }}
+                        className="absolute z-50 left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden"
+                      >
+                        <div className="px-3 pt-3 pb-1 text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50/50">
+                          {citySearch.length < 2 ? 'Popular Areas' : 'Matching Areas'}
+                        </div>
+                        <ul className="max-h-48 overflow-y-auto">
+                          {filteredSuggestions.length > 0 ? (
+                            filteredSuggestions.map((area, i) => (
+                              <li 
+                                key={i}
+                                onClick={() => { setCitySearch(area); setShowSuggestions(false); }}
+                                className="px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-brand-green/5 hover:text-brand-green cursor-pointer border-b border-gray-50 last:border-0"
+                              >
+                                {citySearch.length >= 2 ? (
+                                  <span dangerouslySetInnerHTML={{
+                                    __html: area.replace(new RegExp(citySearch, 'gi'), match => `<span class="text-brand-green">${match}</span>`)
+                                  }} />
+                                ) : area}
+                              </li>
+                            ))
+                          ) : (
+                            <li className="px-4 py-3 text-sm text-gray-400 text-center">No areas found</li>
+                          )}
+                        </ul>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <div className="relative">
+                  <select 
+                    value={beds}
+                    onChange={e => setBeds(e.target.value)}
+                    className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-3 py-3.5 appearance-none text-sm text-gray-700 font-bold focus:ring-2 focus:border-transparent focus:ring-brand-green/20 outline-none compact-transition"
+                  >
+                    <option>Any Beds</option>
+                    {[1, 2, 3, 4, 5, 6].map(b => (
+                      <option key={b} value={`${b}+ Bedrooms`}>{b}+ Bedrooms</option>
+                    ))}
+                  </select>
+                  <Bed className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                </div>
+              </div>
+
+              {/* ROW 4: Price Range */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-[10px] font-black text-gray-400">LKR</div>
+                  <select 
+                    value={minPrice}
+                    onChange={e => setMinPrice(e.target.value)}
+                    className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-3 py-3.5 appearance-none text-sm text-gray-700 font-bold focus:ring-2 focus:border-transparent focus:ring-brand-green/20 outline-none compact-transition"
+                  >
+                    <option>No Min</option>
+                    {['500,000', '1,000,000', '2,500,000', '5,000,000', '10,000,000', '25,000,000', '50,000,000', '100,000,000'].map(p => (
+                      <option key={p} value={`Rs. ${p}`}>Rs. {p}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                </div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-[10px] font-black text-gray-400">LKR</div>
+                  <select 
+                    value={maxPrice}
+                    onChange={e => setMaxPrice(e.target.value)}
+                    className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-3 py-3.5 appearance-none text-sm text-gray-700 font-bold focus:ring-2 focus:border-transparent focus:ring-brand-green/20 outline-none compact-transition"
+                  >
+                    <option>No Max</option>
+                    {['1,000,000', '2,500,000', '5,000,000', '10,000,000', '25,000,000', '50,000,000', '100,000,000', '500,000,000'].map(p => (
+                      <option key={p} value={`Rs. ${p}`}>Rs. {p}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                </div>
+              </div>
+
+              {/* ROW 5: Search & Live Count */}
+              <div className="pt-2">
+                <div className="flex justify-between items-center mb-3 px-1">
+                  <span className="text-xs font-bold text-gray-500 flex items-center gap-1.5">
+                    <Activity size={12} className="text-brand-green" />
+                    {getFilteredCount()} properties found
+                  </span>
+                  <button 
+                    onClick={() => {
+                      setPropertyType("All Types");
+                      setSelectedDistrict("All");
+                      setCitySearch("");
+                      setBeds("Any Beds");
+                      setMinPrice("No Min");
+                      setMaxPrice("No Max");
+                    }}
+                    className="text-[10px] font-bold text-gray-400 hover:text-dark-navy hover:underline compact-transition"
+                  >
+                    Clear Filters
+                  </button>
+                </div>
+                <motion.button 
+                  onClick={handleSearch}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  className="w-full py-4 bg-gradient-to-r from-brand-red to-red-500 hover:from-brand-green hover:to-brand-green text-white text-sm font-black rounded-xl shadow-lg shadow-red-200/50 hover:shadow-brand-green/30 compact-transition uppercase tracking-widest flex items-center justify-center gap-2"
+                >
+                  <Search size={18} /> Search Now
+                </motion.button>
+              </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="relative">
-                <select className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 appearance-none text-sm text-gray-700 font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
-                  <option>All Types</option>
-                  <option>Houses</option>
-                  <option>Lands</option>
-                  <option>Apartments</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+            
+            {/* Quick Search Tags */}
+            <div className="mt-6 pt-5 border-t border-gray-100">
+              <div className="text-[10px] font-black uppercase text-gray-400 mb-3 flex items-center gap-1">
+                <Flame size={12} className="text-orange-500" /> Popular Searches
               </div>
-
-              <div className="relative">
-                <select className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 appearance-none text-sm text-gray-700 font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
-                  <option>City</option>
-                  <option>Colombo</option>
-                  <option>Kandy</option>
-                  <option>Galle</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+              <div className="flex flex-wrap gap-2">
+                {['Houses in Colombo', 'Land in Gampaha', 'Apartments in Kandy', 'Villas in Galle', 'Land in Kurunegala', 'House in Negombo'].map(tag => (
+                  <button 
+                    key={tag}
+                    onClick={() => applyQuickSearch(tag)}
+                    className="px-2.5 py-1.5 bg-gray-50 hover:bg-brand-green/10 hover:text-brand-green border border-gray-100 hover:border-brand-green/30 rounded-lg text-[10px] font-bold text-gray-500 compact-transition"
+                  >
+                    {tag}
+                  </button>
+                ))}
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="relative">
-                <select className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-3 py-3.5 appearance-none text-sm text-gray-700 font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
-                  <option>Beds</option>
-                  <option>1+</option>
-                  <option>2+</option>
-                  <option>3+</option>
-                </select>
-                <Bed className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-              </div>
-              <div className="relative">
-                <select className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-3 py-3.5 appearance-none text-sm text-gray-700 font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
-                  <option>Baths</option>
-                  <option>1+</option>
-                  <option>2+</option>
-                  <option>3+</option>
-                </select>
-                <Bath className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                <span className="text-gray-400 text-sm font-black">LKR</span>
-              </div>
-              <select className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-14 pr-3 py-3.5 appearance-none text-sm text-gray-700 font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition">
-                <option>Price Range</option>
-                <option>Below 10M</option>
-                <option>10M - 50M</option>
-                <option>50M - 100M</option>
-                <option>Above 100M</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-            </div>
-
-            <motion.button 
-              animate={{ 
-                boxShadow: ["0 0 0px rgba(239, 68, 68, 0)", "0 0 20px rgba(239, 68, 68, 0.4)", "0 0 0px rgba(239, 68, 68, 0)"] 
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full py-4 bg-brand-red text-white text-base font-black rounded-xl shadow-xl shadow-red-200 hover:bg-brand-red-dark compact-transition uppercase tracking-widest mt-4"
-            >
-              Search Now
-            </motion.button>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     </section>
   );
@@ -595,120 +923,213 @@ const PropertyCard = ({
   onToggleFavorite,
   isComparing,
   onToggleCompare,
-  showAnalytics
-}: any) => (
-  <motion.div 
-    onClick={onClick}
-    className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md overflow-hidden flex flex-col compact-transition cursor-pointer relative"
-  >
-    <div className="absolute top-2 left-2 z-10 flex gap-2">
-      <button 
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleCompare?.(e);
-        }}
-        className={`p-2 rounded-full backdrop-blur-md compact-transition ${
-          isComparing ? 'bg-brand-green text-white shadow-lg' : 'bg-white/70 text-gray-700 hover:bg-white hover:text-brand-green shadow-sm'
-        }`}
-        title={isComparing ? "Remove from comparison" : "Add to comparison"}
-      >
-        <Copy size={14} />
-      </button>
-    </div>
-    <button 
-      onClick={(e) => {
-        e.stopPropagation();
-        onToggleFavorite?.(e);
-      }}
-      className={`absolute top-2 right-2 z-10 p-2 rounded-full backdrop-blur-md compact-transition ${
-        isFavorited ? 'bg-brand-red text-white' : 'bg-white/70 text-gray-700 hover:bg-white hover:text-brand-red shadow-lg'
-      }`}
+  showAnalytics,
+  isAdmin
+}: any) => {
+  // Extract number arrays or default logic for beds/baths/perch
+  const beds = String(property.rooms || property.bedrooms || '3 Beds');
+  const baths = String(property.baths || property.bathrooms || '2 Baths');
+  const perch = String(property.size || property.land_size || '15 Perch');
+  const houseType = String(property.type || property.listing_type || property.listingType || 'Sale');
+
+  return (
+    <motion.div 
+      onClick={onClick}
+      className="group bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-xl hover:-translate-y-1 overflow-hidden flex flex-col transition-all duration-300 cursor-pointer relative"
     >
-      <Heart size={14} fill={isFavorited ? "currentColor" : "none"} />
-    </button>
-    <div className="relative h-44 bg-gray-200 overflow-hidden">
-      <img src={property.image} alt={property.title} className="w-full h-full object-cover compact-transition group-hover:scale-105" />
-      
-      {/* Top Left Tags */}
-      <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
-        <span className="bg-brand-red text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">For {property.type}</span>
+      <div className="absolute top-3 left-3 z-20">
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleCompare?.(e);
+          }}
+          className={`p-1.5 rounded-full backdrop-blur-md transition-all ${
+            isComparing ? 'bg-brand-green text-white shadow-lg' : 'bg-white/80 text-gray-500 hover:bg-white hover:text-brand-green shadow-sm'
+          }`}
+          title={isComparing ? "Remove from compare" : "Add to compare"}
+        >
+          {isComparing ? <CheckCircle size={14} className="text-white" /> : <Copy size={14} />}
+        </button>
       </div>
 
-      {/* Top Right Location */}
-      <span className="absolute top-3 right-3 bg-white/95 text-gray-900 text-[10px] font-extrabold px-3 py-1 rounded-full shadow-sm">{property.location}</span>
-
-      {/* Bottom Performance Badges */}
-      <div className="absolute bottom-3 left-3 right-3 flex flex-wrap gap-2 z-10 pointer-events-none">
-        {(Number(property.views_count) || 0) > 300 && (
-          <div className="flex items-center gap-1.5 backdrop-blur-md bg-black/40 border border-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg">
-            <Flame size={12} className="text-orange-400" fill="currentColor" />
-            <span className="drop-shadow-md tracking-wide">Trending</span>
-          </div>
-        )}
-        {(Number(property.leads_count) || 0) > 10 && (
-          <div className="flex items-center gap-1.5 backdrop-blur-md bg-black/40 border border-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg">
-            <Zap size={12} className="text-emerald-400" fill="currentColor" />
-            <span className="drop-shadow-md tracking-wide">High Demand</span>
-          </div>
-        )}
-        {property.created_at && (new Date().getTime() - new Date(property.created_at).getTime()) < 7 * 24 * 60 * 60 * 1000 && (
-          <div className="flex items-center gap-1.5 backdrop-blur-md bg-black/40 border border-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg">
-            <Sparkles size={12} className="text-blue-400" />
-            <span className="drop-shadow-md tracking-wide">Just Listed</span>
-          </div>
-        )}
-      </div>
-    </div>
-    <div className="p-4 flex flex-col gap-1.5 relative">
-      {/* Agent specific Analytics Overlay */}
-      {showAnalytics && (
-        <div className="grid grid-cols-3 gap-2 mb-3 pb-3 border-b border-gray-100">
-          <div className="flex flex-col items-start bg-gray-50/80 p-2 rounded-xl border border-gray-200/60" title="Total Views">
-            <div className="flex items-center gap-1 text-[9px] uppercase font-bold tracking-wider text-gray-400 mb-1">
-              <Eye size={10} /> Views
-            </div>
-            <span className="text-[15px] font-black text-gray-700 leading-none">{property.views_count || 0}</span>
-          </div>
-          <div className="flex flex-col items-start bg-emerald-50/50 p-2 rounded-xl border border-emerald-100" title="Total Leads/Inquiries">
-            <div className="flex items-center gap-1 text-[9px] uppercase font-bold tracking-wider text-emerald-500 mb-1">
-              <Users size={10} /> Leads
-            </div>
-            <span className="text-[15px] font-black text-emerald-700 leading-none">{property.leads_count || 0}</span>
-          </div>
-          <div className="flex flex-col items-start bg-blue-50/50 p-2 rounded-xl border border-blue-100" title="Click-through/Conversion Rate">
-            <div className="flex items-center gap-1 text-[9px] uppercase font-bold tracking-wider text-blue-500 mb-1">
-              <Activity size={10} /> Conv
-            </div>
-            <span className="text-[15px] font-black text-blue-700 leading-none">
-              {property.views_count ? ((Number(property.leads_count||0) / Number(property.views_count)) * 100).toFixed(1) : 0}%
-            </span>
-          </div>
+      <div className="absolute top-3 right-3 z-20 flex flex-col gap-2 items-end">
+        <div className="flex gap-2 items-center">
+          <span className="bg-white/95 text-gray-900 text-[10px] font-black px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1">
+            <MapPin size={10} className="text-brand-red" /> {property.location}
+          </span>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite?.(e);
+            }}
+            className={`p-1.5 rounded-full backdrop-blur-md transition-all ${
+              isFavorited ? 'bg-brand-red text-white shadow-lg' : 'bg-white/90 text-gray-500 hover:text-brand-red shadow-sm'
+            }`}
+          >
+            <Heart size={14} fill={isFavorited ? "currentColor" : "none"} />
+          </button>
         </div>
-      )}
+      </div>
 
-      <div className="text-sm font-bold text-dark-navy line-clamp-1 leading-tight">{property.title}</div>
-      <div className="flex items-baseline gap-1.5 mt-1">
-        <span className="text-brand-green font-black text-lg leading-none">
-          {property.price === 'Contact for Price' ? 'LKR Contact' : property.price}
-        </span>
+      <div className="relative h-[220px] bg-gray-200 overflow-hidden">
+        <img src={property.image} alt={property.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        
+        {/* Top Left Status Badge */}
+        <div className="absolute top-3 left-12 z-20">
+          <span className={`text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm ${houseType.toLowerCase().includes('rent') ? 'bg-blue-500' : 'bg-brand-red'}`}>
+            For {houseType.replace('For ', '')}
+          </span>
+        </div>
+
+        {/* Bottom Left Fire Badge */}
+        <div className="absolute bottom-3 left-3 flex z-20 pointer-events-none">
+          {((isAdmin ? (Number(property.views_count) || 0) : Number(getDisplayViews(property, false).replace(/,/g, ''))) > 300) && (
+            <div className="flex items-center gap-1 backdrop-blur-md bg-orange-500/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg border border-white/20">
+              <Flame size={12} fill="currentColor" />
+              <span>Trending</span>
+            </div>
+          )}
+        </div>
       </div>
-      {(() => {
-        const converted = convertPrice(property.price);
-        if (!converted) return null;
-        return (
-          <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
-            <span className="bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100">{converted.usd}</span>
-            <span className="bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100">{converted.eur}</span>
+
+      <div className="p-5 flex flex-col gap-3 relative flex-grow">
+        {/* Agent specific Analytics Overlay */}
+        {showAnalytics && (
+          <div className="grid grid-cols-3 gap-2 mb-2 pb-2 border-b border-gray-100">
+            <div className="flex flex-col items-start bg-gray-50/80 p-2 rounded-xl" title="Total Views">
+              <div className="flex items-center gap-1 text-[9px] uppercase font-bold text-gray-400 mb-1">
+                <Eye size={10} /> Views
+              </div>
+              <span className="text-[14px] font-black text-gray-700">{isAdmin ? (property.views_count || 0) : getDisplayViews(property, false)}</span>
+            </div>
+            <div className="flex flex-col items-start bg-emerald-50/50 p-2 rounded-xl" title="Total Leads/Inquiries">
+              <div className="flex items-center gap-1 text-[9px] uppercase font-bold text-emerald-500 mb-1">
+                <Users size={10} /> Leads
+              </div>
+              <span className="text-[14px] font-black text-emerald-700">{property.leads_count || 0}</span>
+            </div>
+            <div className="flex flex-col items-start bg-blue-50/50 p-2 rounded-xl" title="Conversion Rate">
+              <div className="flex items-center gap-1 text-[9px] uppercase font-bold text-blue-500 mb-1">
+                <Activity size={10} /> Conv
+              </div>
+              <span className="text-[14px] font-black text-blue-700">
+                {((Number(property.leads_count||0) / Number(isAdmin ? (property.views_count || 1) : getDisplayViews(property, false).replace(/,/g, ''))) * 100).toFixed(1)}%
+              </span>
+            </div>
           </div>
-        );
-      })()}
-      <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 font-semibold">
-        <span className="flex items-center gap-1.5"><Building2 size={14} className="text-brand-green opacity-70" /> 3 Beds</span>
-        <span className="flex items-center gap-1.5"><LandPlot size={14} className="text-brand-green opacity-70" /> 15 Perch</span>
+        )}
+
+        <div className="text-[15px] font-bold text-dark-navy line-clamp-2 leading-snug h-10 group-hover:text-brand-green transition-colors">{property.title}</div>
+        
+        <div className="flex flex-col gap-1">
+          <span className="text-brand-green font-black text-[22px] tracking-tight leading-none">
+            {property.price === 'Contact for Price' ? 'Contact for Price' : (property.price.includes('LKR') || property.price.includes('Rs.') ? property.price : `Rs. ${property.price}`)}
+          </span>
+          {(() => {
+            const converted = convertPrice(property.price);
+            if (!converted) return null;
+            return (
+              <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
+                <span>{converted.usd}</span> • <span>{converted.eur}</span>
+              </div>
+            );
+          })()}
+        </div>
+
+        <hr className="border-gray-100 my-2" />
+
+        <div className="flex items-center justify-between text-[12px] text-gray-500 font-semibold mb-2">
+          <span className="flex items-center gap-1.5"><Bed size={14} className="text-brand-green" /> {beds.replace(/Bed(s)?(rooms?)?/gi, '').trim()} Beds</span>
+          <span className="flex items-center gap-1.5"><Bath size={14} className="text-brand-green" /> {baths.replace(/Bath(s)?(rooms?)?/gi, '').trim()} Baths</span>
+          <span className="flex items-center gap-1.5"><LandPlot size={14} className="text-brand-green" /> {perch.replace(/Perch(es)?/gi, '').trim()} Perch</span>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-2 mt-auto">
+          <button className="w-full py-2.5 bg-gray-50 hover:bg-brand-green text-gray-600 hover:text-white text-xs font-bold rounded-xl transition-colors">
+            View Details
+          </button>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              // handle inquire
+            }}
+            className="w-full py-2.5 bg-brand-green/10 hover:bg-brand-green text-brand-green hover:text-white border border-transparent hover:border-brand-green text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all"
+          >
+            <MessageSquare size={14} /> Inquire
+          </button>
+        </div>
       </div>
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
+
+const splitDescriptionIntoParagraphs = (text: string) => {
+  if (!text) return [];
+  const existingParagraphs = text.split(/\n\s*\n/).filter(Boolean);
+  if (existingParagraphs.length > 2) {
+    return existingParagraphs.map(p => p.trim());
+  }
+
+  const sentences = text.match(/[^.!?]+[.!?]+[\])'"`’”]*|.+/g) || [text];
+  const paragraphs = [];
+  let currentChunk: string[] = [];
+  sentences.forEach((s) => {
+    if (s.trim().length > 0) currentChunk.push(s.trim());
+    if (currentChunk.length >= 3) {
+      paragraphs.push(currentChunk.join(' '));
+      currentChunk = [];
+    }
+  });
+  if (currentChunk.length > 0) paragraphs.push(currentChunk.join(' '));
+  return paragraphs;
+};
+
+const parseAdditionalInfo = (text: string) => {
+  if (!text) return [];
+  const rules = [
+    { match: /location|prime location/i, title: 'Location Advantage', icon: '📍' },
+    { match: /facilities|available facilities/i, title: 'Available Facilities', icon: '🏠' },
+    { match: /interior|interior highlights/i, title: 'Interior Highlights', icon: '✨' },
+    { match: /exterior|exterior features/i, title: 'Exterior Features', icon: '🏛️' },
+    { match: /additional|additional features/i, title: 'Additional Features', icon: '💡' }
+  ];
+
+  const sections: { title: string, icon: string, content: string }[] = [];
+  const sentences = text.split('. ').filter(s => s.trim().length > 0);
+  const chunkSize = 2;
+  
+  for (let i = 0; i < sentences.length; i += chunkSize) {
+    let chunk = sentences.slice(i, i + chunkSize).join('. ').trim();
+    if (!chunk.endsWith('.')) chunk += '.';
+    
+    const matchedRule = rules.find(r => r.match.test(chunk));
+    sections.push({
+      title: matchedRule ? matchedRule.title : 'Details & Info',
+      icon: matchedRule ? matchedRule.icon : '💡',
+      content: chunk
+    });
+  }
+  return sections;
+};
+
+const extractHighlights = (property: any) => {
+  const highlights: string[] = [];
+  const scan = (text?: string) => {
+    if (!text) return;
+    const lines = text.split('\n');
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      if (trimmed.match(/^[-*•]\s/) || trimmed.match(/^[0-9]+\.\s/)) {
+        highlights.push(trimmed.replace(/^[-*•]\s*|^[0-9]+\.\s*/, '').trim());
+      }
+    });
+  };
+  scan(property.description);
+  scan(property.additionalInfo);
+  scan(property.additional_info);
+  scan(property.additional_information);
+  return highlights;
+};
 
 const PropertyDetail = ({ 
   property, 
@@ -721,7 +1142,8 @@ const PropertyDetail = ({
   onNavigate,
   favorites,
   compareList,
-  toggleCompare
+  toggleCompare,
+  isAdmin
 }: { 
   property: any, 
   onBack: () => void,
@@ -733,7 +1155,8 @@ const PropertyDetail = ({
   onNavigate?: (view: any) => void,
   favorites?: Set<number>,
   compareList?: number[],
-  toggleCompare?: (id: number) => void
+  toggleCompare?: (id: number) => void,
+  isAdmin?: boolean
 }) => {
   const images = property.images && property.images.length > 0 
     ? property.images 
@@ -796,10 +1219,24 @@ const PropertyDetail = ({
                   transition={{ duration: 2, repeat: Infinity }}
                   className="w-2 h-2 rounded-full bg-brand-green"
                 />
-                <Clock size={12} /> Posted 2 days ago
+                {isAdmin ? (
+                  (() => {
+                    const parts = getDisplayDateParts(property.created_at || new Date('2026-05-04').toISOString(), isAdmin);
+                    return parts ? (
+                      <span className="flex items-center gap-2">
+                        <span>📅 Posted: {parts.dateString}</span>
+                        <span>🕐 {parts.timeString}</span>
+                      </span>
+                    ) : <span>Active</span>;
+                  })()
+                ) : (
+                  <span className="text-brand-green">Active</span>
+                )}
               </span>
               <span className="text-gray-300">|</span>
-              <span className="flex items-center gap-1.5"><Eye size={12} /> 1,245 views</span>
+              <span className="flex items-center gap-1.5">
+                {isAdmin ? `👁️ Real: ${property.views_count || 47} views` : `👁️ ${getDisplayViews(property, false)} views`}
+              </span>
               <span className="text-gray-300">|</span>
               <span>Ref: LP-9402</span>
             </div>
@@ -841,9 +1278,9 @@ const PropertyDetail = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Gallery & Details */}
-        <div className="lg:col-span-2 space-y-8">
+      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-8">
+        {/* Gallery */}
+        <div className="order-1 lg:col-span-2 space-y-8">
           {/* Main Gallery Carousel */}
           <div className="space-y-4">
             <div className="relative aspect-[16/10] sm:aspect-[16/9] rounded-2xl overflow-hidden group shadow-lg bg-gray-100">
@@ -900,43 +1337,48 @@ const PropertyDetail = ({
               ))}
             </div>
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2 space-y-8">
-              {/* Features section */}
-              <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-brand-green/5 rounded-bl-full -mr-4 -mt-4" />
-                <h3 className="text-lg font-bold text-dark-navy mb-6 flex items-center gap-2">
-                  <CheckCircle className="text-brand-green" size={20} /> Property Features
-                </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                  <div>
-                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Bedrooms</div>
-                    <div className="flex items-center gap-2 text-dark-navy font-bold">
-                      <Bed size={18} className="text-brand-green" /> 04
-                    </div>
+        {/* Content below Gallery */}
+        <div className="order-3 lg:col-span-2 space-y-8">
+              {/* Features section grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:border-brand-green/30 compact-transition">
+                  <div className="w-10 h-10 bg-brand-green/10 rounded-full flex items-center justify-center text-brand-green mb-3 group-hover:scale-110 compact-transition">
+                    <Bed size={20} />
                   </div>
-                  <div>
-                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Bathrooms</div>
-                    <div className="flex items-center gap-2 text-dark-navy font-bold">
-                      <Bath size={18} className="text-brand-green" /> 02
-                    </div>
+                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Beds</div>
+                  <div className="text-lg font-black text-dark-navy">{property.rooms || property.bedrooms || '04'}</div>
+                </div>
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:border-brand-green/30 compact-transition">
+                  <div className="w-10 h-10 bg-brand-green/10 rounded-full flex items-center justify-center text-brand-green mb-3 group-hover:scale-110 compact-transition">
+                    <Bath size={20} />
                   </div>
-                  <div>
-                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Floor Area</div>
-                    <div className="text-dark-navy font-bold">2,450 sqft</div>
+                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Baths</div>
+                  <div className="text-lg font-black text-dark-navy">{property.bathrooms || '02'}</div>
+                </div>
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:border-brand-green/30 compact-transition">
+                  <div className="w-10 h-10 bg-brand-green/10 rounded-full flex items-center justify-center text-brand-green mb-3 group-hover:scale-110 compact-transition">
+                    <Box size={20} />
                   </div>
-                  <div>
-                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Land Size</div>
-                    <div className="text-dark-navy font-bold">15.5 Perches</div>
+                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Floor</div>
+                  <div className="text-lg font-black text-dark-navy">{property.floorArea || property.floor_area || '2,450 sqft'}</div>
+                </div>
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:border-brand-green/30 compact-transition">
+                  <div className="w-10 h-10 bg-brand-green/10 rounded-full flex items-center justify-center text-brand-green mb-3 group-hover:scale-110 compact-transition">
+                    <Trees size={20} />
                   </div>
+                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Land</div>
+                  <div className="text-lg font-black text-dark-navy">{property.landArea || property.land_area || '15.5 Perch'}</div>
                 </div>
               </div>
 
               {/* Description */}
               <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm relative">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-lg font-bold text-dark-navy">About this property</h3>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-gray-50">
+                  <h3 className="text-lg font-bold text-dark-navy flex items-center gap-2">
+                    <CheckCircle className="text-brand-green" size={20} /> About This Property
+                  </h3>
                   <div className="flex gap-2">
                     {!showOriginal && (
                       <button 
@@ -948,7 +1390,7 @@ const PropertyDetail = ({
                     )}
                     <button 
                       onClick={handleTranslate}
-                      disabled={isTranslating || !showOriginal && !!translatedDesc}
+                      disabled={isTranslating || (!showOriginal && !!translatedDesc)}
                       className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold compact-transition ${
                         !showOriginal && translatedDesc 
                         ? 'bg-brand-green/10 text-brand-green cursor-default' 
@@ -963,7 +1405,7 @@ const PropertyDetail = ({
                       ) : (
                         <>
                           <Languages size={12} />
-                          {!showOriginal && translatedDesc ? 'Sinhala View' : 'Translate to Sinhala'}
+                          {!showOriginal && translatedDesc ? 'Sinhala View' : 'Translate'}
                         </>
                       )}
                     </button>
@@ -979,79 +1421,107 @@ const PropertyDetail = ({
                   </div>
                 </div>
                 
-                <div className="prose prose-sm text-gray-600 space-y-4 max-w-none">
+                <div className="prose prose-sm text-gray-600 max-w-[680px] leading-[1.8] text-[15px] space-y-4">
                   {showOriginal ? (
-                    <p>{property.description || "No description available."}</p>
+                    splitDescriptionIntoParagraphs(property.description || "No description available.").map((p, i) => (
+                      <p key={i}>{p}</p>
+                    ))
                   ) : (
-                    <motion.p 
+                    <motion.div 
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="text-brand-green-dark font-medium whitespace-pre-wrap leading-relaxed"
+                      className="text-brand-green-dark font-medium leading-[1.8] text-[15px] space-y-4"
                     >
-                      {translatedDesc}
-                    </motion.p>
+                      {splitDescriptionIntoParagraphs(translatedDesc || "").map((p, i) => (
+                        <p key={i}>{p}</p>
+                      ))}
+                    </motion.div>
                   )}
-                  
-                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-medium border-t border-gray-50 pt-4 mt-4">
-                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-brand-green" /> High-quality granite flooring</li>
-                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-brand-green" /> Teak doors and windows</li>
-                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-brand-green" /> Rooftop entertainment space</li>
-                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-brand-green" /> Maid's quarters with washroom</li>
-                  </ul>
                 </div>
               </div>
+
+              {/* Key Highlights */}
+              {(() => {
+                const highlights = extractHighlights(property);
+                if (highlights.length === 0) return null;
+                return (
+                  <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+                    <h3 className="text-lg font-bold text-dark-navy flex items-center gap-2 mb-6">
+                      <Star className="text-brand-green" size={20} /> Key Highlights
+                    </h3>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {highlights.map((h, i) => (
+                        <li key={i} className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl">
+                          <CheckCircle size={18} className="text-brand-green shrink-0" />
+                          <span className="text-[14px] text-gray-700 font-medium leading-tight">{h}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })()}
+
+              {/* Additional Information */}
+              {(() => {
+                const infoText = property.additionalInfo || property.additional_info || property.additional_information;
+                if (!infoText) return null;
+                const sections = parseAdditionalInfo(infoText);
+                if (sections.length === 0) return null;
+                
+                return (
+                  <div className="space-y-4">
+                    {sections.map((section, i) => (
+                      <motion.div 
+                        key={i}
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true, margin: "-50px" }}
+                        transition={{ delay: i * 0.15, duration: 0.5, ease: "easeOut" }}
+                        className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group"
+                      >
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-green/80"></div>
+                        <div className="pl-2">
+                          <h4 className="text-sm font-bold text-dark-navy mb-2 flex items-center gap-2">
+                            <span>{section.icon}</span> {section.title}
+                          </h4>
+                          <p className="text-[14px] text-gray-600 leading-relaxed font-medium">
+                            {section.content}
+                          </p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                );
+              })()}
 
               {/* Amenities Grid */}
-              <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-                <h3 className="text-lg font-bold text-dark-navy mb-6">Building Amenities</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                  {AMENITIES.map((amenity, i) => (
-                    <div key={i} className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 border border-transparent hover:border-brand-green/20 compact-transition group">
-                      <div className="text-gray-400 group-hover:text-brand-green compact-transition">
-                        {amenity.icon}
-                      </div>
-                      <span className="text-[10px] font-bold text-dark-navy group-hover:text-brand-green">{amenity.name}</span>
-                    </div>
-                  ))}
+              {property.amenities && property.amenities.length > 0 && (
+                <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+                  <h3 className="text-lg font-bold text-dark-navy mb-6 pb-4 border-b border-gray-50">Building Amenities</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {property.amenities.map((amenityStr: string, i: number) => {
+                      // Attempt to find a matching icon object
+                      const amenityObj = AMENITIES.find(a => a.name.toLowerCase() === amenityStr.toLowerCase()) || { name: amenityStr, icon: <CheckCircle size={16} /> };
+                      return (
+                        <div 
+                          key={i} 
+                          className="amenity-icon flex items-center gap-3 p-3 rounded-full bg-gray-50 border border-gray-100 compact-transition group"
+                          style={{
+                            animation: `fadeInUp 0.5s ease forwards`,
+                            animationDelay: `${i * 0.1}s`,
+                            opacity: 0
+                          }}
+                        >
+                          <div className="text-gray-400 group-hover:text-brand-green bg-white p-1.5 rounded-full shadow-sm transition-colors duration-300">
+                            {amenityObj.icon}
+                          </div>
+                          <span className="text-xs font-bold text-gray-700 group-hover:text-dark-navy truncate">{amenityObj.name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              {/* Map Section */}
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Location Map</h3>
-                <div className="h-[250px] w-full rounded-xl overflow-hidden relative z-0 border border-gray-100 shadow-inner">
-                  <MapContainer 
-                    center={[property.lat || 6.9271, property.lng || 79.8612]} 
-                    zoom={15} 
-                    scrollWheelZoom={false}
-                    style={{ height: "100%", width: "100%" }}
-                  >
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                    <Marker position={[property.lat || 6.9271, property.lng || 79.8612]} />
-                  </MapContainer>
-                </div>
-                <div className="mt-4 flex items-center justify-between text-[10px] font-bold text-gray-500">
-                  <span className="flex items-center gap-1.5"><MapPin size={12} /> {property.location}</span>
-                  <button className="text-brand-green flex items-center gap-1">Open in Google Maps <ExternalLink size={10} /></button>
-                </div>
-              </div>
-
-              {/* Share section */}
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Share Listing</h3>
-                <div className="flex gap-2">
-                  <button className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#25D366] text-white rounded-xl text-[10px] font-bold hover:opacity-90 compact-transition shadow-sm">
-                    <MessageCircle size={14} /> WhatsApp
-                  </button>
-                  <button className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-brand-green/10 text-brand-green rounded-xl text-[10px] font-bold hover:bg-brand-green transition-all hover:text-white group">
-                    <Copy size={14} /> Copy Link
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+              )}
           
           {/* Similar Properties */}
           <div className="pt-12 border-t border-gray-100">
@@ -1069,6 +1539,7 @@ const PropertyDetail = ({
                   onToggleFavorite={() => onToggleFavorite?.()} // This is simplified
                   isComparing={compareList?.includes(p.id)}
                   onToggleCompare={() => toggleCompare?.(p.id)}
+                  isAdmin={isAdmin}
                 />
               ))}
             </div>
@@ -1076,7 +1547,7 @@ const PropertyDetail = ({
         </div>
 
         {/* Right Column: Contact & Action */}
-        <div className="space-y-6">
+        <div className="order-2 lg:col-span-1 lg:row-span-2 space-y-6">
           <div className="sticky top-24 space-y-6">
             <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-brand-green/5 rounded-full -mr-16 -mt-16 sm:block hidden" />
@@ -1212,6 +1683,41 @@ const PropertyDetail = ({
                 <textarea required placeholder="Your Message..." rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none resize-none"></textarea>
                 <button type="submit" className="w-full py-3 bg-brand-green text-white text-xs font-bold rounded-xl hover:bg-brand-green-dark compact-transition">Request Details</button>
               </form>
+            </div>
+
+            {/* Map Section */}
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Location Map</h3>
+              <div className="h-[250px] w-full rounded-xl overflow-hidden relative z-0 border border-gray-100 shadow-inner">
+                <MapContainer 
+                  center={[property.lat || 6.9271, property.lng || 79.8612]} 
+                  zoom={15} 
+                  scrollWheelZoom={false}
+                  style={{ height: "100%", width: "100%" }}
+                >
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  <Marker position={[property.lat || 6.9271, property.lng || 79.8612]} />
+                </MapContainer>
+              </div>
+              <div className="mt-4 flex items-center justify-between text-[10px] font-bold text-gray-500">
+                <span className="flex items-center gap-1.5"><MapPin size={12} /> {property.location}</span>
+                <button className="text-brand-green flex items-center gap-1 hover:underline">
+                  Open in Google Maps <ExternalLink size={10} />
+                </button>
+              </div>
+            </div>
+
+            {/* Share section */}
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Share Listing</h3>
+              <div className="flex gap-2">
+                <button className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#25D366] text-white rounded-xl text-[10px] font-bold hover:bg-[#1EBE5D] compact-transition shadow-sm">
+                  <MessageCircle size={14} /> WhatsApp
+                </button>
+                <button className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-brand-green/10 text-brand-green rounded-xl text-[10px] font-bold hover:bg-brand-green transition-all hover:text-white group border border-transparent hover:border-brand-green">
+                  <Copy size={14} /> Copy Link
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1928,16 +2434,18 @@ const NEW_PACKAGES = [
 
 const ComparisonBar = ({ 
   propertyIds, 
+  properties: allProps,
   onCompare, 
   onRemove,
   onClear
 }: { 
   propertyIds: number[], 
+  properties?: any[],
   onCompare: () => void, 
   onRemove: (id: number) => void,
   onClear: () => void
 }) => {
-  const properties = FEATURED_PROPERTIES.filter(p => propertyIds.includes(p.id));
+  const properties = (allProps || FEATURED_PROPERTIES).filter((p: any) => propertyIds.includes(p.id));
 
   return (
     <motion.div 
@@ -1946,51 +2454,59 @@ const ComparisonBar = ({
       exit={{ y: 200 }}
       className="fixed bottom-0 left-0 right-0 z-[100] p-4 flex justify-center pointer-events-none"
     >
-      <div className="bg-dark-navy/95 backdrop-blur-xl border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-3 flex items-center gap-6 pointer-events-auto max-w-full overflow-hidden">
-        <div className="hidden md:flex flex-col pl-4 pr-2 border-r border-white/10">
-          <span className="text-white font-black text-sm tracking-tight">Comparison Bar</span>
-          <span className="text-brand-green text-[10px] uppercase font-black tracking-widest">{properties.length} / 4 Selected</span>
+      <div className="bg-dark-navy/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.4)] px-6 py-4 flex flex-col md:flex-row items-center gap-6 pointer-events-auto max-w-full overflow-hidden w-full md:w-auto mt-auto">
+        <div className="flex flex-row md:flex-col md:pl-2 md:pr-4 md:border-r border-white/10 items-center md:items-start justify-between w-full md:w-auto">
+          <span className="text-white font-black text-sm tracking-tight whitespace-nowrap">Compare</span>
+          <span className="text-brand-green text-[10px] uppercase font-black tracking-widest whitespace-nowrap">{properties.length} / 4 Selected</span>
         </div>
 
-        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1">
-          {properties.map((p) => (
-            <div key={p.id} className="relative group shrink-0">
-              <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-brand-green/30">
-                <img src={p.image} className="w-full h-full object-cover" alt="" />
-              </div>
-              <button 
-                onClick={() => onRemove(p.id)}
-                className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white text-dark-navy rounded-full flex items-center justify-center shadow-lg hover:bg-brand-red hover:text-white compact-transition"
+        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1 w-full md:w-auto">
+          <AnimatePresence>
+            {properties.map((p: any) => (
+              <motion.div 
+                key={p.id} 
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                className="relative group shrink-0"
               >
-                <ArrowUp className="rotate-45" size={10} />
-              </button>
-            </div>
-          ))}
+                <div className="w-14 h-14 rounded-xl overflow-hidden border-2 border-brand-green/30 bg-gray-800">
+                  <img src={p.image} className="w-full h-full object-cover" alt="" />
+                </div>
+                <button 
+                  onClick={() => onRemove(p.id)}
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white text-dark-navy rounded-full flex items-center justify-center shadow-lg hover:bg-brand-red hover:text-white transition-all transform hover:scale-110"
+                >
+                  <X size={12} strokeWidth={3} />
+                </button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
           
-          {Array(4 - properties.length).fill(null).map((_, i) => (
-            <div key={`empty-${i}`} className="w-14 h-14 rounded-2xl border-2 border-dashed border-white/10 flex items-center justify-center text-white/5 shrink-0">
+          {Array(Math.max(0, 4 - properties.length)).fill(null).map((_, i) => (
+            <div key={`empty-${i}`} className="w-14 h-14 rounded-xl border-2 border-dashed border-white/10 flex items-center justify-center text-white/10 shrink-0 bg-white/5">
               <Plus size={20} />
             </div>
           ))}
         </div>
 
-        <div className="flex items-center gap-3 pr-2">
+        <div className="flex items-center gap-3 md:pr-2 w-full md:w-auto justify-end">
           <button 
             onClick={onClear}
-            className="md:px-4 px-2 py-3 text-white/60 hover:text-white text-xs font-bold compact-transition"
+            className="px-4 py-2 text-white/50 hover:text-white hover:bg-white/5 text-xs font-bold rounded-lg transition-all"
           >
-            Clear
+            Clear All
           </button>
           <button 
             onClick={onCompare}
             disabled={properties.length < 2}
-            className={`px-8 py-4 rounded-2xl font-black text-sm flex items-center gap-2 compact-transition ${
+            className={`px-6 py-2.5 rounded-xl font-black text-xs sm:text-sm flex items-center gap-2 transition-all shrink-0 ${
               properties.length >= 2 
-                ? 'bg-brand-green text-white hover:bg-brand-green-dark shadow-xl shadow-brand-green/20' 
+                ? 'bg-brand-green text-white hover:bg-emerald-500 shadow-lg shadow-brand-green/20' 
                 : 'bg-white/5 text-white/20 cursor-not-allowed'
             }`}
           >
-            Compare Now <ArrowRight size={18} />
+            Compare Now &rarr;
           </button>
         </div>
       </div>
@@ -4747,17 +5263,50 @@ const AdminEditPropertyModal = ({ propertyId, onClose, onRefresh, onShowToast }:
   );
 };
 
-const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShowToast }: { onBack: () => void, properties: Property[], onEdit: (p: Property) => void, onRefresh: () => void, user: any, onShowToast: (msg: string, type: 'success' | 'error') => void }) => {
+const AgentListingsView = ({ onBack, onEdit, onRefresh, user, onShowToast }: { onBack: () => void, properties?: Property[], onEdit: (p: Property) => void, onRefresh: () => void, user: any, onShowToast: (msg: string, type: 'success' | 'error') => void }) => {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
-  const [localProperties, setLocalProperties] = useState<Property[]>(properties);
-  const [filterTab, setFilterTab] = useState<'all' | 'admin' | 'agent' | 'package'>('all');
+  const [localProperties, setLocalProperties] = useState<Property[]>([]);
+  const [filterTab, setFilterTab] = useState<'all' | 'admin' | 'user' | 'package'>('all');
   const [adminEditPropertyId, setAdminEditPropertyId] = useState<number | null>(null);
+  const [loadingProps, setLoadingProps] = useState(true);
 
-  // Sync local properties with prop properties when they change
+  const fetchAdminProperties = async () => {
+    setLoadingProps(true);
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .in('published_by', ['admin', 'user'])
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        console.error("Error fetching properties:", error);
+      } else if (data) {
+        setLocalProperties(data.map((item: any) => ({
+          ...item,
+          id: item.id,
+          title: item.listing_title || item.title,
+          agentId: item.agent_id,
+          location: item.location || `${item.city || item.city_suburb}${item.district ? ', ' + item.district : ''}`,
+          type: item.listing_type === 'Rent' || item.listing_type === 'For Rent' ? 'Rent' : 'Sale',
+          image: (item.images && item.images.length > 0) ? item.images[0] : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800',
+          price: item.price_lkr || item.price || 'Price on Request',
+          status: item.status || 'active',
+          published_by: item.published_by,
+          package_tier: item.package_tier
+        })));
+      }
+    } catch (err: any) {
+      console.error("Fetch full error:", err);
+    } finally {
+      setLoadingProps(false);
+    }
+  };
+
   useEffect(() => {
-    setLocalProperties(properties);
-  }, [properties]);
+    fetchAdminProperties();
+  }, []);
 
   const toggleStatus = async (property: Property) => {
     const newStatus = property.status === 'active' ? 'paused' : 'active';
@@ -4768,6 +5317,7 @@ const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShow
         .update({ status: newStatus })
         .eq('id', property.id);
       if (error) throw error;
+      await fetchAdminProperties();
       await onRefresh();
     } catch (err) {
       console.error("Error updating status:", err);
@@ -4790,12 +5340,9 @@ const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShow
         return;
       }
 
-      // Remove from UI immediately
       setLocalProperties(prev => prev.filter(p => p.id !== propertyId));
-      
-      // Show success message
       alert('✅ Property deleted successfully!');
-      
+      await fetchAdminProperties();
       await onRefresh();
     } catch (err: any) {
       console.error('Delete error:', err);
@@ -4895,12 +5442,12 @@ const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShow
           <div className="text-[9px] font-black uppercase text-gray-400 tracking-widest mt-1">Total Props</div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center border-b-4 border-b-purple-500">
-          <div className="text-2xl font-black text-purple-600">{localProperties.filter(p => p.published_by === 'admin' || p.agentId === 'ADMIN').length}</div>
+          <div className="text-2xl font-black text-purple-600">{localProperties.filter(p => p.published_by === 'admin').length}</div>
           <div className="text-[9px] font-black uppercase text-purple-400 tracking-widest mt-1">Admin Posted</div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center border-b-4 border-b-orange-400">
-          <div className="text-2xl font-black text-orange-500">{localProperties.filter(p => p.published_by !== 'admin' && p.agentId !== 'ADMIN').length}</div>
-          <div className="text-[9px] font-black uppercase text-gray-400 tracking-widest mt-1">Agent Posted</div>
+          <div className="text-2xl font-black text-orange-500">{localProperties.filter(p => p.published_by === 'user').length}</div>
+          <div className="text-[9px] font-black uppercase text-gray-400 tracking-widest mt-1">User Posted</div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center">
           <div className="text-2xl font-black text-gray-700">{localProperties.filter(p => !p.package_tier || p.package_tier === 'Starter Free' || p.package_tier === 'FREE').length}</div>
@@ -4918,7 +5465,7 @@ const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShow
 
       {/* Filter Tabs */}
       <div className="flex flex-wrap gap-3 mb-8">
-        {(['all', 'admin', 'agent', 'package'] as const).map(tab => (
+        {(['all', 'admin', 'user', 'package'] as const).map(tab => (
           <button 
             key={tab}
             onClick={() => setFilterTab(tab)}
@@ -4926,7 +5473,7 @@ const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShow
               filterTab === tab ? 'bg-dark-navy text-white border-dark-navy shadow-lg shadow-dark-navy/20' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'
             }`}
           >
-            {tab === 'all' ? 'All Listings' : tab === 'admin' ? 'Admin Posted' : tab === 'agent' ? 'Agent Posted' : 'By Package'}
+            {tab === 'all' ? 'All Listings' : tab === 'admin' ? 'Admin Posted' : tab === 'user' ? 'User Posted' : 'By Package'}
           </button>
         ))}
       </div>
@@ -4980,8 +5527,8 @@ const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShow
         ) : (
           localProperties.filter(p => {
             if (filterTab === 'all') return true;
-            if (filterTab === 'admin') return p.published_by === 'admin' || p.agentId === 'ADMIN';
-            if (filterTab === 'agent') return p.published_by !== 'admin' && p.agentId !== 'ADMIN';
+            if (filterTab === 'admin') return p.published_by === 'admin';
+            if (filterTab === 'user') return p.published_by === 'user';
             return true;
           }).map((property) => (
             <PropertyAdminCard key={property.id} property={property} onEdit={(p: any) => setAdminEditPropertyId(p.id)} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
@@ -4993,7 +5540,174 @@ const AgentListingsView = ({ onBack, properties, onEdit, onRefresh, user, onShow
   );
 };
 
-const AnalyticsOverview = ({ user }: { user: any }) => {
+const AgentOnlyListingsView = ({ onBack, onRefresh, onShowToast }: { onBack: () => void, onRefresh: () => void, onShowToast: (msg: string, type: 'success' | 'error') => void }) => {
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [localProperties, setLocalProperties] = useState<Property[]>([]);
+  const [adminEditPropertyId, setAdminEditPropertyId] = useState<number | null>(null);
+  const [loadingProps, setLoadingProps] = useState(true);
+
+  const fetchAgentProperties = async () => {
+    setLoadingProps(true);
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('published_by', 'agent')
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        console.error("Error fetching properties:", error);
+      } else if (data) {
+        setLocalProperties(data.map((item: any) => ({
+          ...item,
+          id: item.id,
+          title: item.listing_title || item.title,
+          agentId: item.agent_id,
+          location: item.location || `${item.city || item.city_suburb}${item.district ? ', ' + item.district : ''}`,
+          type: item.listing_type === 'Rent' || item.listing_type === 'For Rent' ? 'Rent' : 'Sale',
+          image: (item.images && item.images.length > 0) ? item.images[0] : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800',
+          price: item.price_lkr || item.price || 'Price on Request',
+          status: item.status || 'active',
+          published_by: item.published_by,
+          package_tier: item.package_tier
+        })));
+      }
+    } catch (err: any) {
+      console.error("Fetch full error:", err);
+    } finally {
+      setLoadingProps(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAgentProperties();
+  }, []);
+
+  const toggleStatus = async (property: Property) => {
+    const newStatus = property.status === 'active' ? 'paused' : 'active';
+    setUpdatingId(property.id);
+    try {
+      const { error } = await supabase
+        .from('properties')
+        .update({ status: newStatus })
+        .eq('id', property.id);
+      if (error) throw error;
+      await fetchAgentProperties();
+      await onRefresh();
+    } catch (err) {
+      console.error("Error updating status:", err);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const deleteProperty = async (propertyId: number) => {
+    setUpdatingId(propertyId);
+    try {
+      const { error } = await supabase
+        .from('properties')
+        .delete()
+        .eq('id', propertyId);
+
+      if (error) {
+        console.error('Delete error:', error);
+        alert('Failed to delete: ' + error.message);
+        return;
+      }
+
+      setLocalProperties(prev => prev.filter(p => p.id !== propertyId));
+      alert('✅ Property deleted successfully!');
+      await fetchAgentProperties();
+      await onRefresh();
+    } catch (err: any) {
+      console.error('Delete error:', err);
+      alert('Failed to delete: ' + err.message);
+    } finally {
+      setUpdatingId(null);
+      setDeleteConfirmId(null);
+    }
+  };
+
+  return (
+    <>
+    {adminEditPropertyId && (
+      <AdminEditPropertyModal 
+        propertyId={adminEditPropertyId} 
+        onClose={() => setAdminEditPropertyId(null)} 
+        onRefresh={fetchAgentProperties} 
+        onShowToast={onShowToast}
+      />
+    )}
+    {deleteConfirmId && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-dark-navy/60 backdrop-blur-md">
+        <div className="bg-white rounded-[40px] shadow-2xl p-8 max-w-md w-full text-center relative overflow-hidden">
+          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+              <AlertTriangle className="text-red-500" size={32} />
+            </div>
+          </div>
+          <h3 className="text-2xl font-black text-dark-navy mb-4">Delete Listing?</h3>
+          <p className="text-gray-500 font-medium mb-8">Are you sure you want to delete this property permanently?</p>
+          <div className="flex flex-col gap-3">
+            <button 
+              onClick={() => deleteProperty(deleteConfirmId)}
+              disabled={updatingId === deleteConfirmId}
+              className="w-full py-4 bg-red-500 text-white font-black uppercase tracking-widest rounded-2xl hover:bg-red-600 shadow-xl shadow-red-500/20 active:scale-95"
+            >
+              {updatingId === deleteConfirmId ? 'Deleting...' : 'Delete Permanently'}
+            </button>
+            <button 
+              onClick={() => setDeleteConfirmId(null)}
+              disabled={updatingId === deleteConfirmId}
+              className="w-full py-4 bg-white border-2 border-gray-100 text-gray-500 font-black uppercase tracking-widest rounded-2xl hover:bg-gray-50 active:scale-95"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="container mx-auto px-6 py-12 max-w-7xl">
+      <div className="flex items-center gap-4 mb-8">
+        <button onClick={onBack} className="p-3 bg-white shadow-sm border border-gray-100 rounded-2xl hover:bg-gray-50 text-gray-500">
+          <ArrowRight className="rotate-180" size={20} />
+        </button>
+        <div>
+          <h2 className="text-3xl font-black text-dark-navy">Agent Listings</h2>
+          <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">{localProperties.length} properties posted by agents</p>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {loadingProps ? (
+          <div className="text-center py-20 text-gray-400">
+            <Loader2 className="animate-spin mx-auto mb-4" size={40} />
+            <p>Loading agent listings...</p>
+          </div>
+        ) : localProperties.length === 0 ? (
+          <div className="bg-white p-20 rounded-[40px] border border-dashed border-gray-200 text-center space-y-4">
+            <div className="w-20 h-20 bg-gray-50 rounded-3xl flex items-center justify-center mx-auto text-gray-300">
+              <Building2 size={40} />
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-dark-navy">No agent listings found</h3>
+              <p className="text-sm text-gray-400">There are currently no properties posted by agents.</p>
+            </div>
+          </div>
+        ) : (
+          localProperties.map((property) => (
+            <PropertyAdminCard key={property.id} property={property} onEdit={(p: any) => setAdminEditPropertyId(p.id)} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
+          ))
+        )}
+      </div>
+    </motion.div>
+    </>
+  );
+};
+
+const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) => {
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'house' | 'land' | 'apartment'>('all');
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<any>({
@@ -5012,7 +5726,7 @@ const AnalyticsOverview = ({ user }: { user: any }) => {
       try {
         const { data: properties, error } = await supabase
           .from('properties')
-          .select('property_category, views_count, leads_count, created_at')
+          .select('id, property_category, views_count, leads_count, created_at')
           .eq('agent_id', user.email);
 
         if (error) throw error;
@@ -5029,7 +5743,7 @@ const AnalyticsOverview = ({ user }: { user: any }) => {
 
         properties?.forEach(p => {
           const cat = (p.property_category || 'other').toLowerCase();
-          const pViews = Number(p.views_count || 0);
+          const pViews = Number(isAdmin ? (p.views_count || 0) : getDisplayViews(p, false).replace(/,/g, ''));
           const pLeads = Number(p.leads_count || 0);
 
           newStats.all.reach += pViews;
@@ -5079,7 +5793,7 @@ const AnalyticsOverview = ({ user }: { user: any }) => {
           const date = new Date(p.created_at);
           const dayName = days[date.getDay()];
           const cat = (p.property_category || 'other').toLowerCase();
-          const pViews = Number(p.views_count || 0);
+          const pViews = Number(isAdmin ? (p.views_count || 0) : getDisplayViews(p, false).replace(/,/g, ''));
 
           const allDay = weekTrends.all.find((d: any) => d.name === dayName);
           if (allDay) allDay.views += pViews;
@@ -5398,8 +6112,8 @@ const SecretLoginView = ({ onBack, onSuccess }: { onBack: () => void, onSuccess:
   );
 };
 
-const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowListings, onLogout, agentPropertiesCount, agentLeadsTotal }: { onBack: () => void, user: any, onNewProperty: () => void, onShowInquiries: () => void, onShowListings: () => void, onLogout: () => void, agentPropertiesCount: number, agentLeadsTotal: number }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'editProfile' | 'security'>('dashboard');
+const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowListings, onShowAgentListings, onLogout, agentPropertiesCount, agentLeadsTotal }: { onBack: () => void, user: any, onNewProperty: () => void, onShowInquiries: () => void, onShowListings: () => void, onShowAgentListings: () => void, onLogout: () => void, agentPropertiesCount: number, agentLeadsTotal: number }) => {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'editProfile' | 'security' | 'live_visitors'>('dashboard');
 
   const [formData, setFormData] = useState({
     firstName: user?.email ? user.email.split('@')[0] : '',
@@ -5654,6 +6368,19 @@ const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowL
 
             <div className="bg-dark-navy p-6 rounded-[32px] text-white space-y-6">
               <div 
+                onClick={() => setActiveTab('live_visitors')}
+                className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer compact-transition group ${activeTab === 'live_visitors' ? 'bg-white/10' : 'bg-white/5 hover:bg-white/10'}`}
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center compact-transition ${activeTab === 'live_visitors' ? 'bg-brand-green text-white' : 'bg-brand-green/20 text-brand-green group-hover:bg-brand-green group-hover:text-white'}`}>
+                    <Activity size={20} />
+                  </div>
+                  <span className="text-sm font-bold">Live Visitors</span>
+                </div>
+                <ArrowRight size={16} className={`compact-transition ${activeTab === 'live_visitors' ? 'text-white' : 'text-gray-600 group-hover:text-white'}`} />
+              </div>
+
+              <div 
                 onClick={() => setActiveTab('editProfile')}
                 className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer compact-transition group ${activeTab === 'editProfile' ? 'bg-white/10' : 'bg-white/5 hover:bg-white/10'}`}
               >
@@ -5693,7 +6420,7 @@ const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowL
           <div className="md:col-span-2 space-y-6">
             {activeTab === 'dashboard' && (
               <>
-                <AnalyticsOverview user={user} />
+                <AnalyticsOverview user={user} isAdmin={isAuthorized} />
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div 
@@ -5705,9 +6432,24 @@ const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowL
                         <Building size={24} />
                       </div>
                     </div>
-                    <h4 className="font-bold text-dark-navy">My Listings</h4>
+                    <h4 className="font-bold text-dark-navy">{isAuthorized ? 'All Properties' : 'My Listings'}</h4>
                     <p className="text-xs text-gray-400 mt-1">Manage & Edit properties</p>
                   </div>
+
+                  {isAuthorized && (
+                    <div 
+                      onClick={onShowAgentListings}
+                      className="p-8 bg-white border border-gray-100 rounded-[32px] shadow-sm hover:shadow-md compact-transition group cursor-pointer"
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="w-12 h-12 bg-orange-50 text-orange-500 rounded-2xl flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white compact-transition">
+                          <Users size={24} />
+                        </div>
+                      </div>
+                      <h4 className="font-bold text-dark-navy">Agent Listings</h4>
+                      <p className="text-xs text-gray-400 mt-1">Manage agent posted properties</p>
+                    </div>
+                  )}
 
                   <div 
                     onClick={onShowInquiries}
@@ -5737,6 +6479,10 @@ const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowL
                   </div>
                 </div>
               </>
+            )}
+
+            {activeTab === 'live_visitors' && (
+              <LiveVisitorTracking />
             )}
 
             {activeTab === 'editProfile' && (
@@ -5959,7 +6705,8 @@ const AgentProfileView = ({
   favorites,
   toggleFavorite,
   compareList,
-  toggleCompare
+  toggleCompare,
+  isAdmin
 }: { 
   agent: any, 
   onBack: () => void, 
@@ -5968,7 +6715,8 @@ const AgentProfileView = ({
   favorites?: Set<number>,
   toggleFavorite?: (id: number) => void,
   compareList?: number[],
-  toggleCompare?: (id: number) => void
+  toggleCompare?: (id: number) => void,
+  isAdmin?: boolean
 }) => {
   const featuredAgentProperties = FEATURED_PROPERTIES.filter(p => agent.listings.includes(p.id));
   const dynamicAgentProperties = supabaseProperties.filter(p => p.agentId === agent.id);
@@ -6083,6 +6831,7 @@ const AgentProfileView = ({
                     isComparing={compareList?.includes(p.id)}
                     onToggleCompare={() => toggleCompare?.(p.id)}
                     showAnalytics={true}
+                    isAdmin={isAdmin}
                   />
                 ))}
               </div>
@@ -6583,20 +7332,53 @@ const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBac
 export default function App() {
   const { properties: supabaseProperties, loading: listingsLoading, error: supabaseError, refresh: refreshProperties } = useProperties();
   const [recentFilter, setRecentFilter] = useState<"Sale" | "Rent">("Sale");
+  const [visibleRecentCount, setVisibleRecentCount] = useState(6);
+  const [sortOption, setSortOption] = useState<"Newest" | "Price Low-High" | "Price High-Low">("Newest");
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'verify' | 'reset-password' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'secret_login' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings', data?: any }>({ type: 'home' });
+  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'verify' | 'reset-password' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'secret_login' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings' | 'agent_only_listings' | 'search_results', data?: any }>({ type: 'home' });
   const [user, setUser] = useState<any | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [compareList, setCompareList] = useState<number[]>([]);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
 
+  const checkAdminStatus = async (email: string) => {
+    try {
+      const { data } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('email', email)
+        .single();
+      if (data) {
+        setIsAdmin(true);
+      } else {
+        const allowedEmails = ['abhishekdewminaa@gmail.com', 'ceo.lankaland@gmail.com'];
+        setIsAdmin(allowedEmails.includes(email.toLowerCase()));
+      }
+    } catch (err) {
+      const allowedEmails = ['abhishekdewminaa@gmail.com', 'ceo.lankaland@gmail.com'];
+      setIsAdmin(false || allowedEmails.includes(email?.toLowerCase() || ''));
+    }
+  };
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser((currentUser: any) => currentUser?.email ? currentUser : (session?.user ?? null));
+      const activeUser = session?.user ?? null;
+      setUser((currentUser: any) => currentUser?.email ? currentUser : activeUser);
+      if (activeUser?.email) {
+        checkAdminStatus(activeUser.email);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser((currentUser: any) => currentUser?.email && !session ? currentUser : (session?.user ?? null));
+      const activeUser = session?.user ?? null;
+      setUser((currentUser: any) => currentUser?.email && !session ? currentUser : activeUser);
+      if (activeUser?.email) {
+        checkAdminStatus(activeUser.email);
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -6615,6 +7397,48 @@ export default function App() {
       setCurrentView({ type: 'verify' });
     }
   }, []);
+
+  useEffect(() => {
+    const trackVisitor = async () => {
+      const sessionId = localStorage.getItem('session_id') || crypto.randomUUID();
+      localStorage.setItem('session_id', sessionId);
+      
+      const pageType = currentView.type; // Match SPA routing
+
+      try {
+        await supabase.from('visitor_sessions').upsert({
+          session_id: sessionId,
+          current_page: pageType,
+          device_type: /Mobile/.test(navigator.userAgent) ? 'mobile' : 'desktop',
+          referrer: document.referrer || 'direct',
+          last_seen: new Date().toISOString(),
+          is_active: true,
+          location: 'Colombo, Sri Lanka' // Mock location since we do not have an IP geo service
+        }, { onConflict: 'session_id' });
+      } catch(err) {
+        // Table may not exist yet, safely ignore
+      }
+    };
+
+    trackVisitor();
+    const interval = setInterval(trackVisitor, 30000);
+
+    const markInactive = async () => {
+      const sessionId = localStorage.getItem('session_id');
+      if (sessionId) {
+        try {
+          await supabase.from('visitor_sessions').update({ is_active: false }).eq('session_id', sessionId);
+        } catch(err) {}
+      }
+    };
+    
+    window.addEventListener('beforeunload', markInactive);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('beforeunload', markInactive);
+    };
+  }, [currentView.type]);
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
@@ -6676,10 +7500,34 @@ export default function App() {
     });
   };
 
-  const displayedProperties = (supabaseProperties.length > 0 ? supabaseProperties : FEATURED_PROPERTIES)
+  let displayedProperties = (supabaseProperties.length > 0 ? supabaseProperties : FEATURED_PROPERTIES)
     .filter(p => p.status === 'active' || !p.status);
+    
+  if (sortOption === 'Price Low-High') {
+    displayedProperties = displayedProperties.sort((a, b) => {
+      const pA = parseInt((a.price_lkr || a.price || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
+      const pB = parseInt((b.price_lkr || b.price || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
+      return pA - pB;
+    });
+  } else if (sortOption === 'Price High-Low') {
+    displayedProperties = displayedProperties.sort((a, b) => {
+      const pA = parseInt((a.price_lkr || a.price || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
+      const pB = parseInt((b.price_lkr || b.price || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
+      return pB - pA;
+    });
+  } else {
+    displayedProperties = displayedProperties.sort((a, b) => {
+      const dA = new Date(a.created_at || 0).getTime();
+      const dB = new Date(b.created_at || 0).getTime();
+      return dB - dA;
+    });
+  }
   
-  const filteredRecent = displayedProperties.filter(p => p.type === recentFilter);
+  const filteredRecent = displayedProperties.filter(p => {
+    const pType = (p.listing_type || p.type || '').toLowerCase();
+    const sType = recentFilter.toLowerCase();
+    return pType.includes(sType) || pType === sType;
+  });
   const categoryProperties = currentView.type === 'category' 
     ? displayedProperties.filter(p => {
         const cat = currentView.data?.toLowerCase() || '';
@@ -6843,7 +7691,11 @@ export default function App() {
             exit={{ opacity: 0 }}
             className="flex-grow space-y-12 pb-16"
           >
-            <Hero onDirectInquiry={() => setCurrentView({ type: 'contact' })} />
+            <Hero 
+              onDirectInquiry={() => setCurrentView({ type: 'contact' })} 
+              properties={supabaseProperties} 
+              onSearch={(results) => setCurrentView({ type: 'search_results', data: results })} 
+            />
             <div className="bg-gray-50 border-b border-gray-100 py-6">
               <div className="container mx-auto px-6 flex justify-center items-center">
                 <div className="flex justify-center gap-8 overflow-x-auto pb-4 no-scrollbar w-full">
@@ -6873,47 +7725,115 @@ export default function App() {
 
             <ExpertiseSection />
 
-            <section className="container mx-auto px-6">
+            <section className="container mx-auto px-6 space-y-20">
               <div className="flex flex-col lg:flex-row gap-8">
-                <div className="flex-1 space-y-10">
+                <div className="flex-1 space-y-16">
+                  {/* FEATURED PROPERTIES */}
                   <div>
-                    <div className="flex justify-between items-end mb-4">
-                      <h2 className="text-xl font-extrabold text-dark-navy">Featured Properties</h2>
-                      <a href="#" className="text-sm text-brand-green font-bold hover:underline">View All &rarr;</a>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {listingsLoading ? (
-                        <div className="col-span-full flex flex-col items-center justify-center py-12 gap-3 text-gray-400">
-                          <Loader2 className="animate-spin" size={32} />
-                          <p className="text-sm font-bold uppercase tracking-widest">Loading Listings...</p>
+                    <div className="flex justify-between items-end mb-6 relative">
+                      <div>
+                        <div className="flex items-center gap-3">
+                          <h2 className="text-2xl font-extrabold text-dark-navy">Featured Properties</h2>
+                          <span className="bg-brand-green/10 text-brand-green text-xs font-black px-2.5 py-1 rounded-full">{displayedProperties.length} Properties</span>
                         </div>
-                      ) : (
-                        displayedProperties.slice(0,3).map(p => (
-                          <PropertyCard 
-                            key={p.id} 
-                            property={p} 
-                            onClick={() => handleDetailClick(p)}
-                            isFavorited={favorites.has(p.id)}
-                            onToggleFavorite={() => toggleFavorite(p.id)}
-                            isComparing={compareList.includes(p.id)}
-                            onToggleCompare={() => toggleCompare(p.id)}
-                          />
-                        ))
-                      )}
+                        <p className="text-gray-500 text-sm mt-1">Hand-picked premium listings</p>
+                        <motion.div 
+                          initial={{ scaleX: 0 }}
+                          whileInView={{ scaleX: 1 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.5, delay: 0.2 }}
+                          className="absolute -bottom-2 left-0 h-1 w-16 bg-brand-green origin-left rounded-full"
+                        />
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <select 
+                          value={sortOption}
+                          onChange={(e) => setSortOption(e.target.value as any)}
+                          className="bg-gray-50 border border-gray-100 text-sm font-bold text-gray-600 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-green/20"
+                        >
+                          <option>Newest</option>
+                          <option>Price Low-High</option>
+                          <option>Price High-Low</option>
+                        </select>
+                        <a href="#" className="hidden sm:block text-sm text-brand-green font-bold hover:underline">View All &rarr;</a>
+                      </div>
+                    </div>
+
+                    {listingsLoading ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[1, 2, 3].map(i => (
+                          <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-pulse">
+                            <div className="h-[220px] bg-gray-200" />
+                            <div className="p-5 space-y-3">
+                              <div className="h-4 bg-gray-200 rounded w-3/4" />
+                              <div className="h-4 bg-gray-200 rounded w-1/2" />
+                              <div className="h-6 bg-brand-green/20 rounded w-1/3 mt-2" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : displayedProperties.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-gray-50 rounded-3xl border border-gray-100">
+                        <div className="w-24 h-24 mb-4 text-gray-300">
+                          <Building2 size={96} strokeWidth={1} />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-600 mb-2">No properties found</h3>
+                        <p className="text-gray-400 text-sm max-w-sm mb-6">We couldn't find any properties matching your criteria. Try adjusting your filters.</p>
+                        <button className="px-6 py-3 bg-brand-green text-white font-bold rounded-xl shadow-lg hover:shadow-brand-green/30 hover:-translate-y-0.5 transition-all">
+                          Be the first to list!
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex overflow-x-auto pb-6 -mx-6 px-6 lg:mx-0 lg:px-0 lg:grid lg:grid-cols-3 sm:grid-cols-2 gap-6 snap-x snap-mandatory lg:snap-none no-scrollbar">
+                        {displayedProperties.slice(0, 3).map((p, index) => (
+                          <motion.div 
+                            key={p.id}
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: "-50px" }}
+                            transition={{ duration: 0.4, delay: index * 0.1 }}
+                            className="min-w-[85vw] sm:min-w-0 snap-center"
+                          >
+                            <PropertyCard 
+                              property={p} 
+                              onClick={() => handleDetailClick(p)}
+                              isFavorited={favorites.has(p.id)}
+                              onToggleFavorite={() => toggleFavorite(p.id)}
+                              isComparing={compareList.includes(p.id)}
+                              onToggleCompare={() => toggleCompare(p.id)}
+                              isAdmin={isAdmin}
+                            />
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="mt-4 sm:hidden text-center">
+                      <a href="#" className="text-sm text-brand-green font-bold hover:underline">View All &rarr;</a>
                     </div>
                   </div>
 
+                  {/* RECENT LISTINGS */}
                   <div>
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-4">
-                      <h2 className="text-xl font-extrabold text-dark-navy">Recent Listings</h2>
-                      <div className="flex bg-gray-100 p-1.5 rounded-xl">
-                        <button onClick={() => setRecentFilter("Sale")} className={`px-8 py-2 rounded-lg text-xs font-bold compact-transition ${recentFilter === 'Sale' ? 'bg-brand-green text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Buy</button>
-                        <button onClick={() => setRecentFilter("Rent")} className={`px-8 py-2 rounded-lg text-xs font-bold compact-transition ${recentFilter === 'Rent' ? 'bg-brand-green text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Rent</button>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-4 relative">
+                      <div>
+                        <h2 className="text-2xl font-extrabold text-dark-navy">Recent Listings</h2>
+                        <p className="text-gray-500 text-sm mt-1">Latest properties added today</p>
+                      </div>
+                      <div className="flex bg-gray-100 p-1.5 rounded-xl border border-gray-200/50">
+                        <button onClick={() => setRecentFilter("Sale")} className={`px-6 py-2 rounded-lg text-xs font-bold transition-all ${recentFilter === 'Sale' ? 'bg-brand-green text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Buy</button>
+                        <button onClick={() => setRecentFilter("Rent")} className={`px-6 py-2 rounded-lg text-xs font-bold transition-all ${recentFilter === 'Rent' ? 'bg-brand-green text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Rent</button>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {filteredRecent.map(p => (
-                        <motion.div key={`${recentFilter}-${p.id}`} layout transition={{ duration: 0.2 }}>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filteredRecent.slice(0, visibleRecentCount).map((p, index) => (
+                        <motion.div 
+                          key={`${recentFilter}-${p.id}`} 
+                          layout 
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: (index % 6) * 0.1 }}
+                        >
                           <PropertyCard 
                             property={p} 
                             onClick={() => handleDetailClick(p)} 
@@ -6921,12 +7841,36 @@ export default function App() {
                             onToggleFavorite={() => toggleFavorite(p.id)}
                             isComparing={compareList.includes(p.id)}
                             onToggleCompare={() => toggleCompare(p.id)}
+                            isAdmin={isAdmin}
                           />
                         </motion.div>
                       ))}
                     </div>
+
+                    {visibleRecentCount < filteredRecent.length && (
+                      <div className="mt-10 text-center">
+                        <button 
+                          onClick={() => {
+                            setIsLoadingMore(true);
+                            setTimeout(() => {
+                              setVisibleRecentCount(prev => prev + 6);
+                              setIsLoadingMore(false);
+                            }, 800);
+                          }}
+                          disabled={isLoadingMore}
+                          className="px-8 py-3 bg-white border-2 border-brand-green text-brand-green font-bold rounded-xl hover:bg-brand-green hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+                        >
+                          {isLoadingMore ? (
+                            <><Loader2 size={18} className="animate-spin" /> Loading...</>
+                          ) : (
+                            'Load More Properties'
+                          )}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
+
                 <div className="w-full lg:w-64 shrink-0">
                   <Sidebar 
                     onOpenCalculator={() => setShowCalculator(true)} 
@@ -6979,8 +7923,65 @@ export default function App() {
                     onToggleFavorite={() => toggleFavorite(p.id)}
                     isComparing={compareList.includes(p.id)}
                     onToggleCompare={() => toggleCompare(p.id)}
+                    isAdmin={isAdmin}
                   />
                 ))}
+              </div>
+            </section>
+          </motion.main>
+        )}
+
+        {currentView.type === 'search_results' && (
+          <motion.main 
+            key="search_results"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="flex-grow pb-16"
+          >
+            <div className="bg-white border-b border-gray-100 py-8">
+              <div className="container mx-auto px-6">
+                <div className="flex items-center gap-2 text-xs text-gray-400 mb-4 font-medium">
+                  <a href="#" onClick={navigateHome} className="hover:text-brand-green">Home</a>
+                  <ChevronDown size={12} className="-rotate-90" />
+                  <span className="text-gray-900">Search Results</span>
+                </div>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                  <div>
+                    <h1 className="text-3xl font-bold text-dark-navy">Search Results</h1>
+                    <p className="text-gray-500 mt-2 text-sm">Found {(currentView.data as any[])?.length || 0} matching properties</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <section className="container mx-auto px-6 mt-10">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {((currentView.data as any[]) || []).map(p => (
+                  <PropertyCard 
+                    key={p.id} 
+                    property={p} 
+                    onClick={() => handleDetailClick(p)}
+                    isFavorited={favorites.has(p.id)}
+                    onToggleFavorite={() => toggleFavorite(p.id)}
+                    isComparing={compareList.includes(p.id)}
+                    onToggleCompare={() => toggleCompare(p.id)}
+                    isAdmin={isAdmin}
+                  />
+                ))}
+                {(!currentView.data || (currentView.data as any[]).length === 0) && (
+                  <div className="col-span-full py-20 text-center flex flex-col items-center">
+                    <Search className="text-gray-300 w-16 h-16 mb-4" />
+                    <h3 className="text-xl font-bold text-gray-500">No properties found</h3>
+                    <p className="text-gray-400 mt-2">Try adjusting your filters to see more results.</p>
+                    <button 
+                      onClick={navigateHome}
+                      className="mt-6 px-6 py-2.5 bg-brand-green text-white font-bold rounded-lg hover:bg-brand-green-dark compact-transition"
+                    >
+                      Back to Search
+                    </button>
+                  </div>
+                )}
               </div>
             </section>
           </motion.main>
@@ -6999,6 +8000,7 @@ export default function App() {
             favorites={favorites}
             compareList={compareList}
             toggleCompare={toggleCompare}
+            isAdmin={isAdmin}
           />
         )}
 
@@ -7091,6 +8093,7 @@ export default function App() {
             toggleFavorite={toggleFavorite}
             compareList={compareList}
             toggleCompare={toggleCompare}
+            isAdmin={isAdmin}
           />
         )}
 
@@ -7119,6 +8122,7 @@ export default function App() {
             }}
             onShowInquiries={() => setCurrentView({ type: 'inquiries' })}
             onShowListings={() => setCurrentView({ type: 'agent_listings' })}
+            onShowAgentListings={() => setCurrentView({ type: 'agent_only_listings' })}
             onLogout={() => {
               supabase.auth.signOut();
               setUser(null);
@@ -7140,11 +8144,18 @@ export default function App() {
             user={user}
             onShowToast={showToast}
             onBack={() => setCurrentView({ type: 'agent_access' })}
-            properties={supabaseProperties}
             onEdit={(p) => {
               setEditingProperty(p);
               setCurrentView({ type: 'agent_publish' });
             }}
+            onRefresh={refreshProperties}
+          />
+        )}
+
+        {currentView.type === 'agent_only_listings' && (
+          <AgentOnlyListingsView 
+            onShowToast={showToast}
+            onBack={() => setCurrentView({ type: 'agent_access' })}
             onRefresh={refreshProperties}
           />
         )}
@@ -7157,7 +8168,7 @@ export default function App() {
         )}
 
         {currentView.type === 'wanted' && (
-          <PropertyWanted onContact={(data) => setCurrentView({ type: 'contact', data })} />
+          <PropertyWanted onContact={(data) => setCurrentView({ type: 'contact', data })} user={user} isAdmin={isAdmin} />
         )}
 
         {currentView.type === 'inquiries' && (
@@ -7186,6 +8197,7 @@ export default function App() {
         {compareList.length > 0 && currentView.type !== 'compare' && (
           <ComparisonBar 
             propertyIds={compareList} 
+            properties={supabaseProperties}
             onCompare={() => setCurrentView({ type: 'compare' })}
             onRemove={removeCompare}
             onClear={() => setCompareList([])}

@@ -24,6 +24,7 @@ export interface Property {
   floorArea?: string;
   floors?: number;
   additionalInfo?: string;
+  amenities?: string[];
   isNegotiable?: boolean;
   locationLink?: string;
   contacts?: { type: 'Mobile' | 'Landline', number: string }[];
@@ -86,6 +87,7 @@ export function useProperties() {
             district: item.district,
             images: item.images || [],
             additionalInfo: item.additional_info || item.additional_information || '',
+            amenities: item.amenities || item.building_amenities || [],
             isNegotiable: item.is_negotiable,
             locationLink: item.google_maps_link || item.location_link,
             status: item.status || 'active',
