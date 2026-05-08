@@ -115,6 +115,8 @@ import {
   Info,
   AlertCircle,
   Trash2,
+  Check,
+  BarChart2,
   AlertTriangle,
   TrendingUp,
   MousePointer2,
@@ -2553,6 +2555,580 @@ const FeaturedProjectsSection = () => {
             <ChevronRight size={16} />
           </button>
         </div>
+      </div>
+    </section>
+  );
+};
+
+interface ValuationResult {
+  min_price: number;
+  max_price: number;
+  fair_value: number;
+  price_per_perch?: number;
+  market_position: string;
+  usd_min: number;
+  usd_max: number;
+  eur_min: number;
+  eur_max: number;
+  gauge_position: number;
+  analysis: string;
+  value_factors: string[];
+  recommendation: string;
+}
+
+const PropertyValuationSection = () => {
+  const [formData, setFormData] = useState({
+    listingType: 'For Sale',
+    propertyType: 'House',
+    district: 'Colombo',
+    city: '',
+    landArea: '',
+    landUnit: 'Perches',
+    floorArea: '',
+    bedrooms: '3',
+    bathrooms: '2',
+    propertyAge: 'Under 5 Years',
+    condition: 'Excellent',
+    roadAccess: 'Main Road',
+    features: [] as string[]
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [loadingMsg, setLoadingMsg] = useState('Analyzing Sri Lanka market data...');
+  const [result, setResult] = useState<ValuationResult | null>(null);
+  const [similarProperties, setSimilarProperties] = useState<Property[]>([]);
+
+  const PROPERTY_TYPES = [
+    { label: 'House', icon: '🏠' },
+    { label: 'Land', icon: '🌿' },
+    { label: 'Apartment', icon: '🏢' },
+    { label: 'Building', icon: '🏗️' },
+    { label: 'Commercial', icon: '💼' },
+    { label: 'Farm Land', icon: '🌾' },
+    { label: 'Villa', icon: '🏖️' },
+    { label: 'Hotel', icon: '🏨' }
+  ];
+
+  const AGE_OPTIONS = ['Brand New', 'Under 5 Years', '5-10 Years', '10-20 Years', '20+ Years'];
+  const CONDITION_OPTIONS = ['Excellent', 'Good', 'Average', 'Needs Renovation'];
+  const ROAD_OPTIONS = ['Main Road', 'Secondary Road', 'Private Road'];
+  const FEATURES_LIST = [
+    'Swimming Pool', 'Garage/Parking', 'Garden', 'Security System',
+    'Furnished', 'Generator', 'Solar Panels', 'Water Well',
+    'CCTV', 'Servant Quarters'
+  ];
+
+  useEffect(() => {
+    if (loading) {
+      const msgs = [
+        "Analyzing Sri Lanka market data...",
+        "Comparing similar properties...",
+        "Calculating fair market value...",
+        "Generating AI insights..."
+      ];
+      let i = 0;
+      const interval = setInterval(() => {
+        i = (i + 1) % msgs.length;
+        setLoadingMsg(msgs[i]);
+      }, 1500);
+      return () => clearInterval(interval);
+    }
+  }, [loading]);
+
+  const handleFeatureToggle = (feature: string) => {
+    setFormData(prev => ({
+      ...prev,
+      features: prev.features.includes(feature)
+        ? prev.features.filter(f => f !== feature)
+        : [...prev.features, feature]
+    }));
+  };
+
+  const calculateValuation = async () => {
+    setLoading(true);
+    setResult(null);
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const prompt = `You are a Sri Lankan real estate valuation expert. Calculate the market value for this property:
+      Type: ${formData.listingType} - ${formData.propertyType}
+      Location: ${formData.city}, ${formData.district}, Sri Lanka
+      Land Area: ${formData.landArea} ${formData.landUnit}
+      Floor Area: ${formData.floorArea} sqft
+      Bedrooms: ${formData.bedrooms}
+      Bathrooms: ${formData.bathrooms}
+      Age: ${formData.propertyAge}
+      Condition: ${formData.condition}
+      Road Access: ${formData.roadAccess}
+      Features: ${formData.features.join(', ')}
+
+      Based on current Sri Lankan real estate market 2025, provide:
+      Return ONLY this JSON without markdown formatting:
+      {
+        "min_price": number,
+        "max_price": number,
+        "fair_value": number,
+        "price_per_perch": number,
+        "market_position": "fair" | "too low" | "low" | "high" | "too high",
+        "usd_min": number,
+        "usd_max": number,
+        "eur_min": number,
+        "eur_max": number,
+        "gauge_position": number,
+        "analysis": "2-3 sentence market analysis",
+        "value_factors": ["Factor that adds value", "Factor that reduces value"],
+        "recommendation": "Buy/Sell recommendation"
+      }
+      gauge_position: 0=Too Low, 25=Low, 50=Fair, 75=High, 100=Too High`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.1-pro-preview",
+        contents: prompt,
+        config: { responseMimeType: "application/json" }
+      });
+
+      const valuationData: ValuationResult = JSON.parse(response.text.trim());
+      setResult(valuationData);
+
+      // Fetch similar properties
+      const { data } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('district', formData.district)
+        .gte('price_lkr', valuationData.min_price * 0.8)
+        .lte('price_lkr', valuationData.max_price * 1.2)
+        .limit(3);
+      
+      setSimilarProperties(data || []);
+      
+      // Scroll to result
+      setTimeout(() => {
+        document.getElementById('valuation-results')?.scrollIntoView({ behavior: 'smooth' });
+      }, 500);
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to calculate valuation. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section className="py-24 bg-gradient-to-br from-[#0D0D2B] to-[#1a1a4e] text-white overflow-hidden scroll-mt-20">
+      <div className="container mx-auto px-6">
+        <div className="text-center mb-16">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            className="text-4xl md:text-5xl font-black mb-6"
+          >
+            Calculate Your Property Price
+          </motion.h2>
+          <motion.div 
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            className="w-32 h-1.5 bg-brand-green mx-auto rounded-full mb-6 origin-center"
+          />
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto font-medium">
+            Get an instant AI-powered market value estimate for any property in Sri Lanka
+          </p>
+        </div>
+
+        <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-xl border border-white/10 rounded-[40px] p-8 md:p-12 shadow-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Form Fields */}
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Listing & Property Type</label>
+              <div className="grid grid-cols-2 gap-4">
+                <select 
+                  value={formData.listingType}
+                  onChange={e => setFormData({...formData, listingType: e.target.value})}
+                  className="bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-brand-green outline-none"
+                >
+                  <option className="text-dark-navy" value="For Sale">For Sale</option>
+                  <option className="text-dark-navy" value="For Rent">For Rent</option>
+                </select>
+                <select 
+                  value={formData.propertyType}
+                  onChange={e => setFormData({...formData, propertyType: e.target.value})}
+                  className="bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-brand-green outline-none"
+                >
+                  {PROPERTY_TYPES.map(pt => (
+                    <option className="text-dark-navy" key={pt.label} value={pt.label}>{pt.icon} {pt.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Location (District & City)</label>
+              <div className="grid grid-cols-2 gap-4">
+                <select 
+                  value={formData.district}
+                  onChange={e => setFormData({...formData, district: e.target.value})}
+                  className="bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-brand-green outline-none"
+                >
+                  {SRI_LANKA_DISTRICTS.map(d => (
+                    <option className="text-dark-navy" key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+                <input 
+                  type="text" 
+                  placeholder="City/Area e.g. Rajagiriya"
+                  value={formData.city}
+                  onChange={e => setFormData({...formData, city: e.target.value})}
+                  className="bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-brand-green outline-none placeholder:text-gray-600"
+                />
+              </div>
+            </div>
+
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Land Area</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="number"
+                    value={formData.landArea}
+                    onChange={e => setFormData({...formData, landArea: e.target.value})}
+                    className="flex-1 bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-brand-green outline-none"
+                  />
+                  <select 
+                    value={formData.landUnit}
+                    onChange={e => setFormData({...formData, landUnit: e.target.value})}
+                    className="bg-white/10 border-none rounded-2xl px-3 py-4 focus:ring-2 focus:ring-brand-green outline-none"
+                  >
+                    <option className="text-dark-navy" value="Perches">Perches</option>
+                    <option className="text-dark-navy" value="Acres">Acres</option>
+                    <option className="text-dark-navy" value="SqFt">SqFt</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Floor Area (SqFt)</label>
+                <input 
+                  type="number"
+                  value={formData.floorArea}
+                  onChange={e => setFormData({...formData, floorArea: e.target.value})}
+                  className="w-full bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-brand-green outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Property Age</label>
+                <select 
+                  value={formData.propertyAge}
+                  onChange={e => setFormData({...formData, propertyAge: e.target.value})}
+                  className="w-full bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-brand-green outline-none"
+                >
+                  {AGE_OPTIONS.map(age => (
+                    <option className="text-dark-navy" key={age} value={age}>{age}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {(formData.propertyType === 'House' || formData.propertyType === 'Apartment' || formData.propertyType === 'Villa') && (
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Bedrooms</label>
+                  <div className="flex gap-2">
+                    {['1', '2', '3', '4', '5+'].map(val => (
+                      <button 
+                        key={val}
+                        onClick={() => setFormData({...formData, bedrooms: val})}
+                        className={`flex-1 py-3 rounded-xl font-bold transition-all ${formData.bedrooms === val ? 'bg-brand-green text-white shadow-lg' : 'bg-white/5 hover:bg-white/10'}`}
+                      >
+                        {val}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Bathrooms</label>
+                  <div className="flex gap-2">
+                    {['1', '2', '3', '4+'].map(val => (
+                      <button 
+                        key={val}
+                        onClick={() => setFormData({...formData, bathrooms: val})}
+                        className={`flex-1 py-3 rounded-xl font-bold transition-all ${formData.bathrooms === val ? 'bg-brand-green text-white shadow-lg' : 'bg-white/5 hover:bg-white/10'}`}
+                      >
+                        {val}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Condition</label>
+              <select 
+                value={formData.condition}
+                onChange={e => setFormData({...formData, condition: e.target.value})}
+                className="w-full bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-brand-green outline-none"
+              >
+                {CONDITION_OPTIONS.map(opt => (
+                  <option className="text-dark-navy" key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Road Access</label>
+              <div className="flex gap-2">
+                {ROAD_OPTIONS.map(opt => (
+                  <button 
+                    key={opt}
+                    onClick={() => setFormData({...formData, roadAccess: opt})}
+                    className={`flex-1 py-3 rounded-xl font-bold transition-all ${formData.roadAccess === opt ? 'bg-brand-green text-white shadow-lg' : 'bg-white/5 hover:bg-white/10'}`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-6 border-b border-white/10 pb-4">Special Features</label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {FEATURES_LIST.map(feature => (
+                  <label key={feature} className="flex items-center gap-3 cursor-pointer group">
+                    <div 
+                      onClick={() => handleFeatureToggle(feature)}
+                      className={`w-5 h-5 rounded flex items-center justify-center transition-all ${formData.features.includes(feature) ? 'bg-brand-green' : 'border-2 border-white/20 group-hover:border-white/40'}`}
+                    >
+                      {formData.features.includes(feature) && <Check size={12} className="text-white" />}
+                    </div>
+                    <span className="text-sm font-medium text-gray-400 group-hover:text-white transition-colors">{feature}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-12">
+            <motion.button 
+              onClick={calculateValuation}
+              disabled={loading || !formData.city || !formData.landArea}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              animate={!loading ? {
+                scale: [1, 1.02, 1],
+                transition: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+              } : {}}
+              className="w-full py-5 bg-brand-green text-white font-black text-xl rounded-2xl shadow-xl shadow-brand-green/20 disabled:opacity-50 flex items-center justify-center gap-4 transition-all"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  {loadingMsg}
+                </>
+              ) : (
+                <>
+                  <Calculator />
+                  CALCULATE NOW
+                </>
+              )}
+            </motion.button>
+          </div>
+        </div>
+
+        {result && (
+          <motion.div 
+            id="valuation-results"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-24 space-y-12"
+          >
+            {/* Speedometer Gauge */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div className="bg-white/5 backdrop-blur-xl rounded-[40px] p-12 border border-white/10 flex flex-col items-center">
+                <h3 className="text-xl font-bold mb-12 uppercase tracking-widest text-gray-400">Market Value Gauge</h3>
+                <div className="relative w-64 h-32 md:w-80 md:h-40">
+                  <svg className="w-full h-full" viewBox="0 0 100 50">
+                    <path d="M10,50 A40,40 0 0,1 90,50" fill="none" strokeWidth="8" stroke="#ef4444" strokeDasharray="25,100" />
+                    <path d="M10,50 A40,40 0 0,1 90,50" fill="none" strokeWidth="8" stroke="#f59e0b" strokeDasharray="50,100" strokeDashoffset="-25" />
+                    <path d="M10,50 A40,40 0 0,1 90,50" fill="none" strokeWidth="8" stroke="#10b981" strokeDasharray="25,100" strokeDashoffset="-50" />
+                    <path d="M10,50 A40,40 0 0,1 90,50" fill="none" strokeWidth="8" stroke="#f59e0b" strokeDasharray="25,100" strokeDashoffset="-75" />
+                    <path d="M10,50 A40,40 0 0,1 90,50" fill="none" strokeWidth="8" stroke="#ef4444" strokeDasharray="25,100" strokeDashoffset="-100" />
+                    
+                    {/* Needle */}
+                    <motion.g 
+                      initial={{ rotate: -90 }}
+                      animate={{ rotate: (result.gauge_position * 1.8) - 90 }}
+                      transition={{ duration: 1.5, ease: "easeOut" }}
+                      style={{ originX: '50px', originY: '50px' }}
+                    >
+                      <line x1="50" y1="50" x2="50" y2="15" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                      <circle cx="50" cy="50" r="3" fill="white" />
+                    </motion.g>
+                  </svg>
+                  <div className="absolute -bottom-4 left-0 right-0 text-center">
+                    <div className="text-3xl font-black uppercase text-brand-green tracking-tighter">
+                      {result.market_position}
+                    </div>
+                    <div className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-widest leading-relaxed">Gauge Position: {result.gauge_position}%</div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-between w-full mt-16 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                  <span className="text-red-500">Too Low</span>
+                  <span className="text-orange-400">Low</span>
+                  <span className="text-green-500">Fair</span>
+                  <span className="text-orange-400">High</span>
+                  <span className="text-red-500">Too High</span>
+                </div>
+              </div>
+
+              {/* Price Range Card */}
+              <div className="bg-brand-green rounded-[40px] p-12 text-dark-navy shadow-2xl shadow-brand-green/20 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32 transition-transform group-hover:scale-125 duration-700" />
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 bg-dark-navy/10 rounded-lg"><DollarSign size={24} /></div>
+                    <span className="font-bold uppercase tracking-widest text-sm opacity-60">Estimated Market Value</span>
+                  </div>
+                  
+                  <div className="mb-8">
+                    <div className="text-sm font-bold opacity-60 mb-1 leading-relaxed">Price Range (LKR)</div>
+                    <div className="text-4xl md:text-5xl font-black tracking-tighter">
+                      Rs. {result.min_price.toLocaleString()} - {result.max_price.toLocaleString()}
+                    </div>
+                  </div>
+
+                  <div className="p-6 bg-white/20 rounded-3xl border border-white/30 backdrop-blur-sm mb-8">
+                    <div className="text-xs font-bold opacity-60 uppercase mb-1 tracking-widest leading-relaxed">Fair Market Value</div>
+                    <div className="text-3xl font-black">Rs. {result.fair_value.toLocaleString()}</div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6 pt-6 border-t border-dark-navy/10">
+                    <div>
+                      <div className="text-[10px] font-bold opacity-60 uppercase mb-1 tracking-widest leading-relaxed">USD Estimate</div>
+                      <div className="font-black">$ {result.usd_min.toLocaleString()} - $ {result.usd_max.toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold opacity-60 uppercase mb-1 tracking-widest leading-relaxed">EUR Estimate</div>
+                      <div className="font-black">€ {result.eur_min.toLocaleString()} - € {result.eur_max.toLocaleString()}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Three Price Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { label: 'Low Range', price: `Below Rs. ${(result.min_price * 0.9).toLocaleString()}`, desc: 'Potential Opportunity', color: 'bg-orange-500/10 border-orange-500/20 text-orange-400' },
+                { label: 'Fair Range', price: `Rs. ${(result.min_price/1000000).toFixed(1)}M - ${(result.max_price/1000000).toFixed(1)}M`, desc: 'Market Sweet Spot', color: 'bg-brand-green/10 border-brand-green/20 text-brand-green' },
+                { label: 'High Range', price: `Above Rs. ${(result.max_price * 1.1).toLocaleString()}`, desc: 'Premium Territory', color: 'bg-red-500/10 border-red-500/20 text-red-500' }
+              ].map((card, idx) => (
+                <motion.div 
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * idx }}
+                  className={`${card.color} p-8 rounded-[32px] border backdrop-blur-xl relative group overflow-hidden`}
+                >
+                  <div className="relative z-10">
+                    <h4 className="text-xs font-black uppercase tracking-widest mb-4 opacity-60">{card.label}</h4>
+                    <div className="text-2xl font-black mb-2">{card.price}</div>
+                    <p className="text-sm font-medium opacity-80">{card.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Analysis and Factors */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="bg-white/5 rounded-[40px] p-10 border border-white/10 group">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-10 h-10 bg-brand-green/20 text-brand-green rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform"><BarChart2 size={20} /></div>
+                  <h3 className="text-xl font-bold uppercase tracking-widest">AI Market Analysis</h3>
+                </div>
+                <div className="border-l-4 border-brand-green pl-6 py-2">
+                  <p className="text-gray-400 leading-relaxed text-lg">
+                    {result.analysis}
+                  </p>
+                </div>
+                <div className="mt-8 pt-8 border-t border-white/10">
+                  <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Recommendation</div>
+                  <div className="bg-brand-green/20 text-brand-green inline-block px-4 py-2 rounded-xl text-sm font-bold">
+                    {result.recommendation}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white/5 rounded-[40px] p-10 border border-white/10">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-10 h-10 bg-blue-500/20 text-blue-500 rounded-xl flex items-center justify-center"><CheckCircle size={20} /></div>
+                  <h3 className="text-xl font-bold uppercase tracking-widest">Valuation Factors</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="text-xs font-bold text-green-500 uppercase tracking-widest mb-4">✅ Adds Value</div>
+                    {result.value_factors.slice(0, 3).map((f, i) => (
+                      <div key={i} className="flex items-start gap-3 bg-green-500/5 p-4 rounded-2xl border border-green-500/10">
+                        <Check size={16} className="text-green-500 mt-1 shrink-0" />
+                        <span className="text-sm font-medium text-gray-300">{f}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="space-y-4">
+                    <div className="text-xs font-bold text-red-500 uppercase tracking-widest mb-4">⚠️ Risks / Reduction</div>
+                    {result.value_factors.slice(3, 6).map((f, i) => (
+                      <div key={i} className="flex items-start gap-3 bg-red-500/5 p-4 rounded-2xl border border-red-500/10">
+                        <AlertCircle size={16} className="text-red-500 mt-1 shrink-0" />
+                        <span className="text-sm font-medium text-gray-300">{f}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Similar Properties */}
+            {similarProperties.length > 0 && (
+              <div className="pt-12">
+                <div className="text-center mb-12">
+                  <h3 className="text-2xl font-black uppercase tracking-widest">Similar Properties in {formData.district}</h3>
+                  <p className="text-gray-500 mt-2">Real listings from our platform in this price range</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {similarProperties.map((prop, idx) => (
+                    <motion.div 
+                      key={prop.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.2 + (idx * 0.1) }}
+                      className="bg-white rounded-3xl overflow-hidden shadow-xl group border border-gray-100"
+                    >
+                      <div className="relative h-48 overflow-hidden">
+                        <img 
+                          src={prop.images?.[0] || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80'} 
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                        />
+                        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl">
+                          <span className="text-dark-navy font-black text-sm">Rs. {(prop.price_lkr / 1000000).toFixed(1)}M</span>
+                        </div>
+                      </div>
+                      <div className="p-6">
+                        <h4 className="text-dark-navy font-bold line-clamp-1 mb-2">{prop.title}</h4>
+                        <p className="text-gray-400 text-xs font-bold uppercase mb-4 tracking-widest">{prop.city}, {prop.district}</p>
+                        <button className="w-full py-3 bg-gray-50 hover:bg-brand-green hover:text-white transition-colors rounded-xl text-dark-navy font-black text-xs uppercase tracking-widest">VIEW PROPERTY</button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-center pt-8">
+              <button className="px-12 py-5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-[20px] font-black text-sm uppercase tracking-[0.2em] transition-all flex items-center gap-3">
+                <Share2 size={18} className="text-brand-green" />
+                Share This Valuation
+              </button>
+            </div>
+          </motion.div>
+        )}
       </div>
     </section>
   );
@@ -8676,6 +9252,7 @@ export default function App() {
 
             <FeaturedProjectsSection />
             <TestimonialsSection />
+            <PropertyValuationSection />
           </motion.main>
         )}
 
