@@ -123,7 +123,10 @@ import {
   Zap,
   Activity,
   Trees,
-  Lightbulb
+  Lightbulb,
+  Power,
+  Edit,
+  Save
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, Cell, PieChart, Pie } from 'recharts';
 import { translateToSinhala } from "./services/geminiService";
@@ -2275,6 +2278,285 @@ const TESTIMONIALS = [
     avatar: "https://i.pravatar.cc/150?u=michael"
   }
 ];
+
+interface FeaturedProject {
+  id: number;
+  title: string;
+  main_image: string;
+  images?: string[];
+  description?: string;
+  location?: string;
+  price_from?: string;
+  developer_name?: string;
+  developer_logo?: string;
+  contact_phone?: string;
+  website_url?: string;
+  is_active: boolean;
+  sort_order: number;
+}
+
+const FALLBACK_FEATURED_PROJECTS = [
+  {
+    id: 1,
+    title: "Aarana Boutique Residencies",
+    main_image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+    description: "Exclusive boutique apartments in the heart of the city.",
+    location: "Colombo 07",
+    price_from: "LKR 86M",
+    developer_name: "Prime Group",
+    developer_logo: "https://ui-avatars.com/api/?name=PRIME&background=0D8ABC&color=fff&rounded=true",
+    contact_phone: "+94 77 123 4567",
+    is_active: true,
+    sort_order: 1
+  },
+  {
+    id: 2,
+    title: "Sapphire Residence",
+    main_image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80",
+    description: "Luxury living with breathtaking views.",
+    location: "Colombo 01",
+    price_from: "From $1.2M",
+    developer_name: "ITC Hotels",
+    developer_logo: "https://ui-avatars.com/api/?name=ITC&background=FF5722&color=fff&rounded=true",
+    contact_phone: "+94 77 234 5678",
+    is_active: true,
+    sort_order: 2
+  },
+  {
+    id: 3,
+    title: "The Elizabeth Colombo 07",
+    main_image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80",
+    description: "Modern elegance and historic charm.",
+    location: "Colombo 07",
+    price_from: "LKR 120M",
+    developer_name: "John Keells",
+    developer_logo: "https://ui-avatars.com/api/?name=JKH&background=607D8B&color=fff&rounded=true",
+    contact_phone: "+94 77 345 6789",
+    is_active: true,
+    sort_order: 3
+  },
+  {
+    id: 4,
+    title: "Mon Vie",
+    main_image: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1200&q=80",
+    description: "Premium residencies for a modern lifestyle.",
+    location: "Rajagiriya",
+    price_from: "LKR 45M",
+    developer_name: "Blue Ocean",
+    developer_logo: "https://ui-avatars.com/api/?name=BO&background=03A9F4&color=fff&rounded=true",
+    contact_phone: "+94 77 456 7890",
+    is_active: true,
+    sort_order: 4
+  }
+];
+
+const FeaturedProjectsSection = () => {
+  const [projects, setProjects] = useState<FeaturedProject[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [lastInteractionTime, setLastInteractionTime] = useState(Date.now());
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('featured_projects')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true });
+        
+        if (data && data.length > 0) {
+          setProjects(data);
+        } else {
+          setProjects(FALLBACK_FEATURED_PROJECTS);
+        }
+      } catch (err) {
+        console.error(err);
+        setProjects(FALLBACK_FEATURED_PROJECTS);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProjects();
+  }, []);
+
+  useEffect(() => {
+    if (projects.length <= 1) return;
+    const interval = setInterval(() => {
+      const timeSinceInteract = Date.now() - lastInteractionTime;
+      if (!isHovered && timeSinceInteract > 5000) {
+        setActiveIndex(prev => (prev + 1) % projects.length);
+      }
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [projects.length, isHovered, lastInteractionTime]);
+
+  const interact = () => setLastInteractionTime(Date.now());
+
+  if (loading) return null;
+  if (!projects.length) return null;
+
+  const currentProject = projects[activeIndex];
+
+  return (
+    <section className="py-20 bg-white">
+      <div className="container mx-auto px-6 max-w-5xl">
+        <div className="text-center mb-12">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="flex items-center justify-center gap-4"
+          >
+            <motion.div 
+              initial={{ scaleX: 0 }} 
+              whileInView={{ scaleX: 1 }} 
+              transition={{ delay: 0.3, duration: 0.5 }} 
+              className="h-px bg-gray-200 hidden sm:block flex-1 max-w-[100px] origin-right" 
+            />
+            <h2 className="text-3xl font-extrabold text-dark-navy">Featured Projects</h2>
+            <motion.div 
+              initial={{ scaleX: 0 }} 
+              whileInView={{ scaleX: 1 }} 
+              transition={{ delay: 0.3, duration: 0.5 }} 
+              className="h-px bg-gray-200 hidden sm:block flex-1 max-w-[100px] origin-left" 
+            />
+          </motion.div>
+        </div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="relative rounded-[16px] overflow-hidden shadow-2xl group"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          {/* Main Image */}
+          <div className="relative h-[400px] w-full bg-dark-navy overflow-hidden">
+            <AnimatePresence initial={false} mode="sync">
+              <motion.img
+                key={activeIndex}
+                src={currentProject.main_image}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8 }}
+                className="absolute inset-0 w-full h-full object-cover origin-center hidden-ken-burns"
+              />
+            </AnimatePresence>
+
+            <style>{`
+              @keyframes kenBurnsCustom {
+                from { transform: scale(1); }
+                to { transform: scale(1.05); }
+              }
+              .hidden-ken-burns {
+                animation: kenBurnsCustom 6s ease infinite alternate;
+              }
+            `}</style>
+            
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+
+            {/* Arrows */}
+            <button 
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-20"
+              onClick={() => { interact(); setActiveIndex(p => (p - 1 + projects.length) % projects.length); }}
+            >
+              <ChevronLeft size={24} />
+            </button>
+            <button 
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-20"
+              onClick={() => { interact(); setActiveIndex(p => (p + 1) % projects.length); }}
+            >
+              <ChevronRight size={24} />
+            </button>
+
+            {/* Info Overlay */}
+            <div className="absolute bottom-6 right-6 lg:bottom-10 lg:right-10 bg-dark-navy/90 backdrop-blur-md border border-white/10 p-6 rounded-[16px] max-w-sm z-20 text-right text-white shadow-xl">
+              <div className="flex justify-end items-center gap-3 mb-2">
+                {currentProject.developer_logo && (
+                  <img src={currentProject.developer_logo} className="h-8 w-8 object-contain bg-white rounded-md p-1" />
+                )}
+                <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">{currentProject.developer_name}</span>
+              </div>
+              <h3 className="text-xl font-black mb-1">{currentProject.title}</h3>
+              <p className="text-brand-green font-bold text-lg mb-4">{currentProject.price_from}</p>
+              
+              <div className="flex gap-3 justify-end mt-2">
+                <a href={`tel:${currentProject.contact_phone}`} className="h-10 w-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
+                  <Phone size={18} />
+                </a>
+                <a href={currentProject.website_url || '#'} target="_blank" rel="noopener noreferrer" className="h-10 px-6 bg-brand-green hover:bg-brand-green-dark rounded-xl text-sm font-bold shadow-lg shadow-brand-green/20 transition-all flex items-center gap-2">
+                  View Details <ArrowRight size={16} />
+                </a>
+              </div>
+            </div>
+
+            {/* Dots */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
+              {projects.map((_, idx) => (
+                <button
+                  key={idx}
+                  className={`h-2 rounded-full transition-all ${idx === activeIndex ? 'w-6 bg-brand-green' : 'w-2 bg-white/50 hover:bg-white/80'}`}
+                  onClick={() => { interact(); setActiveIndex(idx); }}
+                />
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Thumbnail Strip */}
+        <div className="mt-4 relative group">
+          <div className="overflow-x-auto no-scrollbar scroll-smooth" ref={carouselRef}>
+            <div className="flex gap-4">
+              {projects.map((proj, idx) => (
+                <motion.div 
+                  key={proj.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className={`relative w-[calc(25%-12px)] min-w-[150px] shrink-0 cursor-pointer transition-all duration-300 rounded-[8px] overflow-hidden border-[3px] ${idx === activeIndex ? 'border-brand-green scale-[1.02] shadow-lg shadow-brand-green/20 z-10' : 'border-transparent'}`}
+                  onClick={() => { interact(); setActiveIndex(idx); }}
+                >
+                  <div className="h-[120px] bg-gray-200 w-full relative">
+                    <img src={proj.main_image} className="w-full h-full object-cover" />
+                    <div className={`absolute inset-0 bg-black transition-opacity ${idx === activeIndex ? 'opacity-0' : 'opacity-[0.7]'}`} />
+                  </div>
+                  <div className="p-2 bg-white text-center border-t border-gray-100">
+                    <h4 className="text-xs font-bold text-dark-navy truncate">{proj.title}</h4>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Scroll Arrows for thumbnails if needed */}
+          <button 
+            className="absolute left-[-10px] top-1/2 -translate-y-1/2 w-8 h-8 bg-white shadow-md border border-gray-100 text-gray-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-20 hover:scale-110"
+            onClick={() => { 
+              if (carouselRef.current) carouselRef.current.scrollBy({ left: -200, behavior: 'smooth' })
+            }}
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <button 
+            className="absolute right-[-10px] top-1/2 -translate-y-1/2 w-8 h-8 bg-white shadow-md border border-gray-100 text-gray-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-20 hover:scale-110"
+            onClick={() => { 
+              if (carouselRef.current) carouselRef.current.scrollBy({ left: 200, behavior: 'smooth' })
+            }}
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+};
 
 const TestimonialsSection = () => (
   <section className="py-20 bg-gray-50 overflow-hidden">
@@ -5707,6 +5989,469 @@ const AgentOnlyListingsView = ({ onBack, onRefresh, onShowToast }: { onBack: () 
   );
 };
 
+const AdminFeaturedProjectsView = ({ onBack, onShowToast }: { onBack: () => void, onShowToast: (msg: string, type: 'success' | 'error') => void }) => {
+  const [projects, setProjects] = useState<FeaturedProject[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingProject, setEditingProject] = useState<FeaturedProject | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchProjects = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('featured_projects')
+        .select('*')
+        .order('sort_order', { ascending: true });
+      if (error) throw error;
+      setProjects(data || []);
+    } catch (err: any) {
+      console.error(err);
+      onShowToast("Failed to fetch featured projects", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchProjects(); }, []);
+
+  const [formData, setFormData] = useState<Partial<FeaturedProject>>({});
+
+  const handleEdit = (project?: FeaturedProject) => {
+    if (project) {
+      setEditingProject(project);
+      setFormData({ ...project });
+    } else {
+      setEditingProject({} as FeaturedProject);
+      setFormData({
+        title: '',
+        main_image: '',
+        description: '',
+        location: '',
+        price_from: '',
+        developer_name: '',
+        developer_logo: '',
+        contact_phone: '',
+        is_active: true,
+        sort_order: projects.length + 1
+      });
+    }
+  };
+
+  const handleAddMultipleImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    try {
+      const newUrls = await Promise.all(files.map(async (file: File) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+        const filePath = fileName;
+
+        const { error: uploadError } = await supabase.storage
+          .from('featured-projects')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data } = supabase.storage
+          .from('featured-projects')
+          .getPublicUrl(filePath);
+
+        return data.publicUrl;
+      }));
+
+      setFormData(prev => ({
+        ...prev,
+        images: [...(prev.images || []), ...newUrls]
+      }));
+      onShowToast(`${newUrls.length} images uploaded successfully`, "success");
+    } catch (err: any) {
+      onShowToast("Failed to upload some images", "error");
+    }
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setFormData(prev => {
+      const newImages = [...(prev.images || [])];
+      newImages.splice(index, 1);
+      return { ...prev, images: newImages };
+    });
+  };
+
+  const moveGalleryImage = (index: number, direction: 'up' | 'down') => {
+    setFormData(prev => {
+      const newImages = [...(prev.images || [])];
+      if (direction === 'up' && index > 0) {
+        const temp = newImages[index - 1];
+        newImages[index - 1] = newImages[index];
+        newImages[index] = temp;
+      } else if (direction === 'down' && index < newImages.length - 1) {
+        const temp = newImages[index + 1];
+        newImages[index + 1] = newImages[index];
+        newImages[index] = temp;
+      }
+      return { ...prev, images: newImages };
+    });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'main_image' | 'developer_logo') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('featured-projects')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('featured-projects')
+        .getPublicUrl(fileName);
+
+      setFormData(prev => ({ ...prev, [field]: data.publicUrl }));
+      onShowToast("Image uploaded successfully", "success");
+    } catch (err: any) {
+      console.error(err);
+      onShowToast("Failed to upload image. Does the bucket 'featured-projects' exist?", "error");
+    }
+  };
+
+  const handleSave = async (e?: React.FormEvent, keepOpen: boolean = false) => {
+    if (e) e.preventDefault();
+    setIsSaving(true);
+    try {
+      if (formData.id) {
+        const { error } = await supabase
+          .from('featured_projects')
+          .update(formData)
+          .eq('id', formData.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('featured_projects')
+          .insert([formData]);
+        if (error) throw error;
+      }
+      onShowToast("Project saved successfully", "success");
+      if (!keepOpen) setEditingProject(null);
+      fetchProjects();
+    } catch (err: any) {
+      onShowToast(err.message || "Failed to save project", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const toggleActive = async (id: number, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('featured_projects')
+        .update({ is_active: !currentStatus })
+        .eq('id', id);
+      if (error) throw error;
+      fetchProjects();
+    } catch (err) {
+      onShowToast("Failed to update status", "error");
+    }
+  };
+
+  const moveProject = async (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= projects.length) return;
+
+    const currentProj = projects[index];
+    const targetProj = projects[targetIndex];
+
+    try {
+      const { error: error1 } = await supabase
+        .from('featured_projects')
+        .update({ sort_order: targetProj.sort_order })
+        .eq('id', currentProj.id);
+      
+      const { error: error2 } = await supabase
+        .from('featured_projects')
+        .update({ sort_order: currentProj.sort_order })
+        .eq('id', targetProj.id);
+
+      if (error1 || error2) throw new Error("Failed to update sort order");
+      fetchProjects();
+    } catch (err: any) {
+      onShowToast(err.message, "error");
+    }
+  };
+
+  const deleteProject = async (id: number) => {
+    if (!window.confirm("Delete this featured project permanently?\nThis will remove it from the homepage.")) return;
+    try {
+      const { error } = await supabase.from('featured_projects').delete().eq('id', id);
+      if (error) throw error;
+      onShowToast("✅ Project deleted", "success");
+      fetchProjects();
+    } catch (err) {
+      onShowToast("Failed to delete project", "error");
+    }
+  };
+
+  if (editingProject) {
+    return (
+      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="fixed inset-0 z-50 bg-gray-900/50 flex justify-end">
+        <div className="w-full max-w-2xl bg-gray-50 h-full overflow-y-auto shadow-2xl flex flex-col">
+          <div className="bg-white p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+            <h2 className="text-2xl font-black text-dark-navy">{formData.id ? 'Edit Project' : 'Add New Project'}</h2>
+            <button onClick={() => setEditingProject(null)} className="p-2 text-gray-500 hover:bg-gray-100 rounded-full">
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="p-8 flex-1">
+            <form id="project-form" onSubmit={handleSave} className="space-y-8">
+              
+              <div className="bg-white p-6 rounded-[24px] shadow-sm border border-gray-100 space-y-4">
+                <h3 className="font-bold text-dark-navy mb-4 border-b border-gray-100 pb-2">1. Project Images</h3>
+                
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Main Image (Required)</label>
+                  <div className="flex gap-4 items-center">
+                    {formData.main_image && <img src={formData.main_image} className="w-32 h-20 object-cover rounded-xl shadow-sm border border-gray-200" />}
+                    <label className="flex-1 border-2 border-dashed border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-xl px-4 py-8 text-center cursor-pointer transition-colors">
+                      <span className="text-sm font-bold text-brand-green">Upload Main Image</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'main_image')} />
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Gallery Images (Optional)</label>
+                  
+                  {formData.images && formData.images.length > 0 && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+                      {formData.images.map((img, idx) => (
+                        <div key={idx} className="relative group rounded-xl overflow-hidden shadow-sm border border-gray-200 h-24">
+                          <img src={img} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            {idx > 0 && (
+                              <button type="button" onClick={() => moveGalleryImage(idx, 'up')} className="p-1 bg-white rounded-full text-gray-700 hover:text-brand-green">
+                                <ArrowUp size={14} />
+                              </button>
+                            )}
+                            <button type="button" onClick={() => removeGalleryImage(idx)} className="p-1 bg-white rounded-full text-gray-700 hover:text-red-500">
+                              <Trash2 size={14} />
+                            </button>
+                            {idx < (formData.images?.length || 0) - 1 && (
+                              <button type="button" onClick={() => moveGalleryImage(idx, 'down')} className="p-1 bg-white rounded-full text-gray-700 hover:text-brand-green">
+                                <ArrowUp className="rotate-180" size={14} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <label className="block border-2 border-dashed border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-xl px-4 py-6 text-center cursor-pointer transition-colors">
+                    <span className="text-sm font-bold text-brand-green">Add Multiple Images</span>
+                    <input type="file" multiple accept="image/*" className="hidden" onChange={handleAddMultipleImages} />
+                  </label>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-[24px] shadow-sm border border-gray-100 space-y-6">
+                <h3 className="font-bold text-dark-navy mb-4 border-b border-gray-100 pb-2">2. Project Details</h3>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Project Title</label>
+                    <input required type="text" placeholder="e.g. Mon Vie Residencies" value={formData.title || ''} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-green" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Developer Name</label>
+                    <input type="text" placeholder="e.g. Prime Residencies" value={formData.developer_name || ''} onChange={e => setFormData({...formData, developer_name: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-green" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Developer Logo</label>
+                    <div className="flex gap-4 items-center">
+                      {formData.developer_logo && <img src={formData.developer_logo} className="w-12 h-12 object-contain bg-gray-50 border border-gray-200 rounded-xl p-1" />}
+                      <label className="flex-1 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-center cursor-pointer transition-colors text-sm font-bold text-gray-600">
+                        Upload Logo
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'developer_logo')} />
+                      </label>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Location</label>
+                    <input type="text" placeholder="e.g. Colombo 05" value={formData.location || ''} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-green" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Price From</label>
+                    <input type="text" placeholder="e.g. LKR 86M or USD 1.2M" value={formData.price_from || ''} onChange={e => setFormData({...formData, price_from: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-green" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Contact Phone</label>
+                    <input type="text" placeholder="e.g. 0702 777 777" value={formData.contact_phone || ''} onChange={e => setFormData({...formData, contact_phone: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-green" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Website URL</label>
+                    <input type="url" placeholder="https://developer-website.com" value={formData.website_url || ''} onChange={e => setFormData({...formData, website_url: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-green" />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Description</label>
+                    <textarea rows={3} placeholder="Brief project description..." value={formData.description || ''} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-green resize-none" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Sort Order</label>
+                    <input type="number" required value={formData.sort_order || 0} onChange={e => setFormData({...formData, sort_order: parseInt(e.target.value)})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-green" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-[24px] shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-dark-navy">3. Status</h3>
+                  <p className="text-xs text-gray-500">Determine if this project is visible on the homepage.</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" checked={formData.is_active || false} onChange={e => setFormData({...formData, is_active: e.target.checked})} className="sr-only peer" />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-green"></div>
+                </label>
+              </div>
+            </form>
+          </div>
+
+          <div className="bg-white p-6 border-t border-gray-100 flex justify-end gap-3 flex-wrap sticky bottom-0 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+            <button type="button" onClick={() => setEditingProject(null)} className="px-6 py-3 font-bold text-gray-500 hover:bg-gray-50 border border-gray-200 rounded-xl transition-colors">Cancel</button>
+            <button type="button" onClick={async (e) => {
+              if (!formData.title || !formData.main_image) {
+                onShowToast("Title and Main Image are required.", "error");
+                return;
+              }
+              await handleSave(e as any, true);
+              setFormData({
+                title: '',
+                main_image: '',
+                images: [],
+                description: '',
+                location: '',
+                price_from: '',
+                developer_name: '',
+                developer_logo: '',
+                contact_phone: '',
+                website_url: '',
+                is_active: true,
+                sort_order: projects.length + 2
+              });
+            }} disabled={isSaving} className="px-6 py-3 bg-white text-brand-green border-2 border-brand-green font-bold rounded-xl hover:bg-green-50 transition-all flex items-center gap-2">
+              Save & Add Another
+            </button>
+            <button type="submit" form="project-form" disabled={isSaving} className="px-6 py-3 bg-brand-green text-white font-bold rounded-xl hover:bg-brand-green-dark transition-all shadow-lg shadow-brand-green/20 flex items-center gap-2">
+              {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />} Save Project
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-7xl mx-auto px-6 py-12">
+      <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
+        <div className="flex items-center gap-4">
+          <button onClick={onBack} className="p-3 bg-white shadow-sm border border-gray-100 rounded-2xl hover:bg-gray-50 text-gray-500 transition-colors">
+            <ChevronLeft size={20} />
+          </button>
+          <div>
+            <h2 className="text-3xl font-black text-dark-navy flex items-center gap-3">
+              🏆 Featured Projects
+              <span className="bg-green-100 text-green-700 text-sm font-bold px-3 py-1 rounded-full">{projects.length} Projects</span>
+            </h2>
+            <p className="text-sm font-bold text-gray-400">Manage homepage featured property showcase</p>
+          </div>
+        </div>
+        <button onClick={() => handleEdit()} className="px-6 py-3 bg-brand-green text-white font-bold rounded-xl hover:bg-brand-green-dark transition-all shadow-lg shadow-brand-green/20">
+          + Add New Project
+        </button>
+      </div>
+
+      <div className="bg-blue-50/50 p-4 rounded-xl mb-8 border border-blue-100/50 text-blue-800 text-sm">
+        <strong>Storage Note:</strong> Make sure there is a public Supabase storage bucket named <code>featured-projects</code> to store images for these featured projects.
+      </div>
+
+      {loading ? (
+        <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-brand-green" size={40} /></div>
+      ) : projects.length === 0 ? (
+        <div className="bg-white p-20 rounded-3xl text-center border-2 border-dashed border-gray-200">
+          <p className="text-gray-400 font-bold mb-4">No featured projects found.</p>
+          <button onClick={() => handleEdit()} className="text-brand-green font-bold">Add your first project</button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {projects.map((proj, idx) => (
+            <div key={proj.id} className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 overflow-hidden flex flex-col">
+              <div className="h-[180px] relative">
+                <img src={proj.main_image} className="w-full h-full object-cover" />
+                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded-md shadow-sm flex items-center gap-2">
+                  <span className={`h-2 w-2 rounded-full ${proj.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <span className="text-[10px] font-black text-gray-700 uppercase tracking-wider">{proj.is_active ? 'ACTIVE' : 'INACTIVE'}</span>
+                </div>
+                {proj.developer_logo && (
+                  <div className="absolute bottom-3 left-3 bg-white p-1 rounded-md shadow-sm">
+                    <img src={proj.developer_logo} className="w-8 h-8 object-contain" />
+                  </div>
+                )}
+              </div>
+              <div className="p-5 flex-1 flex flex-col">
+                <h4 className="font-black text-dark-navy text-xl mb-3 line-clamp-1">{proj.title}</h4>
+                <div className="space-y-2 mb-4 text-sm">
+                  <p className="text-gray-500 flex justify-between items-center"><span className="text-gray-400">📍 Location</span> <span className="font-bold text-dark-navy">{proj.location || '-'}</span></p>
+                  <p className="text-gray-500 flex justify-between items-center"><span className="text-gray-400">💰 Price From</span> <span className="font-bold text-dark-navy">{proj.price_from || '-'}</span></p>
+                  <p className="text-gray-500 flex justify-between items-center"><span className="text-gray-400">👷 Developer</span> <span className="font-bold text-dark-navy">{proj.developer_name || '-'}</span></p>
+                  <p className="text-gray-500 flex justify-between items-center"><span className="text-gray-400">📞 Phone</span> <span className="font-bold text-dark-navy">{proj.contact_phone || '-'}</span></p>
+                  <p className="text-gray-500 flex justify-between items-center border-t border-gray-100 pt-2"><span className="text-gray-400">Sort Order</span> <span className="font-black text-brand-green bg-green-50 px-2 py-0.5 rounded-md">{proj.sort_order}</span></p>
+                </div>
+                
+                <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => moveProject(idx, 'up')} disabled={idx === 0} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-dark-navy hover:bg-gray-100 rounded-lg disabled:opacity-30">
+                      <ArrowUp size={16} />
+                    </button>
+                    <button onClick={() => moveProject(idx, 'down')} disabled={idx === projects.length - 1} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-dark-navy hover:bg-gray-100 rounded-lg disabled:opacity-30">
+                      <ArrowUp className="rotate-180" size={16} />
+                    </button>
+                    <div className="w-px h-6 bg-gray-200 mx-1"></div>
+                    <label className="relative inline-flex items-center cursor-pointer p-2 hover:bg-gray-50 rounded-lg" title="Toggle Visibility">
+                      <input type="checkbox" checked={proj.is_active} onChange={() => toggleActive(proj.id, proj.is_active)} className="sr-only peer" />
+                      <div className="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[12px] after:left-[10px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-green-500"></div>
+                    </label>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    <a href="/" target="_blank" rel="noopener noreferrer" className="w-8 h-8 flex items-center justify-center text-blue-500 hover:bg-blue-50 rounded-lg" title="Preview on Homepage">
+                      <Eye size={16} />
+                    </a>
+                    <button onClick={() => handleEdit(proj)} className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 hover:text-dark-navy rounded-lg" title="Edit">
+                      <Edit size={16} />
+                    </button>
+                    <button onClick={() => deleteProject(proj.id)} className="w-8 h-8 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-lg" title="Delete">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
 const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) => {
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'house' | 'land' | 'apartment'>('all');
   const [loading, setLoading] = useState(true);
@@ -5902,7 +6647,7 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1"> engagement vs leads</p>
           </div>
 
-          <div style={{ width: '100%', height: '300px', minWidth: '0' }}>
+          <div style={{ width: '100%', height: '300px', minWidth: '0', minHeight: '300px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trendData[selectedCategory]}>
                 <defs>
@@ -5949,7 +6694,7 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Listing density by category</p>
           </div>
 
-          <div style={{ width: '100%', height: '300px', minWidth: '0' }} className="my-4 relative">
+          <div style={{ width: '100%', height: '300px', minWidth: '0', minHeight: '300px' }} className="my-4 relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -6112,8 +6857,27 @@ const SecretLoginView = ({ onBack, onSuccess }: { onBack: () => void, onSuccess:
   );
 };
 
-const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowListings, onShowAgentListings, onLogout, agentPropertiesCount, agentLeadsTotal }: { onBack: () => void, user: any, onNewProperty: () => void, onShowInquiries: () => void, onShowListings: () => void, onShowAgentListings: () => void, onLogout: () => void, agentPropertiesCount: number, agentLeadsTotal: number }) => {
+const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowListings, onShowAgentListings, onShowFeaturedProjectsAdmin, onLogout, agentPropertiesCount, agentLeadsTotal }: { onBack: () => void, user: any, onNewProperty: () => void, onShowInquiries: () => void, onShowListings: () => void, onShowAgentListings: () => void, onShowFeaturedProjectsAdmin: () => void, onLogout: () => void, agentPropertiesCount: number, agentLeadsTotal: number }) => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'editProfile' | 'security' | 'live_visitors'>('dashboard');
+  const [newInquiriesCount, setNewInquiriesCount] = useState(0);
+
+  useEffect(() => {
+    const fetchNewCount = async () => {
+      if (!user?.email) return;
+      try {
+        const { count, error } = await supabase
+          .from('property_inquiries')
+          .select('*', { count: 'exact', head: true })
+          .eq('agent_id', user.email)
+          .eq('status', 'new');
+        if (error) throw error;
+        setNewInquiriesCount(count || 0);
+      } catch (err) {
+        console.warn("Could not fetch new inquiries count:", err);
+      }
+    };
+    fetchNewCount();
+  }, [user]);
 
   const [formData, setFormData] = useState({
     firstName: user?.email ? user.email.split('@')[0] : '',
@@ -6367,6 +7131,21 @@ const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowL
             </div>
 
             <div className="bg-dark-navy p-6 rounded-[32px] text-white space-y-6">
+              {isAuthorized && (
+                <div 
+                  onClick={onShowFeaturedProjectsAdmin}
+                  className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer compact-transition group bg-white/5 hover:bg-white/10`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center compact-transition bg-purple-500/20 text-purple-500 group-hover:bg-purple-500 group-hover:text-white`}>
+                      <Star size={20} />
+                    </div>
+                    <span className="text-sm font-bold">Featured Projects</span>
+                  </div>
+                  <ArrowRight size={16} className={`compact-transition text-gray-600 group-hover:text-white`} />
+                </div>
+              )}
+
               <div 
                 onClick={() => setActiveTab('live_visitors')}
                 className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer compact-transition group ${activeTab === 'live_visitors' ? 'bg-white/10' : 'bg-white/5 hover:bg-white/10'}`}
@@ -6451,6 +7230,21 @@ const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowL
                     </div>
                   )}
 
+                  {isAuthorized && (
+                    <div 
+                      onClick={onShowFeaturedProjectsAdmin}
+                      className="p-8 bg-white border border-gray-100 rounded-[32px] shadow-sm hover:shadow-md compact-transition group cursor-pointer"
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="w-12 h-12 bg-purple-50 text-purple-500 rounded-2xl flex items-center justify-center group-hover:bg-purple-500 group-hover:text-white compact-transition">
+                          <Star size={24} />
+                        </div>
+                      </div>
+                      <h4 className="font-bold text-dark-navy">Featured Projects</h4>
+                      <p className="text-xs text-gray-400 mt-1">Manage homepage slider</p>
+                    </div>
+                  )}
+
                   <div 
                     onClick={onShowInquiries}
                     className="p-8 bg-white border border-gray-100 rounded-[32px] shadow-sm hover:shadow-md compact-transition group cursor-pointer"
@@ -6459,7 +7253,7 @@ const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowL
                       <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white compact-transition">
                         <MessageSquare size={24} />
                       </div>
-                      <span className="bg-gray-100 text-[8px] font-black px-2 py-1 rounded-full text-gray-400">12 NEW</span>
+                      <span className="bg-gray-100 text-[8px] font-black px-2 py-1 rounded-full text-gray-400">{newInquiriesCount} NEW</span>
                     </div>
                     <h4 className="font-bold text-dark-navy">Customer Inquiries</h4>
                     <p className="text-xs text-gray-400 mt-1">Manage your incoming leads</p>
@@ -7336,7 +8130,7 @@ export default function App() {
   const [sortOption, setSortOption] = useState<"Newest" | "Price Low-High" | "Price High-Low">("Newest");
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'verify' | 'reset-password' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'secret_login' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings' | 'agent_only_listings' | 'search_results', data?: any }>({ type: 'home' });
+  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'verify' | 'reset-password' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'secret_login' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings' | 'agent_only_listings' | 'featured_projects_admin' | 'search_results', data?: any }>({ type: 'home' });
   const [user, setUser] = useState<any | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [compareList, setCompareList] = useState<number[]>([]);
@@ -7880,6 +8674,7 @@ export default function App() {
               </div>
             </section>
 
+            <FeaturedProjectsSection />
             <TestimonialsSection />
           </motion.main>
         )}
@@ -8123,6 +8918,7 @@ export default function App() {
             onShowInquiries={() => setCurrentView({ type: 'inquiries' })}
             onShowListings={() => setCurrentView({ type: 'agent_listings' })}
             onShowAgentListings={() => setCurrentView({ type: 'agent_only_listings' })}
+            onShowFeaturedProjectsAdmin={() => setCurrentView({ type: 'featured_projects_admin' })}
             onLogout={() => {
               supabase.auth.signOut();
               setUser(null);
@@ -8157,6 +8953,13 @@ export default function App() {
             onShowToast={showToast}
             onBack={() => setCurrentView({ type: 'agent_access' })}
             onRefresh={refreshProperties}
+          />
+        )}
+
+        {currentView.type === 'featured_projects_admin' && (
+          <AdminFeaturedProjectsView 
+            onShowToast={showToast}
+            onBack={() => setCurrentView({ type: 'agent_access' })}
           />
         )}
 
