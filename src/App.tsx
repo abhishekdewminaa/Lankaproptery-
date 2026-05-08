@@ -1807,7 +1807,7 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
             {[
               { icon: Facebook, color: "text-[#1877F2]", bg: "bg-[#1877F2]/10", hover: "hover:bg-[#1877F2]", url: "https://facebook.com" },
               { icon: Twitter, color: "text-[#1DA1F2]", bg: "bg-[#1DA1F2]/10", hover: "hover:bg-[#1DA1F2]", url: "https://twitter.com" },
-              { icon: Instagram, color: "text-[#E4405F]", bg: "bg-[#E4405F]/10", hover: "hover:bg-[#E4405F]", url: "https://instagram.com" },
+              { icon: Instagram, color: "text-[#E4405F]", bg: "bg-[#E4405F]/10", hover: "hover:bg-[#E4405F]", url: "https://www.instagram.com/lankapropertylk/" },
               { icon: Linkedin, color: "text-[#0A66C2]", bg: "bg-[#0A66C2]/10", hover: "hover:bg-[#0A66C2]", url: "https://linkedin.com" },
               { icon: Youtube, color: "text-[#FF0000]", bg: "bg-[#FF0000]/10", hover: "hover:bg-[#FF0000]", url: "https://youtube.com" },
               { icon: PenTool, color: "text-[#000000]", bg: "bg-white/10", hover: "hover:bg-[#000000]", url: "https://medium.com" }
@@ -4986,9 +4986,6 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
       ? initialData.contacts 
       : [{ type: 'Mobile', number: "" }]
   );
-  const [selectedTier, setSelectedTier] = useState<"Starter Free" | "Premium Pro" | "Elite Pro">(
-    (initialData?.package_tier as "Starter Free" | "Premium Pro" | "Elite Pro") || "Starter Free"
-  );
   const [images, setImages] = useState<{ id: string, url: string }[]>(
     initialData?.images?.map(url => ({ id: Math.random().toString(36).substr(2, 9), url })) || []
   );
@@ -5160,8 +5157,8 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
         google_maps_link: locationLink,
         agent_id: 'ADMIN',
         published_by: 'admin',
-        package_tier: selectedTier,
-        status: initialData?.status || 'active',
+        package_tier: 'Admin',
+        status: 'active',
         created_at: initialData?.id ? undefined : new Date().toISOString(),
       };
 
@@ -5216,7 +5213,7 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
             </div>
             
             <div className="flex gap-2 relative z-10">
-              {[1, 2, 3].map((s) => (
+              {[1, 2].map((s) => (
                 <div key={s} className={`h-1.5 flex-1 rounded-full ${s <= step ? 'bg-brand-green' : 'bg-white/10'}`} />
               ))}
             </div>
@@ -5235,30 +5232,6 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
         <div className="p-10 space-y-12">
           {step === 1 && (
             <div className="space-y-12">
-              <div className="space-y-6">
-                <h3 className="text-2xl font-black text-dark-navy tracking-tight">Select Package</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  {(["Starter Free", "Premium Pro", "Elite Pro"] as const).map((tier) => (
-                    <button
-                      key={tier}
-                      onClick={() => setSelectedTier(tier)}
-                      className={`relative px-4 py-6 rounded-[24px] text-[10px] font-black tracking-widest uppercase transition-all border-2 flex flex-col items-center justify-center gap-2 ${
-                        selectedTier === tier 
-                          ? 'bg-brand-green border-brand-green text-white shadow-xl shadow-brand-green/20 scale-[1.02]' 
-                          : 'bg-white border-gray-100 text-gray-400 hover:border-brand-green/30 active:scale-95'
-                      }`}
-                    >
-                      {selectedTier === tier && (
-                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md">
-                          <CheckCircle size={14} className="text-brand-green" />
-                        </div>
-                      )}
-                      <span className="text-center">{tier}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* Core Details */}
               <div className="space-y-6">
                 <h3 className="text-2xl font-black text-dark-navy tracking-tight">Core Details</h3>
@@ -8144,7 +8117,7 @@ const AgentProfileView = ({
               <div className="flex gap-4 justify-center pt-4 border-t border-gray-100">
                 <a href="#" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-brand-green hover:text-white compact-transition"><Linkedin size={20} /></a>
                 <a href="#" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-brand-green hover:text-white compact-transition"><Facebook size={20} /></a>
-                <a href="#" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-brand-green hover:text-white compact-transition"><Instagram size={20} /></a>
+                <a href="https://www.instagram.com/lankapropertylk/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-brand-green hover:text-white compact-transition"><Instagram size={20} /></a>
               </div>
             </div>
           </div>
