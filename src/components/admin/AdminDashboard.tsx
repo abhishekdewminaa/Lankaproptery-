@@ -213,8 +213,8 @@ export default function AdminDashboard({ user }: { user: any }) {
             </button>
           </div>
           
-          <div className="h-[350px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[350px] w-full relative">
+            <ResponsiveContainer width="99%" height="99%">
               <AreaChart data={PERFORMANCE_DATA}>
                 <defs>
                   <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
@@ -272,7 +272,7 @@ export default function AdminDashboard({ user }: { user: any }) {
           </div>
 
           <div className="h-[250px] w-full relative flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="99%" height="99%">
               <PieChart>
                 <Pie
                   data={MARKET_SHARE_DATA}

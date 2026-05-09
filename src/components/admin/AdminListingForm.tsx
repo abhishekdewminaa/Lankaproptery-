@@ -70,7 +70,12 @@ interface AdminListingFormProps {
 
 const DISTRICTS = ["Colombo", "Kandy", "Galle", "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Gampaha", "Hambantota", "Jaffna", "Kalutara", "Kegalle", "Kilinochchi", "Kurunegala", "Mannar", "Matale", "Matara", "Moneragala", "Mullaitivu", "Nuwara Eliya", "Polonnaruwa", "Puttalam", "Ratnapura", "Trincomalee", "Vavuniya"];
 
-function SortableImageItem({ image, onRemove }: { image: { id: string, url: string }, onRemove: (id: string) => void, key?: any }) {
+interface SortableImageItemProps {
+  image: { id: string; url: string };
+  onRemove: (id: string) => void;
+}
+
+function SortableImageItem({ image, onRemove }: SortableImageItemProps) {
   const {
     attributes,
     listeners,
