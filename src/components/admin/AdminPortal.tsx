@@ -3,6 +3,7 @@ import AdminLayout from './AdminLayout';
 import AdminDashboard from './AdminDashboard';
 import AdminInquiries from './AdminInquiries';
 import AdminMarketing from './AdminMarketing';
+import AdminSettings from './AdminSettings';
 import AdminListings from './AdminListings';
 import AdminListingForm from './AdminListingForm';
 import AdminSuccess from './AdminSuccess';
@@ -60,6 +61,11 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
     checkAdmin();
   }, [user, onAgentAccessBack]);
 
+  // Scroll to top on page change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activePage]);
+
   if (isCheckingAdmin) {
     return (
       <div className="min-h-screen bg-admin-bg flex items-center justify-center">
@@ -99,6 +105,7 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
       {activePage === 'dashboard' && <AdminDashboard user={user} />}
       {activePage === 'enquiries' && <AdminInquiries user={user} />}
       {activePage === 'marketing' && <AdminMarketing />}
+      {activePage === 'settings' && <AdminSettings user={user} />}
       {activePage === 'listings' && (
         <AdminListings 
           user={user} 
@@ -122,15 +129,6 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
         />
       )}
       {activePage === 'analytics' && <AdminAnalytics />}
-      {activePage === 'settings' && (
-        // Reusing the existing profile edit logic if possible, or a minimal version
-        <div className="max-w-3xl mx-auto">
-           <h2 className="text-3xl font-black text-admin-text-dark mb-8">System Settings</h2>
-           <div className="bg-white p-8 rounded-[40px] border border-admin-border shadow-sm opacity-50 pointer-events-none">
-              <p className="text-admin-text-gray font-bold">Manager profile settings are currently locked.</p>
-           </div>
-        </div>
-      )}
     </AdminLayout>
   );
 }
