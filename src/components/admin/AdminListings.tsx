@@ -158,7 +158,7 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
                     <span className="px-2.5 py-1 rounded-full bg-admin-primary/10 text-admin-primary text-[9px] font-black uppercase tracking-widest">
                        {property.property_category || 'House'}
                     </span>
-                    <span className="text-[10px] text-admin-text-gray font-black uppercase tracking-widest">#{property.id.split('-')[0]}</span>
+                    <span className="text-[10px] text-admin-text-gray font-black uppercase tracking-widest">#{String(property.id).split('-')[0]}</span>
                  </div>
                  <h3 className="text-xl font-black text-admin-text-dark line-clamp-1 group-hover:text-admin-primary transition-colors">{property.title}</h3>
                  <div className="flex items-center gap-4 text-xs font-bold text-admin-text-gray">

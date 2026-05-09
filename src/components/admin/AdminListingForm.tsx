@@ -73,6 +73,7 @@ const DISTRICTS = ["Colombo", "Kandy", "Galle", "Ampara", "Anuradhapura", "Badul
 interface SortableImageItemProps {
   image: { id: string; url: string };
   onRemove: (id: string) => void;
+  key?: any;
 }
 
 function SortableImageItem({ image, onRemove }: SortableImageItemProps) {
@@ -309,24 +310,86 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
             className="space-y-8"
           >
             {/* AI Import Bar */}
-            <div className="bg-admin-primary p-6 rounded-[32px] text-white flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-xl shadow-admin-primary/20">
-               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-               <div className="flex items-center gap-4 relative z-10">
-                 <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-admin-gold">
-                   <Sparkles size={24} />
-                 </div>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileHover={{ scale: 1.01 }}
+              transition={{ duration: 0.5 }}
+              className="bg-admin-primary p-6 rounded-[32px] text-white flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-xl shadow-admin-primary/20 group cursor-pointer"
+              onClick={() => setShowAIModal(true)}
+            >
+               {/* Animated Background Elements */}
+               <motion.div 
+                 animate={{ 
+                   scale: [1, 1.2, 1],
+                   opacity: [0.1, 0.2, 0.1],
+                   rotate: [0, 90, 0]
+                 }}
+                 transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                 className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" 
+               />
+               
+               {/* Floating Stars/Sparkles */}
+               {[...Array(6)].map((_, i) => (
+                 <motion.div
+                   key={i}
+                   initial={{ opacity: 0, scale: 0 }}
+                   animate={{ 
+                     opacity: [0, 1, 0],
+                     scale: [0, 1, 0],
+                     x: [0, (i % 2 === 0 ? 20 : -20) * (i + 1)],
+                     y: [0, (i < 3 ? -20 : 20) * (i + 1)]
+                   }}
+                   transition={{ 
+                     duration: 3 + i, 
+                     repeat: Infinity, 
+                     delay: i * 0.5,
+                     ease: "easeInOut"
+                   }}
+                   className="absolute text-admin-gold/30 pointer-events-none"
+                   style={{ 
+                     left: `${15 + (i * 15)}%`, 
+                     top: `${20 + (i * 10)}%` 
+                   }}
+                 >
+                   <Sparkles size={12 + (i % 3) * 4} />
+                 </motion.div>
+               ))}
+
+               <div className="flex items-center gap-4 relative z-10 font-sans">
+                 <motion.div 
+                   whileHover={{ scale: 1.1, rotate: 15 }}
+                   animate={{ 
+                     boxShadow: ["0 0 0px rgba(255,215,0,0)", "0 0 20px rgba(255,215,0,0.4)", "0 0 0px rgba(255,215,0,0)"]
+                   }}
+                   transition={{ duration: 2, repeat: Infinity }}
+                   className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center text-admin-gold border border-white/10"
+                 >
+                   <motion.div
+                     animate={{ rotate: [0, 10, -10, 0] }}
+                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                   >
+                     <Sparkles size={28} />
+                   </motion.div>
+                 </motion.div>
                  <div>
-                    <h4 className="font-black text-lg">Quick AI Import</h4>
-                    <p className="text-white/70 text-xs font-medium">Extract property data from any description instantly.</p>
+                    <h4 className="font-black text-xl tracking-tight">Quick AI Import</h4>
+                    <p className="text-white/80 text-sm font-medium">Extract property data from any description instantly.</p>
                  </div>
                </div>
-               <button 
-                 onClick={() => setShowAIModal(true)}
-                 className="bg-white text-admin-primary px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-admin-bg transition-colors relative z-10"
+
+               <motion.button 
+                 whileHover={{ scale: 1.05, x: 5 }}
+                 whileTap={{ scale: 0.98 }}
+                 onClick={(e) => {
+                   e.stopPropagation();
+                   setShowAIModal(true);
+                 }}
+                 className="bg-white text-admin-primary px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg hover:shadow-white/20 transition-all relative z-10 flex items-center gap-2"
                >
-                 Paste Description <ArrowRight size={14} className="inline ml-2" />
-               </button>
-            </div>
+                 PASTE DESCRIPTION <ArrowRight size={18} />
+               </motion.button>
+            </motion.div>
 
             {/* Form Sections */}
             <div className="grid grid-cols-1 gap-8">

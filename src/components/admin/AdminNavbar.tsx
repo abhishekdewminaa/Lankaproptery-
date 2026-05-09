@@ -28,7 +28,7 @@ export default function AdminNavbar({ user, onPostAd, onOpenSidebar }: AdminNavb
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-admin-primary transition-colors" size={18} />
           <input 
             type="text" 
-            placeholder="Search listings, inquiries or settings... (Cmd + K)"
+            placeholder="Search inquiries..."
             className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 focus:ring-4 focus:ring-admin-primary/5 rounded-2xl py-3 pl-12 pr-4 text-sm font-medium transition-all outline-none"
           />
         </div>
@@ -49,18 +49,17 @@ export default function AdminNavbar({ user, onPostAd, onOpenSidebar }: AdminNavb
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={onPostAd}
-          className="hidden sm:flex items-center gap-2 bg-admin-primary text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-admin-primary/10 hover:bg-admin-secondary transition-all"
+          className="hidden sm:flex items-center gap-2 bg-[#006644] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-[#006644]/10 hover:bg-[#005533] transition-all"
         >
-          <Plus size={18} />
           Post Free Ad
         </motion.button>
 
         <div className="flex items-center gap-3 ml-2">
-          <div className="w-10 h-10 rounded-xl bg-admin-bg p-0.5 border border-admin-border">
+          <div className="w-10 h-10 rounded-full bg-admin-bg p-0.5 border border-admin-border overflow-hidden">
             {user?.avatar_url ? (
-              <img src={user.avatar_url} alt="User" className="w-full h-full object-cover rounded-lg" />
+              <img src={user.avatar_url} alt="User" className="w-full h-full object-cover rounded-full" />
             ) : (
-              <div className="w-full h-full bg-admin-primary text-white flex items-center justify-center text-sm font-black rounded-lg">
+              <div className="w-full h-full bg-admin-primary text-white flex items-center justify-center text-sm font-black rounded-full">
                 {user?.email?.[0].toUpperCase()}
               </div>
             )}

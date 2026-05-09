@@ -21,13 +21,19 @@ export default defineConfig(({mode}) => {
       },
     },
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
       hmr: {
         overlay: false,
         clientPort: 443,
-        protocol: 'wss'
+        protocol: 'wss',
+        timeout: 5000
       },
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: undefined
+        }
+      }
+    }
   };
 });

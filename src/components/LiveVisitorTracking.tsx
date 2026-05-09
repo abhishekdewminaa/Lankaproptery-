@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Activity, Users, Eye, Globe, Clock, Smartphone, Monitor, ChevronUp, Shield, AlertTriangle } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { ChartWrapper } from './ChartWrapper';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -197,34 +198,35 @@ export default function LiveVisitorTracking({ visitors = [], isDark = false }: {
             </h4>
             <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm">
               <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Daily Traffic Retention (24h Window)</p>
-              <div style={{ width: '100%', height: '300px', minWidth: '0', minHeight: '300px' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorToday" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#004F31" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#004F31" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridColor} />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: chartTheme.textColor, fontWeight: 'bold' }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: chartTheme.textColor, fontWeight: 'bold' }} />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#1a1a1a',
-                        color: '#fff',
-                        borderRadius: '20px', 
-                        border: 'none', 
-                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
-                        padding: '12px 16px'
-                      }} 
-                      itemStyle={{ color: '#fff', fontWeight: 'bold' }}
-                    />
-                    <Area type="monotone" dataKey="yesterday" stroke="#cbd5e1" strokeDasharray="8 8" fill="none" strokeWidth={2} name="Yesterday" />
-                    <Area type="monotone" dataKey="today" stroke="#004F31" fillOpacity={1} fill="url(#colorToday)" strokeWidth={4} name="Today" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+            <ChartWrapper 
+              height={300}
+              chart={
+                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorToday" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#004F31" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#004F31" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridColor} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: chartTheme.textColor, fontWeight: 'bold' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: chartTheme.textColor, fontWeight: 'bold' }} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#1a1a1a',
+                      color: '#fff',
+                      borderRadius: '20px', 
+                      border: 'none', 
+                      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
+                      padding: '12px 16px'
+                    }} 
+                    itemStyle={{ color: '#fff', fontWeight: 'bold' }}
+                  />
+                  <Area type="monotone" dataKey="yesterday" stroke="#cbd5e1" strokeDasharray="8 8" fill="none" strokeWidth={2} name="Yesterday" />
+                  <Area type="monotone" dataKey="today" stroke="#004F31" fillOpacity={1} fill="url(#colorToday)" strokeWidth={4} name="Today" />
+                </AreaChart>
+              }
+            />
             </div>
           </div>
           
@@ -235,27 +237,28 @@ export default function LiveVisitorTracking({ visitors = [], isDark = false }: {
             </h4>
             <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm">
               <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Top performing pages by views</p>
-              <div style={{ width: '100%', height: '300px', minWidth: '0', minHeight: '300px' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={popularPages} layout="vertical" margin={{ top: 0, right: 30, left: 30, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke={chartTheme.gridColor} />
-                    <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: chartTheme.textColor, fontWeight: 'bold' }} />
-                    <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} width={100} tick={{ fontSize: 11, fill: chartTheme.textColor, fontWeight: 'bold' }} />
-                    <Tooltip 
-                      cursor={{fill: isDark ? 'rgba(255,255,255,0.05)' : '#f3f4f6'}} 
-                      contentStyle={{ 
-                        backgroundColor: '#1a1a1a',
-                        color: '#fff',
-                        borderRadius: '16px', 
-                        border: 'none', 
-                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' 
-                      }} 
-                      itemStyle={{ color: '#fff', fontWeight: 'bold' }}
-                    />
-                    <Bar dataKey="views" fill="#004F31" radius={[0, 8, 8, 0]} barSize={32} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+            <ChartWrapper 
+              height={300}
+              chart={
+                <BarChart data={popularPages} layout="vertical" margin={{ top: 0, right: 30, left: 30, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke={chartTheme.gridColor} />
+                  <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: chartTheme.textColor, fontWeight: 'bold' }} />
+                  <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} width={100} tick={{ fontSize: 11, fill: chartTheme.textColor, fontWeight: 'bold' }} />
+                  <Tooltip 
+                    cursor={{fill: isDark ? 'rgba(255,255,255,0.05)' : '#f3f4f6'}} 
+                    contentStyle={{ 
+                      backgroundColor: '#1a1a1a',
+                      color: '#fff',
+                      borderRadius: '16px', 
+                      border: 'none', 
+                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' 
+                    }} 
+                    itemStyle={{ color: '#fff', fontWeight: 'bold' }}
+                  />
+                  <Bar dataKey="views" fill="#004F31" radius={[0, 8, 8, 0]} barSize={32} />
+                </BarChart>
+              }
+            />
             </div>
           </div>
         </div>
@@ -297,19 +300,22 @@ export default function LiveVisitorTracking({ visitors = [], isDark = false }: {
                 <span>Direct Traffic</span>
                 <span className="text-[10px] text-brand-green font-black bg-brand-green/10 px-2 py-0.5 rounded-md tracking-tighter">LIVE FEED</span>
              </h4>
-             <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm">
-               <div style={{ width: '100%', height: '180px', minWidth: '0', minHeight: '180px' }} className="flex items-center">
+             <ChartWrapper 
+                height={180}
+                chart={
+                  <PieChart>
+                    <Pie data={trafficSources} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={4} dataKey="value" stroke="none">
+                      {trafficSources.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                }
+             >
+                <div className="flex items-center h-full">
                   <div style={{ width: '60%', height: '100%', minWidth: '120px' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie data={trafficSources} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={4} dataKey="value" stroke="none">
-                          {trafficSources.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
+                    {/* The Chart is already in the chart prop, this div is sibling for Legend/Labels */}
                   </div>
                   <div className="w-[40%] space-y-3">
                      {trafficSources.map((source, idx) => (
@@ -322,8 +328,8 @@ export default function LiveVisitorTracking({ visitors = [], isDark = false }: {
                        </div>
                      ))}
                   </div>
-               </div>
-             </div>
+                </div>
+             </ChartWrapper>
           </div>
         </div>
       </div>

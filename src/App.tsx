@@ -131,7 +131,8 @@ import {
   Edit,
   Save
 } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, Cell, PieChart, Pie } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell, PieChart, Pie } from 'recharts';
+import { ChartWrapper } from './components/ChartWrapper';
 import { translateToSinhala } from "./services/geminiService";
 import PropertyWanted from "./components/PropertyWanted";
 import CustomerInquiries from "./components/CustomerInquiries";
@@ -5197,13 +5198,26 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                 <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Manager Level Access • Unlimited Listings</p>
               </div>
               <div className="flex gap-3">
-                <button 
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setShowAIModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-brand-green/20 text-brand-green border border-brand-green/30 rounded-xl hover:bg-brand-green/30 transition-all font-black text-[10px] uppercase tracking-widest"
+                  className="flex items-center gap-2 px-4 py-2 bg-brand-green/20 text-brand-green border border-brand-green/30 rounded-xl hover:bg-brand-green/30 transition-all font-black text-[10px] uppercase tracking-widest relative overflow-hidden group shadow-lg shadow-brand-green/10"
                 >
-                  <Sparkles size={14} />
+                  <motion.div
+                    animate={{ rotate: [0, 15, -15, 0] }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                  >
+                    <Sparkles size={14} className="text-brand-green" />
+                  </motion.div>
                   Quick AI Import
-                </button>
+                  <motion.div
+                    initial={{ x: '-100%' }}
+                    animate={{ x: '200%' }}
+                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"
+                  />
+                </motion.button>
                 <button onClick={onBack} className="p-3 bg-white/10 rounded-2xl hover:bg-white/20 compact-transition">
                   <Plus size={24} className="rotate-45" />
                 </button>
@@ -5623,9 +5637,14 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
             className="bg-white w-full max-w-2xl rounded-[40px] shadow-2xl overflow-hidden border border-gray-100"
           >
             <div className="p-8 border-b border-gray-50 flex justify-between items-center">
-              <div>
-                <h3 className="text-2xl font-black text-dark-navy">Quick AI Import</h3>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Paste your property description below</p>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-brand-green/10 rounded-2xl flex items-center justify-center text-brand-green">
+                  <Sparkles size={24} className="animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black text-dark-navy">Quick AI Import</h3>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Paste your property description below</p>
+                </div>
               </div>
               <button onClick={() => setShowAIModal(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-all">
                 <X size={24} className="text-gray-400" />
@@ -7203,8 +7222,9 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1"> engagement vs leads</p>
           </div>
 
-          <div style={{ width: '100%', height: '300px', minWidth: '0', minHeight: '300px' }}>
-            <ResponsiveContainer width="100%" height="100%">
+          <ChartWrapper 
+            height={300}
+            chart={
               <AreaChart data={trendData[selectedCategory]}>
                 <defs>
                   <linearGradient id="colorViewsCat" x1="0" y1="0" x2="0" y2="1">
@@ -7243,8 +7263,8 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
                   animationDuration={1500}
                 />
               </AreaChart>
-            </ResponsiveContainer>
-          </div>
+            }
+          />
         </div>
 
         <div className="lg:col-span-2 bg-white dark:bg-dark-navy p-8 rounded-[40px] border border-gray-100 dark:border-white/5 shadow-sm flex flex-col justify-between">
@@ -7253,8 +7273,10 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Listing density by category</p>
           </div>
 
-          <div style={{ width: '100%', height: '300px', minWidth: '0', minHeight: '300px' }} className="my-4 relative">
-            <ResponsiveContainer width="100%" height="100%">
+          <ChartWrapper 
+            height={300} 
+            className="my-4"
+            chart={
               <PieChart>
                 <Pie
                   data={distributionData}
@@ -7286,10 +7308,8 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
                   }}
                 />
               </PieChart>
-            </ResponsiveContainer>
-            
-            {/* If there's only 1 category, maybe we can show a nice big number inside? Or just rely on nice thick donut */}
-          </div>
+            }
+          />
 
           <div className="space-y-3">
             {distributionData.map((item, i) => (
@@ -7353,6 +7373,8 @@ const SecretLoginView = ({ onBack, onSuccess }: { onBack: () => void, onSuccess:
       const allowedEmails = ['abhishekdewminaa@gmail.com', 'ceo.lankaland@gmail.com'];
       const isFallbackAdmin = allowedEmails.includes(email.toLowerCase());
       if (!isAdmin && !isFallbackAdmin) {
+        // Not an admin, allow them in but they might just see limited stuff or we can redirect
+        // For now keep the original logic of redirecting back if not authorized
         onBack();
         return;
       }
@@ -7367,54 +7389,119 @@ const SecretLoginView = ({ onBack, onSuccess }: { onBack: () => void, onSuccess:
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="min-h-screen flex items-center justify-center bg-gray-50 px-6 py-20"
-    >
-      <div className="w-full max-w-md bg-white p-12 rounded-[40px] shadow-sm border border-gray-100">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-brand-green/10 mx-auto rounded-full flex items-center justify-center text-brand-green mb-6">
-            <Lock size={32} />
-          </div>
-          <h2 className="text-2xl font-black text-dark-navy mb-2">Sign In</h2>
-          <p className="text-sm text-gray-500 font-medium">Access your account</p>
-        </div>
-        
-        <form onSubmit={handleLogin} className="space-y-6">
-          {errorMsg && (
-            <div className="p-4 bg-brand-red/10 text-brand-red rounded-2xl text-sm font-bold text-center">
-              {errorMsg}
-            </div>
-          )}
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Email address</label>
-            <input 
-              type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-medium text-dark-navy"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Password</label>
-            <input 
-              type="password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-medium text-dark-navy"
-            />
-          </div>
-          <button 
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-4 bg-brand-green text-white font-bold rounded-2xl shadow-lg shadow-brand-green/20 hover:bg-brand-green-dark compact-transition flex items-center justify-center"
-          >
-            {isLoading ? <Loader2 className="animate-spin" size={24} /> : 'Sign In'}
-          </button>
-        </form>
+    <div className="min-h-screen relative flex flex-col font-sans">
+      {/* Background Image with Blur */}
+      <div className="absolute inset-0 z-0">
+        <img 
+          src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=2000" 
+          className="w-full h-full object-cover blur-[8px] scale-110"
+          alt="Login Background"
+          referrerPolicy="no-referrer"
+        />
+        <div className="absolute inset-0 bg-black/20" />
       </div>
-    </motion.div>
+
+      {/* Header Logo */}
+      <div className="relative z-10 p-8">
+        <h1 className="text-2xl font-black text-brand-green tracking-tight">LankaProperty</h1>
+      </div>
+
+      {/* Main Container */}
+      <div className="flex-1 relative z-10 flex items-center justify-center -mt-16 px-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-[500px] bg-white/95 backdrop-blur-md p-10 rounded-2xl shadow-[0_32px_64px_rgba(0,0,0,0.15)] border border-white/20"
+        >
+          <div className="text-center mb-10">
+            <h2 className="text-4xl font-bold text-[#1A1A1A] mb-3">Sign In</h2>
+            <p className="text-[#6B7280] font-medium">Access your account</p>
+          </div>
+          
+          <form onSubmit={handleLogin} className="space-y-6">
+            {errorMsg && (
+              <div className="p-4 bg-brand-red/10 text-brand-red rounded-xl text-sm font-bold text-center">
+                {errorMsg}
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <label className="text-[11px] font-black text-[#374151] uppercase tracking-[0.05em]">EMAIL ADDRESS</label>
+              <input 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@company.com"
+                className="w-full bg-[#F3F4F6]/50 border border-[#E5E7EB] rounded-xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green focus:bg-white compact-transition font-medium text-[#1A1A1A] placeholder:text-[#9CA3AF]"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-center px-1">
+                <label className="text-[11px] font-black text-[#374151] uppercase tracking-[0.05em]">PASSWORD</label>
+                <a href="#" className="text-[11px] font-black text-brand-green hover:opacity-80 compact-transition">Forgot Password?</a>
+              </div>
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-[#F3F4F6]/50 border border-[#E5E7EB] rounded-xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green focus:bg-white compact-transition font-medium text-[#1A1A1A] placeholder:text-[#9CA3AF]"
+                required
+              />
+            </div>
+
+            <button 
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-4 bg-[#00B67A] text-white font-bold rounded-xl shadow-lg shadow-[#00B67A]/20 hover:bg-[#00A06B] active:scale-[0.98] compact-transition flex items-center justify-center gap-2"
+            >
+              {isLoading ? <Loader2 className="animate-spin" size={24} /> : 'Sign In'}
+            </button>
+
+            <div className="relative flex items-center justify-center py-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[#E5E7EB]"></div>
+              </div>
+              <span className="relative px-4 bg-white text-[11px] font-black text-[#6B7280] uppercase tracking-[0.05em]">OR CONTINUE WITH</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <button type="button" className="flex items-center justify-center gap-3 py-3.5 border border-[#E5E7EB] rounded-xl hover:bg-gray-50 compact-transition font-bold text-sm">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Google
+              </button>
+              <button type="button" className="flex items-center justify-center gap-3 py-3.5 border border-[#E5E7EB] rounded-xl hover:bg-gray-50 compact-transition font-bold text-sm">
+                <Facebook size={20} className="text-[#1877F2] fill-[#1877F2]" />
+                Facebook
+              </button>
+            </div>
+
+            <div className="text-center pt-4">
+              <p className="text-sm font-medium text-[#6B7280]">
+                Don't have an account? <a href="#" className="font-bold text-brand-green hover:underline">Sign up for free</a>
+              </p>
+            </div>
+          </form>
+        </motion.div>
+      </div>
+
+      {/* Footer */}
+      <footer className="relative z-10 p-8 flex flex-col sm:flex-row justify-between items-center text-xs font-medium text-white/80 gap-4 mt-auto">
+        <p>© 2024 LankaProperty.lk. All rights reserved.</p>
+        <div className="flex gap-6">
+          <a href="#" className="hover:text-white compact-transition">Privacy Policy</a>
+          <a href="#" className="hover:text-white compact-transition">Terms of Service</a>
+          <a href="#" className="hover:text-white compact-transition">Help Center</a>
+        </div>
+      </footer>
+    </div>
   );
 };
 

@@ -7,7 +7,8 @@ import {
   Settings, 
   LayoutDashboard, 
   Plus, 
-  LogOut 
+  LogOut,
+  Megaphone
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -20,8 +21,9 @@ interface AdminSidebarProps {
 export default function AdminSidebar({ activePage, onNavigate, user, onLogout }: AdminSidebarProps) {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-    { id: 'listings', label: 'My Listings', icon: <ClipboardList size={20} /> },
-    { id: 'enquiries', label: 'Enquiries', icon: <MessageSquare size={20} /> },
+    { id: 'listings', label: 'Properties', icon: <ClipboardList size={20} /> },
+    { id: 'enquiries', label: 'Leads', icon: <MessageSquare size={20} /> },
+    { id: 'marketing', label: 'Marketing', icon: <Megaphone size={20} /> },
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 size={20} /> },
     { id: 'settings', label: 'Settings', icon: <Settings size={20} /> },
   ];

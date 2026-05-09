@@ -28,6 +28,7 @@ import {
   Pie,
   Cell
 } from 'recharts';
+import { ChartWrapper } from '../ChartWrapper';
 import { supabase } from '../../supabaseClient';
 
 const PERFORMANCE_DATA = [
@@ -213,8 +214,9 @@ export default function AdminDashboard({ user }: { user: any }) {
             </button>
           </div>
           
-          <div className="h-[350px] w-full relative">
-            <ResponsiveContainer width="99%" height="99%">
+          <ChartWrapper 
+            height={350}
+            chart={
               <AreaChart data={PERFORMANCE_DATA}>
                 <defs>
                   <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
@@ -255,13 +257,13 @@ export default function AdminDashboard({ user }: { user: any }) {
                   type="monotone" 
                   dataKey="avg" 
                   stroke="#E5E7EB" 
-                  strokeWidth={2}
+                  strokeWidth={2} 
                   strokeDasharray="5 5"
                   fill="none" 
                 />
               </AreaChart>
-            </ResponsiveContainer>
-          </div>
+            }
+          />
         </div>
 
         {/* Donut Chart */}
@@ -271,8 +273,9 @@ export default function AdminDashboard({ user }: { user: any }) {
             <p className="text-xs font-bold text-admin-text-gray uppercase tracking-widest mt-1">Inventory by property type</p>
           </div>
 
-          <div className="h-[250px] w-full relative flex items-center justify-center">
-            <ResponsiveContainer width="99%" height="99%">
+          <ChartWrapper 
+            height={250}
+            chart={
               <PieChart>
                 <Pie
                   data={MARKET_SHARE_DATA}
@@ -289,12 +292,13 @@ export default function AdminDashboard({ user }: { user: any }) {
                 </Pie>
                 <Tooltip />
               </PieChart>
-            </ResponsiveContainer>
+            }
+          >
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <span className="text-2xl font-black text-admin-text-dark">2,410</span>
               <span className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest">Active Units</span>
             </div>
-          </div>
+          </ChartWrapper>
 
           <div className="mt-auto space-y-3">
             {MARKET_SHARE_DATA.map((item) => (

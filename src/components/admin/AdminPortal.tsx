@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from './AdminLayout';
 import AdminDashboard from './AdminDashboard';
 import AdminInquiries from './AdminInquiries';
+import AdminMarketing from './AdminMarketing';
 import AdminListings from './AdminListings';
 import AdminListingForm from './AdminListingForm';
 import AdminSuccess from './AdminSuccess';
+import AdminAnalytics from './AdminAnalytics';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 
@@ -96,6 +98,7 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
     >
       {activePage === 'dashboard' && <AdminDashboard user={user} />}
       {activePage === 'enquiries' && <AdminInquiries user={user} />}
+      {activePage === 'marketing' && <AdminMarketing />}
       {activePage === 'listings' && (
         <AdminListings 
           user={user} 
@@ -118,12 +121,7 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
           onBackToPortal={() => setActivePage('dashboard')} 
         />
       )}
-      {activePage === 'analytics' && (
-        <div className="py-20 text-center bg-white rounded-[40px] border border-admin-border shadow-sm">
-           <h2 className="text-2xl font-black text-admin-text-dark">Detailed Analytics</h2>
-           <p className="text-admin-text-gray font-bold mt-2">Coming soon to your manager portal.</p>
-        </div>
-      )}
+      {activePage === 'analytics' && <AdminAnalytics />}
       {activePage === 'settings' && (
         // Reusing the existing profile edit logic if possible, or a minimal version
         <div className="max-w-3xl mx-auto">
