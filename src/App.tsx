@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import AdminPortal from './components/admin/AdminPortal';
 
 const USD_RATE = 300;
 const EUR_RATE = 325;
@@ -9489,64 +9490,16 @@ export default function App() {
           />
         )}
 
-        {currentView.type === 'agent_access' && (
-          <AgentAccessView 
-            onBack={navigateHome} 
+        {['agent_access', 'agent_publish', 'agent_listings', 'agent_only_listings', 'featured_projects_admin', 'inquiries'].includes(currentView.type) && (
+          <AdminPortal 
             user={user} 
-            agentPropertiesCount={supabaseProperties.filter(p => p.agentId === user?.email).length}
-            agentLeadsTotal={supabaseProperties
-              .filter(p => p.agentId === user?.email)
-              .reduce((sum, p) => sum + (Number(p.leads_count) || 0), 0)
-            }
-            onNewProperty={() => {
-              setEditingProperty(null);
-              setCurrentView({ type: 'agent_publish' });
-            }}
-            onShowInquiries={() => setCurrentView({ type: 'inquiries' })}
-            onShowListings={() => setCurrentView({ type: 'agent_listings' })}
-            onShowAgentListings={() => setCurrentView({ type: 'agent_only_listings' })}
-            onShowFeaturedProjectsAdmin={() => setCurrentView({ type: 'featured_projects_admin' })}
             onLogout={() => {
               supabase.auth.signOut();
               setUser(null);
-            }}
-          />
-        )}
-
-        {currentView.type === 'agent_publish' && (
-          <AgentPublishListingView 
-            user={user} 
-            initialData={editingProperty || undefined}
-            onBack={() => setCurrentView({ type: 'agent_access' })} 
-            onRefresh={refreshProperties}
-          />
-        )}
-
-        {currentView.type === 'agent_listings' && (
-          <AgentListingsView 
-            user={user}
-            onShowToast={showToast}
-            onBack={() => setCurrentView({ type: 'agent_access' })}
-            onEdit={(p) => {
-              setEditingProperty(p);
-              setCurrentView({ type: 'agent_publish' });
+              navigateHome();
             }}
             onRefresh={refreshProperties}
-          />
-        )}
-
-        {currentView.type === 'agent_only_listings' && (
-          <AgentOnlyListingsView 
-            onShowToast={showToast}
-            onBack={() => setCurrentView({ type: 'agent_access' })}
-            onRefresh={refreshProperties}
-          />
-        )}
-
-        {currentView.type === 'featured_projects_admin' && (
-          <AdminFeaturedProjectsView 
-            onShowToast={showToast}
-            onBack={() => setCurrentView({ type: 'agent_access' })}
+            onAgentAccessBack={navigateHome}
           />
         )}
 
@@ -9559,19 +9512,6 @@ export default function App() {
 
         {currentView.type === 'wanted' && (
           <PropertyWanted onContact={(data) => setCurrentView({ type: 'contact', data })} user={user} isAdmin={isAdmin} />
-        )}
-
-        {currentView.type === 'inquiries' && (
-          <div className="pt-20">
-            <button 
-              onClick={() => setCurrentView({ type: 'agent_access' })}
-              className="fixed top-24 left-6 z-50 p-3 bg-white shadow-xl rounded-2xl hover:bg-gray-50 text-dark-navy flex items-center gap-2 font-black text-xs uppercase tracking-widest compact-transition border border-gray-100"
-            >
-              <ArrowRight className="rotate-180" size={16} />
-              Back to Portal
-            </button>
-            <CustomerInquiries user={user} />
-          </div>
         )}
 
         {currentView.type === 'compare' && (
