@@ -215,12 +215,12 @@ L.Icon.Default.mergeOptions({
 
 // --- Types & Data ---
 const PROPERTY_CATEGORIES = [
-  { name: "Land", icon: <LandPlot className="w-8 h-8" />, count: "1,382", color: "text-emerald-500", bg: "bg-emerald-50" },
-  { name: "House", icon: <HomeIcon className="w-8 h-8" />, count: "1,524", color: "text-orange-500", bg: "bg-orange-50" },
-  { name: "Apartment", icon: <Building2 className="w-8 h-8" />, count: "108", color: "text-blue-500", bg: "bg-blue-50" },
-  { name: "Building", icon: <Building className="w-8 h-8" />, count: "350", color: "text-indigo-500", bg: "bg-indigo-50" },
-  { name: "Hotel", icon: <Hotel className="w-8 h-8" />, count: "184", color: "text-rose-500", bg: "bg-rose-50" },
-  { name: "Business", icon: <Briefcase className="w-8 h-8" />, count: "52", color: "text-amber-500", bg: "bg-amber-50" },
+  { name: "Land", icon: <LandPlot className="w-8 h-8" />, count: "1,382", color: "text-brand-green", bg: "bg-brand-green/10" },
+  { name: "House", icon: <HomeIcon className="w-8 h-8" />, count: "1,524", color: "text-brand-red", bg: "bg-brand-red/10" },
+  { name: "Apartment", icon: <Building2 className="w-8 h-8" />, count: "108", color: "text-brand-gold", bg: "bg-brand-gold/10" },
+  { name: "Building", icon: <Building className="w-8 h-8" />, count: "350", color: "text-brand-green", bg: "bg-brand-green/10" },
+  { name: "Hotel", icon: <Hotel className="w-8 h-8" />, count: "184", color: "text-brand-red", bg: "bg-brand-red/10" },
+  { name: "Business", icon: <Briefcase className="w-8 h-8" />, count: "52", color: "text-brand-gold", bg: "bg-brand-gold/10" },
 ];
 
 const FEATURED_PROPERTIES = [
@@ -371,15 +371,15 @@ const AGENTS = [
 // --- Components ---
 
 const Navbar = () => (
-  <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
-    <div className="bg-dark-navy h-8 flex items-center">
+  <header className="fixed top-0 z-50 w-full bg-white border-b border-gray-100 dark:bg-[#0A1A0A] dark:border-white/5">
+    <div className="bg-[#0D1F0D] h-8 flex items-center">
       <div className="container mx-auto px-6 flex justify-between items-center text-[10px] text-gray-300">
         <div className="flex gap-4">
           <span className="flex items-center gap-1.5 opacity-80 underline-offset-2">
             <motion.span 
               animate={{ opacity: [1, 0.4, 1] }} 
               transition={{ duration: 1.5, repeat: Infinity }}
-              className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_5px_#00b562]"
+              className="w-1.5 h-1.5 rounded-full bg-secondary shadow-[0_0_5px_#558B2F]"
             ></motion.span>
             Hotline: +94 33 222 96 95
           </span>
@@ -388,29 +388,42 @@ const Navbar = () => (
         <div className="flex items-center gap-3">
           <a href="#" className="hover:text-white compact-transition">Login</a>
           <span className="text-gray-700 text-[8px]">|</span>
-          <a href="#" className="font-semibold text-brand-green hover:text-brand-green-dark compact-transition">Post a Free Ad</a>
+          <a href="#" className="font-semibold text-secondary hover:text-primary compact-transition">Post a Free Ad</a>
         </div>
       </div>
     </div>
     <nav className="container mx-auto px-6 h-16 flex justify-between items-center">
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 bg-brand-green rounded-lg flex items-center justify-center text-white font-bold text-lg">L</div>
-        <div className="hidden sm:block">
-          <h1 className="text-xl font-bold tracking-tight text-dark-navy leading-none">LankaProperty<span className="text-brand-green">.lk</span></h1>
-        </div>
+      <div className="flex items-center cursor-pointer">
+        <img 
+          src="https://qsqqolvsndvkwegvcfqv.supabase.co/storage/v1/object/sign/assets/Website%20logo%20.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MWNhMTU1MC03OGYzLTQwZGMtYTYzYi02NzVmZTRiYjM2NWMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhc3NldHMvV2Vic2l0ZSBsb2dvIC5wbmciLCJpYXQiOjE3NzgzMDk4MjksImV4cCI6MTkzNTk4OTgyOX0.LqwS9LCGK4UH1oL4YQHkiJdrNNgYGh-8CZtZBgrTO-s"
+          alt="LankaProperty.lk"
+          className="h-[45px] sm:h-[55px] dark:bg-white dark:px-[10px] dark:py-[4px] dark:rounded-[8px]"
+          style={{ 
+            width: 'auto',
+            objectFit: 'contain'
+          }}
+          onError={(e: any) => {
+            e.currentTarget.style.display = 'none';
+          }}
+        />
       </div>
-      <ul className="hidden lg:flex items-center gap-6 text-sm font-medium text-slate-700">
+      <ul className="hidden lg:flex items-center gap-6 text-sm font-medium text-slate-700 dark:text-gray-300">
         {["Home", "Directory", "Agents", "Advertising", "Contact"].map((item) => (
           <li key={item}>
-            <a href="#" className={`${item === 'Home' ? 'text-brand-green border-b-2 border-brand-green pb-1' : 'hover:text-brand-green'} compact-transition`}>
+            <a href="#" className={`${item === 'Home' ? 'text-primary border-b-2 border-primary pb-1' : 'hover:text-secondary'} compact-transition`}>
               {item}
             </a>
           </li>
         ))}
       </ul>
-      <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 compact-transition">
-        Menu
-      </button>
+      <div className="flex items-center gap-3">
+        <button className="hidden sm:flex px-5 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-brand-red compact-transition shadow-lg shadow-primary/20">
+          Post free ad
+        </button>
+        <button className="px-4 py-2 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-semibold hover:bg-gray-200 dark:hover:bg-white/20 compact-transition">
+          Menu
+        </button>
+      </div>
     </nav>
   </header>
 );
@@ -661,10 +674,10 @@ const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry:
           <motion.h2 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-4xl lg:text-5xl font-bold leading-tight drop-shadow-md"
+            className="text-4xl lg:text-5xl font-bold leading-tight drop-shadow-md text-white"
           >
             Find Your Dream <br/>
-            <FlipWords words={WORDS} className="text-brand-green w-full" />
+            <FlipWords words={WORDS} className="text-secondary w-full" />
             in Sri Lanka.
           </motion.h2>
           <motion.p 
@@ -687,7 +700,7 @@ const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry:
               <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">Search Properties</h3>
               <button 
                 onClick={onDirectInquiry}
-                className="text-xs font-bold text-brand-green hover:underline flex items-center gap-1"
+                className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
               >
                 Direct Inquiry
               </button>
@@ -697,13 +710,13 @@ const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry:
               {/* ROW 1: Listing Type */}
               <div className="flex p-1 bg-gray-100/80 rounded-xl">
                 {['Sale', 'Rent', 'Lease'].map((type) => (
-                  <button 
-                    key={type}
-                    onClick={() => setActiveStatus(type as any)}
-                    className={`flex-1 py-3 rounded-lg text-xs font-bold compact-transition ${activeStatus === type ? 'bg-white text-brand-green shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}
-                  >
-                    {type === 'Sale' ? '🏠 For Sale' : type === 'Rent' ? '🔑 For Rent' : '🌿 For Lease'}
-                  </button>
+                <button 
+                  key={type}
+                  onClick={() => setActiveStatus(type as any)}
+                  className={`flex-1 py-3 rounded-lg text-xs font-bold compact-transition ${activeStatus === type ? 'bg-primary text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50 dark:text-gray-400 dark:hover:bg-white/10'}`}
+                >
+                  {type === 'Sale' ? '🏠 For Sale' : type === 'Rent' ? '🔑 For Rent' : '🌿 For Lease'}
+                </button>
                 ))}
               </div>
 
@@ -713,7 +726,7 @@ const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry:
                   <select 
                     value={propertyType}
                     onChange={e => setPropertyType(e.target.value)}
-                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 appearance-none text-sm text-gray-700 font-bold focus:ring-2 focus:border-transparent focus:ring-brand-green/20 outline-none compact-transition"
+                    className="w-full bg-white border-2 border-gray-100 rounded-xl px-4 py-3.5 appearance-none text-sm text-gray-700 font-bold focus:ring-2 focus:border-secondary focus:ring-secondary/20 outline-none compact-transition"
                   >
                     {propertyTypes.map(pt => <option key={pt} value={pt}>{pt}</option>)}
                   </select>
@@ -865,7 +878,7 @@ const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry:
                   onClick={handleSearch}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
-                  className="w-full py-4 bg-gradient-to-r from-brand-red to-red-500 hover:from-brand-green hover:to-brand-green text-white text-sm font-black rounded-xl shadow-lg shadow-red-200/50 hover:shadow-brand-green/30 compact-transition uppercase tracking-widest flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-primary hover:bg-brand-red text-white text-sm font-black rounded-xl shadow-lg shadow-primary/20 hover:shadow-brand-red/30 compact-transition uppercase tracking-widest flex items-center justify-center gap-2"
                 >
                   <Search size={18} /> Search Now
                 </motion.button>
@@ -897,10 +910,10 @@ const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry:
 };
 
 const CategoryStrip = () => (
-  <div className="bg-gray-50 border-b border-gray-100 py-6">
+  <div className="bg-gray-50 dark:bg-[#0A1A0A] border-b border-gray-100 dark:border-white/5 py-6">
     <div className="container mx-auto px-6 flex justify-between items-center">
       <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
-        {PROPERTY_CATEGORIES.slice(0, 4).map((cat, idx) => (
+        {PROPERTY_CATEGORIES.map((cat, idx) => (
           <motion.div
             key={cat.name}
             initial={{ y: 0 }}
@@ -908,12 +921,12 @@ const CategoryStrip = () => (
             transition={{ duration: 4, repeat: Infinity, delay: idx * 0.5, ease: "easeInOut" }}
             className="flex flex-col items-center gap-1.5 min-w-[80px]"
           >
-            <div className={`w-10 h-10 ${cat.bg} rounded-full shadow-sm flex items-center justify-center border border-gray-100 hover:border-brand-green cursor-pointer group compact-transition`}>
-              <div className={`${cat.color} group-hover:scale-110 compact-transition`}>
+            <div className={`w-10 h-10 ${idx === 1 ? 'bg-primary' : 'bg-white dark:bg-white/5'} rounded-full shadow-sm flex items-center justify-center border border-gray-100 dark:border-white/10 hover:border-primary cursor-pointer group compact-transition`}>
+              <div className={`${idx === 1 ? 'text-white' : 'text-primary'} group-hover:scale-110 compact-transition`}>
                 {cat.icon}
               </div>
             </div>
-            <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-tight">{cat.name}</span>
+            <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-tight">{cat.name}</span>
           </motion.div>
         ))}
       </div>
@@ -940,7 +953,7 @@ const PropertyCard = ({
   return (
     <motion.div 
       onClick={onClick}
-      className="group bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-xl hover:-translate-y-1 overflow-hidden flex flex-col transition-all duration-300 cursor-pointer relative"
+      className="group bg-white dark:bg-white/5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-xl hover:-translate-y-1 overflow-hidden flex flex-col border border-gray-100 dark:border-white/10 hover:border-secondary transition-all duration-300 cursor-pointer relative"
     >
       <div className="absolute top-3 left-3 z-20">
         <button 
@@ -949,7 +962,7 @@ const PropertyCard = ({
             onToggleCompare?.(e);
           }}
           className={`p-1.5 rounded-full backdrop-blur-md transition-all ${
-            isComparing ? 'bg-brand-green text-white shadow-lg' : 'bg-white/80 text-gray-500 hover:bg-white hover:text-brand-green shadow-sm'
+            isComparing ? 'bg-primary text-white shadow-lg' : 'bg-white/80 text-gray-500 hover:bg-white hover:text-primary shadow-sm'
           }`}
           title={isComparing ? "Remove from compare" : "Add to compare"}
         >
@@ -981,7 +994,7 @@ const PropertyCard = ({
         
         {/* Top Left Status Badge */}
         <div className="absolute top-3 left-12 z-20">
-          <span className={`text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm ${houseType.toLowerCase().includes('rent') ? 'bg-blue-500' : 'bg-brand-red'}`}>
+          <span className={`text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm ${houseType.toLowerCase().includes('rent') ? 'bg-primary' : 'bg-brand-red'}`}>
             For {houseType.replace('For ', '')}
           </span>
         </div>
@@ -989,7 +1002,7 @@ const PropertyCard = ({
         {/* Bottom Left Fire Badge */}
         <div className="absolute bottom-3 left-3 flex z-20 pointer-events-none">
           {((isAdmin ? (Number(property.views_count) || 0) : Number(getDisplayViews(property, false).replace(/,/g, ''))) > 300) && (
-            <div className="flex items-center gap-1 backdrop-blur-md bg-orange-500/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg border border-white/20">
+            <div className="flex items-center gap-1 backdrop-blur-md bg-brand-gold text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg border border-white/20">
               <Flame size={12} fill="currentColor" />
               <span>Trending</span>
             </div>
@@ -1000,34 +1013,34 @@ const PropertyCard = ({
       <div className="p-5 flex flex-col gap-3 relative flex-grow">
         {/* Agent specific Analytics Overlay */}
         {showAnalytics && (
-          <div className="grid grid-cols-3 gap-2 mb-2 pb-2 border-b border-gray-100">
-            <div className="flex flex-col items-start bg-gray-50/80 p-2 rounded-xl" title="Total Views">
+          <div className="grid grid-cols-3 gap-2 mb-2 pb-2 border-b border-gray-100 dark:border-white/5">
+            <div className="flex flex-col items-start bg-gray-50/80 dark:bg-white/5 p-2 rounded-xl" title="Total Views">
               <div className="flex items-center gap-1 text-[9px] uppercase font-bold text-gray-400 mb-1">
                 <Eye size={10} /> Views
               </div>
-              <span className="text-[14px] font-black text-gray-700">{isAdmin ? (property.views_count || 0) : getDisplayViews(property, false)}</span>
+              <span className="text-[14px] font-black text-gray-700 dark:text-gray-300">{isAdmin ? (property.views_count || 0) : getDisplayViews(property, false)}</span>
             </div>
-            <div className="flex flex-col items-start bg-emerald-50/50 p-2 rounded-xl" title="Total Leads/Inquiries">
-              <div className="flex items-center gap-1 text-[9px] uppercase font-bold text-emerald-500 mb-1">
+            <div className="flex flex-col items-start bg-primary/5 p-2 rounded-xl" title="Total Leads/Inquiries">
+              <div className="flex items-center gap-1 text-[9px] uppercase font-bold text-primary mb-1">
                 <Users size={10} /> Leads
               </div>
-              <span className="text-[14px] font-black text-emerald-700">{property.leads_count || 0}</span>
+              <span className="text-[14px] font-black text-primary">{property.leads_count || 0}</span>
             </div>
-            <div className="flex flex-col items-start bg-blue-50/50 p-2 rounded-xl" title="Conversion Rate">
-              <div className="flex items-center gap-1 text-[9px] uppercase font-bold text-blue-500 mb-1">
+            <div className="flex flex-col items-start bg-secondary/5 p-2 rounded-xl" title="Conversion Rate">
+              <div className="flex items-center gap-1 text-[9px] uppercase font-bold text-secondary mb-1">
                 <Activity size={10} /> Conv
               </div>
-              <span className="text-[14px] font-black text-blue-700">
+              <span className="text-[14px] font-black text-secondary">
                 {((Number(property.leads_count||0) / Number(isAdmin ? (property.views_count || 1) : getDisplayViews(property, false).replace(/,/g, ''))) * 100).toFixed(1)}%
               </span>
             </div>
           </div>
         )}
 
-        <div className="text-[15px] font-bold text-dark-navy line-clamp-2 leading-snug h-10 group-hover:text-brand-green transition-colors">{property.title}</div>
+        <div className="text-[15px] font-bold text-dark-navy dark:text-white line-clamp-2 leading-snug h-10 group-hover:text-primary transition-colors">{property.title}</div>
         
         <div className="flex flex-col gap-1">
-          <span className="text-brand-green font-black text-[22px] tracking-tight leading-none">
+          <span className="text-primary dark:text-secondary font-black text-[22px] tracking-tight leading-none">
             {property.price === 'Contact for Price' ? 'Contact for Price' : (property.price.includes('LKR') || property.price.includes('Rs.') ? property.price : `Rs. ${property.price}`)}
           </span>
           {(() => {
@@ -1041,24 +1054,24 @@ const PropertyCard = ({
           })()}
         </div>
 
-        <hr className="border-gray-100 my-2" />
+        <hr className="border-gray-100 dark:border-white/5 my-2" />
 
         <div className="flex items-center justify-between text-[12px] text-gray-500 font-semibold mb-2">
-          <span className="flex items-center gap-1.5"><Bed size={14} className="text-brand-green" /> {beds.replace(/Bed(s)?(rooms?)?/gi, '').trim()} Beds</span>
-          <span className="flex items-center gap-1.5"><Bath size={14} className="text-brand-green" /> {baths.replace(/Bath(s)?(rooms?)?/gi, '').trim()} Baths</span>
-          <span className="flex items-center gap-1.5"><LandPlot size={14} className="text-brand-green" /> {perch.replace(/Perch(es)?/gi, '').trim()} Perch</span>
+          <span className="flex items-center gap-1.5"><Bed size={14} className="text-secondary" /> {beds.replace(/Bed(s)?(rooms?)?/gi, '').trim()} Beds</span>
+          <span className="flex items-center gap-1.5"><Bath size={14} className="text-secondary" /> {baths.replace(/Bath(s)?(rooms?)?/gi, '').trim()} Baths</span>
+          <span className="flex items-center gap-1.5"><LandPlot size={14} className="text-secondary" /> {perch.replace(/Perch(es)?/gi, '').trim()} Perch</span>
         </div>
         
         <div className="grid grid-cols-2 gap-2 mt-auto">
-          <button className="w-full py-2.5 bg-gray-50 hover:bg-brand-green text-gray-600 hover:text-white text-xs font-bold rounded-xl transition-colors">
-            View Details
+          <button className="w-full py-2.5 bg-gray-50 dark:bg-white/5 hover:bg-primary text-gray-600 dark:text-gray-300 hover:text-white text-xs font-bold rounded-xl transition-colors">
+            Details
           </button>
           <button 
             onClick={(e) => {
               e.stopPropagation();
               // handle inquire
             }}
-            className="w-full py-2.5 bg-brand-green/10 hover:bg-brand-green text-brand-green hover:text-white border border-transparent hover:border-brand-green text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all"
+            className="w-full py-2.5 bg-primary/5 hover:bg-primary text-primary hover:text-white border border-transparent hover:border-primary text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all"
           >
             <MessageSquare size={14} /> Inquire
           </button>
@@ -1222,7 +1235,7 @@ const PropertyDetail = ({
                 <motion.span 
                   animate={{ scale: [1, 1.3, 1], opacity: [1, 0.7, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
-                  className="w-2 h-2 rounded-full bg-brand-green"
+                  className="w-2 h-2 rounded-full bg-primary"
                 />
                 {isAdmin ? (
                   (() => {
@@ -1235,7 +1248,7 @@ const PropertyDetail = ({
                     ) : <span>Active</span>;
                   })()
                 ) : (
-                  <span className="text-brand-green">Active</span>
+                  <span className="text-primary">Active</span>
                 )}
               </span>
               <span className="text-gray-300">|</span>
@@ -1247,7 +1260,7 @@ const PropertyDetail = ({
             </div>
             <h1 className="text-2xl font-bold text-dark-navy leading-tight">{property.title}</h1>
             <div className="flex items-center gap-2 mt-2">
-              <span className="text-xl font-black text-brand-green">{property.price}</span>
+              <span className="text-xl font-black text-primary">{property.price}</span>
               {(() => {
                 const converted = convertPrice(property.price);
                 if (!converted) return null;
@@ -1274,10 +1287,10 @@ const PropertyDetail = ({
             <Heart size={16} fill={isFavorited ? "currentColor" : "none"} />
             {isFavorited ? 'Saved' : 'Save'}
           </button>
-          <button className="flex items-center justify-center p-2.5 bg-white border border-gray-200 text-gray-500 rounded-xl hover:border-brand-green hover:text-brand-green compact-transition">
+          <button className="flex items-center justify-center p-2.5 bg-white border border-gray-200 text-gray-500 rounded-xl hover:border-primary hover:text-primary compact-transition">
             <Share2 size={18} />
           </button>
-          <button className="flex items-center justify-center p-2.5 bg-white border border-gray-200 text-gray-500 rounded-xl hover:border-brand-green hover:text-brand-green compact-transition">
+          <button className="flex items-center justify-center p-2.5 bg-white border border-gray-200 text-gray-500 rounded-xl hover:border-primary hover:text-primary compact-transition">
             <Printer size={18} />
           </button>
         </div>
@@ -1333,11 +1346,11 @@ const PropertyDetail = ({
                   key={i}
                   onClick={() => setActiveIndex(i)}
                   className={`relative shrink-0 w-20 h-14 rounded-lg overflow-hidden border-2 compact-transition ${
-                    activeIndex === i ? 'border-brand-green scale-105 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'
+                    activeIndex === i ? 'border-primary scale-105 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'
                   }`}
                 >
                   <img src={img} className="w-full h-full object-cover" alt={`Thumb ${i + 1}`} />
-                  {activeIndex === i && <div className="absolute inset-0 bg-brand-green/20" />}
+                  {activeIndex === i && <div className="absolute inset-0 bg-primary/20" />}
                 </button>
               ))}
             </div>
@@ -1348,29 +1361,29 @@ const PropertyDetail = ({
         <div className="order-3 lg:col-span-2 space-y-8">
               {/* Features section grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:border-brand-green/30 compact-transition">
-                  <div className="w-10 h-10 bg-brand-green/10 rounded-full flex items-center justify-center text-brand-green mb-3 group-hover:scale-110 compact-transition">
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:border-primary/30 compact-transition">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-3 group-hover:scale-110 compact-transition">
                     <Bed size={20} />
                   </div>
                   <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Beds</div>
                   <div className="text-lg font-black text-dark-navy">{property.rooms || property.bedrooms || '04'}</div>
                 </div>
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:border-brand-green/30 compact-transition">
-                  <div className="w-10 h-10 bg-brand-green/10 rounded-full flex items-center justify-center text-brand-green mb-3 group-hover:scale-110 compact-transition">
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:border-primary/30 compact-transition">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-3 group-hover:scale-110 compact-transition">
                     <Bath size={20} />
                   </div>
                   <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Baths</div>
                   <div className="text-lg font-black text-dark-navy">{property.bathrooms || '02'}</div>
                 </div>
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:border-brand-green/30 compact-transition">
-                  <div className="w-10 h-10 bg-brand-green/10 rounded-full flex items-center justify-center text-brand-green mb-3 group-hover:scale-110 compact-transition">
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:border-primary/30 compact-transition">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-3 group-hover:scale-110 compact-transition">
                     <Box size={20} />
                   </div>
                   <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Floor</div>
                   <div className="text-lg font-black text-dark-navy">{property.floorArea || property.floor_area || '2,450 sqft'}</div>
                 </div>
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:border-brand-green/30 compact-transition">
-                  <div className="w-10 h-10 bg-brand-green/10 rounded-full flex items-center justify-center text-brand-green mb-3 group-hover:scale-110 compact-transition">
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:border-primary/30 compact-transition">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-3 group-hover:scale-110 compact-transition">
                     <Trees size={20} />
                   </div>
                   <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Land</div>
@@ -1382,7 +1395,7 @@ const PropertyDetail = ({
               <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm relative">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-gray-50">
                   <h3 className="text-lg font-bold text-dark-navy flex items-center gap-2">
-                    <CheckCircle className="text-brand-green" size={20} /> About This Property
+                    <CheckCircle className="text-primary" size={20} /> About This Property
                   </h3>
                   <div className="flex gap-2">
                     {!showOriginal && (
@@ -1398,8 +1411,8 @@ const PropertyDetail = ({
                       disabled={isTranslating || (!showOriginal && !!translatedDesc)}
                       className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold compact-transition ${
                         !showOriginal && translatedDesc 
-                        ? 'bg-brand-green/10 text-brand-green cursor-default' 
-                        : 'bg-brand-green text-white hover:bg-brand-green-dark shadow-sm'
+                        ? 'bg-primary/10 text-primary cursor-default' 
+                        : 'bg-primary text-white hover:bg-brand-red shadow-sm'
                       }`}
                     >
                       {isTranslating ? (
@@ -1418,7 +1431,7 @@ const PropertyDetail = ({
                       <motion.span 
                         initial={{ opacity: 0, x: 10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="absolute top-full right-0 mt-2 text-[9px] text-red-500 font-bold bg-white px-2 py-1 rounded border border-red-100 shadow-sm whitespace-nowrap z-10"
+                        className="absolute top-full right-0 mt-2 text-[9px] text-brand-red font-bold bg-white px-2 py-1 rounded border border-brand-red/10 shadow-sm whitespace-nowrap z-10"
                       >
                         {errorStatus}
                       </motion.span>
@@ -1452,12 +1465,12 @@ const PropertyDetail = ({
                 return (
                   <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
                     <h3 className="text-lg font-bold text-dark-navy flex items-center gap-2 mb-6">
-                      <Star className="text-brand-green" size={20} /> Key Highlights
+                      <Star className="text-primary" size={20} /> Key Highlights
                     </h3>
                     <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {highlights.map((h, i) => (
                         <li key={i} className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl">
-                          <CheckCircle size={18} className="text-brand-green shrink-0" />
+                          <CheckCircle size={18} className="text-secondary shrink-0" />
                           <span className="text-[14px] text-gray-700 font-medium leading-tight">{h}</span>
                         </li>
                       ))}
@@ -1484,7 +1497,7 @@ const PropertyDetail = ({
                         transition={{ delay: i * 0.15, duration: 0.5, ease: "easeOut" }}
                         className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group"
                       >
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-green/80"></div>
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-secondary/80"></div>
                         <div className="pl-2">
                           <h4 className="text-sm font-bold text-dark-navy mb-2 flex items-center gap-2">
                             <span>{section.icon}</span> {section.title}
@@ -1517,7 +1530,7 @@ const PropertyDetail = ({
                             opacity: 0
                           }}
                         >
-                          <div className="text-gray-400 group-hover:text-brand-green bg-white p-1.5 rounded-full shadow-sm transition-colors duration-300">
+                          <div className="text-gray-400 group-hover:text-secondary bg-white p-1.5 rounded-full shadow-sm transition-colors duration-300">
                             {amenityObj.icon}
                           </div>
                           <span className="text-xs font-bold text-gray-700 group-hover:text-dark-navy truncate">{amenityObj.name}</span>
@@ -1532,7 +1545,7 @@ const PropertyDetail = ({
           <div className="pt-12 border-t border-gray-100">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-dark-navy">Similar Properties Nearby</h3>
-              <a href="#" className="text-xs text-brand-green font-bold">View Related &rarr;</a>
+              <a href="#" className="text-xs text-primary font-bold">View Related &rarr;</a>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               {FEATURED_PROPERTIES.slice(0, 3).map(p => (
@@ -1555,16 +1568,16 @@ const PropertyDetail = ({
         <div className="order-2 lg:col-span-1 lg:row-span-2 space-y-6">
           <div className="sticky top-24 space-y-6">
             <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-green/5 rounded-full -mr-16 -mt-16 sm:block hidden" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 sm:block hidden" />
               
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
                   <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Asking Price</div>
-                  <div className="px-2 py-0.5 bg-brand-green/10 text-brand-green text-[9px] font-bold rounded-full uppercase tracking-wider">LKR Base</div>
+                  <div className="px-2 py-0.5 bg-primary/10 text-primary text-[9px] font-bold rounded-full uppercase tracking-wider">LKR Base</div>
                 </div>
                 
                 <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-4xl font-black text-brand-green tracking-tight">{property.price}</span>
+                  <span className="text-4xl font-black text-primary tracking-tight">{property.price}</span>
                 </div>
 
                 {(() => {
@@ -1589,7 +1602,7 @@ const PropertyDetail = ({
                     const agent = AGENTS.find(a => a.id === property.agentId) || AGENTS[0];
                     onAgentClick?.(agent);
                   }}
-                  className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mb-8 cursor-pointer hover:border-brand-green compact-transition group"
+                  className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mb-8 cursor-pointer hover:border-primary compact-transition group"
                 >
                   <div className="flex items-center gap-4 mb-4">
                     <div className="relative">
@@ -1597,8 +1610,8 @@ const PropertyDetail = ({
                         const agent = AGENTS.find(a => a.id === property.agentId) || AGENTS[0];
                         return (
                           <>
-                            <img src={agent.img} className="w-16 h-16 rounded-full border-2 border-brand-green object-cover group-hover:scale-105 compact-transition" />
-                            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-brand-green rounded-full flex items-center justify-center text-white border-2 border-white">
+                            <img src={agent.img} className="w-16 h-16 rounded-full border-2 border-primary object-cover group-hover:scale-105 compact-transition" />
+                            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white border-2 border-white">
                               <Shield size={12} fill="currentColor" />
                             </div>
                           </>
@@ -1610,9 +1623,9 @@ const PropertyDetail = ({
                         const agent = AGENTS.find(a => a.id === property.agentId) || AGENTS[0];
                         return (
                           <>
-                            <div className="text-sm font-bold text-dark-navy group-hover:text-brand-green compact-transition">{agent.name}</div>
+                            <div className="text-sm font-bold text-dark-navy group-hover:text-primary compact-transition">{agent.name}</div>
                             <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-bold uppercase mt-0.5">
-                              <span className="text-brand-green">{agent.role}</span>
+                              <span className="text-secondary">{agent.role}</span>
                               <span className="text-gray-300">•</span>
                               <span>Verified Agent</span>
                             </div>
@@ -1636,7 +1649,7 @@ const PropertyDetail = ({
                 <div className="space-y-4">
                   <a 
                     href="tel:+94771234567" 
-                    className="w-full flex items-center justify-center gap-3 bg-brand-green text-white font-bold py-4 rounded-xl hover:bg-brand-green-dark compact-transition text-sm shadow-lg shadow-brand-green/20"
+                    className="w-full flex items-center justify-center gap-3 bg-primary text-white font-bold py-4 rounded-xl hover:bg-brand-red compact-transition text-sm shadow-lg shadow-primary/20"
                   >
                     <Phone size={18} /> Call Manager
                   </a>
@@ -1654,7 +1667,7 @@ const PropertyDetail = ({
 
                   <button 
                     onClick={onOpenCalculator}
-                    className="w-full flex items-center justify-center gap-3 border-2 border-gray-100 text-gray-600 font-bold py-3.5 rounded-xl hover:border-brand-green hover:text-brand-green compact-transition text-xs"
+                    className="w-full flex items-center justify-center gap-3 border-2 border-gray-100 text-gray-600 font-bold py-3.5 rounded-xl hover:border-primary hover:text-primary compact-transition text-xs"
                   >
                     <Calculator size={18} /> Mortgage Calculator
                   </button>
@@ -1683,10 +1696,10 @@ const PropertyDetail = ({
                 }}
                 className="space-y-4"
               >
-                <input required placeholder="Your Full Name" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none" />
-                <input required type="tel" placeholder="Phone Number" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none" />
-                <textarea required placeholder="Your Message..." rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none resize-none"></textarea>
-                <button type="submit" className="w-full py-3 bg-brand-green text-white text-xs font-bold rounded-xl hover:bg-brand-green-dark compact-transition">Request Details</button>
+                <input required placeholder="Your Full Name" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-primary outline-none" />
+                <input required type="tel" placeholder="Phone Number" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-primary outline-none" />
+                <textarea required placeholder="Your Message..." rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-primary outline-none resize-none"></textarea>
+                <button type="submit" className="w-full py-3 bg-primary text-white text-xs font-bold rounded-xl hover:bg-brand-red compact-transition">Request Details</button>
               </form>
             </div>
 
@@ -1706,7 +1719,7 @@ const PropertyDetail = ({
               </div>
               <div className="mt-4 flex items-center justify-between text-[10px] font-bold text-gray-500">
                 <span className="flex items-center gap-1.5"><MapPin size={12} /> {property.location}</span>
-                <button className="text-brand-green flex items-center gap-1 hover:underline">
+                <button className="text-secondary flex items-center gap-1 hover:underline">
                   Open in Google Maps <ExternalLink size={10} />
                 </button>
               </div>
@@ -1719,7 +1732,7 @@ const PropertyDetail = ({
                 <button className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#25D366] text-white rounded-xl text-[10px] font-bold hover:bg-[#1EBE5D] compact-transition shadow-sm">
                   <MessageCircle size={14} /> WhatsApp
                 </button>
-                <button className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-brand-green/10 text-brand-green rounded-xl text-[10px] font-bold hover:bg-brand-green transition-all hover:text-white group border border-transparent hover:border-brand-green">
+                <button className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-primary/10 text-primary rounded-xl text-[10px] font-bold hover:bg-primary transition-all hover:text-white group border border-transparent hover:border-primary">
                   <Copy size={14} /> Copy Link
                 </button>
               </div>
@@ -1735,7 +1748,7 @@ const Sidebar = ({ onOpenCalculator, onShowPackages }: { onOpenCalculator: () =>
   <aside className="space-y-6">
     <div 
       onClick={onOpenCalculator}
-      className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:border-brand-green group compact-transition"
+      className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:border-primary group compact-transition"
     >
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center text-orange-500 group-hover:scale-110 compact-transition">
@@ -1792,25 +1805,37 @@ const Sidebar = ({ onOpenCalculator, onShowPackages }: { onOpenCalculator: () =>
 );
 
 const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, onShowPromotion, onShowWanted, onShowSecretLogin }: { onNavigateHome: () => void, onShowContact: () => void, onShowAbout: () => void, onShowPackages: () => void, onShowPromotion: () => void, onShowWanted: () => void, onShowSecretLogin: () => void }) => (
-  <footer className="bg-[#0c1a2e] text-gray-400 pt-20 pb-10">
+  <footer className="bg-[#0D1F0D] text-gray-400 pt-20 pb-10">
     <div className="container mx-auto px-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
         <div className="space-y-8">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigateHome()}>
-            <div className="w-12 h-12 bg-brand-green rounded-xl flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-brand-green/20">L</div>
-            <h2 className="text-3xl font-black tracking-tighter text-white leading-none">LankaProperty<span className="text-brand-green">.lk</span></h2>
+          <div className="flex items-center cursor-pointer" onClick={(e) => { e.preventDefault(); onNavigateHome(); }}>
+            <a href="/" onClick={(e) => e.preventDefault()}>
+              <img 
+                src="https://qsqqolvsndvkwegvcfqv.supabase.co/storage/v1/object/sign/assets/Website%20logo%20.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MWNhMTU1MC03OGYzLTQwZGMtYTYzYi02NzVmZTRiYjM2NWMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhc3NldHMvV2Vic2l0ZSBsb2dvIC5wbmciLCJpYXQiOjE3NzgzMDk4MjksImV4cCI6MTkzNTk4OTgyOX0.LqwS9LCGK4UH1oL4YQHkiJdrNNgYGh-8CZtZBgrTO-s"
+                alt="LankaProperty.lk"
+                className="h-[65px] sm:h-[80px] dark:bg-white dark:px-[10px] dark:py-[4px] dark:rounded-[8px]"
+                style={{ 
+                  width: 'auto',
+                  objectFit: 'contain'
+                }}
+                onError={(e: any) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </a>
           </div>
           <p className="text-lg font-medium text-gray-400 leading-relaxed max-w-sm">
             Sri Lanka's premier real estate marketplace. Connecting buyers, sellers, and renters with the most trusted properties and agents across the island.
           </p>
           <div className="flex gap-4">
             {[
-              { icon: Facebook, color: "text-[#1877F2]", bg: "bg-[#1877F2]/10", hover: "hover:bg-[#1877F2]", url: "https://facebook.com" },
-              { icon: Twitter, color: "text-[#1DA1F2]", bg: "bg-[#1DA1F2]/10", hover: "hover:bg-[#1DA1F2]", url: "https://twitter.com" },
-              { icon: Instagram, color: "text-[#E4405F]", bg: "bg-[#E4405F]/10", hover: "hover:bg-[#E4405F]", url: "https://www.instagram.com/lankapropertylk/" },
-              { icon: Linkedin, color: "text-[#0A66C2]", bg: "bg-[#0A66C2]/10", hover: "hover:bg-[#0A66C2]", url: "https://linkedin.com" },
-              { icon: Youtube, color: "text-[#FF0000]", bg: "bg-[#FF0000]/10", hover: "hover:bg-[#FF0000]", url: "https://youtube.com" },
-              { icon: PenTool, color: "text-[#000000]", bg: "bg-white/10", hover: "hover:bg-[#000000]", url: "https://medium.com" }
+              { icon: Facebook, color: "text-[#1877F2]", bg: "bg-[#1877F2]/10", hover: "hover:bg-[#F5A623]", url: "https://facebook.com" },
+              { icon: Twitter, color: "text-[#1DA1F2]", bg: "bg-[#1DA1F2]/10", hover: "hover:bg-[#F5A623]", url: "https://twitter.com" },
+              { icon: Instagram, color: "text-[#E4405F]", bg: "bg-[#E4405F]/10", hover: "hover:bg-[#F5A623]", url: "https://www.instagram.com/lankapropertylk/" },
+              { icon: Linkedin, color: "text-[#0A66C2]", bg: "bg-[#0A66C2]/10", hover: "hover:bg-[#F5A623]", url: "https://linkedin.com" },
+              { icon: Youtube, color: "text-[#FF0000]", bg: "bg-[#FF0000]/10", hover: "hover:bg-[#F5A623]", url: "https://youtube.com" },
+              { icon: PenTool, color: "text-[#000000]", bg: "bg-white/10", hover: "hover:bg-[#F5A623]", url: "https://medium.com" }
             ].map((item, i) => {
               const Icon = item.icon;
               return (
@@ -1826,7 +1851,7 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
                   whileHover={{ 
                     scale: 1.2, 
                     y: -8, 
-                    backgroundColor: item.color.replace('text-', '').replace('[', '').replace(']', ''), 
+                    backgroundColor: "#F5A623", 
                     color: "#ffffff",
                     boxShadow: "0 10px 25px -5px rgba(0,0,0,0.3)"
                   }}
@@ -1843,12 +1868,12 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
         <div>
           <h4 className="text-white font-bold mb-6 uppercase text-sm tracking-widest">Quick Links</h4>
           <ul className="space-y-4 text-base font-medium">
-            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowAbout(); }} className="hover:text-brand-green compact-transition">About</a></li>
-            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowWanted(); }} className="hover:text-brand-green compact-transition">Property Wanted</a></li>
-            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowContact(); }} className="hover:text-brand-green compact-transition">Contact Support</a></li>
-            <li><a href="#" className="hover:text-brand-green compact-transition">Terms of Service</a></li>
-            <li><a href="#" className="hover:text-brand-green compact-transition">Privacy Policy</a></li>
-            <li><a href="#" className="hover:text-brand-green compact-transition">Sitemap</a></li>
+            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowAbout(); }} className="hover:text-brand-gold compact-transition">About</a></li>
+            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowWanted(); }} className="hover:text-brand-gold compact-transition">Property Wanted</a></li>
+            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowContact(); }} className="hover:text-brand-gold compact-transition">Contact Support</a></li>
+            <li><a href="#" className="hover:text-brand-gold compact-transition">Terms of Service</a></li>
+            <li><a href="#" className="hover:text-brand-gold compact-transition">Privacy Policy</a></li>
+            <li><a href="#" className="hover:text-brand-gold compact-transition">Sitemap</a></li>
           </ul>
         </div>
 
@@ -1856,7 +1881,7 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
           <h4 className="text-white font-bold mb-6 uppercase text-sm tracking-widest">Popular Areas</h4>
           <ul className="space-y-4 text-base font-medium">
             {["Colombo Real Estate", "Kandy Properties", "Galle Villas", "Negombo Land", "Kurunegala Homes", "Kalutara Estates"].map(item => (
-              <li key={item}><a href="#" className="hover:text-brand-green compact-transition">{item}</a></li>
+              <li key={item}><a href="#" className="hover:text-brand-gold compact-transition">{item}</a></li>
             ))}
           </ul>
         </div>
@@ -1868,15 +1893,15 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
             <input 
               type="email" 
               placeholder="Your email address" 
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-base focus:outline-none focus:border-brand-green compact-transition"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-base focus:outline-none focus:border-secondary compact-transition"
             />
-            <button className="absolute right-2 top-2 bottom-2 px-6 bg-brand-green text-white rounded-lg text-sm font-bold hover:bg-brand-green-dark compact-transition">
+            <button className="absolute right-2 top-2 bottom-2 px-6 bg-primary text-white rounded-lg text-sm font-bold hover:bg-brand-red compact-transition">
               Join
             </button>
           </div>
           <div 
             onClick={() => onShowPromotion()}
-            className="flex items-center gap-3 mt-6 text-xs bg-brand-green/10 border border-brand-green/20 p-4 rounded-xl text-brand-green font-bold cursor-pointer hover:bg-brand-green/20 compact-transition"
+            className="flex items-center gap-3 mt-6 text-xs bg-primary/10 border border-primary/20 p-4 rounded-xl text-primary font-bold cursor-pointer hover:bg-primary/20 compact-transition"
           >
             <Percent size={16} />
             <span>Get 10% off your first ad listing!</span>
@@ -1895,8 +1920,8 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
         </div>
         <div className="flex gap-8 items-center">
           <div className="flex items-center gap-2 text-sm font-bold text-white group cursor-pointer">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            <span className="group-hover:text-brand-green compact-transition">Platform Status: Online</span>
+            <div className="w-2 h-2 bg-secondary rounded-full animate-pulse shadow-[0_0_8px_#558B2F]" />
+            <span className="group-hover:text-secondary compact-transition">Platform Status: Online</span>
           </div>
         </div>
       </div>
@@ -2240,15 +2265,15 @@ const EXPERTISE = [
 ];
 
 const ExpertiseSection = () => (
-  <section className="py-12 bg-white border-y border-gray-100">
+  <section className="py-12 bg-white dark:bg-white/5 border-y border-gray-100 dark:border-white/5">
     <div className="container mx-auto px-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
         {EXPERTISE.map((item, idx) => (
           <div key={idx} className="flex flex-col items-center text-center group">
-            <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-brand-green mb-4 group-hover:bg-brand-green group-hover:text-white compact-transition">
+            <div className="w-12 h-12 bg-primary/5 rounded-2xl flex items-center justify-center text-primary mb-4 group-hover:bg-primary group-hover:text-white compact-transition">
               {item.icon}
             </div>
-            <div className="text-2xl font-extrabold text-dark-navy mb-1">{item.value}</div>
+            <div className="text-2xl font-extrabold text-primary dark:text-white mb-1">{item.value}</div>
             <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{item.label}</div>
           </div>
         ))}
@@ -2416,14 +2441,14 @@ const FeaturedProjectsSection = () => {
               initial={{ scaleX: 0 }} 
               whileInView={{ scaleX: 1 }} 
               transition={{ delay: 0.3, duration: 0.5 }} 
-              className="h-px bg-gray-200 hidden sm:block flex-1 max-w-[100px] origin-right" 
+              className="h-px bg-primary/20 hidden sm:block flex-1 max-w-[100px] origin-right" 
             />
-            <h2 className="text-3xl font-extrabold text-dark-navy">Featured Projects</h2>
+            <h2 className="text-3xl font-extrabold text-primary">Featured Projects</h2>
             <motion.div 
               initial={{ scaleX: 0 }} 
               whileInView={{ scaleX: 1 }} 
               transition={{ delay: 0.3, duration: 0.5 }} 
-              className="h-px bg-gray-200 hidden sm:block flex-1 max-w-[100px] origin-left" 
+              className="h-px bg-primary/20 hidden sm:block flex-1 max-w-[100px] origin-left" 
             />
           </motion.div>
         </div>
@@ -2492,7 +2517,7 @@ const FeaturedProjectsSection = () => {
                 <a href={`tel:${currentProject.contact_phone}`} className="h-10 w-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
                   <Phone size={18} />
                 </a>
-                <a href={currentProject.website_url || '#'} target="_blank" rel="noopener noreferrer" className="h-10 px-6 bg-brand-green hover:bg-brand-green-dark rounded-xl text-sm font-bold shadow-lg shadow-brand-green/20 transition-all flex items-center gap-2">
+                <a href={currentProject.website_url || '#'} target="_blank" rel="noopener noreferrer" className="h-10 px-6 bg-primary hover:bg-brand-red rounded-xl text-sm font-bold shadow-lg shadow-primary/20 transition-all flex items-center gap-2">
                   View Details <ArrowRight size={16} />
                 </a>
               </div>
@@ -2503,7 +2528,7 @@ const FeaturedProjectsSection = () => {
               {projects.map((_, idx) => (
                 <button
                   key={idx}
-                  className={`h-2 rounded-full transition-all ${idx === activeIndex ? 'w-6 bg-brand-green' : 'w-2 bg-white/50 hover:bg-white/80'}`}
+                  className={`h-2 rounded-full transition-all ${idx === activeIndex ? 'w-6 bg-secondary' : 'w-2 bg-white/50 hover:bg-white/80'}`}
                   onClick={() => { interact(); setActiveIndex(idx); }}
                 />
               ))}
@@ -2522,7 +2547,7 @@ const FeaturedProjectsSection = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.1 }}
-                  className={`relative w-[calc(25%-12px)] min-w-[150px] shrink-0 cursor-pointer transition-all duration-300 rounded-[8px] overflow-hidden border-[3px] ${idx === activeIndex ? 'border-brand-green scale-[1.02] shadow-lg shadow-brand-green/20 z-10' : 'border-transparent'}`}
+                  className={`relative w-[calc(25%-12px)] min-w-[150px] shrink-0 cursor-pointer transition-all duration-300 rounded-[8px] overflow-hidden border-[3px] ${idx === activeIndex ? 'border-secondary scale-[1.02] shadow-lg shadow-secondary/20 z-10' : 'border-transparent'}`}
                   onClick={() => { interact(); setActiveIndex(idx); }}
                 >
                   <div className="h-[120px] bg-gray-200 w-full relative">
@@ -2714,7 +2739,7 @@ const PropertyValuationSection = () => {
   };
 
   return (
-    <section className="py-24 bg-gradient-to-br from-[#0D0D2B] to-[#1a1a4e] text-white overflow-hidden scroll-mt-20">
+    <section className="py-24 bg-gradient-to-br from-[#0D1F0D] to-[#1B5E20] text-white overflow-hidden scroll-mt-20">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <motion.h2 
@@ -2727,7 +2752,7 @@ const PropertyValuationSection = () => {
           <motion.div 
             initial={{ scaleX: 0 }}
             whileInView={{ scaleX: 1 }}
-            className="w-32 h-1.5 bg-brand-green mx-auto rounded-full mb-6 origin-center"
+            className="w-32 h-1.5 bg-secondary mx-auto rounded-full mb-6 origin-center"
           />
           <p className="text-xl text-gray-400 max-w-2xl mx-auto font-medium">
             Get an instant AI-powered market value estimate for any property in Sri Lanka
@@ -2743,7 +2768,7 @@ const PropertyValuationSection = () => {
                 <select 
                   value={formData.listingType}
                   onChange={e => setFormData({...formData, listingType: e.target.value})}
-                  className="bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-brand-green outline-none"
+                  className="bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-secondary outline-none"
                 >
                   <option className="text-dark-navy" value="For Sale">For Sale</option>
                   <option className="text-dark-navy" value="For Rent">For Rent</option>
@@ -2751,7 +2776,7 @@ const PropertyValuationSection = () => {
                 <select 
                   value={formData.propertyType}
                   onChange={e => setFormData({...formData, propertyType: e.target.value})}
-                  className="bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-brand-green outline-none"
+                  className="bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-secondary outline-none"
                 >
                   {PROPERTY_TYPES.map(pt => (
                     <option className="text-dark-navy" key={pt.label} value={pt.label}>{pt.icon} {pt.label}</option>
@@ -2766,7 +2791,7 @@ const PropertyValuationSection = () => {
                 <select 
                   value={formData.district}
                   onChange={e => setFormData({...formData, district: e.target.value})}
-                  className="bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-brand-green outline-none"
+                  className="bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-secondary outline-none"
                 >
                   {SRI_LANKA_DISTRICTS.map(d => (
                     <option className="text-dark-navy" key={d} value={d}>{d}</option>
@@ -2777,7 +2802,7 @@ const PropertyValuationSection = () => {
                   placeholder="City/Area e.g. Rajagiriya"
                   value={formData.city}
                   onChange={e => setFormData({...formData, city: e.target.value})}
-                  className="bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-brand-green outline-none placeholder:text-gray-600"
+                  className="bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-secondary outline-none placeholder:text-gray-600"
                 />
               </div>
             </div>
@@ -2790,12 +2815,12 @@ const PropertyValuationSection = () => {
                     type="number"
                     value={formData.landArea}
                     onChange={e => setFormData({...formData, landArea: e.target.value})}
-                    className="flex-1 bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-brand-green outline-none"
+                    className="flex-1 bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-secondary outline-none"
                   />
                   <select 
                     value={formData.landUnit}
                     onChange={e => setFormData({...formData, landUnit: e.target.value})}
-                    className="bg-white/10 border-none rounded-2xl px-3 py-4 focus:ring-2 focus:ring-brand-green outline-none"
+                    className="bg-white/10 border-none rounded-2xl px-3 py-4 focus:ring-2 focus:ring-secondary outline-none"
                   >
                     <option className="text-dark-navy" value="Perches">Perches</option>
                     <option className="text-dark-navy" value="Acres">Acres</option>
@@ -2809,7 +2834,7 @@ const PropertyValuationSection = () => {
                   type="number"
                   value={formData.floorArea}
                   onChange={e => setFormData({...formData, floorArea: e.target.value})}
-                  className="w-full bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-brand-green outline-none"
+                  className="w-full bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-secondary outline-none"
                 />
               </div>
               <div>
@@ -2817,7 +2842,7 @@ const PropertyValuationSection = () => {
                 <select 
                   value={formData.propertyAge}
                   onChange={e => setFormData({...formData, propertyAge: e.target.value})}
-                  className="w-full bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-brand-green outline-none"
+                  className="w-full bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-secondary outline-none"
                 >
                   {AGE_OPTIONS.map(age => (
                     <option className="text-dark-navy" key={age} value={age}>{age}</option>
@@ -2835,7 +2860,7 @@ const PropertyValuationSection = () => {
                       <button 
                         key={val}
                         onClick={() => setFormData({...formData, bedrooms: val})}
-                        className={`flex-1 py-3 rounded-xl font-bold transition-all ${formData.bedrooms === val ? 'bg-brand-green text-white shadow-lg' : 'bg-white/5 hover:bg-white/10'}`}
+                        className={`flex-1 py-3 rounded-xl font-bold transition-all ${formData.bedrooms === val ? 'bg-secondary text-white shadow-lg' : 'bg-white/5 hover:bg-white/10'}`}
                       >
                         {val}
                       </button>
@@ -2849,7 +2874,7 @@ const PropertyValuationSection = () => {
                       <button 
                         key={val}
                         onClick={() => setFormData({...formData, bathrooms: val})}
-                        className={`flex-1 py-3 rounded-xl font-bold transition-all ${formData.bathrooms === val ? 'bg-brand-green text-white shadow-lg' : 'bg-white/5 hover:bg-white/10'}`}
+                        className={`flex-1 py-3 rounded-xl font-bold transition-all ${formData.bathrooms === val ? 'bg-secondary text-white shadow-lg' : 'bg-white/5 hover:bg-white/10'}`}
                       >
                         {val}
                       </button>
@@ -2864,7 +2889,7 @@ const PropertyValuationSection = () => {
               <select 
                 value={formData.condition}
                 onChange={e => setFormData({...formData, condition: e.target.value})}
-                className="w-full bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-brand-green outline-none"
+                className="w-full bg-white/10 border-none rounded-2xl px-4 py-4 focus:ring-2 focus:ring-secondary outline-none"
               >
                 {CONDITION_OPTIONS.map(opt => (
                   <option className="text-dark-navy" key={opt} value={opt}>{opt}</option>
@@ -2879,7 +2904,7 @@ const PropertyValuationSection = () => {
                   <button 
                     key={opt}
                     onClick={() => setFormData({...formData, roadAccess: opt})}
-                    className={`flex-1 py-3 rounded-xl font-bold transition-all ${formData.roadAccess === opt ? 'bg-brand-green text-white shadow-lg' : 'bg-white/5 hover:bg-white/10'}`}
+                    className={`flex-1 py-3 rounded-xl font-bold transition-all ${formData.roadAccess === opt ? 'bg-secondary text-white shadow-lg' : 'bg-white/5 hover:bg-white/10'}`}
                   >
                     {opt}
                   </button>
@@ -2894,7 +2919,7 @@ const PropertyValuationSection = () => {
                   <label key={feature} className="flex items-center gap-3 cursor-pointer group">
                     <div 
                       onClick={() => handleFeatureToggle(feature)}
-                      className={`w-5 h-5 rounded flex items-center justify-center transition-all ${formData.features.includes(feature) ? 'bg-brand-green' : 'border-2 border-white/20 group-hover:border-white/40'}`}
+                      className={`w-5 h-5 rounded flex items-center justify-center transition-all ${formData.features.includes(feature) ? 'bg-secondary' : 'border-2 border-white/20 group-hover:border-white/40'}`}
                     >
                       {formData.features.includes(feature) && <Check size={12} className="text-white" />}
                     </div>
@@ -2915,7 +2940,7 @@ const PropertyValuationSection = () => {
                 scale: [1, 1.02, 1],
                 transition: { duration: 2, repeat: Infinity, ease: "easeInOut" }
               } : {}}
-              className="w-full py-5 bg-brand-green text-white font-black text-xl rounded-2xl shadow-xl shadow-brand-green/20 disabled:opacity-50 flex items-center justify-center gap-4 transition-all"
+              className="w-full py-5 bg-primary text-white font-black text-xl rounded-2xl shadow-xl shadow-primary/20 hover:bg-brand-red disabled:opacity-50 flex items-center justify-center gap-4 transition-all"
             >
               {loading ? (
                 <>
@@ -2963,7 +2988,7 @@ const PropertyValuationSection = () => {
                     </motion.g>
                   </svg>
                   <div className="absolute -bottom-4 left-0 right-0 text-center">
-                    <div className="text-3xl font-black uppercase text-brand-green tracking-tighter">
+                    <div className="text-3xl font-black uppercase text-secondary tracking-tighter">
                       {result.market_position}
                     </div>
                     <div className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-widest leading-relaxed">Gauge Position: {result.gauge_position}%</div>
@@ -2971,20 +2996,20 @@ const PropertyValuationSection = () => {
                 </div>
                 
                 <div className="flex justify-between w-full mt-16 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                  <span className="text-red-500">Too Low</span>
+                  <span className="text-brand-red">Too Low</span>
                   <span className="text-orange-400">Low</span>
-                  <span className="text-green-500">Fair</span>
+                  <span className="text-brand-green">Fair</span>
                   <span className="text-orange-400">High</span>
-                  <span className="text-red-500">Too High</span>
+                  <span className="text-brand-red">Too High</span>
                 </div>
               </div>
 
               {/* Price Range Card */}
-              <div className="bg-brand-green rounded-[40px] p-12 text-dark-navy shadow-2xl shadow-brand-green/20 relative overflow-hidden group">
+              <div className="bg-primary rounded-[40px] p-12 text-white shadow-2xl shadow-primary/20 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32 transition-transform group-hover:scale-125 duration-700" />
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-dark-navy/10 rounded-lg"><DollarSign size={24} /></div>
+                    <div className="p-2 bg-white/10 rounded-lg text-secondary"><DollarSign size={24} /></div>
                     <span className="font-bold uppercase tracking-widest text-sm opacity-60">Estimated Market Value</span>
                   </div>
                   
@@ -3000,14 +3025,14 @@ const PropertyValuationSection = () => {
                     <div className="text-3xl font-black">Rs. {result.fair_value.toLocaleString()}</div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-6 pt-6 border-t border-dark-navy/10">
+                  <div className="grid grid-cols-2 gap-6 pt-6 border-t border-white/10">
                     <div>
                       <div className="text-[10px] font-bold opacity-60 uppercase mb-1 tracking-widest leading-relaxed">USD Estimate</div>
-                      <div className="font-black">$ {result.usd_min.toLocaleString()} - $ {result.usd_max.toLocaleString()}</div>
+                      <div className="font-black text-secondary">$ {result.usd_min.toLocaleString()} - $ {result.usd_max.toLocaleString()}</div>
                     </div>
                     <div>
                       <div className="text-[10px] font-bold opacity-60 uppercase mb-1 tracking-widest leading-relaxed">EUR Estimate</div>
-                      <div className="font-black">€ {result.eur_min.toLocaleString()} - € {result.eur_max.toLocaleString()}</div>
+                      <div className="font-black text-secondary">€ {result.eur_min.toLocaleString()} - € {result.eur_max.toLocaleString()}</div>
                     </div>
                   </div>
                 </div>
@@ -3017,9 +3042,9 @@ const PropertyValuationSection = () => {
             {/* Three Price Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
-                { label: 'Low Range', price: `Below Rs. ${(result.min_price * 0.9).toLocaleString()}`, desc: 'Potential Opportunity', color: 'bg-orange-500/10 border-orange-500/20 text-orange-400' },
-                { label: 'Fair Range', price: `Rs. ${(result.min_price/1000000).toFixed(1)}M - ${(result.max_price/1000000).toFixed(1)}M`, desc: 'Market Sweet Spot', color: 'bg-brand-green/10 border-brand-green/20 text-brand-green' },
-                { label: 'High Range', price: `Above Rs. ${(result.max_price * 1.1).toLocaleString()}`, desc: 'Premium Territory', color: 'bg-red-500/10 border-red-500/20 text-red-500' }
+                { label: 'Low Range', price: `Below Rs. ${(result.min_price * 0.9).toLocaleString()}`, desc: 'Potential Opportunity', color: 'bg-brand-red/10 border-brand-red/20 text-brand-red' },
+                { label: 'Fair Range', price: `Rs. ${(result.min_price/1000000).toFixed(1)}M - ${(result.max_price/1000000).toFixed(1)}M`, desc: 'Market Sweet Spot', color: 'bg-secondary/10 border-secondary/20 text-secondary' },
+                { label: 'High Range', price: `Above Rs. ${(result.max_price * 1.1).toLocaleString()}`, desc: 'Premium Territory', color: 'bg-brand-gold/10 border-brand-gold/20 text-brand-gold' }
               ].map((card, idx) => (
                 <motion.div 
                   key={idx}
@@ -3059,24 +3084,24 @@ const PropertyValuationSection = () => {
 
               <div className="bg-white/5 rounded-[40px] p-10 border border-white/10">
                 <div className="flex items-center gap-3 mb-8">
-                  <div className="w-10 h-10 bg-blue-500/20 text-blue-500 rounded-xl flex items-center justify-center"><CheckCircle size={20} /></div>
+                  <div className="w-10 h-10 bg-brand-green/20 text-brand-green rounded-xl flex items-center justify-center"><CheckCircle size={20} /></div>
                   <h3 className="text-xl font-bold uppercase tracking-widest">Valuation Factors</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
-                    <div className="text-xs font-bold text-green-500 uppercase tracking-widest mb-4">✅ Adds Value</div>
+                    <div className="text-xs font-bold text-brand-green uppercase tracking-widest mb-4">✅ Adds Value</div>
                     {result.value_factors.slice(0, 3).map((f, i) => (
-                      <div key={i} className="flex items-start gap-3 bg-green-500/5 p-4 rounded-2xl border border-green-500/10">
-                        <Check size={16} className="text-green-500 mt-1 shrink-0" />
+                      <div key={i} className="flex items-start gap-3 bg-brand-green/5 p-4 rounded-2xl border border-brand-green/10">
+                        <Check size={16} className="text-brand-green mt-1 shrink-0" />
                         <span className="text-sm font-medium text-gray-300">{f}</span>
                       </div>
                     ))}
                   </div>
                   <div className="space-y-4">
-                    <div className="text-xs font-bold text-red-500 uppercase tracking-widest mb-4">⚠️ Risks / Reduction</div>
+                    <div className="text-xs font-bold text-brand-red uppercase tracking-widest mb-4">⚠️ Risks / Reduction</div>
                     {result.value_factors.slice(3, 6).map((f, i) => (
-                      <div key={i} className="flex items-start gap-3 bg-red-500/5 p-4 rounded-2xl border border-red-500/10">
-                        <AlertCircle size={16} className="text-red-500 mt-1 shrink-0" />
+                      <div key={i} className="flex items-start gap-3 bg-brand-red/5 p-4 rounded-2xl border border-brand-red/10">
+                        <AlertCircle size={16} className="text-brand-red mt-1 shrink-0" />
                         <span className="text-sm font-medium text-gray-300">{f}</span>
                       </div>
                     ))}
@@ -3135,11 +3160,11 @@ const PropertyValuationSection = () => {
 };
 
 const TestimonialsSection = () => (
-  <section className="py-20 bg-gray-50 overflow-hidden">
+  <section className="py-20 bg-gray-50 dark:bg-[#0A1A0A] overflow-hidden">
     <div className="container mx-auto px-6">
       <div className="text-center mb-16">
-        <h2 className="text-3xl font-extrabold text-dark-navy mb-4">What Our Clients Say</h2>
-        <div className="w-20 h-1.5 bg-brand-green mx-auto rounded-full"></div>
+        <h2 className="text-3xl font-extrabold text-primary dark:text-white mb-4">What Our Clients Say</h2>
+        <div className="w-20 h-1.5 bg-secondary mx-auto rounded-full"></div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -3150,19 +3175,19 @@ const TestimonialsSection = () => (
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: idx * 0.1 }}
-            className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 relative group hover:shadow-xl hover:-translate-y-1 compact-transition"
+            className="bg-white dark:bg-white/5 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-white/10 relative group hover:shadow-xl hover:-translate-y-1 compact-transition"
           >
-            <div className="absolute top-8 right-8 text-brand-green/20">
+            <div className="absolute top-8 right-8 text-secondary/20">
               <Quote size={40} />
             </div>
             
-            <div className="flex gap-1 mb-6 text-orange-400">
+            <div className="flex gap-1 mb-6 text-brand-gold">
               {[...Array(testimonial.rating)].map((_, i) => (
                 <Star key={i} size={16} fill="currentColor" />
               ))}
             </div>
             
-            <p className="text-gray-600 italic mb-8 leading-relaxed">"{testimonial.text}"</p>
+            <p className="text-gray-600 dark:text-gray-300 italic mb-8 leading-relaxed">"{testimonial.text}"</p>
             
             <div className="flex items-center gap-4">
               <img src={testimonial.avatar} alt={testimonial.name} className="w-12 h-12 rounded-full ring-2 ring-brand-green/10" />
@@ -3180,59 +3205,56 @@ const TestimonialsSection = () => (
 
 const AD_PACKAGES = [
   {
+    tier: "PREMIUM TIER",
     name: "GOLD PACKAGE",
     price: "Rs. 15,000",
     duration: "12 Months",
-    description: "Fully Website Advertising with Fully Social Media Marketing across 10 major platforms.",
     features: [
+      "Fully Website Advertising",
       "12 Months Duration",
       "Featured Property Status",
-      "LankaLand.lk, Ikman.lk, Adsme.lk",
-      "LankaProperty.lk, LankaPropertyWeb.lk",
-      "Jacktree.lk, LankAdz.lk, House.lk",
-      "AdBoom.lk, LankaBuySell.lk",
       "Social Media (WhatsApp, FB, IG, TikTok)"
     ],
+    visibility: "Visibility on: ikman.lk, LankaPropertyWeb.lk",
     highlight: false,
-    color: "bg-amber-50/50",
-    textColor: "text-amber-600"
+    color: "bg-white",
+    textColor: "text-brand-green",
+    buttonVariant: "outline"
   },
   {
+    tier: "STRATEGIC TIER",
     name: "PLATINUM PACKAGE",
     price: "Rs. 25,000",
     duration: "Until Sold",
-    description: "Advertised until sold with premium placement and multi-channel marketing.",
     features: [
-      "Advertised Until Sold",
+      "Advertised until sold",
       "Featured on 10 Major Websites",
-      "LankaLand.lk, Ikman.lk, Adsme.lk",
-      "LankaProperty.lk, LankaPropertyWeb.lk",
-      "Jacktree.lk, LankAdz.lk, House.lk",
-      "AdBoom.lk, LankaBuySell.lk",
       "Fully Social Media Marketing",
       "Priority Direct Support"
     ],
     highlight: true,
-    color: "bg-white",
-    textColor: "text-brand-green"
+    color: "bg-dark-navy",
+    textColor: "text-white",
+    buttonVariant: "solid-green",
+    ribbon: "MOST POPULAR",
+    ribbonColor: "bg-[#C1272D]"
   },
   {
+    tier: "ULTIMATE TIER",
     name: "DIAMOND PACKAGE",
     price: "Rs. 45,000",
     duration: "Until Sold",
-    description: "Ultimate exposure with home page banners and priority cross-platform marketing.",
     features: [
       "All Platinum Tier Features",
       "High-Traffic Banner Placement",
       "Priority Listing Diagnostics",
-      "Featured Ad on LankaProperty.lk",
       "Premium Web Slider (990x340 px)",
-      "Dedicated Account Manager",
-      "Global Social Media Boost"
+      "Dedicated Account Manager"
     ],
     highlight: false,
-    color: "bg-slate-50/50",
-    textColor: "text-dark-navy"
+    color: "bg-white",
+    textColor: "text-dark-navy",
+    buttonVariant: "solid-black"
   }
 ];
 
@@ -3241,52 +3263,47 @@ const NEW_PACKAGES = [
     name: "STARTER FREE",
     price: "FREE",
     duration: "30 Months",
-    description: "Extended free trial for long-term project visibility and early-stage listings.",
     features: [
-      "30 Months Extended Free Duration",
+      "30 Months Extended Duration",
       "Standard Property Listing",
       "Basic Search Integration",
-      "Public Visibility on Main Portal",
-      "Email Support Only",
-      "Limited Photo Uploads"
+      "Email Support"
     ],
     highlight: false,
-    color: "bg-blue-50/50",
-    textColor: "text-blue-600"
+    color: "bg-white",
+    buttonLabel: "Start Free"
   },
   {
     name: "PREMIUM PRO",
     price: "Rs. 4,500",
     duration: "2 Months",
-    description: "Performance focused 60-day package with priority placement.",
     features: [
-      "2 Months (60 Days) Total Exposure",
+      "60 Days Exposure",
       "Featured Position (Top 10)",
       "Multi-Site Syndication",
-      "WhatsApp Lead Generation",
-      "Direct Inquiry Dashboard",
-      "Social Media Basic Boost"
+      "WhatsApp Lead Generation"
     ],
-    highlight: false,
-    color: "bg-emerald-50/50",
-    textColor: "text-emerald-600"
+    highlight: true,
+    color: "bg-white",
+    buttonLabel: "Go Premium",
+    buttonVariant: "solid-red",
+    ribbon: "BEST VALUE",
+    ribbonColor: "bg-[#C1272D]"
   },
   {
     name: "ELITE PRO",
     price: "Rs. 8,500",
     duration: "3 Months",
-    description: "Three months of premium marketing for quicker property turnaround.",
     features: [
-      "3 Months (90 Days) Premium Duration",
-      "Top-Shelf Branding Options",
-      "360° Virtual Tour Base",
-      "Weekly Performance Stats",
-      "Verified Seller Badge",
-      "Cross-Platform Ad Targeting"
+      "90 Days Premium Duration",
+      "Top-Shelf Branding",
+      "360 Virtual Tour Base",
+      "Verified Seller Badge"
     ],
-    highlight: true,
-    color: "bg-purple-50/50",
-    textColor: "text-purple-600"
+    highlight: false,
+    color: "bg-white",
+    buttonLabel: "Select Elite",
+    buttonVariant: "solid-black"
   }
 ];
 
@@ -3413,7 +3430,7 @@ const ComparisonView = ({
           <div key={p.id} className="bg-white rounded-3xl border border-gray-100 shadow-xl p-4 space-y-6 relative group overflow-hidden">
             <button 
               onClick={() => onRemove(p.id)}
-              className="absolute top-6 right-6 z-10 p-2 bg-white/90 hover:bg-red-500 hover:text-white rounded-xl shadow-lg compact-transition"
+              className="absolute top-6 right-6 z-10 p-2 bg-white/90 hover:bg-brand-red hover:text-white rounded-xl shadow-lg compact-transition"
             >
               <ArrowUp className="rotate-45" size={16} />
             </button>
@@ -3492,47 +3509,59 @@ const PricingPackages = ({ onBack, onGetStarted }: { onBack: () => void, onGetSt
       animate={{ opacity: 1, y: 0 }}
       className="container mx-auto px-6 py-16"
     >
-      <div className="text-center mb-16 space-y-4">
-        <h1 className="text-4xl font-extrabold text-dark-navy tracking-tight">
-          Advertising <FlipWords words={["Packages", "Solutions", "Plans", "Options"]} className="text-brand-green min-w-[180px]" />
+      <div className="text-center mb-24">
+        <h1 className="text-5xl md:text-6xl font-black text-brand-green tracking-tighter mb-6">
+          Advertising Packages
         </h1>
-        <p className="text-gray-500 max-w-2xl mx-auto font-medium">
+        <p className="text-gray-500 max-w-2xl mx-auto font-bold text-lg leading-relaxed">
           Choose the perfect plan to reach over 500,000 potential buyers and renters every month in Sri Lanka.
         </p>
-        <div className="w-24 h-1.5 bg-brand-green mx-auto rounded-full"></div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-        {AD_PACKAGES.map((pkg, idx) => (
+        {AD_PACKAGES.map((pkg: any, idx) => (
           <motion.div
             key={idx}
             whileHover={{ y: -8 }}
-            className={`relative rounded-[32px] p-8 border border-gray-100 flex flex-col h-full ${pkg.color || 'bg-white'} shadow-xl shadow-gray-100/50 compact-transition ${pkg.highlight ? 'ring-2 ring-brand-green' : ''}`}
+            className={`relative rounded-2xl p-8 border border-gray-100 flex flex-col h-full ${pkg.color || 'bg-white'} shadow-2xl shadow-gray-200/40 compact-transition group overflow-hidden`}
           >
-            {pkg.highlight && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-green text-white text-xs font-black uppercase tracking-widest px-5 py-2 rounded-full shadow-lg">
-                Most Popular
+            {pkg.ribbon && (
+              <div className={`absolute top-0 right-0 w-32 h-32 overflow-hidden`}>
+                <div className={`absolute top-5 -right-8 w-[150px] ${pkg.ribbonColor || 'bg-primary'} text-white text-[9px] font-black uppercase tracking-[0.2em] py-1.5 text-center rotate-45 shadow-lg`}>
+                  {pkg.ribbon}
+                </div>
               </div>
             )}
 
-            <div className="mb-8">
-              <h3 className="text-2xl font-bold text-dark-navy mb-2">{pkg.name}</h3>
-              <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-4xl font-black text-brand-green tracking-tight">{pkg.price}</span>
-                <span className="text-gray-500 text-base font-bold">/ {pkg.duration}</span>
+            <div className={`mb-8 ${pkg.textColor === 'text-white' ? 'text-white' : 'text-dark-navy'}`}>
+              <div className={`text-[10px] font-black uppercase tracking-[0.2em] mb-4 ${pkg.textColor === 'text-white' ? 'text-white/80' : 'text-gray-500'}`}>
+                {pkg.tier}
               </div>
-              <p className="text-sm text-gray-400 font-medium leading-relaxed">{pkg.description}</p>
+              <h3 className="text-2xl font-black mb-4">{pkg.name}</h3>
+              <div className="flex items-baseline gap-1 mb-4">
+                <span className={`text-4xl font-black tracking-tighter ${pkg.textColor === 'text-white' ? 'text-brand-green' : 'text-brand-green'}`}>{pkg.price}</span>
+                <span className={`text-base font-bold ${pkg.textColor === 'text-white' ? 'text-white/80' : 'text-gray-600'}`}>/ {pkg.duration}</span>
+              </div>
             </div>
 
-            <div className="space-y-4 mb-10 flex-grow">
-              {pkg.features.map((feature, fIdx) => (
+            <div className="space-y-4 mb-8 flex-grow">
+              {pkg.features.map((feature: string, fIdx: number) => (
                 <div key={fIdx} className="flex items-start gap-3">
-                  <div className="shrink-0 w-6 h-6 rounded-full bg-brand-green/10 flex items-center justify-center text-brand-green mt-0.5">
-                    <CheckCircle size={14} fill="currentColor" className="text-brand-green flex-grow-0" />
+                  <div className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${pkg.textColor === 'text-white' ? 'bg-brand-green/20' : 'bg-brand-green/10'}`}>
+                    <CheckCircle size={14} className="text-brand-green" />
                   </div>
-                  <span className="text-sm font-semibold text-gray-600">{feature}</span>
+                  <span className={`text-[13px] font-bold ${pkg.textColor === 'text-white' ? 'text-white' : 'text-gray-700'}`}>
+                    {feature}
+                  </span>
                 </div>
               ))}
+              {pkg.visibility && (
+                <div className={`mt-8 pt-6 border-t ${pkg.textColor === 'text-white' ? 'border-white/10' : 'border-gray-100'}`}>
+                  <p className={`text-[10px] italic font-bold ${pkg.textColor === 'text-white' ? 'text-white/80' : 'text-gray-500'}`}>
+                    {pkg.visibility}
+                  </p>
+                </div>
+              )}
             </div>
 
             <button
@@ -3540,7 +3569,11 @@ const PricingPackages = ({ onBack, onGetStarted }: { onBack: () => void, onGetSt
                 const message = `Hello, I am interested in the ${pkg.name}. Please provide more details.`;
                 window.open(`https://wa.me/94773951560?text=${encodeURIComponent(message)}`, '_blank');
               }}
-              className={`w-full py-4 rounded-2xl font-bold text-sm tracking-wide uppercase compact-transition ${pkg.highlight ? 'bg-brand-green text-white shadow-lg shadow-brand-green/20 hover:bg-brand-green-dark' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              className={`w-full py-4 rounded-xl font-black text-[11px] tracking-[0.15em] uppercase compact-transition border-2 ${
+                pkg.buttonVariant === 'outline' ? 'border-brand-green text-brand-green hover:bg-brand-green hover:text-white' :
+                pkg.buttonVariant === 'solid-green' ? 'bg-brand-green border-brand-green text-white hover:bg-brand-green/90 shadow-xl shadow-brand-green/20' :
+                'bg-dark-navy border-dark-navy text-white hover:bg-black shadow-xl shadow-black/20'
+              }`}
             >
               LIST YOUR PROPERTY
             </button>
@@ -3548,141 +3581,105 @@ const PricingPackages = ({ onBack, onGetStarted }: { onBack: () => void, onGetSt
         ))}
       </div>
 
-      <div className="text-center mt-24 mb-16 space-y-4">
-        <h2 className="text-3xl font-extrabold text-dark-navy tracking-tight">
-          Direct <span className="text-brand-green">Publishing Plans</span>
+      <div className="text-center mt-40 mb-16 px-4">
+        <h2 className="text-4xl md:text-5xl font-black text-dark-navy tracking-tighter mb-6">
+          Direct Publishing Plans
         </h2>
-        <p className="text-gray-500 max-w-2xl mx-auto font-medium">
+        <p className="text-gray-500 max-w-2xl mx-auto font-bold text-lg leading-relaxed">
           Choose a plan to instantly publish your property and manage your listings through your owner dashboard.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-        {NEW_PACKAGES.map((pkg, idx) => (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-32">
+        {NEW_PACKAGES.map((pkg: any, idx) => (
           <motion.div
             key={idx}
             whileHover={{ y: -8 }}
-            className={`relative rounded-[32px] p-8 border border-gray-100 flex flex-col h-full ${pkg.color || 'bg-white'} shadow-xl shadow-gray-100/50 compact-transition ${pkg.highlight ? 'ring-2 ring-brand-green' : ''}`}
+            className={`relative rounded-3xl p-10 border-2 flex flex-col h-full bg-white compact-transition group overflow-hidden ${
+              pkg.highlight ? 'border-[#C1272D] shadow-2xl shadow-[#C1272D]/5' : 'border-gray-100 shadow-xl shadow-gray-100/50'
+            }`}
           >
-            {pkg.highlight && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-green text-white text-xs font-black uppercase tracking-widest px-5 py-2 rounded-full shadow-lg">
-                Best Value
+            {pkg.ribbon && (
+              <div className={`absolute top-0 right-1/2 translate-x-1/2`}>
+                <div className={`bg-[#C1272D] text-white text-[9px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-b-xl shadow-lg`}>
+                  {pkg.ribbon}
+                </div>
               </div>
             )}
 
-            <div className="mb-8">
-              <h3 className="text-2xl font-bold text-dark-navy mb-2">{pkg.name}</h3>
-              <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-4xl font-black text-brand-green tracking-tight">{pkg.price}</span>
-                <span className="text-gray-500 text-base font-bold">/ {pkg.duration}</span>
+            <div className="mb-8 mt-4">
+              <h3 className="text-2xl font-black text-dark-navy mb-1 tracking-tight">{pkg.name}</h3>
+              <div className="flex items-baseline gap-1.5 mb-2">
+                <span className="text-3xl font-black text-[#C1272D] tracking-tighter">{pkg.price}</span>
+                <span className="text-gray-600 text-sm font-bold">/ {pkg.duration}</span>
               </div>
-              <p className="text-sm text-gray-400 font-medium leading-relaxed">{pkg.description}</p>
             </div>
 
             <div className="space-y-4 mb-10 flex-grow">
-              {pkg.features.map((feature, fIdx) => (
+              {pkg.features.map((feature: string, fIdx: number) => (
                 <div key={fIdx} className="flex items-start gap-3">
-                  <div className="shrink-0 w-6 h-6 rounded-full bg-brand-green/10 flex items-center justify-center text-brand-green mt-0.5">
-                    <CheckCircle size={14} fill="currentColor" className="text-brand-green flex-grow-0" />
-                  </div>
-                  <span className="text-sm font-semibold text-gray-600">{feature}</span>
+                  <Check size={16} className="text-[#C1272D] mt-0.5" />
+                  <span className="text-[13px] font-bold text-gray-800">{feature}</span>
                 </div>
               ))}
             </div>
 
             <button
               onClick={() => onGetStarted(pkg.name)}
-              className={`w-full py-4 rounded-2xl font-bold text-sm tracking-wide uppercase compact-transition ${pkg.highlight ? 'bg-brand-green text-white shadow-lg shadow-brand-green/20 hover:bg-brand-green-dark' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              className={`w-full py-4 rounded-xl font-black text-[11px] tracking-[0.15em] uppercase compact-transition border-2 ${
+                pkg.buttonVariant === 'solid-red' ? 'bg-[#C1272D] border-[#C1272D] text-white hover:bg-red-700 shadow-xl shadow-red-900/20' :
+                pkg.buttonVariant === 'solid-black' ? 'bg-dark-navy border-dark-navy text-white hover:bg-black shadow-xl shadow-black/20' :
+                'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+              }`}
             >
-              LIST YOUR PROPERTY
+              {pkg.buttonLabel || "LIST YOUR PROPERTY"}
             </button>
           </motion.div>
         ))}
       </div>
 
-      <div className="mt-16 bg-gray-50 rounded-[40px] p-10 border border-gray-100 max-w-6xl mx-auto">
-        <div className="text-center mb-8">
-          <h3 className="text-lg font-black text-dark-navy uppercase tracking-widest">All Packages Include Advertising On:</h3>
-          <p className="text-xs text-gray-400 font-bold uppercase tracking-[0.2em] mt-1">Multi-Platform Network Visibility</p>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-          {[
-            "LankaLand.lk", "Ikman.lk", "Adsme.lk", "LankaProperty.lk", "LankaPropertyWeb.lk",
-            "Jacktree.lk", "LankAdz.lk", "House.lk", "AdBoom.lk", "LankaBuySell.lk"
-          ].map((site) => (
-            <div key={site} className="bg-white px-4 py-4 rounded-2xl border border-gray-100 text-center text-xs font-black text-gray-500 hover:text-brand-green hover:border-brand-green hover:shadow-lg hover:shadow-brand-green/5 compact-transition shadow-sm">
-              {site}
-            </div>
-          ))}
-        </div>
-        <div className="mt-10 flex flex-wrap justify-center gap-8 border-t border-gray-200 pt-8">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-green/10 flex items-center justify-center text-brand-green"><Phone size={20} /></div>
-            <div>
-              <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Hotline</div>
-              <div className="text-sm font-black text-dark-navy">033 222 9695</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#25D366]/10 flex items-center justify-center text-[#25D366]"><MessageSquare size={20} /></div>
-            <div>
-              <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">WhatsApp</div>
-              <div className="text-sm font-black text-dark-navy">077 395 1560</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-red/10 flex items-center justify-center text-brand-red"><Mail size={20} /></div>
-            <div>
-              <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Email</div>
-              <div className="text-sm font-black text-dark-navy">ceo.lankaland@gmail.com</div>
-            </div>
+      <div className="max-w-6xl mx-auto space-y-32">
+        <div className="text-center">
+          <h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-8">Your ad will be visible across our network</h3>
+          <div className="flex flex-wrap justify-center gap-x-12 gap-y-6 text-[14px] font-bold text-gray-600">
+            {["LankaLand.lk", "Ikman.lk", "Adsme.lk", "LankaProperty.lk", "LankaPropertyWeb.lk", "Jacktree.lk", "LankAdz.lk", "House.lk", "AdBoom.lk", "LankaBuySell.lk"].map(site => (
+              <span key={site} className="hover:text-brand-green cursor-default compact-transition">{site}</span>
+            ))}
           </div>
         </div>
-      </div>
 
-      <div className="mt-20 bg-dark-navy rounded-[40px] p-12 text-white relative overflow-hidden">
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-brand-green/10 rounded-full blur-3xl -mb-48 -mr-48"></div>
-        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
-            <h3 className="text-3xl font-extrabold leading-tight">Need a Custom Solution for your Agency?</h3>
-            <p className="text-gray-400 font-medium leading-relaxed">
-              We offer exclusive enterprise packages for real estate agencies, developers, and large-scale property management firms. Get bulk listing discounts and priority support.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <button 
-                onClick={() => window.open('https://wa.me/94773951560', '_blank')}
-                className="bg-brand-green text-white font-bold py-4 px-8 rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition"
-              >
-                Schedule a Demo
-              </button>
-              <button 
-                onClick={onBack}
-                className="bg-white/10 text-white font-bold py-4 px-8 rounded-2xl backdrop-blur-md hover:bg-white/20 compact-transition"
-              >
-                Back to Home
-              </button>
-            </div>
+        <div className="relative rounded-[40px] bg-dark-navy overflow-hidden p-12 md:p-20">
+          <div className="absolute inset-0 opacity-20 pointer-events-none">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-green/20 to-transparent"></div>
           </div>
-          <div className="hidden md:grid grid-cols-2 gap-4">
-            <div className="space-y-4">
-              <div className="bg-white/5 p-6 rounded-3xl backdrop-blur-sm border border-white/5">
-                <div className="text-brand-green font-black text-2xl mb-1">98%</div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Satisfaction Rate</div>
+          
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <h3 className="text-3xl md:text-4xl font-black text-white tracking-tighter leading-tight">
+                  Are you a Real Estate Agency?
+                </h3>
+                <p className="text-lg text-white/50 font-medium leading-relaxed max-w-md">
+                  Get custom enterprise solutions for bulk property listings and dedicated performance tracking.
+                </p>
               </div>
-              <div className="bg-white/5 p-6 rounded-3xl backdrop-blur-sm border border-white/5">
-                <div className="text-brand-green font-black text-2xl mb-1">24h</div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Listing Approval</div>
-              </div>
+              <button className="px-8 py-5 bg-brand-green text-dark-navy font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-white hover:scale-105 active:scale-95 compact-transition shadow-2xl shadow-brand-green/20">
+                Request Custom Quote
+              </button>
             </div>
-            <div className="pt-8 space-y-4">
-              <div className="bg-white/5 p-6 rounded-3xl backdrop-blur-sm border border-white/5">
-                <div className="text-brand-green font-black text-2xl mb-1">5k+</div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Active Agents</div>
-              </div>
-              <div className="bg-white/5 p-6 rounded-3xl backdrop-blur-sm border border-white/5">
-                <div className="text-brand-green font-black text-2xl mb-1">10M+</div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Monthly Page Views</div>
-              </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { label: "Client Satisfaction", value: "98%" },
+                { label: "Response Rate", value: "24h" },
+                { label: "Verified Agents", value: "5k+" },
+                { label: "Pageviews/mo", value: "10M+" }
+              ].map((stat, i) => (
+                <div key={i} className="bg-white/5 backdrop-blur-md rounded-3xl p-8 border border-white/10 flex flex-col items-center justify-center text-center">
+                  <div className="text-3xl font-black text-brand-green mb-1">{stat.value}</div>
+                  <div className="text-[10px] font-black text-white/70 uppercase tracking-[0.2em]">{stat.label}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -4667,7 +4664,7 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
                     <img src={img} alt={`Upload ${idx}`} className="w-full h-full object-cover" />
                     <button 
                       onClick={() => removeImage(idx)}
-                      className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 shadow-lg"
+                      className="absolute top-2 right-2 p-2 bg-brand-red text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 shadow-lg"
                     >
                       <Plus size={16} className="rotate-45" />
                     </button>
@@ -4779,7 +4776,7 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
                       {isApplyingCoupon ? '...' : 'Apply'}
                     </button>
                   </div>
-                  {couponError && <p className="text-[10px] font-bold text-red-500 px-1">{couponError}</p>}
+                  {couponError && <p className="text-[10px] font-bold text-brand-red px-1">{couponError}</p>}
                   {appliedDiscount > 0 && <p className="text-[10px] font-bold text-brand-green px-1">Coupon successfully applied!</p>}
                 </div>
               </div>
@@ -4957,7 +4954,7 @@ const SortableImageItem = ({ image, onRemove }: { image: { id: string, url: stri
           e.stopPropagation();
           onRemove(image.id);
         }}
-        className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-lg z-20"
+        className="absolute top-2 right-2 p-2 bg-brand-red text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-lg z-20"
       >
         <Plus size={16} className="rotate-45" />
       </button>
@@ -5688,8 +5685,8 @@ const PropertyAdminCard = ({ property, onEdit, setDeleteConfirmId, updatingId, t
   const tierColors: Record<string, string> = {
     'STARTER FREE': 'bg-gray-100 text-gray-600',
     'FREE': 'bg-gray-100 text-gray-600',
-    'PREMIUM PRO': 'bg-blue-100 text-blue-600',
-    'ELITE PRO': 'bg-green-100 text-green-600'
+    'PREMIUM PRO': 'bg-brand-gold/10 text-brand-gold',
+    'ELITE PRO': 'bg-brand-green/10 text-brand-green'
   };
   const tierBadges: Record<string, string> = {
     'STARTER FREE': 'FREE',
@@ -5716,7 +5713,7 @@ const PropertyAdminCard = ({ property, onEdit, setDeleteConfirmId, updatingId, t
               <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${tierColors[packageTier] || tierColors['STARTER FREE']}`}>
                 {tierBadges[packageTier] || tierBadges['STARTER FREE']}
               </span>
-              <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${isAdminPosted ? 'bg-purple-100 text-purple-600' : 'bg-orange-100 text-orange-600'}`}>
+              <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${isAdminPosted ? 'bg-brand-red/10 text-brand-red' : 'bg-brand-gold/10 text-brand-gold'}`}>
                 {isAdminPosted ? 'ADMIN' : 'AGENT'}
               </span>
             </div>
@@ -6208,11 +6205,11 @@ const AgentListingsView = ({ onBack, onEdit, onRefresh, user, onShowToast }: { o
           animate={{ opacity: 1, scale: 1, y: 0 }}
           className="bg-white rounded-[40px] shadow-2xl p-8 sm:p-10 max-w-md w-full relative overflow-hidden text-center"
         >
-          <div className="absolute top-0 left-0 w-full h-1 bg-red-500" />
+          <div className="absolute top-0 left-0 w-full h-1 bg-brand-red" />
           
-          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-              <AlertTriangle className="text-red-500" size={32} />
+          <div className="w-20 h-20 bg-brand-red/5 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-16 h-16 bg-brand-red/10 rounded-full flex items-center justify-center">
+              <AlertTriangle className="text-brand-red" size={32} />
             </div>
           </div>
 
@@ -6225,7 +6222,7 @@ const AgentListingsView = ({ onBack, onEdit, onRefresh, user, onShowToast }: { o
             <button 
               onClick={() => deleteProperty(deleteConfirmId)}
               disabled={updatingId === deleteConfirmId}
-              className="w-full py-4 bg-red-500 text-white font-black uppercase tracking-widest rounded-2xl hover:bg-red-600 shadow-xl shadow-red-500/20 active:scale-95 compact-transition inline-flex items-center justify-center gap-2"
+              className="w-full py-4 bg-brand-red text-white font-black uppercase tracking-widest rounded-2xl hover:bg-red-600 shadow-xl shadow-brand-red/20 active:scale-95 compact-transition inline-flex items-center justify-center gap-2"
             >
               {updatingId === deleteConfirmId ? (
                 <>
@@ -6348,7 +6345,7 @@ const AgentListingsView = ({ onBack, onEdit, onRefresh, user, onShowToast }: { o
             <div className="space-y-4">
               <div className="bg-green-50 p-4 rounded-2xl border border-green-100">
                 <h4 className="text-sm font-black text-green-600 uppercase tracking-widest text-center">Elite Pro</h4>
-                <p className="text-[10px] text-green-500 font-bold text-center mt-1">{localProperties.filter(p => p.package_tier === 'Elite Pro' || p.package_tier === 'ELITE PRO').length} Listings</p>
+                <p className="text-[10px] text-brand-green/60 font-bold text-center mt-1">{localProperties.filter(p => p.package_tier === 'Elite Pro' || p.package_tier === 'ELITE PRO').length} Listings</p>
               </div>
               {localProperties.filter(p => p.package_tier === 'Elite Pro' || p.package_tier === 'ELITE PRO').map((property) => (
                 <PropertyAdminCard key={property.id} property={property} onEdit={(p: any) => setAdminEditPropertyId(p.id)} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
@@ -6946,7 +6943,7 @@ const AdminFeaturedProjectsView = ({ onBack, onShowToast }: { onBack: () => void
               <div className="h-[180px] relative">
                 <img src={proj.main_image} className="w-full h-full object-cover" />
                 <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded-md shadow-sm flex items-center gap-2">
-                  <span className={`h-2 w-2 rounded-full ${proj.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <span className={`h-2 w-2 rounded-full ${proj.is_active ? 'bg-brand-green' : 'bg-brand-red'}`} />
                   <span className="text-[10px] font-black text-gray-700 uppercase tracking-wider">{proj.is_active ? 'ACTIVE' : 'INACTIVE'}</span>
                 </div>
                 {proj.developer_logo && (
@@ -6976,7 +6973,7 @@ const AdminFeaturedProjectsView = ({ onBack, onShowToast }: { onBack: () => void
                     <div className="w-px h-6 bg-gray-200 mx-1"></div>
                     <label className="relative inline-flex items-center cursor-pointer p-2 hover:bg-gray-50 rounded-lg" title="Toggle Visibility">
                       <input type="checkbox" checked={proj.is_active} onChange={() => toggleActive(proj.id, proj.is_active)} className="sr-only peer" />
-                      <div className="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[12px] after:left-[10px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-green-500"></div>
+                      <div className="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[12px] after:left-[10px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand-green"></div>
                     </label>
                   </div>
                   
@@ -7131,18 +7128,27 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
     );
   }
 
+  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+  const chartTheme = {
+    background: 'transparent',
+    gridColor: isDark ? '#374151' : '#f1f5f9',
+    textColor: isDark ? '#9CA3AF' : '#94a3b8',
+    tooltipBg: isDark ? '#1F2937' : '#FFFFFF',
+    tooltipText: isDark ? '#F9FAFB' : '#111827',
+  };
+
   return (
     <div className="space-y-6">
       {/* Category Tabs */}
-      <div className="flex flex-wrap gap-2 mb-2 p-1.5 bg-gray-50 rounded-3xl w-fit">
+      <div className="flex flex-wrap gap-3 mb-4 p-2 bg-gray-100 rounded-3xl w-fit border border-gray-200/50 shadow-inner">
         {categories.map((cat) => (
           <button
             key={cat.id}
             onClick={() => setSelectedCategory(cat.id as any)}
-            className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest compact-transition ${
+            className={`px-8 py-3 rounded-2xl text-xs font-black uppercase tracking-widest compact-transition ${
               selectedCategory === cat.id 
-                ? 'bg-brand-green text-white shadow-lg shadow-brand-green/20' 
-                : 'text-gray-400 hover:text-dark-navy'
+                ? 'bg-brand-green text-white shadow-xl shadow-brand-green/30 scale-105' 
+                : 'text-gray-500 hover:text-dark-navy hover:bg-white/50'
             }`}
           >
             {cat.label}
@@ -7150,40 +7156,40 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
         ))}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8 mt-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-12">
         {[
-          { label: 'Total Reach', value: stats[selectedCategory].reach, change: '+12.5%', icon: Eye, primary: true },
-          { label: 'Total Leads', value: stats[selectedCategory].leads, change: '+8.2%', icon: Users, primary: false },
-          { label: 'Avg. Clicks', value: stats[selectedCategory].clicks, change: '+5.1%', icon: MousePointer2, primary: false },
+          { label: 'Total Platform Reach', value: stats[selectedCategory].reach, change: '+12.5%', icon: Eye, primary: true },
+          { label: 'Interested Leads', value: stats[selectedCategory].leads, change: '+8.2%', icon: Users, primary: false },
+          { label: 'Avg. Engagement Clicks', value: stats[selectedCategory].clicks, change: '+5.1%', icon: MousePointer2, primary: false },
         ].map((stat, i) => (
-          <div key={i} className={`relative p-6 rounded-[32px] border flex flex-col justify-between group overflow-hidden compact-transition ${stat.primary ? 'bg-dark-navy border-dark-navy text-white shadow-xl shadow-dark-navy/20' : 'bg-white border-gray-100 text-dark-navy hover:border-gray-200 hover:shadow-md'}`}>
+          <div key={i} className={`relative p-8 rounded-[40px] border flex flex-col justify-between group overflow-hidden compact-transition ${stat.primary ? 'bg-dark-navy border-dark-navy text-white shadow-2xl shadow-dark-navy/30' : 'bg-white border-gray-100 text-dark-navy hover:border-brand-green hover:shadow-2xl hover:-translate-y-1'}`}>
             
             {/* Background decoration for primary card */}
             {stat.primary && (
-              <div className="absolute -top-12 -right-12 w-32 h-32 bg-brand-green rounded-full blur-[60px] opacity-30 pointer-events-none" />
+              <div className="absolute -top-12 -right-12 w-48 h-48 bg-brand-green rounded-full blur-[80px] opacity-30 pointer-events-none" />
             )}
 
-            <div className="flex justify-between items-start mb-6">
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transform group-hover:scale-110 compact-transition ${stat.primary ? 'bg-white/10 text-brand-green backdrop-blur-md border border-white/10 z-10 relative' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
-                <stat.icon size={22} className={stat.primary ? 'stroke-[2.5px]' : 'stroke-2'} />
+            <div className="flex justify-between items-start mb-8">
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transform group-hover:rotate-12 compact-transition ${stat.primary ? 'bg-white/10 text-brand-green backdrop-blur-md border border-white/10 z-10 relative shadow-lg shadow-brand-green/20' : 'bg-gray-50 text-brand-green border border-gray-100 shadow-sm'}`}>
+                <stat.icon size={28} className={stat.primary ? 'stroke-[2.5px]' : 'stroke-2'} />
               </div>
               
-              <div className={`flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded-full z-10 relative ${stat.primary ? 'bg-brand-green/20 text-brand-green border border-brand-green/20' : 'bg-brand-green/10 text-brand-green border border-brand-green/10'}`}>
-                <TrendingUp size={12} className={stat.primary ? "stroke-[3px]" : "stroke-2"} />
+              <div className={`flex items-center gap-1.5 text-xs font-black px-3.5 py-2 rounded-full z-10 relative ${stat.primary ? 'bg-brand-green/20 text-brand-green border border-brand-green/20' : 'bg-brand-green/10 text-brand-green border border-brand-green/10'}`}>
+                <TrendingUp size={14} className={stat.primary ? "stroke-[3px]" : "stroke-2"} />
                 {stat.change}
               </div>
             </div>
 
-            <div className="space-y-1 relative z-10">
-              <p className={`text-[10px] font-black uppercase tracking-widest ${stat.primary ? 'text-gray-400' : 'text-gray-400'}`}>{stat.label}</p>
-              <h4 className={`text-4xl font-black tracking-tight ${stat.primary ? 'text-white' : 'text-dark-navy'}`}>{stat.value}</h4>
+            <div className="space-y-1.5 relative z-10">
+              <p className={`text-[12px] font-black uppercase tracking-[0.2em] ${stat.primary ? 'text-gray-400' : 'text-gray-500'}`}>{stat.label}</p>
+              <h4 className={`text-5xl font-black tracking-tight ${stat.primary ? 'text-white' : 'text-dark-navy'}`}>{stat.value}</h4>
             </div>
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-3 bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm overflow-hidden relative group h-full">
+        <div className="lg:col-span-3 bg-white dark:bg-dark-navy p-8 rounded-[40px] border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden relative group h-full">
           <div className="absolute top-0 right-0 p-8">
             <div className="flex items-center gap-2 px-3 py-1.5 bg-brand-green/10 text-brand-green rounded-full">
               <TrendingUp size={14} />
@@ -7192,7 +7198,7 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
           </div>
           
           <div className="mb-8">
-            <h3 className="text-xl font-black text-dark-navy">Performance Velocity</h3>
+            <h3 className="text-xl font-black text-dark-navy dark:text-white">Performance Velocity</h3>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1"> engagement vs leads</p>
           </div>
 
@@ -7205,23 +7211,26 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
                     <stop offset="95%" stopColor={selectedCategory === 'land' ? '#3b82f6' : selectedCategory === 'apartment' ? '#6366f1' : '#00b562'} stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridColor} />
                 <XAxis 
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }} 
+                  tick={{ fontSize: 10, fontWeight: 700, fill: chartTheme.textColor }} 
                   dy={10}
                 />
                 <YAxis hide />
                 <Tooltip 
                   contentStyle={{ 
+                    backgroundColor: chartTheme.tooltipBg,
+                    color: chartTheme.tooltipText,
                     borderRadius: '16px', 
                     border: 'none', 
                     boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
                     fontSize: '12px',
                     fontWeight: 'bold'
                   }}
+                  itemStyle={{ color: chartTheme.tooltipText }}
                 />
                 <Area 
                   type="monotone" 
@@ -7237,9 +7246,9 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
           </div>
         </div>
 
-        <div className="lg:col-span-2 bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm flex flex-col justify-between">
+        <div className="lg:col-span-2 bg-white dark:bg-dark-navy p-8 rounded-[40px] border border-gray-100 dark:border-white/5 shadow-sm flex flex-col justify-between">
           <div>
-            <h3 className="text-xl font-black text-dark-navy">Market Share</h3>
+            <h3 className="text-xl font-black text-dark-navy dark:text-white">Market Share</h3>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Listing density by category</p>
           </div>
 
@@ -7263,6 +7272,8 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
                 </Pie>
                 <Tooltip 
                   contentStyle={{ 
+                    backgroundColor: chartTheme.tooltipBg,
+                    color: chartTheme.tooltipText,
                     borderRadius: '16px', 
                     border: 'none', 
                     boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
@@ -7270,7 +7281,7 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
                     fontWeight: 'bold'
                   }}
                   itemStyle={{
-                    color: '#1e293b'
+                    color: chartTheme.tooltipText
                   }}
                 />
               </PieChart>
@@ -7371,7 +7382,7 @@ const SecretLoginView = ({ onBack, onSuccess }: { onBack: () => void, onSuccess:
         
         <form onSubmit={handleLogin} className="space-y-6">
           {errorMsg && (
-            <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-sm font-bold text-center">
+            <div className="p-4 bg-brand-red/10 text-brand-red rounded-2xl text-sm font-bold text-center">
               {errorMsg}
             </div>
           )}
@@ -7635,7 +7646,7 @@ const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowL
       animate={{ opacity: 1, y: 0 }}
       className="container mx-auto px-6 py-20 max-w-6xl"
     >
-      <div className="flex items-center gap-4 mb-12">
+      <div className="flex items-center gap-6 mb-16">
         <button 
           onClick={() => {
               if (activeTab === 'dashboard') {
@@ -7644,181 +7655,189 @@ const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowL
                 setActiveTab('dashboard');
               }
             }}
-            className="p-3 bg-gray-100 rounded-2xl hover:bg-gray-200 text-gray-500 compact-transition"
+            className="p-4 bg-white border border-gray-100 rounded-2xl hover:bg-brand-green hover:text-white shadow-sm compact-transition group"
           >
-            <ArrowRight className="rotate-180" size={20} />
+            <ArrowRight className="rotate-180" size={24} />
           </button>
           <div>
-            <h1 className="text-3xl font-black text-dark-navy">
+            <h1 className="text-4xl md:text-5xl font-black text-dark-navy leading-none tracking-tight">
               {activeTab === 'dashboard' ? 'Admin Portal' : activeTab === 'editProfile' ? 'Edit Profile' : 'Security Settings'}
             </h1>
-            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+            <p className="text-base md:text-lg font-bold text-gray-500 mt-2">
               {activeTab === 'dashboard' ? 'Manage platform and listings' : activeTab === 'editProfile' ? 'Update your personal information' : 'Manage your account security'}
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-1 space-y-6">
-            <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-xl shadow-gray-200/50 text-center">
-              <div className="w-24 h-24 bg-brand-green mx-auto rounded-3xl flex items-center justify-center text-white text-4xl font-black mb-4 shadow-lg shadow-brand-green/20">
+          <div className="md:col-span-1 space-y-8">
+            <div className="bg-white p-10 rounded-[40px] border border-gray-100 shadow-2xl shadow-gray-200/60 text-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-brand-green/5 rounded-bl-full" />
+              <div className="w-28 h-28 bg-brand-green mx-auto rounded-[32px] flex items-center justify-center text-white text-5xl font-black mb-6 shadow-xl shadow-brand-green/30 relative z-10">
                 {user?.email?.charAt(0).toUpperCase()}
               </div>
-              <h2 className="text-xl font-black text-dark-navy mb-1 line-clamp-1">{user?.email?.split('@')[0]}</h2>
-              <p className="text-[10px] font-black text-brand-green uppercase tracking-[0.2em] mb-6">System Admin</p>
+              <h2 className="text-2xl font-black text-dark-navy mb-1 line-clamp-1">{user?.email?.split('@')[0]}</h2>
+              <p className="text-xs font-black text-brand-green uppercase tracking-[0.25em] mb-8">System Admin</p>
               
-              <div className="grid grid-cols-2 gap-3 pt-6 border-t border-gray-50">
+              <div className="grid grid-cols-2 gap-4 pt-8 border-t border-gray-100">
                 <div>
-                  <div className="text-lg font-black text-dark-navy">{agentPropertiesCount}</div>
-                  <div className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Active Ads</div>
+                  <div className="text-2xl font-black text-dark-navy">{agentPropertiesCount}</div>
+                  <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Active Ads</div>
                 </div>
                 <div>
-                  <div className="text-lg font-black text-dark-navy">{agentLeadsTotal >= 1000 ? (agentLeadsTotal/1000).toFixed(1) + 'k' : agentLeadsTotal}</div>
-                  <div className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Leads</div>
+                  <div className="text-2xl font-black text-dark-navy">{agentLeadsTotal >= 1000 ? (agentLeadsTotal/1000).toFixed(1) + 'k' : agentLeadsTotal}</div>
+                  <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Leads</div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-dark-navy p-6 rounded-[32px] text-white space-y-6">
+            <div className="bg-dark-navy p-8 rounded-[40px] text-white space-y-6 shadow-2xl shadow-dark-navy/30">
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-brand-green mb-2 px-2">Main Navigation</h3>
               {isAuthorized && (
                 <div 
                   onClick={onShowFeaturedProjectsAdmin}
-                  className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer compact-transition group bg-white/5 hover:bg-white/10`}
+                  className={`flex items-center justify-between p-5 rounded-2xl cursor-pointer compact-transition group bg-white/5 hover:bg-white/10`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center compact-transition bg-purple-500/20 text-purple-500 group-hover:bg-purple-500 group-hover:text-white`}>
-                      <Star size={20} />
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center compact-transition bg-purple-500/20 text-purple-500 group-hover:bg-purple-500 group-hover:text-white`}>
+                      <Star size={24} />
                     </div>
-                    <span className="text-sm font-bold">Featured Projects</span>
+                    <span className="text-base font-bold">Featured Projects</span>
                   </div>
-                  <ArrowRight size={16} className={`compact-transition text-gray-600 group-hover:text-white`} />
+                  <ArrowRight size={20} className={`compact-transition text-white/30 group-hover:text-white`} />
                 </div>
               )}
 
               <div 
                 onClick={() => setActiveTab('live_visitors')}
-                className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer compact-transition group ${activeTab === 'live_visitors' ? 'bg-white/10' : 'bg-white/5 hover:bg-white/10'}`}
+                className={`flex items-center justify-between p-5 rounded-2xl cursor-pointer compact-transition group ${activeTab === 'live_visitors' ? 'bg-white/10' : 'bg-white/5 hover:bg-white/10'}`}
               >
                 <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center compact-transition ${activeTab === 'live_visitors' ? 'bg-brand-green text-white' : 'bg-brand-green/20 text-brand-green group-hover:bg-brand-green group-hover:text-white'}`}>
-                    <Activity size={20} />
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center compact-transition ${activeTab === 'live_visitors' ? 'bg-brand-green text-white' : 'bg-brand-green/20 text-brand-green group-hover:bg-brand-green group-hover:text-white'}`}>
+                    <Activity size={24} />
                   </div>
-                  <span className="text-sm font-bold">Live Visitors</span>
+                  <span className="text-base font-bold">Live Visitors</span>
                 </div>
-                <ArrowRight size={16} className={`compact-transition ${activeTab === 'live_visitors' ? 'text-white' : 'text-gray-600 group-hover:text-white'}`} />
+                <ArrowRight size={20} className={`compact-transition ${activeTab === 'live_visitors' ? 'text-white' : 'text-white/30 group-hover:text-white'}`} />
               </div>
 
               <div 
                 onClick={() => setActiveTab('editProfile')}
-                className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer compact-transition group ${activeTab === 'editProfile' ? 'bg-white/10' : 'bg-white/5 hover:bg-white/10'}`}
+                className={`flex items-center justify-between p-5 rounded-2xl cursor-pointer compact-transition group ${activeTab === 'editProfile' ? 'bg-white/10' : 'bg-white/5 hover:bg-white/10'}`}
               >
                 <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center compact-transition ${activeTab === 'editProfile' ? 'bg-brand-green text-white' : 'bg-brand-green/20 text-brand-green group-hover:bg-brand-green group-hover:text-white'}`}>
-                    <User size={20} />
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center compact-transition ${activeTab === 'editProfile' ? 'bg-brand-green text-white' : 'bg-brand-green/20 text-brand-green group-hover:bg-brand-green group-hover:text-white'}`}>
+                    <User size={24} />
                   </div>
-                  <span className="text-sm font-bold">Edit Profile</span>
+                  <span className="text-base font-bold">Edit Profile</span>
                 </div>
-                <ArrowRight size={16} className={`compact-transition ${activeTab === 'editProfile' ? 'text-white' : 'text-gray-600 group-hover:text-white'}`} />
+                <ArrowRight size={20} className={`compact-transition ${activeTab === 'editProfile' ? 'text-white' : 'text-white/30 group-hover:text-white'}`} />
               </div>
 
               <div 
                 onClick={() => setActiveTab('security')}
-                className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer compact-transition group ${activeTab === 'security' ? 'bg-white/10' : 'bg-white/5 hover:bg-white/10'}`}
+                className={`flex items-center justify-between p-5 rounded-2xl cursor-pointer compact-transition group ${activeTab === 'security' ? 'bg-white/10' : 'bg-white/5 hover:bg-white/10'}`}
               >
                 <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center compact-transition ${activeTab === 'security' ? 'bg-blue-500 text-white' : 'bg-blue-500/20 text-blue-500 group-hover:bg-blue-500 group-hover:text-white'}`}>
-                    <Shield size={20} />
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center compact-transition ${activeTab === 'security' ? 'bg-blue-500 text-white' : 'bg-blue-500/20 text-blue-500 group-hover:bg-blue-500 group-hover:text-white'}`}>
+                    <Shield size={24} />
                   </div>
-                  <span className="text-sm font-bold">Security</span>
+                  <span className="text-base font-bold">Security Settings</span>
                 </div>
-                <ArrowRight size={16} className={`compact-transition ${activeTab === 'security' ? 'text-white' : 'text-gray-600 group-hover:text-white'}`} />
+                <ArrowRight size={20} className={`compact-transition ${activeTab === 'security' ? 'text-white' : 'text-white/30 group-hover:text-white'}`} />
               </div>
               
-              <div className="pt-4 mt-4 border-t border-white/5">
+              <div className="pt-6 mt-4 border-t border-white/10">
                 <button 
                   onClick={onLogout}
-                  className="w-full py-4 bg-brand-red text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-red-900/20 hover:bg-red-600 compact-transition"
+                  className="w-full py-5 bg-brand-red text-white text-sm font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl shadow-red-900/40 hover:bg-red-600 hover:-translate-y-1 compact-transition"
                 >
-                  Logout
+                  Logout System
                 </button>
               </div>
             </div>
           </div>
 
-          <div className="md:col-span-2 space-y-6">
+          <div className="md:col-span-2 space-y-10">
             {activeTab === 'dashboard' && (
               <>
                 <AnalyticsOverview user={user} isAdmin={isAuthorized} />
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <h3 className="text-xl font-black text-dark-navy uppercase tracking-widest pl-2">Quick Management</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div 
                     onClick={onShowListings}
-                    className="p-8 bg-white border border-gray-100 rounded-[32px] shadow-sm hover:shadow-md compact-transition group cursor-pointer"
+                    className="p-10 bg-white border border-gray-100 rounded-[40px] shadow-sm hover:shadow-2xl hover:-translate-y-2 compact-transition group cursor-pointer relative overflow-hidden"
                   >
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white compact-transition">
-                        <Building size={24} />
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-blue-50 rounded-bl-full pointer-events-none group-hover:bg-blue-500/10" />
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white compact-transition relative z-10">
+                        <Building size={28} />
                       </div>
                     </div>
-                    <h4 className="font-bold text-dark-navy">{isAuthorized ? 'All Properties' : 'My Listings'}</h4>
-                    <p className="text-xs text-gray-400 mt-1">Manage & Edit properties</p>
+                    <h4 className="text-xl font-black text-dark-navy">{isAuthorized ? 'All Properties' : 'My Listings'}</h4>
+                    <p className="text-sm font-bold text-gray-400 mt-2">Manage & Edit platform inventory</p>
                   </div>
 
                   {isAuthorized && (
                     <div 
                       onClick={onShowAgentListings}
-                      className="p-8 bg-white border border-gray-100 rounded-[32px] shadow-sm hover:shadow-md compact-transition group cursor-pointer"
+                      className="p-10 bg-white border border-gray-100 rounded-[40px] shadow-sm hover:shadow-2xl hover:-translate-y-2 compact-transition group cursor-pointer relative overflow-hidden"
                     >
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="w-12 h-12 bg-orange-50 text-orange-500 rounded-2xl flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white compact-transition">
-                          <Users size={24} />
+                      <div className="absolute top-0 right-0 w-20 h-20 bg-orange-50 rounded-bl-full pointer-events-none group-hover:bg-orange-500/10" />
+                      <div className="flex justify-between items-start mb-6">
+                        <div className="w-14 h-14 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center group-hover:bg-orange-600 group-hover:text-white compact-transition relative z-10">
+                          <Users size={28} />
                         </div>
                       </div>
-                      <h4 className="font-bold text-dark-navy">Agent Listings</h4>
-                      <p className="text-xs text-gray-400 mt-1">Manage agent posted properties</p>
+                      <h4 className="text-xl font-black text-dark-navy">Agent Listings</h4>
+                      <p className="text-sm font-bold text-gray-400 mt-2">Manage agent posted properties</p>
                     </div>
                   )}
 
                   {isAuthorized && (
                     <div 
                       onClick={onShowFeaturedProjectsAdmin}
-                      className="p-8 bg-white border border-gray-100 rounded-[32px] shadow-sm hover:shadow-md compact-transition group cursor-pointer"
+                      className="p-10 bg-white border border-gray-100 rounded-[40px] shadow-sm hover:shadow-2xl hover:-translate-y-2 compact-transition group cursor-pointer relative overflow-hidden"
                     >
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="w-12 h-12 bg-purple-50 text-purple-500 rounded-2xl flex items-center justify-center group-hover:bg-purple-500 group-hover:text-white compact-transition">
-                          <Star size={24} />
+                      <div className="absolute top-0 right-0 w-20 h-20 bg-purple-50 rounded-bl-full pointer-events-none group-hover:bg-purple-500/10" />
+                      <div className="flex justify-between items-start mb-6">
+                        <div className="w-14 h-14 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white compact-transition relative z-10">
+                          <Star size={28} />
                         </div>
                       </div>
-                      <h4 className="font-bold text-dark-navy">Featured Projects</h4>
-                      <p className="text-xs text-gray-400 mt-1">Manage homepage slider</p>
+                      <h4 className="text-xl font-black text-dark-navy">Featured Projects</h4>
+                      <p className="text-sm font-bold text-gray-400 mt-2">Manage homepage slider</p>
                     </div>
                   )}
 
                   <div 
                     onClick={onShowInquiries}
-                    className="p-8 bg-white border border-gray-100 rounded-[32px] shadow-sm hover:shadow-md compact-transition group cursor-pointer"
+                    className="p-10 bg-white border border-gray-100 rounded-[40px] shadow-sm hover:shadow-2xl hover:-translate-y-2 compact-transition group cursor-pointer relative overflow-hidden"
                   >
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white compact-transition">
-                        <MessageSquare size={24} />
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-50 rounded-bl-full pointer-events-none group-hover:bg-emerald-500/10" />
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white compact-transition relative z-10">
+                        <MessageSquare size={28} />
                       </div>
-                      <span className="bg-gray-100 text-[8px] font-black px-2 py-1 rounded-full text-gray-400">{newInquiriesCount} NEW</span>
+                      <span className="bg-emerald-600 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg shadow-emerald-600/20 z-10">{newInquiriesCount} NEW</span>
                     </div>
-                    <h4 className="font-bold text-dark-navy">Customer Inquiries</h4>
-                    <p className="text-xs text-gray-400 mt-1">Manage your incoming leads</p>
+                    <h4 className="text-xl font-black text-dark-navy">Customer Inquiries</h4>
+                    <p className="text-sm font-bold text-gray-400 mt-2">Manage your incoming leads</p>
                   </div>
 
                   <div 
                     onClick={onNewProperty}
-                    className="p-8 bg-white border border-gray-100 rounded-[40px] shadow-sm hover:shadow-xl hover:-translate-y-1 compact-transition group cursor-pointer"
+                    className="p-10 bg-[#f8fafc] border-2 border-dashed border-gray-200 rounded-[40px] shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:border-brand-green hover:bg-white compact-transition group cursor-pointer relative overflow-hidden"
                   >
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-brand-green/5 rounded-bl-full pointer-events-none group-hover:bg-brand-green/10" />
                     <div className="flex justify-between items-start mb-6">
-                      <div className="w-14 h-14 bg-[#FFF9ED] text-[#F59E0B] rounded-[24px] flex items-center justify-center group-hover:bg-[#F59E0B] group-hover:text-white compact-transition">
-                        <Plus size={28} />
+                      <div className="w-16 h-16 bg-white text-brand-green rounded-[24px] flex items-center justify-center group-hover:bg-brand-green group-hover:text-white compact-transition shadow-lg relative z-10 border border-gray-100">
+                        <Plus size={32} />
                       </div>
                     </div>
-                    <h4 className="text-lg font-bold text-dark-navy">Add New Property</h4>
-                    <p className="text-sm text-gray-400 mt-1 font-medium">List a new property for sale/rent</p>
+                    <h4 className="text-xl font-black text-dark-navy">Add New Property</h4>
+                    <p className="text-sm font-bold text-gray-400 mt-2">List a new property profile</p>
                   </div>
                 </div>
               </>
@@ -7836,52 +7855,56 @@ const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowL
                     {toastMessage.text}
                   </div>
                 )}
-                <h3 className="text-xl font-black text-dark-navy mb-6">Profile Information</h3>
-                <div className="space-y-6">
-                  <div className="flex items-center gap-6">
-                    <div className="w-20 h-20 bg-brand-green/10 text-brand-green rounded-3xl flex items-center justify-center text-3xl font-black overflow-hidden relative">
+                <h3 className="text-3xl font-black text-dark-navy mb-8 uppercase tracking-widest pl-1">Profile Workspace</h3>
+                <div className="space-y-10">
+                  <div className="flex flex-col md:flex-row items-center gap-8 p-6 bg-gray-50 rounded-[32px] border border-gray-100">
+                    <div className="w-32 h-32 bg-brand-green/10 text-brand-green rounded-[40px] flex items-center justify-center text-5xl font-black overflow-hidden relative shadow-inner border border-brand-green/20">
                       {avatarUrl ? (
                         <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                       ) : (
                         user?.email?.charAt(0).toUpperCase() || 'A'
                       )}
                     </div>
-                    <button 
-                      onClick={() => fileInputRef.current?.click()}
-                      className="cursor-pointer px-6 py-2.5 bg-gray-50 text-dark-navy text-sm font-bold rounded-xl border border-gray-200 hover:bg-gray-100 compact-transition inline-block"
-                    >
-                      Change Avatar
-                    </button>
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      className="hidden" 
-                      accept="image/*" 
-                      onChange={handleAvatarChange}
-                    />
+                    <div className="space-y-4 text-center md:text-left">
+                      <h4 className="text-xl font-black text-dark-navy">Agent Identity</h4>
+                      <p className="text-sm font-bold text-gray-500 max-w-xs">Your profile picture is visible to customers when they view your listings.</p>
+                      <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="cursor-pointer px-8 py-3 bg-brand-green text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-brand-green/20 hover:bg-emerald-600 compact-transition inline-block"
+                      >
+                        Upload Photo
+                      </button>
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        className="hidden" 
+                        accept="image/*" 
+                        onChange={handleAvatarChange}
+                      />
+                    </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">First Name</label>
-                      <input type="text" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-medium" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <label className="text-xs font-black text-gray-400 uppercase tracking-[0.25em] pl-1">Legal First Name</label>
+                      <input type="text" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-5 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-bold text-dark-navy text-lg" />
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Last Name</label>
-                      <input type="text" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} placeholder="Doe" className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-medium" />
+                    <div className="space-y-3">
+                      <label className="text-xs font-black text-gray-400 uppercase tracking-[0.25em] pl-1">Legal Last Name</label>
+                      <input type="text" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} placeholder="Doe" className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-5 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-bold text-dark-navy text-lg" />
                     </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Display Email</label>
-                      <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-medium" />
-                      <p className="text-xs text-gray-400 pl-1">Update your display contact email.</p>
+                    <div className="space-y-3 md:col-span-2">
+                      <label className="text-xs font-black text-gray-400 uppercase tracking-[0.25em] pl-1">Public Contact Email</label>
+                      <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-5 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-bold text-dark-navy text-lg" />
+                      <p className="text-xs font-bold text-gray-400 pl-1 uppercase tracking-widest opacity-60">Customers will use this to reach you.</p>
                     </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Phone Number</label>
-                      <input type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} placeholder="+1 (555) 000-0000" className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-medium" />
+                    <div className="space-y-3 md:col-span-2">
+                      <label className="text-xs font-black text-gray-400 uppercase tracking-[0.25em] pl-1">Primary Phone Number</label>
+                      <input type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} placeholder="+1 (555) 000-0000" className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-5 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-bold text-dark-navy text-lg" />
                     </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Agency/Company Name</label>
-                      <input type="text" value={formData.agency} onChange={(e) => setFormData({...formData, agency: e.target.value})} placeholder="Supa Estates LLC" className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-medium" />
+                    <div className="space-y-3 md:col-span-2">
+                      <label className="text-xs font-black text-gray-400 uppercase tracking-[0.25em] pl-1">Registered Agency Name</label>
+                      <input type="text" value={formData.agency} onChange={(e) => setFormData({...formData, agency: e.target.value})} placeholder="Supa Estates LLC" className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-5 focus:outline-none focus:border-brand-green focus:bg-white compact-transition font-bold text-dark-navy text-lg" />
                     </div>
                   </div>
 
@@ -7920,12 +7943,15 @@ const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowL
                     </div>
                   </div>
                 )}
-                <h3 className="text-xl font-black text-dark-navy mb-6">Security Settings</h3>
-                <div className="space-y-8">
-                  <div className="space-y-6 border-b border-gray-100 pb-8">
-                    <div>
-                      <h4 className="text-sm font-bold text-dark-navy mb-1">Change Password</h4>
-                      <p className="text-xs text-gray-500">Ensure your account is using a long, random password to stay secure.</p>
+                <h3 className="text-3xl font-black text-dark-navy mb-8 uppercase tracking-widest pl-1">Security Vault</h3>
+                <div className="space-y-12">
+                  <div className="space-y-8 border-b border-gray-100 pb-12">
+                    <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100">
+                      <h4 className="text-xl font-black text-dark-navy mb-2 flex items-center gap-2">
+                        <Shield className="text-blue-600" size={24} />
+                        Password Management
+                      </h4>
+                      <p className="text-sm font-bold text-gray-500">Ensure your account is using a long, random password to stay secure.</p>
                     </div>
                     
                     <div className="space-y-4">
@@ -8929,7 +8955,7 @@ export default function App() {
             animate={{ opacity: 1, y: 0, x: '-50%' }}
             exit={{ opacity: 0, y: 50, x: '-50%' }}
             className={`fixed bottom-8 left-1/2 z-[300] px-6 py-3 rounded-2xl shadow-2xl font-black uppercase tracking-widest text-[10px] flex items-center gap-3 ${
-              toast.type === 'success' ? 'bg-brand-green text-white shadow-brand-green/20' : 'bg-red-500 text-white shadow-red-500/20'
+              toast.type === 'success' ? 'bg-brand-green text-white shadow-brand-green/20' : 'bg-brand-red text-white shadow-brand-red/20'
             }`}
           >
             {toast.message}
@@ -8940,23 +8966,34 @@ export default function App() {
       <div className="min-h-screen bg-slate-50 flex flex-col relative">
       <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100 shadow-sm">
         {supabaseError && (
-          <div className="bg-red-500 text-white px-6 py-4 text-center font-bold text-sm flex items-center justify-center gap-3">
+          <div className="bg-brand-red text-white px-6 py-4 text-center font-bold text-sm flex items-center justify-center gap-3">
             <AlertCircle size={18} />
             <span>Supabase Connection Error: {supabaseError}</span>
             <button 
               onClick={() => refreshProperties()}
-              className="bg-white text-red-500 px-3 py-1 rounded-lg hover:bg-gray-100 compact-transition text-xs"
+              className="bg-white text-brand-red px-3 py-1 rounded-lg hover:bg-gray-100 compact-transition text-xs"
             >
               Retry
             </button>
           </div>
         )}
         <nav className="container mx-auto px-6 h-20 flex justify-between items-center">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigateHome()}>
-            <div className="w-10 h-10 bg-brand-green rounded-xl flex items-center justify-center text-white font-bold text-xl">L</div>
-            <div className="hidden sm:block">
-              <h1 className="text-2xl font-bold tracking-tight text-dark-navy leading-none">LankaProperty<span className="text-brand-green">.lk</span></h1>
-            </div>
+          <div className="flex items-center cursor-pointer" onClick={(e) => { e.preventDefault(); navigateHome(); }}>
+            <a href="/" onClick={(e) => e.preventDefault()}>
+              <img 
+                src="https://qsqqolvsndvkwegvcfqv.supabase.co/storage/v1/object/sign/assets/Website%20logo%20.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MWNhMTU1MC03OGYzLTQwZGMtYTYzYi02NzVmZTRiYjM2NWMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhc3NldHMvV2Vic2l0ZSBsb2dvIC5wbmciLCJpYXQiOjE3NzgzMDk4MjksImV4cCI6MTkzNTk4OTgyOX0.LqwS9LCGK4UH1oL4YQHkiJdrNNgYGh-8CZtZBgrTO-s"
+                alt="LankaProperty.lk"
+                className="h-[45px] sm:h-[55px] dark:bg-white dark:px-[10px] dark:py-[4px] dark:rounded-[8px]"
+                style={{ 
+                  width: 'auto',
+                  objectFit: 'contain',
+                  cursor: 'pointer'
+                }}
+                onError={(e: any) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </a>
           </div>
           <ul className="hidden lg:flex items-center gap-6 text-[15px] font-semibold text-slate-700">
             {["Home", "About", "Property Wanted", "Agents", "Advertising", "Contact"].map((item) => (

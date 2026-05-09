@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, MapPin, DollarSign, Home, MessageSquare, Plus, Filter, Loader2, Phone, Save, Eye, Share2, CheckCircle, RefreshCw, X, Calendar, Edit2, Trash2 } from 'lucide-react';
+import { Search, MapPin, DollarSign, Home, MessageSquare, Plus, Filter, Loader2, Phone, Save, Eye, Share2, CheckCircle, RefreshCw, X, Calendar, Edit2, Trash2, Sparkles } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { Property } from '../hooks/useProperties';
 
@@ -345,9 +345,9 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-20 pt-24">
       {/* Header */}
-      <div className="bg-brand-dark-blue text-white py-16 px-4">
+      <div className="bg-primary text-white py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <motion.h1 
@@ -361,7 +361,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-blue-100 text-lg mb-8 max-w-2xl mx-auto"
+              className="text-white/80 text-lg mb-8 max-w-2xl mx-auto"
             >
               Can't find what you're looking for? Post your requirement and let thousands of our top agents find the perfect match for you.
             </motion.p>
@@ -370,7 +370,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
               onClick={() => handleOpenForm()}
-              className="bg-brand-green text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-opacity-90 shadow-lg shadow-brand-green/20 transition-all inline-flex items-center gap-2"
+              className="bg-secondary text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-brand-red shadow-lg shadow-primary/20 transition-all inline-flex items-center gap-2"
             >
               <Plus size={20} />
               Post Your Requirement
@@ -381,19 +381,19 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
               <div className="text-3xl font-black text-white">{stats.total}</div>
-              <div className="text-[10px] font-bold text-blue-200 uppercase tracking-widest mt-1">Total Requests</div>
+              <div className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-1">Total Requests</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
               <div className="text-3xl font-black text-white">{stats.sale}</div>
-              <div className="text-[10px] font-bold text-blue-200 uppercase tracking-widest mt-1">For Sale</div>
+              <div className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-1">For Sale</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
               <div className="text-3xl font-black text-white">{stats.rent}</div>
-              <div className="text-[10px] font-bold text-blue-200 uppercase tracking-widest mt-1">For Rent</div>
+              <div className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-1">For Rent</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
-              <div className="text-3xl font-black text-brand-green">{stats.today}</div>
-              <div className="text-[10px] font-bold text-brand-green uppercase tracking-widest mt-1">Posted Today</div>
+              <div className="text-3xl font-black text-brand-gold">{stats.today}</div>
+              <div className="text-[10px] font-bold text-brand-gold uppercase tracking-widest mt-1">Posted Today</div>
             </div>
           </div>
         </div>
@@ -405,13 +405,13 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
           <div className="flex gap-2 justify-center mb-8">
             <button 
               onClick={() => setActiveTab('all')}
-              className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'all' ? 'bg-white shadow-lg text-brand-dark-blue' : 'bg-transparent text-gray-500 hover:bg-white/50'}`}
+              className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'all' ? 'bg-white shadow-lg text-dark-navy' : 'bg-transparent text-gray-500 hover:bg-white/50'}`}
             >
               All Requirements
             </button>
             <button 
               onClick={() => setActiveTab('mine')}
-              className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'mine' ? 'bg-white shadow-lg text-brand-green' : 'bg-transparent text-gray-500 hover:bg-white/50'}`}
+              className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'mine' ? 'bg-white shadow-lg text-primary' : 'bg-transparent text-gray-500 hover:bg-white/50'}`}
             >
               My Requirements
             </button>
@@ -424,7 +424,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
             <div className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-100">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-black text-dark-navy uppercase tracking-widest text-xs">Search & Filter</h3>
-                <button onClick={clearFilters} className="text-[10px] font-bold text-brand-green uppercase hover:underline">Clear</button>
+                <button onClick={clearFilters} className="text-[10px] font-bold text-primary uppercase hover:underline">Clear</button>
               </div>
 
               <div className="space-y-5">
@@ -434,7 +434,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                     <input 
                       type="text" 
                       placeholder="Keywords..." 
-                      className="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-xl border border-gray-100 font-medium text-sm focus:ring-2 focus:ring-brand-green outline-none"
+                      className="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-xl border border-gray-100 font-medium text-sm focus:ring-2 focus:ring-primary outline-none"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -521,7 +521,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}
-                    className={`bg-white rounded-[32px] p-6 sm:p-8 shadow-sm border transition-all hover:shadow-lg ${activeTab === 'mine' && item.status === 'found' ? 'border-brand-green/30 bg-brand-green/5' : 'border-gray-100'}`}
+                    className={`bg-white rounded-[32px] p-6 sm:p-8 shadow-sm border transition-all hover:shadow-lg ${activeTab === 'mine' && item.status === 'found' ? 'border-primary/30 bg-primary/5' : 'border-gray-100'}`}
                   >
                     <div className="flex flex-col sm:flex-row justify-between gap-4 mb-4">
                       <div>
@@ -533,7 +533,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                             {item.category}
                           </span>
                           {activeTab === 'mine' && item.status === 'found' && (
-                             <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-brand-green text-white flex gap-1 items-center">
+                             <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-primary text-white flex gap-1 items-center">
                                 <CheckCircle size={10} /> Property Found
                              </span>
                           )}
@@ -543,18 +543,18 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                              </span>
                           )}
                         </div>
-                        <h3 className="text-xl font-black text-dark-navy leading-tight mt-1 mb-1 hover:text-brand-green cursor-pointer transition-colors" onClick={() => setSelectedRequest(item)}>
+                        <h3 className="text-xl font-black text-dark-navy leading-tight mt-1 mb-1 hover:text-primary cursor-pointer transition-colors" onClick={() => setSelectedRequest(item)}>
                           {item.title}
                         </h3>
                         <div className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-widest">
-                           <MapPin size={12} className="text-brand-green" />
+                           <MapPin size={12} className="text-primary" />
                            {item.location} {isAdmin && <>• <span className="text-gray-300 normal-case">{new Date(item.created_at).toLocaleDateString()}</span></>}
                         </div>
                       </div>
                       
                       <div className="text-left sm:text-right">
                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Budget Range</div>
-                        <div className="text-lg font-black text-brand-green">Rs.{item.budget_min?.toLocaleString()} - Rs.{item.budget_max?.toLocaleString()}</div>
+                        <div className="text-lg font-black text-primary">Rs.{item.budget_min?.toLocaleString()} - Rs.{item.budget_max?.toLocaleString()}</div>
                       </div>
                     </div>
 
@@ -600,7 +600,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                            <MessageSquare size={16} />
                            <span className="text-xs font-bold ml-2">WhatsApp</span>
                          </a>
-                         <button className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:text-brand-dark-blue transition-colors">
+                         <button className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:text-dark-navy transition-colors">
                            <Save size={16} />
                          </button>
                          <button className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:text-blue-500 transition-colors">
@@ -623,7 +623,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                            <button onClick={() => handleOpenForm(item)} className="p-2 text-gray-400 hover:text-dark-navy">
                              <Edit2 size={16} />
                            </button>
-                           <button onClick={() => handleDelete(item.id)} className="p-2 text-gray-400 hover:text-red-500">
+                           <button onClick={() => handleDelete(item.id)} className="p-2 text-gray-400 hover:text-brand-red">
                              <Trash2 size={16} />
                            </button>
                         </div>
@@ -632,14 +632,14 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                           <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                              {isAdmin ? `👁️ Real: ${item.views} views` : `👁️ ${Math.floor(((item.id * 9301 + 49297) % 233280) / 233280 * (2000 - 500) + 500).toLocaleString()} views`}
                           </div>
-                          <div className="flex items-center gap-1.5 text-[10px] font-bold text-orange-400 uppercase tracking-widest pr-4">
+                          <div className="flex items-center gap-1.5 text-[10px] font-bold text-brand-gold uppercase tracking-widest pr-4">
                              <Calendar size={14} /> {getDaysRemaining(item.expires_at)} Days Left
                           </div>
                           <button 
                             onClick={() => handleMatchMyListings(item)}
-                            className="flex items-center gap-2 py-2.5 px-6 bg-brand-dark-blue text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-brand-green transition-all shadow-lg shadow-dark-navy/10"
+                            className="flex items-center gap-2 py-2.5 px-6 bg-dark-navy text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary transition-all shadow-lg shadow-dark-navy/10"
                           >
-                            <SparklesIcon /> Match My Listings
+                            <Sparkles size={16} /> Match My Listings
                           </button>
                         </div>
                       )}
@@ -747,7 +747,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                       <p className="text-sm font-medium text-gray-500 mt-2">We analyze your portfolio to find the perfect property for this requirement.</p>
                       
                       {!matchingProperties.length && !isMatching && (
-                        <button onClick={() => handleMatchMyListings(selectedRequest)} className="mt-6 w-full py-4 bg-brand-dark-blue text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-brand-green transition-all shadow-xl shadow-brand-green/20 flex items-center justify-center gap-2">
+                        <button onClick={() => handleMatchMyListings(selectedRequest)} className="mt-6 w-full py-4 bg-dark-navy text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-brand-green transition-all shadow-xl shadow-brand-green/20 flex items-center justify-center gap-2">
                           <Search size={16} /> Run Match Analysis
                         </button>
                       )}
@@ -775,7 +775,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                              </div>
                           </div>
                         ))}
-                        <button className="w-full py-4 mt-4 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-brand-dark-blue transition-all flex items-center justify-center gap-2">
+                        <button className="w-full py-4 mt-4 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-dark-navy transition-all flex items-center justify-center gap-2">
                           <CheckCircle size={16} /> I Have This Property
                         </button>
                       </div>
@@ -975,7 +975,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                   <button 
                     type="submit"
                     disabled={submitting}
-                    className="flex-[2] py-4 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-brand-dark-blue transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-green/30"
+                    className="flex-[2] py-4 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-dark-navy transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-green/30"
                   >
                     {submitting ? <Loader2 className="animate-spin" size={18} /> : (editingId ? <Edit2 size={18} /> : <Plus size={18} />)}
                     {submitting ? 'Saving...' : (editingId ? 'Save Changes' : 'Post Requirement Now')}

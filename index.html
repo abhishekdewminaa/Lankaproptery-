@@ -9,38 +9,16 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Fix for "TypeError: Cannot set property fetch of #<Window> which has only a getter"
-      // We try to prevent libraries from attempting to overwrite window.fetch.
+      // Prevent fetch overwrite errors
       (function() {
         try {
-          const originalFetch = window.fetch;
-          if (originalFetch) {
-            // Some polyfills check if fetch is a "native" function by looking at toString.
-            // We just ensure it's accessible through globalThis too.
-            if (typeof globalThis !== 'undefined' && !globalThis.fetch) {
-              globalThis.fetch = originalFetch;
-            }
-            
-            // Try to add a dummy setter to Window prototype if possible to swallow assignments
-            const proto = Object.getPrototypeOf(window);
-            if (proto && Object.getOwnPropertyDescriptor(proto, 'fetch')) {
-               // Already a getter on prototype? Good.
-            } else {
-               // Try to define on instance if not already there
-               const desc = Object.getOwnPropertyDescriptor(window, 'fetch');
-               if (!desc || desc.configurable) {
-                 Object.defineProperty(window, 'fetch', {
-                   get: () => originalFetch,
-                   set: () => { console.warn('Blocked attempt to overwrite read-only fetch'); },
-                   configurable: true,
-                   enumerable: true
-                 });
-               }
-            }
-          }
-        } catch (e) {
-          console.debug("Fetch guard info:", e.message);
-        }
+          const nativeFetch = window.fetch.bind(window);
+          Object.defineProperty(window, 'fetch', {
+            get: () => nativeFetch,
+            set: () => {},
+            configurable: false
+          });
+        } catch(e) {}
       })();
 
       // Fix for "undefined" is not valid JSON
@@ -55,7 +33,6 @@
       } catch (e) {
         console.error("Error clearing localStorage:", e);
       }
-
     </script>
   </body>
 </html>

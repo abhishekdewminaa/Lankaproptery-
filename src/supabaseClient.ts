@@ -10,13 +10,18 @@ const SUPABASE_PUBLIC_KEY = "sb_publishable_srMG0yYK9V0lH1ipf9C4Hw_ae0_eCe5";
  * FIX for "Uncaught TypeError: Cannot set property fetch of #<Window> which has only a getter"
  * We explicitly pass the browser's fetch to avoid polyfill attempts.
  */
+// Safe fetch initialization
+const safeFetch = (...args: any[]) => {
+  return globalThis.fetch(...args as [any, any]);
+};
+
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
   },
   global: {
-    fetch: (input, init) => fetch(input, init),
+    fetch: safeFetch,
   },
 });
 

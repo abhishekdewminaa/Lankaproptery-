@@ -123,7 +123,7 @@ export default function CustomerInquiries({ user }: { user?: any }) {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
-      <div className="bg-brand-dark-blue text-white py-16 px-4">
+      <div className="bg-dark-navy text-white py-16 px-4">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div>
             <div className="flex items-center gap-3 mb-4">
@@ -169,7 +169,7 @@ export default function CustomerInquiries({ user }: { user?: any }) {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           {[
-            { label: 'Total Inquiries', value: inquiries.length.toString(), color: 'text-brand-dark-blue', bg: 'bg-white' },
+            { label: 'Total Inquiries', value: inquiries.length.toString(), color: 'text-dark-navy', bg: 'bg-white' },
             { label: 'Pending Response', value: newCount.toString(), color: 'text-brand-green', bg: 'bg-white' },
             { label: 'Conversion Rate', value: '18%', color: 'text-blue-600', bg: 'bg-white' },
           ].map((stat, i) => (
@@ -239,7 +239,7 @@ export default function CustomerInquiries({ user }: { user?: any }) {
                       {inquiry.name} <ChevronRight size={16} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
                     </h3>
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
-                      Inquiry for: <span className="text-brand-dark-blue">{inquiry.propertyTitle}</span>
+                      Inquiry for: <span className="text-dark-navy">{inquiry.propertyTitle}</span>
                     </p>
                     <p className="text-gray-600 leading-relaxed text-sm bg-gray-50 p-4 rounded-2xl italic">
                       "{inquiry.message}"
@@ -262,7 +262,7 @@ export default function CustomerInquiries({ user }: { user?: any }) {
                     <div className="flex gap-2 pt-2">
                       <button 
                         onClick={() => updateStatus(inquiry.id, 'contacted')}
-                        className="flex-1 py-2.5 rounded-xl bg-brand-dark-blue text-white text-[10px] font-black uppercase tracking-widest hover:translate-y-[-2px] transition-all shadow-md"
+                        className="flex-1 py-2.5 rounded-xl bg-dark-navy text-white text-[10px] font-black uppercase tracking-widest hover:translate-y-[-2px] transition-all shadow-md"
                       >
                         {inquiry.status === 'contacted' ? 'Contacted' : 'Reply'}
                       </button>
