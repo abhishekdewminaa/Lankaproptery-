@@ -121,7 +121,7 @@ function MapUpdater({ center }: { center: [number, number] }) {
   return null;
 }
 
-function SortableImageItem({ url, onRemove, onSetMain, isMain }: { url: string, onRemove: () => void, onSetMain: () => void, isMain: boolean }) {
+const SortableImageItem: React.FC<{ url: string, onRemove: () => void | Promise<void>, onSetMain: () => void, isMain: boolean }> = ({ url, onRemove, onSetMain, isMain }) => {
   const {
     attributes,
     listeners,
@@ -210,8 +210,8 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
     allow_inquiries: initialData?.allow_inquiries ?? true,
     price_on_request: initialData?.price_on_request || false,
     admin_notes: initialData?.admin_notes || '',
-    images: initialData?.images || [],
-    coordinates: initialData?.coordinates || [6.9271, 79.8612] // [lat, lng]
+    images: (initialData?.images as string[]) || [],
+    coordinates: (initialData?.coordinates as [number, number]) || [6.9271, 79.8612] // [lat, lng]
   });
 
   const sensors = useSensors(
@@ -268,7 +268,7 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+    const files = Array.from(e.target.files || []) as File[];
     if (!files.length) return;
 
     for (const file of files) {

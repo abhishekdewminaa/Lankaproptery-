@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Navbar } from './Navbar';
 import { Hero } from './Hero';
 import { CategoryIcons } from './CategoryIcons';
 import { FeaturedProperties } from './FeaturedProperties';
@@ -13,19 +12,13 @@ import { ArrowUp } from 'lucide-react';
 interface HomeRedesignProps {
   propertyCount: number;
   featuredProperties: any[];
-  supabaseProperties: any[];
   onNavigate: (view: any) => void;
-  onPostAd: () => void;
-  onAdminAccess: () => void;
 }
 
 export const HomeRedesign: React.FC<HomeRedesignProps> = ({
   propertyCount,
   featuredProperties,
-  supabaseProperties,
   onNavigate,
-  onPostAd,
-  onAdminAccess,
 }) => {
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -43,16 +36,6 @@ export const HomeRedesign: React.FC<HomeRedesignProps> = ({
 
   return (
     <div className="flex flex-col min-h-screen bg-brand-sage overflow-x-hidden">
-      <Navbar 
-        onPostAd={onPostAd} 
-        onNavigateHome={() => {
-          onNavigate({ type: 'home' });
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }} 
-        onAdminAccess={onAdminAccess} 
-        onNavigate={onNavigate}
-      />
-      
       <main>
         <Hero 
           propertyCount={propertyCount} 

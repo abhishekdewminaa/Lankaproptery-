@@ -345,7 +345,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 pt-24">
+    <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
       <div className="bg-primary text-white py-16 px-4">
         <div className="max-w-6xl mx-auto">

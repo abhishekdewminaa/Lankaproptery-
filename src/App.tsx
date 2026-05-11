@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Component } from "react";
 import { GoogleGenAI, Type } from "@google/genai";
 import { supabase } from "./supabaseClient";
 import { motion, AnimatePresence } from "motion/react";
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { Navbar } from "./components/home/Navbar";
+import { Feedback } from "./components/Feedback";
 import AdminPortal from './components/admin/AdminPortal';
 
 const USD_RATE = 300;
@@ -134,35 +136,6 @@ import {
 import { AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell, PieChart, Pie } from 'recharts';
 import { ChartWrapper } from './components/ChartWrapper';
 
-class AdminErrorBoundary extends React.Component<{ children: React.ReactNode }> {
-  state = { hasError: false, error: null as Error | null }
-  
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error }
-  }
-  
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div style={{ 
-          padding: '40px', 
-          textAlign: 'center' 
-        }}>
-          <h2>Something went wrong</h2>
-          <p style={{ color: 'red' }}>
-            {this.state.error?.message}
-          </p>
-          <button onClick={() => 
-            this.setState({ hasError: false })
-          }>
-            Try Again
-          </button>
-        </div>
-      )
-    }
-    return this.props.children
-  }
-}
 import { translateToSinhala } from "./services/geminiService";
 import PropertyWanted from "./components/PropertyWanted";
 import CustomerInquiries from "./components/CustomerInquiries";
@@ -404,64 +377,6 @@ const AGENTS = [
 ];
 
 // --- Components ---
-
-const Navbar = () => (
-  <header className="fixed top-0 z-50 w-full bg-white border-b border-gray-100 dark:bg-[#0A1A0A] dark:border-white/5">
-    <div className="bg-[#0D1F0D] h-8 flex items-center">
-      <div className="container mx-auto px-6 flex justify-between items-center text-[10px] text-gray-300">
-        <div className="flex gap-4">
-          <span className="flex items-center gap-1.5 opacity-80 underline-offset-2">
-            <motion.span 
-              animate={{ opacity: [1, 0.4, 1] }} 
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="w-1.5 h-1.5 rounded-full bg-secondary shadow-[0_0_5px_#558B2F]"
-            ></motion.span>
-            Hotline: +94 33 222 96 95
-          </span>
-          <span className="flex items-center gap-1.5 opacity-80">Email: info@lankaproperty.lk</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <a href="#" className="hover:text-white compact-transition">Login</a>
-          <span className="text-gray-700 text-[8px]">|</span>
-          <a href="#" className="font-semibold text-secondary hover:text-primary compact-transition">Post a Free Ad</a>
-        </div>
-      </div>
-    </div>
-    <nav className="container mx-auto px-6 h-16 flex justify-between items-center">
-      <div className="flex items-center cursor-pointer">
-        <img 
-          src="https://qsqqolvsndvkwegvcfqv.supabase.co/storage/v1/object/sign/assets/Website%20logo%20.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MWNhMTU1MC03OGYzLTQwZGMtYTYzYi02NzVmZTRiYjM2NWMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhc3NldHMvV2Vic2l0ZSBsb2dvIC5wbmciLCJpYXQiOjE3NzgzMDk4MjksImV4cCI6MTkzNTk4OTgyOX0.LqwS9LCGK4UH1oL4YQHkiJdrNNgYGh-8CZtZBgrTO-s"
-          alt="LankaProperty.lk"
-          className="h-[45px] sm:h-[55px] dark:bg-white dark:px-[10px] dark:py-[4px] dark:rounded-[8px]"
-          style={{ 
-            width: 'auto',
-            objectFit: 'contain'
-          }}
-          onError={(e: any) => {
-            e.currentTarget.style.display = 'none';
-          }}
-        />
-      </div>
-      <ul className="hidden lg:flex items-center gap-6 text-sm font-medium text-slate-700 dark:text-gray-300">
-        {["Home", "Directory", "Agents", "Advertising", "Contact"].map((item) => (
-          <li key={item}>
-            <a href="#" className={`${item === 'Home' ? 'text-primary border-b-2 border-primary pb-1' : 'hover:text-secondary'} compact-transition`}>
-              {item}
-            </a>
-          </li>
-        ))}
-      </ul>
-      <div className="flex items-center gap-3">
-        <button className="hidden sm:flex px-5 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-brand-red compact-transition shadow-lg shadow-primary/20">
-          Post free ad
-        </button>
-        <button className="px-4 py-2 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-semibold hover:bg-gray-200 dark:hover:bg-white/20 compact-transition">
-          Menu
-        </button>
-      </div>
-    </nav>
-  </header>
-);
 
 const FlipWords = ({ words, className = "" }: { words: string[], className?: string }) => {
   const [index, setIndex] = useState(0);
@@ -6695,6 +6610,159 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
   );
 };
 
+const PackageCard = ({ name, price, features, isPopular, onGetStarted }: { name: string, price: string, features: string[], isPopular?: boolean, onGetStarted: () => void }) => (
+  <div className={`relative bg-white p-8 rounded-[32px] border ${isPopular ? 'border-brand-green shadow-2xl shadow-brand-green/10 ring-4 ring-brand-green/5' : 'border-gray-100 shadow-sm'} flex flex-col h-full group`}>
+    {isPopular && (
+      <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-green text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
+        Most Popular
+      </div>
+    )}
+    <h3 className="text-xl font-black text-dark-navy mb-2">{name}</h3>
+    <div className="flex items-baseline gap-1 mb-8">
+      <span className="text-[12px] font-bold text-gray-400">Rs.</span>
+      <span className="text-4xl font-black text-dark-navy tracking-tight">{price}</span>
+      {price !== "Free" && price !== "0" && <span className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">/ad</span>}
+    </div>
+    <ul className="space-y-4 mb-10 flex-grow">
+      {features.map((f, i) => (
+        <li key={i} className="flex items-center gap-3 text-sm text-gray-500 font-medium">
+          <div className="w-5 h-5 rounded-full bg-brand-green/10 flex items-center justify-center flex-shrink-0">
+            <CheckCircle size={10} className="text-brand-green" />
+          </div>
+          {f}
+        </li>
+      ))}
+    </ul>
+    <button 
+      onClick={onGetStarted}
+      className={`w-full py-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${isPopular ? 'bg-brand-green text-white shadow-xl shadow-brand-green/20 hover:scale-[1.02] active:scale-95' : 'bg-gray-50 text-dark-navy hover:bg-gray-100'}`}
+    >
+      Get Started
+    </button>
+  </div>
+);
+
+const SellView = ({ onPostAd, onNavigate }: { onPostAd: () => void, onNavigate: (view: any) => void }) => {
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Hero */}
+      <section className="relative h-[500px] flex items-center overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=2000" 
+            alt="Sell Background" 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-dark-navy via-dark-navy/60 to-transparent" />
+        </div>
+        
+        <div className="container mx-auto px-6 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="max-w-2xl"
+          >
+            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight tracking-tighter">
+              Sell Your Property <br/><span className="text-brand-green">Fast & Easy</span>
+            </h1>
+            <p className="text-xl text-white/80 font-medium mb-10 leading-relaxed">
+              Reach over 500,000+ monthly visitors and get the best market value for your property in Sri Lanka.
+            </p>
+            <button 
+              onClick={onPostAd}
+              className="px-10 py-5 bg-brand-green text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-2xl shadow-brand-green/20 hover:scale-105 active:scale-95 transition-all"
+            >
+              Post Free Ad Now
+            </button>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Steps */}
+      <section className="py-24 bg-[#F8FAF8]">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-black text-dark-navy mb-4">Sell in 3 Easy Steps</h2>
+            <div className="w-20 h-1.5 bg-brand-green mx-auto rounded-full" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {[
+              { 
+                step: '01', 
+                icon: <Send className="text-brand-green" size={32} />, 
+                title: 'List Your Property', 
+                desc: 'Fill in your property details and upload high-quality photos in minutes.' 
+              },
+              { 
+                step: '02', 
+                icon: <MapPin className="text-brand-green" size={32} />, 
+                title: 'Connect with Buyers', 
+                desc: 'Reach thousands of verified buyers and receive inquiries instantly.' 
+              },
+              { 
+                step: '03', 
+                icon: <DollarSign className="text-brand-green" size={32} />, 
+                title: 'Close the Deal', 
+                desc: 'Get the best market price and sell your property faster than ever.' 
+              }
+            ].map((s, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.2 }}
+                viewport={{ once: true }}
+                className="bg-white p-10 rounded-[32px] shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-50 text-center group"
+              >
+                <div className="w-20 h-20 bg-brand-green/5 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:bg-brand-green group-hover:text-white transition-all duration-500">
+                  {s.icon}
+                </div>
+                <div className="text-[40px] font-black text-gray-100 mb-2 leading-none">{s.step}</div>
+                <h3 className="text-2xl font-black text-dark-navy mb-4">{s.title}</h3>
+                <p className="text-gray-400 font-medium leading-relaxed">{s.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Packages Section Redirection or Embedded */}
+      <section className="py-24">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-black text-dark-navy mb-4">Choose Your Package</h2>
+            <p className="text-gray-400 font-medium">Select a plan that fits your advertising needs</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Simple representation of packages or just a button to packages view */}
+            <PackageCard 
+              name="Starter" 
+              price="0" 
+              features={["Valid for 30 days", "up to 5 photos", "Basic Listing"]} 
+              onGetStarted={() => onPostAd()}
+            />
+            <PackageCard 
+              name="Premium" 
+              price="2,500" 
+              isPopular 
+              features={["Valid for 60 days", "Unlimited photos", "Boosted Search", "Priority Support"]} 
+              onGetStarted={() => onPostAd()}
+            />
+            <PackageCard 
+              name="Elite" 
+              price="7,500" 
+              features={["Valid for 90 days", "Featured Home Page", "Pro Photography", "Video Walkthrough"]} 
+              onGetStarted={() => onPostAd()}
+            />
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
 const SecretLoginView = ({ onBack, onSuccess }: { onBack: () => void, onSuccess: (email: string) => void }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -6826,29 +6894,6 @@ const SecretLoginView = ({ onBack, onSuccess }: { onBack: () => void, onSuccess:
             >
               {isLoading ? <Loader2 className="animate-spin" size={24} /> : 'Sign In'}
             </button>
-
-            <div className="relative flex items-center justify-center py-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-[#E5E7EB]"></div>
-              </div>
-              <span className="relative px-4 bg-white text-[11px] font-black text-[#6B7280] uppercase tracking-[0.05em]">OR CONTINUE WITH</span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <button type="button" className="flex items-center justify-center gap-3 py-3.5 border border-[#E5E7EB] rounded-xl hover:bg-gray-50 compact-transition font-bold text-sm">
-                <svg width="20" height="20" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-                Google
-              </button>
-              <button type="button" className="flex items-center justify-center gap-3 py-3.5 border border-[#E5E7EB] rounded-xl hover:bg-gray-50 compact-transition font-bold text-sm">
-                <Facebook size={20} className="text-[#1877F2] fill-[#1877F2]" />
-                Facebook
-              </button>
-            </div>
 
             <div className="text-center pt-4">
               <p className="text-sm font-medium text-[#6B7280]">
@@ -8160,7 +8205,7 @@ export default function App() {
   const [sortOption, setSortOption] = useState<"Newest" | "Price Low-High" | "Price High-Low">("Newest");
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'verify' | 'reset-password' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'secret_login' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings' | 'agent_only_listings' | 'featured_projects_admin' | 'search_results', data?: any }>({ type: 'home' });
+  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'verify' | 'reset-password' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'secret_login' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings' | 'agent_only_listings' | 'featured_projects_admin' | 'search_results' | 'sell', data?: any }>({ type: 'home' });
   const [user, setUser] = useState<any | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [compareList, setCompareList] = useState<number[]>([]);
@@ -8214,6 +8259,8 @@ export default function App() {
 
     if (path === '/admin-lk2026') {
       setCurrentView({ type: 'secret_login' });
+    } else if (path === '/sell') {
+      setCurrentView({ type: 'sell' });
     } else if (path.startsWith('/buy/') || path.startsWith('/rent/')) {
       const parts = path.split('/');
       const mode = parts[1] as 'buy' | 'rent';
@@ -8440,6 +8487,24 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      <Navbar 
+        onPostAd={() => {
+          if (user) setCurrentView({ type: 'publish' });
+          else setCurrentView({ type: 'auth', data: 'signup' });
+        }}
+        onNavigateHome={navigateHome}
+        onAdminAccess={() => {
+          window.history.pushState({}, '', '/admin-lk2026');
+          setCurrentView({ type: 'secret_login' });
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onNavigate={(view) => {
+          setCurrentView(view);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        currentView={currentView.type}
+      />
+
       <AnimatePresence mode="wait">
         {currentView.type === 'home' ? (
           <motion.div
@@ -8471,106 +8536,8 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="min-h-screen bg-slate-50 flex flex-col relative"
+            className="min-h-screen bg-slate-50 flex flex-col relative pt-20"
           >
-            <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100 shadow-sm">
-              {supabaseError && (
-                <div className="bg-brand-red text-white px-6 py-4 text-center font-bold text-sm flex items-center justify-center gap-3">
-                  <AlertCircle size={18} />
-                  <span>Supabase Connection Error: {supabaseError}</span>
-                  <button 
-                    onClick={() => refreshProperties()}
-                    className="bg-white text-brand-red px-3 py-1 rounded-lg hover:bg-gray-100 compact-transition text-xs"
-                  >
-                    Retry
-                  </button>
-                </div>
-              )}
-              <nav className="container mx-auto px-6 h-20 flex justify-between items-center">
-                <div className="flex items-center cursor-pointer" onClick={(e) => { e.preventDefault(); navigateHome(); }}>
-                  <a href="/" onClick={(e) => e.preventDefault()}>
-                    <img 
-                      src="https://qsqqolvsndvkwegvcfqv.supabase.co/storage/v1/object/sign/assets/Website%20logo%20.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MWNhMTU1MC03OGYzLTQwZGMtYTYzYi02NzVmZTRiYjM2NWMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhc3NldHMvV2Vic2l0ZSBsb2dvIC5wbmciLCJpYXQiOjE3NzgzMDk4MjksImV4cCI6MTkzNTk4OTgyOX0.LqwS9LCGK4UH1oL4YQHkiJdrNNgYGh-8CZtZBgrTO-s"
-                      alt="LankaProperty.lk"
-                      className="h-[45px] sm:h-[55px] dark:bg-white dark:px-[10px] dark:py-[4px] dark:rounded-[8px]"
-                      style={{ 
-                        width: 'auto',
-                        objectFit: 'contain',
-                        cursor: 'pointer'
-                      }}
-                      onError={(e: any) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  </a>
-                </div>
-                <ul className="hidden lg:flex items-center gap-6 text-[15px] font-semibold text-slate-700">
-                  {["Home", "About", "Property Wanted", "Agents", "Advertising", "Contact"].map((item) => (
-                    <li key={item}>
-                      <a 
-                        href="#" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (item === 'Home') navigateHome();
-                          else if (item === 'About') setCurrentView({ type: 'about' });
-                          else if (item === 'Advertising') setCurrentView({ type: 'packages' });
-                          else if (item === 'Agents') setCurrentView({ type: 'agents' });
-                          else if (item === 'Contact') setCurrentView({ type: 'contact' });
-                          else if (item === 'Property Wanted') setCurrentView({ type: 'wanted' });
-                        }}
-                        className={`${(item === 'Home' && currentView.type === 'home' || item === 'About' && currentView.type === 'about' || item === 'Advertising' && currentView.type === 'packages' || item === 'Contact' && currentView.type === 'contact' || item === 'Property Wanted' && currentView.type === 'wanted') ? 'text-brand-green border-b-2 border-brand-green pb-1.5' : 'hover:text-brand-green'} whitespace-nowrap compact-transition`}
-                      >
-                        {item}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-                <div className="flex items-center gap-5">
-                  {user ? (
-                    <div 
-                      onClick={() => setCurrentView({ type: 'profile' })}
-                      className="flex items-center gap-2 bg-white/50 backdrop-blur-sm border border-gray-100 rounded-full pl-1.5 pr-2 py-1.5 cursor-pointer hover:bg-white hover:shadow-md compact-transition"
-                    >
-                      <div className="w-10 h-10 rounded-full bg-brand-green flex items-center justify-center text-white text-sm font-bold shadow-sm">
-                        {user.email[0].toUpperCase()}
-                      </div>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); setUser(null); navigateHome(); }} 
-                        className="p-1.5 flex items-center justify-center text-gray-400 hover:text-brand-red compact-transition bg-gray-50 rounded-full hover:bg-red-50"
-                        title="Logout"
-                      >
-                        <LogOut size={16} className="rotate-180" />
-                      </button>
-                    </div>
-                  ) : (
-                    <button 
-                      onClick={() => setCurrentView({ type: 'auth' })}
-                      className="text-dark-navy font-bold text-sm px-4 py-2 hover:text-brand-green compact-transition"
-                    >
-                      Sign In
-                    </button>
-                  )}
-                  <motion.button 
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    animate={{ 
-                      boxShadow: ["0 0 0 rgba(0, 181, 98, 0)", "0 0 12px rgba(0, 181, 98, 0.5)", "0 0 0 rgba(0, 181, 98, 0)"]
-                    }}
-                    transition={{ 
-                      boxShadow: { duration: 2, repeat: Infinity }
-                    }}
-                    onClick={() => {
-                      if (user) setCurrentView({ type: 'publish' });
-                      else setCurrentView({ type: 'auth', data: 'signup' });
-                    }}
-                    className="px-6 py-3 bg-brand-green text-white rounded-xl text-base font-bold hover:bg-brand-green-dark shadow-lg shadow-brand-green/20 compact-transition"
-                  >
-                    Post free ad
-                  </motion.button>
-                </div>
-              </nav>
-            </header>
-            
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentView.type}
@@ -8636,21 +8603,31 @@ export default function App() {
           </motion.main>
         )}
 
+        {currentView.type === 'sell' && (
+          <SellView 
+            onPostAd={() => {
+              if (user) setCurrentView({ type: 'publish' });
+              else setCurrentView({ type: 'auth', data: 'signup' });
+            }}
+            onNavigate={(view) => setCurrentView(view)}
+          />
+        )}
+
         {currentView.type === 'category' && (
           <CategoryPage 
-            category={currentView.data.category}
-            mode={currentView.data.mode}
+            category={currentView.data?.category} 
+            mode={currentView.data?.mode}
             onBack={navigateHome}
             onPropertyClick={(p) => handleDetailClick(p)}
             favorites={favorites}
             toggleFavorite={toggleFavorite}
-            compareList={compareList}
-            toggleCompare={toggleCompare}
             isAdmin={isAdmin}
-            onPostAd={() => setCurrentView({ type: 'publish' })}
+            onPostAd={() => {
+              if (user) setCurrentView({ type: 'publish' });
+              else setCurrentView({ type: 'auth', data: 'signup' });
+            }}
             onNavigateHome={navigateHome}
-            onNavigate={setCurrentView}
-            onGetStarted={(pkg) => setCurrentView({ type: 'packages', data: { pkg } })}
+            onNavigate={(view) => setCurrentView(view)}
           />
         )}
 
@@ -8769,18 +8746,16 @@ export default function App() {
         )}
 
         {['agent_access', 'agent_publish', 'agent_listings', 'agent_only_listings', 'featured_projects_admin', 'inquiries'].includes(currentView.type) && (
-          <AdminErrorBoundary>
-            <AdminPortal 
-              user={user} 
-              onLogout={() => {
-                supabase.auth.signOut();
-                setUser(null);
-                navigateHome();
-              }}
-              onRefresh={refreshProperties}
-              onAgentAccessBack={navigateHome}
-            />
-          </AdminErrorBoundary>
+          <AdminPortal 
+            user={user} 
+            onLogout={() => {
+              supabase.auth.signOut();
+              setUser(null);
+              navigateHome();
+            }}
+            onRefresh={refreshProperties}
+            onAgentAccessBack={navigateHome}
+          />
         )}
 
         {currentView.type === 'agents' && (
@@ -8800,6 +8775,10 @@ export default function App() {
             onBack={navigateHome} 
             onRemove={removeCompare} 
           />
+        )}
+
+        {currentView.type === 'feedback' && (
+          <Feedback onBack={navigateHome} />
         )}
               </motion.div>
             </AnimatePresence>
