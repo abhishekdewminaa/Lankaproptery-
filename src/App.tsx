@@ -141,6 +141,7 @@ import PropertyWanted from "./components/PropertyWanted";
 import CustomerInquiries from "./components/CustomerInquiries";
 import LiveVisitorTracking from "./components/LiveVisitorTracking";
 import { HomeRedesign } from "./components/home/HomeRedesign";
+import { VoiceCommandPanel } from './components/VoiceCommandPanel';
 import { CategoryPage } from "./components/CategoryPage";
 import { PropertyDetail } from "./components/PropertyDetail";
 import { useProperties, Property } from "./hooks/useProperties";
@@ -3591,6 +3592,37 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
   const [pastedText, setPastedText] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
 
+  useEffect(() => {
+    const handleVoice = (e: any) => {
+      const command = e.detail.toLowerCase();
+      // Only process if this component is active
+      if (command.includes('title is')) setTitle(command.split('title is')[1].trim());
+      if (command.includes('price is')) {
+        const p = command.match(/\d+/)?.toString();
+        if (p) setPrice(p);
+      }
+      if (command.includes('rooms are') || command.includes('bedrooms are')) {
+        const r = command.match(/\d+/)?.toString();
+        if (r) setRooms(r);
+      }
+      if (command.includes('bathrooms are')) {
+        const b = command.match(/\d+/)?.toString();
+        if (b) setBathrooms(b);
+      }
+      if (command.includes('district is')) {
+        const d = command.split('district is')[1].trim();
+        // Simple capitalize
+        const districtName = d.charAt(0).toUpperCase() + d.slice(1);
+        if (SRI_LANKA_DISTRICTS.includes(districtName)) setDistrict(districtName);
+      }
+      if (command.includes('publish') || command.includes('submit') || command.includes('එකතු කරන්න')) {
+        handlePublish();
+      }
+    };
+    window.addEventListener('voice-command', handleVoice);
+    return () => window.removeEventListener('voice-command', handleVoice);
+  }, [SRI_LANKA_DISTRICTS]);
+
   const limits = {
     "FREE": 3,
     "PREMIUM PRO": 6,
@@ -6786,34 +6818,47 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
   );
 };
 
-const PackageCard = ({ name, price, features, isPopular, onGetStarted }: { name: string, price: string, features: string[], isPopular?: boolean, onGetStarted: () => void }) => (
-  <div className={`relative bg-white p-8 rounded-[32px] border ${isPopular ? 'border-brand-green shadow-2xl shadow-brand-green/10 ring-4 ring-brand-green/5' : 'border-gray-100 shadow-sm'} flex flex-col h-full group`}>
+const PackageCard = ({ name, price, subPrice, features, isPopular, onGetStarted, visibility }: { name: string, price: string, subPrice?: string, features: string[], isPopular?: boolean, onGetStarted: () => void, visibility?: string }) => (
+  <div className={`relative p-8 rounded-[40px] border transition-all duration-500 flex flex-col h-full group ${isPopular ? 'bg-[#004832] border-[#004832] shadow-2xl shadow-brand-green/20 scale-105 z-10' : 'bg-white border-gray-100 shadow-sm'}`}>
     {isPopular && (
-      <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-green text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
-        Most Popular
+      <div className="absolute top-0 right-0 overflow-hidden w-32 h-32 pointer-events-none">
+        <div className="absolute top-0 right-0 bg-[#B82929] text-white text-[10px] font-black uppercase tracking-widest py-1 w-[160%] text-center transform translate-x-[30%] translate-y-[45%] rotate-45 shadow-lg">
+          Most Popular
+        </div>
       </div>
     )}
-    <h3 className="text-xl font-black text-dark-navy mb-2">{name}</h3>
-    <div className="flex items-baseline gap-1 mb-8">
-      {price !== "Free" && price !== "0" && <span className="text-[12px] font-bold text-gray-400">Rs.</span>}
-      <span className="text-4xl font-black text-dark-navy tracking-tight">{price === "0" ? "Free" : price}</span>
-      {price !== "Free" && price !== "0" && <span className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">/ad</span>}
+    <p className={`text-[10px] font-bold uppercase tracking-widest mb-4 ${isPopular ? 'text-white/40' : 'text-gray-400'}`}>
+        {isPopular ? 'Strategic Tier' : name.includes('GOLD') ? 'Premium Tier' : 'Ultimate Tier'}
+    </p>
+    <h3 className={`text-2xl font-black mb-4 ${isPopular ? 'text-white' : 'text-dark-navy'}`}>{name}</h3>
+    <div className={`flex items-baseline gap-1 mb-8 ${isPopular ? 'text-white' : 'text-[#004832]'}`}>
+      <span className="text-xl font-bold">Rs.</span>
+      <span className="text-4xl font-black tracking-tight">{price}</span>
+      {subPrice && <span className={`text-[12px] font-bold ${isPopular ? 'text-white/60' : 'text-gray-400'}`}>/{subPrice}</span>}
     </div>
-    <ul className="space-y-4 mb-10 flex-grow">
+    
+    <ul className="space-y-5 mb-10 flex-grow">
       {features.map((f, i) => (
-        <li key={i} className="flex items-center gap-3 text-sm text-gray-500 font-medium">
-          <div className="w-5 h-5 rounded-full bg-brand-green/10 flex items-center justify-center flex-shrink-0">
-            <CheckCircle size={10} className="text-brand-green" />
+        <li key={i} className="flex items-center gap-3 text-sm font-medium">
+          <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${isPopular ? 'bg-white/10' : 'bg-brand-green/10'}`}>
+            <CheckCircle size={14} className={isPopular ? 'text-white' : 'text-brand-green'} />
           </div>
-          {f}
+          <span className={isPopular ? 'text-white/90' : 'text-gray-600'}>{f}</span>
         </li>
       ))}
     </ul>
+
+    <div className={`mb-8 pt-6 border-t ${isPopular ? 'border-white/10' : 'border-gray-100'}`}>
+        <p className={`text-[10px] font-bold italic mb-2 ${isPopular ? 'text-white/30' : 'text-gray-400'}`}>
+            {visibility ? `Visibility on: ${visibility}` : ' '}
+        </p>
+    </div>
+
     <button 
       onClick={onGetStarted}
-      className={`w-full py-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${isPopular ? 'bg-brand-green text-white shadow-xl shadow-brand-green/20 hover:scale-[1.02] active:scale-95' : 'bg-gray-50 text-dark-navy hover:bg-gray-100'}`}
+      className={`w-full py-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${isPopular ? 'bg-white text-[#004832] hover:bg-gray-100' : 'border-2 border-[#004832] text-[#004832] hover:bg-[#004832] hover:text-white'}`}
     >
-      Get Started
+      LIST YOUR PROPERTY
     </button>
   </div>
 );
@@ -6822,7 +6867,7 @@ const AdvertisingPackagesView = ({ onGetStarted }: { onGetStarted: () => void })
   return (
     <div className="min-h-screen bg-[#F8FAF8] pt-20">
       {/* Hero */}
-      <section className="bg-dark-navy py-24 relative overflow-hidden">
+      <section className="bg-[#001D14] py-24 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-brand-green/10 rounded-full blur-3xl -mr-20 -mt-20" />
         <div className="container mx-auto px-6 relative z-10 text-center">
           <motion.div
@@ -6830,7 +6875,7 @@ const AdvertisingPackagesView = ({ onGetStarted }: { onGetStarted: () => void })
             animate={{ opacity: 1, y: 0 }}
           >
             <h1 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tighter">
-              Boost Your Property <span className="text-brand-green">Visibility</span>
+              Advertise Your Property <br /> <span className="text-brand-green">Every Month In Lanka!</span>
             </h1>
             <p className="text-white/60 text-lg md:text-xl max-w-2xl mx-auto font-medium">
               Choose the perfect advertising package to reach thousands of potential buyers in Sri Lanka.
@@ -6842,50 +6887,49 @@ const AdvertisingPackagesView = ({ onGetStarted }: { onGetStarted: () => void })
       {/* Pricing Grid */}
       <section className="py-24">
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-7xl mx-auto items-center">
             <PackageCard 
-              name="Starter" 
-              price="0" 
+              name="GOLD PACKAGE" 
+              price="15,000" 
+              subPrice="12 Months"
               features={[
-                "Valid for 30 days",
-                "Up to 5 Photos",
-                "Standard Listing",
-                "Basic Support",
-                "Standard Search Result"
+                "Fully Website Advertising",
+                "12 Months Duration",
+                "Featured Property Status",
+                "Social Media (WhatsApp, FB, IG, TikTok)"
               ]} 
+              visibility="ikman.lk, LankaPropertyWeb.lk"
               onGetStarted={onGetStarted}
             />
             <PackageCard 
-              name="Premium Pro" 
-              price="2,500" 
+              name="PLATINUM PACKAGE" 
+              price="25,000" 
+              subPrice="Until Sold"
               isPopular 
               features={[
-                "Valid for 60 days",
-                "Unlimited Photos",
-                "Boosted Search Position",
-                "WhatsApp Inquiry Tracking",
-                "Priority Email Support",
-                "Trending Badge"
+                "Advertised until sold",
+                "Featured on 10 Major Websites",
+                "Fully Social Media Marketing",
+                "Priority Direct Support"
               ]} 
               onGetStarted={onGetStarted}
             />
             <PackageCard 
-              name="Elite Pro" 
-              price="7,500" 
+              name="DIAMOND PACKAGE" 
+              price="45,000" 
+              subPrice="Until Sold"
               features={[
-                "Valid for 90 days",
-                "Featured on Home Page",
-                "Professional Photography",
-                "Video Walkthrough",
-                "Dedicated Account Manager",
-                "Social Media Promotion"
+                "All Platinum Tier Features",
+                "High-Traffic Banner Placement",
+                "Priority Listing Diagnostics",
+                "Premium Web Slider (990x340 px)",
+                "Dedicated Account Manager"
               ]} 
               onGetStarted={onGetStarted}
             />
           </div>
         </div>
       </section>
-
       {/* Benefits */}
       <section className="pb-24">
         <div className="container mx-auto px-6">
@@ -8476,6 +8520,45 @@ export default function App() {
   const [sortOption, setSortOption] = useState<"Newest" | "Price Low-High" | "Price High-Low">("Newest");
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
+  const handleVoiceSearch = (filters: any) => {
+    let result = [...supabaseProperties];
+    
+    if (filters.category) {
+      result = result.filter(p => (p.category || p.property_category || '').toLowerCase() === filters.category.toLowerCase());
+    }
+    
+    if (filters.district) {
+      result = result.filter(p => (p.district || '').toLowerCase().includes(filters.district.toLowerCase()));
+    }
+    
+    if (filters.mode) {
+      const mode = filters.mode.toLowerCase() === 'rent' ? 'rent' : 'sale';
+      result = result.filter(p => (p.listing_type || '').toLowerCase().includes(mode));
+    }
+    
+    if (filters.maxPrice) {
+      result = result.filter(p => {
+        const pPrice = parseInt((p.price_lkr || p.price || '0').toString().replace(/[^0-9]/g, ''), 10) || 0;
+        return pPrice <= filters.maxPrice;
+      });
+    }
+
+    if (filters.bedrooms) {
+      result = result.filter(p => (p.rooms || 0) >= filters.bedrooms);
+    }
+    
+    setCurrentView({ type: 'search_results', data: result });
+  };
   const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'verify' | 'reset-password' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'secret_login' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings' | 'agent_only_listings' | 'featured_projects_admin' | 'search_results' | 'sell' | 'feedback', data?: any }>({ type: 'home' });
   const [user, setUser] = useState<any | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -9144,6 +9227,22 @@ export default function App() {
           </motion.button>
         )}
       </AnimatePresence>
+
+      <VoiceCommandPanel 
+        onNavigateHome={navigateHome}
+        onNavigate={(view) => setCurrentView(view)}
+        onSearch={handleVoiceSearch}
+        onClearFilters={() => {
+          setRecentFilter('all');
+          setSortOption('Newest First');
+        }}
+        onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+        onCommandReached={(cmd) => {
+          // This can be used to pass transcripts to subcomponents if needed
+          (window as any).lastVoiceCommand = cmd;
+          window.dispatchEvent(new CustomEvent('voice-command', { detail: cmd }));
+        }}
+      />
     </>
   );
 }
