@@ -18,7 +18,8 @@ import {
   BarChart3,
   Target,
   Plus,
-  ClipboardList
+  ClipboardList,
+  Tag
 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 
@@ -26,6 +27,7 @@ interface Property {
   id: string;
   listing_title: string;
   price_lkr: number;
+  usd_estimate: number;
   city: string;
   district: string;
   property_category: string;
@@ -34,6 +36,10 @@ interface Property {
   leads_count: number;
   status: string;
   images: string[];
+  rooms: number;
+  bathrooms: number;
+  floor_area: number;
+  package_tier: string;
 }
 
 export default function AdminListings({ user, onEdit, onNewProperty }: { user: any, onEdit: (p: any) => void, onNewProperty: () => void }) {
@@ -47,7 +53,6 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
       const { data, error } = await supabase
         .from('properties')
         .select('*')
-        .eq('agent_id', user?.email)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -60,12 +65,12 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
   };
 
   useEffect(() => {
-    if (user?.email) fetchListings();
+    fetchListings();
   }, [user]);
 
   const toggleStatus = async (id: string, currentStatus: string) => {
     setUpdatingId(id);
-    const newStatus = currentStatus === 'paused' ? 'active' : 'paused';
+    const newStatus = currentStatus === 'active' ? 'paused' : 'active';
     try {
       const { error } = await supabase.from('properties').update({ status: newStatus }).eq('id', id);
       if (error) throw error;
@@ -89,11 +94,11 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
+    <div className="space-y-8 animate-in fade-in duration-700 min-h-screen pb-20">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-4xl font-black text-admin-text-dark tracking-tight">Active Properties</h1>
+          <h1 className="text-4xl font-black text-[#004F31] tracking-tight">Properties Manager</h1>
           <p className="text-admin-text-gray font-bold mt-2">Manage your inventory and track listing performance across all channels.</p>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
@@ -105,7 +110,7 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
           </button>
           <button 
             onClick={onNewProperty}
-            className="flex-grow md:flex-grow-0 bg-[#006644] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-[#006644]/20 hover:bg-[#005533] transition-all flex items-center justify-center gap-3 active:scale-95"
+            className="flex-grow md:flex-grow-0 bg-[#004F31] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-[#004F31]/20 hover:bg-[#003824] transition-all flex items-center justify-center gap-3 active:scale-95"
           >
             <Plus size={20} />
             Post New Ad
@@ -154,7 +159,7 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="bg-white p-8 rounded-[40px] border border-admin-border shadow-sm flex flex-col gap-6 hover:shadow-xl hover:shadow-black/5 transition-all group"
+            className="bg-white p-8 rounded-[32px] border border-admin-border shadow-sm flex flex-col gap-6 hover:shadow-xl hover:shadow-black/5 transition-all group"
           >
              <div className="flex justify-between items-start">
                <div className={`w-12 h-12 ${stat.bgColor} rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110`}>
@@ -179,7 +184,7 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
             <input 
               type="text" 
               placeholder="Filter by title, location or property ID..."
-              className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold outline-none transition-all"
+              className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-[#004F31]/20 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold outline-none transition-all"
             />
          </div>
          <div className="flex gap-3 w-full md:w-auto">
@@ -207,92 +212,98 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
             <motion.div
               layout
               key={property.id}
-              className={`bg-white p-8 rounded-[48px] border border-admin-border shadow-sm hover:shadow-2xl hover:shadow-black/5 transition-all group flex flex-col lg:flex-row gap-10 items-start lg:items-center ${property.status === 'paused' ? 'opacity-60 grayscale-[0.5]' : ''}`}
+              className={`bg-white p-6 rounded-[32px] border border-admin-border shadow-sm hover:shadow-xl hover:shadow-black/5 transition-all group flex flex-col xl:flex-row gap-8 items-center ${property.status === 'paused' ? 'opacity-70' : ''}`}
             >
               {/* Thumbnail */}
-              <div className="w-full lg:w-60 h-40 rounded-[32px] overflow-hidden shrink-0 relative bg-gray-100 shadow-inner">
+              <div className="w-full xl:w-[200px] h-[140px] rounded-2xl overflow-hidden shrink-0 relative bg-gray-100">
                  <img 
                    src={property.images?.[0] || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80'} 
                    alt={property.listing_title} 
-                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                  />
-                 <div className="absolute top-4 left-4">
-                    <span className={`px-3 py-1.5 rounded-xl text-[8px] font-black uppercase tracking-widest shadow-lg ${
-                      property.status === 'paused' ? 'bg-black text-white' : 'bg-white text-admin-primary'
+                 <div className="absolute top-3 left-3 flex flex-col gap-2">
+                    <span className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-lg ${
+                      property.status === 'active' ? 'bg-[#00B67A] text-white' : 'bg-orange-500 text-white'
                     }`}>
-                      {property.status}
+                      {property.status === 'active' ? 'ACTIVE' : 'PENDING'}
                     </span>
                  </div>
               </div>
 
               {/* Info */}
-              <div className="flex-grow min-w-0 space-y-3">
+              <div className="flex-grow min-w-0 flex flex-col gap-3">
                  <div className="flex items-center gap-3">
                     <span className="px-3 py-1 rounded-full bg-admin-bg border border-admin-border text-admin-text-gray text-[9px] font-black uppercase tracking-widest">
-                       {property.property_category || 'House'}
+                       {property.property_category || 'Apartment'}
                     </span>
-                    <span className="text-[10px] text-admin-text-gray font-bold uppercase tracking-widest">ID: #{String(property.id).split('-')[0].toUpperCase()}</span>
+                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">ID: #{String(property.id).split('-')[0].toUpperCase()}</span>
                  </div>
-                 <h3 className="text-2xl font-black text-admin-text-dark line-clamp-1 group-hover:text-[#006644] transition-colors tracking-tight">{property.listing_title}</h3>
-                 <div className="flex items-center gap-6 text-xs font-bold text-admin-text-gray">
-                    <span className="flex items-center gap-2"><MapPin size={16} className="text-[#006644]" /> {property.city}, {property.district}</span>
-                    <span className="flex items-center gap-2"><BarChart3 size={16} className="text-[#006644]" /> {property.listing_type}</span>
+                 
+                 <h3 className="text-xl font-black text-[#004F31] line-clamp-1 tracking-tight leading-tight">{property.listing_title}</h3>
+                 
+                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[11px] font-bold text-gray-400">
+                    <span className="flex items-center gap-1.5"><MapPin size={14} className="text-[#004F31]" /> {property.city}, {property.district}</span>
+                    <span className="flex items-center gap-1.5"><Tag size={14} className="text-[#004F31]" /> {property.listing_type}</span>
                  </div>
               </div>
 
-              {/* Stats - Vertical Stack */}
-              <div className="hidden xl:flex flex-col gap-4 px-10 border-x border-admin-border min-w-[180px]">
-                 <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest">Views</span>
-                    <span className="text-lg font-black text-admin-text-dark">{property.views_count || 0}</span>
+              {/* Stats */}
+              <div className="hidden xl:flex items-center gap-8 px-8 border-x border-admin-border">
+                 <div className="text-center">
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Views</p>
+                    <p className="text-xl font-black text-admin-text-dark">{property.views_count || 0}</p>
                  </div>
-                 <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest">Leads</span>
-                    <span className="text-lg font-black text-admin-primary">{property.leads_count || 0}</span>
+                 <div className="text-center">
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Leads</p>
+                    <p className="text-xl font-black text-[#004F31]">{property.leads_count || 0}</p>
                  </div>
               </div>
 
               {/* Price & Actions */}
-              <div className="flex flex-col sm:flex-row items-center gap-8 w-full lg:w-auto">
-                 <div className="text-center sm:text-right flex-grow min-w-[140px]">
-                    <p className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest mb-1">Market Price</p>
-                    <p className="text-2xl font-black text-admin-text-dark tracking-tight">Rs. {property.price_lkr?.toLocaleString()}</p>
-                 </div>
-                 <div className="flex items-center gap-3">
-                    <div className="relative group/tooltip">
-                      <button 
-                        onClick={() => toggleStatus(property.id, property.status)}
-                        disabled={updatingId === property.id}
-                        className={`p-4 rounded-2xl border transition-all ${
-                          property.status === 'paused' 
-                            ? 'border-admin-border text-gray-400 hover:text-admin-primary hover:bg-admin-bg' 
-                            : 'bg-[#00B67A] text-white border-[#00B67A] shadow-lg shadow-[#00B67A]/20 hover:scale-105'
-                        }`}
-                      >
-                        {updatingId === property.id ? <Loader2 className="animate-spin" size={22} /> : <Power size={22} />}
-                      </button>
+              <div className="flex flex-col md:flex-row items-center gap-8 w-full xl:w-auto">
+                 <div className="text-center md:text-right min-w-[160px]">
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Market Price</p>
+                    <div className="flex items-baseline justify-center md:justify-end gap-2">
+                       <span className="text-sm font-black text-admin-text-dark">Rs.</span>
+                       <span className="text-2xl font-black text-admin-text-dark tracking-tight">{property.price_lkr?.toLocaleString()}</span>
                     </div>
+                    <p className="text-[10px] font-bold text-gray-400 mt-0.5">$ {property.usd_estimate ? Math.round(property.usd_estimate).toLocaleString() : Math.round(property.price_lkr / 300).toLocaleString()} USD</p>
+                 </div>
+
+                 {/* Buttons */}
+                 <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => toggleStatus(property.id, property.status)}
+                      disabled={updatingId === property.id}
+                      className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
+                        property.status === 'active' 
+                          ? 'bg-[#00B67A] text-white shadow-lg shadow-[#00B67A]/20 hover:scale-105' 
+                          : 'bg-admin-bg text-gray-300 border border-admin-border hover:text-[#00B67A]'
+                      }`}
+                    >
+                      {updatingId === property.id ? <Loader2 className="animate-spin" size={20} /> : <Power size={20} />}
+                    </button>
 
                     <button 
                       onClick={() => onEdit(property)}
-                      className="p-4 bg-white border border-admin-border rounded-2xl text-admin-text-dark hover:bg-admin-bg transition-all shadow-sm active:scale-95"
+                      className="w-12 h-12 bg-white border border-admin-border rounded-2xl flex items-center justify-center text-admin-text-dark hover:bg-admin-bg transition-all shadow-sm active:scale-95"
                     >
-                      <Edit3 size={22} />
+                      <Edit3 size={20} />
                     </button>
 
                     <button 
                       onClick={() => deleteProperty(property.id)}
-                      className="p-4 bg-white border border-admin-border rounded-2xl text-red-500 hover:bg-red-50 transition-all shadow-sm active:scale-95"
+                      className="w-12 h-12 bg-white border border-admin-border rounded-2xl flex items-center justify-center text-red-500 hover:bg-red-50 transition-all shadow-sm active:scale-95"
                     >
-                      <Trash2 size={22} />
+                      <Trash2 size={20} />
                     </button>
 
                     <a 
                       href={`/property/${property.id}`}
                       target="_blank"
-                      className="p-4 bg-admin-text-dark text-white rounded-2xl hover:bg-admin-primary transition-all shadow-xl shadow-black/10 active:scale-95"
+                      className="w-12 h-12 bg-admin-text-dark text-white rounded-2xl flex items-center justify-center hover:bg-[#004F31] transition-all shadow-xl shadow-black/10 active:scale-95"
                     >
-                      <ExternalLink size={22} />
+                      <ExternalLink size={20} />
                     </a>
                  </div>
               </div>
@@ -314,7 +325,7 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
              </p>
              <button 
                onClick={onNewProperty}
-               className="bg-[#006644] text-white px-10 py-5 rounded-[24px] font-black text-sm uppercase tracking-widest shadow-2xl shadow-[#006644]/20 hover:bg-[#005533] transition-all active:scale-95"
+               className="bg-[#004F31] text-white px-10 py-5 rounded-[24px] font-black text-sm uppercase tracking-widest shadow-2xl shadow-[#004F31]/20 hover:bg-[#003824] transition-all active:scale-95"
              >
                 List Your First Property
              </button>

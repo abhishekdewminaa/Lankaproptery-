@@ -5,11 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Google AI Studio App</title>
     <script>
-      window.addEventListener('unhandledrejection', function(event) {
-        if (event.reason && (event.reason.message || '').includes('WebSocket')) {
-          event.preventDefault();
+      (function() {
+        var origError = window.onerror
+        window.onerror = function(msg) {
+          if (typeof msg === 'string' && 
+              msg.indexOf('WebSocket') > -1) {
+            return true
+          }
+          return origError ? 
+            origError.apply(this, arguments) : false
         }
-      });
+        window.addEventListener(
+          'unhandledrejection', 
+          function(event) {
+            if (event.reason && 
+                event.reason.message && 
+                event.reason.message
+                  .indexOf('WebSocket') > -1) {
+              event.preventDefault()
+              event.stopPropagation()
+            }
+          }, 
+          true
+        )
+      })()
     </script>
   </head>
   <body>

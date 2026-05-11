@@ -46,6 +46,7 @@ export interface Property {
   additionalInfo?: string;
   isNegotiable?: boolean;
   locationLink?: string;
+  google_maps_link?: string;
 }
 
 export function useProperties() {

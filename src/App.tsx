@@ -133,6 +133,36 @@ import {
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell, PieChart, Pie } from 'recharts';
 import { ChartWrapper } from './components/ChartWrapper';
+
+class AdminErrorBoundary extends React.Component<{ children: React.ReactNode }> {
+  state = { hasError: false, error: null as Error | null }
+  
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+  
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ 
+          padding: '40px', 
+          textAlign: 'center' 
+        }}>
+          <h2>Something went wrong</h2>
+          <p style={{ color: 'red' }}>
+            {this.state.error?.message}
+          </p>
+          <button onClick={() => 
+            this.setState({ hasError: false })
+          }>
+            Try Again
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 import { translateToSinhala } from "./services/geminiService";
 import PropertyWanted from "./components/PropertyWanted";
 import CustomerInquiries from "./components/CustomerInquiries";
@@ -1155,7 +1185,7 @@ const Sidebar = ({ onOpenCalculator, onShowPackages }: { onOpenCalculator: () =>
 );
 
 const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, onShowPromotion, onShowWanted, onShowSecretLogin }: { onNavigateHome: () => void, onShowContact: () => void, onShowAbout: () => void, onShowPackages: () => void, onShowPromotion: () => void, onShowWanted: () => void, onShowSecretLogin: () => void }) => (
-  <footer className="bg-[#0D1F0D] text-gray-400 pt-20 pb-10">
+  <footer className="bg-[#0A1628] text-gray-400 pt-20 pb-10">
     <div className="container mx-auto px-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
         <div className="space-y-8">
@@ -1180,12 +1210,11 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
           </p>
           <div className="flex gap-4">
             {[
-              { icon: Facebook, color: "text-[#1877F2]", bg: "bg-[#1877F2]/10", hover: "hover:bg-[#F5A623]", url: "https://facebook.com" },
-              { icon: Twitter, color: "text-[#1DA1F2]", bg: "bg-[#1DA1F2]/10", hover: "hover:bg-[#F5A623]", url: "https://twitter.com" },
-              { icon: Instagram, color: "text-[#E4405F]", bg: "bg-[#E4405F]/10", hover: "hover:bg-[#F5A623]", url: "https://www.instagram.com/lankapropertylk/" },
-              { icon: Linkedin, color: "text-[#0A66C2]", bg: "bg-[#0A66C2]/10", hover: "hover:bg-[#F5A623]", url: "https://linkedin.com" },
-              { icon: Youtube, color: "text-[#FF0000]", bg: "bg-[#FF0000]/10", hover: "hover:bg-[#F5A623]", url: "https://youtube.com" },
-              { icon: PenTool, color: "text-[#000000]", bg: "bg-white/10", hover: "hover:bg-[#F5A623]", url: "https://medium.com" }
+              { icon: Facebook, url: "https://facebook.com" },
+              { icon: Twitter, url: "https://twitter.com" },
+              { icon: Instagram, url: "https://www.instagram.com/lankapropertylk/" },
+              { icon: Linkedin, url: "https://linkedin.com" },
+              { icon: Youtube, url: "https://youtube.com" }
             ].map((item, i) => {
               const Icon = item.icon;
               return (
@@ -1194,21 +1223,18 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
                   href={item.url} 
                   target="_blank"
                   rel="noopener noreferrer"
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
                   whileHover={{ 
-                    scale: 1.2, 
-                    y: -8, 
-                    backgroundColor: "#F5A623", 
-                    color: "#ffffff",
-                    boxShadow: "0 10px 25px -5px rgba(0,0,0,0.3)"
+                    y: -5,
+                    backgroundColor: "rgba(255,255,255,0.1)",
+                    borderColor: "rgba(255,255,255,0.3)"
                   }}
-                  whileTap={{ scale: 0.9 }}
-                  className={`w-12 h-12 rounded-2xl ${item.bg} border border-white/10 flex items-center justify-center ${item.color} compact-transition shadow-xl hover:border-transparent`}
+                  className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all"
                 >
-                  <Icon size={24} />
+                  <Icon size={18} />
                 </motion.a>
               );
             })}
@@ -1218,12 +1244,12 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
         <div>
           <h4 className="text-white font-bold mb-6 uppercase text-sm tracking-widest">Quick Links</h4>
           <ul className="space-y-4 text-base font-medium">
-            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowAbout(); }} className="hover:text-brand-gold compact-transition">About</a></li>
-            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowWanted(); }} className="hover:text-brand-gold compact-transition">Property Wanted</a></li>
-            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowContact(); }} className="hover:text-brand-gold compact-transition">Contact Support</a></li>
-            <li><a href="#" className="hover:text-brand-gold compact-transition">Terms of Service</a></li>
-            <li><a href="#" className="hover:text-brand-gold compact-transition">Privacy Policy</a></li>
-            <li><a href="#" className="hover:text-brand-gold compact-transition">Sitemap</a></li>
+            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowAbout(); }} className="hover:text-white compact-transition">About</a></li>
+            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowWanted(); }} className="hover:text-white compact-transition">Property Wanted</a></li>
+            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowContact(); }} className="hover:text-white compact-transition">Contact Support</a></li>
+            <li><a href="#" className="hover:text-white compact-transition">Terms of Service</a></li>
+            <li><a href="#" className="hover:text-white compact-transition">Privacy Policy</a></li>
+            <li><a href="#" className="hover:text-white compact-transition">Sitemap</a></li>
           </ul>
         </div>
 
@@ -1231,7 +1257,7 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
           <h4 className="text-white font-bold mb-6 uppercase text-sm tracking-widest">Popular Areas</h4>
           <ul className="space-y-4 text-base font-medium">
             {["Colombo Real Estate", "Kandy Properties", "Galle Villas", "Negombo Land", "Kurunegala Homes", "Kalutara Estates"].map(item => (
-              <li key={item}><a href="#" className="hover:text-brand-gold compact-transition">{item}</a></li>
+              <li key={item}><a href="#" className="hover:text-white compact-transition">{item}</a></li>
             ))}
           </ul>
         </div>
@@ -6570,49 +6596,46 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1"> engagement vs leads</p>
           </div>
 
-          <ChartWrapper 
-            height={300}
-            chart={
-              <AreaChart data={trendData[selectedCategory]}>
-                <defs>
-                  <linearGradient id="colorViewsCat" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={selectedCategory === 'land' ? '#3b82f6' : selectedCategory === 'apartment' ? '#6366f1' : '#00b562'} stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor={selectedCategory === 'land' ? '#3b82f6' : selectedCategory === 'apartment' ? '#6366f1' : '#00b562'} stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridColor} />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 10, fontWeight: 700, fill: chartTheme.textColor }} 
-                  dy={10}
-                />
-                <YAxis hide />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: chartTheme.tooltipBg,
-                    color: chartTheme.tooltipText,
-                    borderRadius: '16px', 
-                    border: 'none', 
-                    boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
-                    fontSize: '12px',
-                    fontWeight: 'bold'
-                  }}
-                  itemStyle={{ color: chartTheme.tooltipText }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="views" 
-                  stroke={selectedCategory === 'land' ? '#3b82f6' : selectedCategory === 'apartment' ? '#6366f1' : '#00b562'} 
-                  strokeWidth={4}
-                  fillOpacity={1} 
-                  fill="url(#colorViewsCat)" 
-                  animationDuration={1500}
-                />
-              </AreaChart>
-            }
-          />
+          <ChartWrapper height={300}>
+            <AreaChart data={trendData[selectedCategory]}>
+              <defs>
+                <linearGradient id="colorViewsCat" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={selectedCategory === 'land' ? '#3b82f6' : selectedCategory === 'apartment' ? '#6366f1' : '#00b562'} stopOpacity={0.1}/>
+                  <stop offset="95%" stopColor={selectedCategory === 'land' ? '#3b82f6' : selectedCategory === 'apartment' ? '#6366f1' : '#00b562'} stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridColor} />
+              <XAxis 
+                dataKey="name" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fontSize: 10, fontWeight: 700, fill: chartTheme.textColor }} 
+                dy={10}
+              />
+              <YAxis hide />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: chartTheme.tooltipBg,
+                  color: chartTheme.tooltipText,
+                  borderRadius: '16px', 
+                  border: 'none', 
+                  boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
+                  fontSize: '12px',
+                  fontWeight: 'bold'
+                }}
+                itemStyle={{ color: chartTheme.tooltipText }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="views" 
+                stroke={selectedCategory === 'land' ? '#3b82f6' : selectedCategory === 'apartment' ? '#6366f1' : '#00b562'} 
+                strokeWidth={4}
+                fillOpacity={1} 
+                fill="url(#colorViewsCat)" 
+                animationDuration={1500}
+              />
+            </AreaChart>
+          </ChartWrapper>
         </div>
 
         <div className="lg:col-span-2 bg-white dark:bg-dark-navy p-8 rounded-[40px] border border-gray-100 dark:border-white/5 shadow-sm flex flex-col justify-between">
@@ -6621,43 +6644,39 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Listing density by category</p>
           </div>
 
-          <ChartWrapper 
-            height={300} 
-            className="my-4"
-            chart={
-              <PieChart>
-                <Pie
-                  data={distributionData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={85}
-                  outerRadius={110}
-                  paddingAngle={5}
-                  dataKey="value"
-                  animationDuration={1500}
-                  stroke="none"
-                >
-                  {distributionData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: chartTheme.tooltipBg,
-                    color: chartTheme.tooltipText,
-                    borderRadius: '16px', 
-                    border: 'none', 
-                    boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
-                    fontSize: '12px',
-                    fontWeight: 'bold'
-                  }}
-                  itemStyle={{
-                    color: chartTheme.tooltipText
-                  }}
-                />
-              </PieChart>
-            }
-          />
+          <ChartWrapper height={300} className="my-4">
+            <PieChart>
+              <Pie
+                data={distributionData}
+                cx="50%"
+                cy="50%"
+                innerRadius={85}
+                outerRadius={110}
+                paddingAngle={5}
+                dataKey="value"
+                animationDuration={1500}
+                stroke="none"
+              >
+                {distributionData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: chartTheme.tooltipBg,
+                  color: chartTheme.tooltipText,
+                  borderRadius: '16px', 
+                  border: 'none', 
+                  boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
+                  fontSize: '12px',
+                  fontWeight: 'bold'
+                }}
+                itemStyle={{
+                  color: chartTheme.tooltipText
+                }}
+              />
+            </PieChart>
+          </ChartWrapper>
 
           <div className="space-y-3">
             {distributionData.map((item, i) => (
@@ -8428,11 +8447,11 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="min-h-screen"
+            className="flex-grow"
           >
             <HomeRedesign 
               propertyCount={supabaseProperties.length}
-              featuredProperties={supabaseProperties.slice(0, 4)} // Simple logic for now
+              featuredProperties={supabaseProperties.slice(0, 4)} 
               supabaseProperties={supabaseProperties}
               onNavigate={(view) => setCurrentView(view)}
               onPostAd={() => {
@@ -8750,16 +8769,18 @@ export default function App() {
         )}
 
         {['agent_access', 'agent_publish', 'agent_listings', 'agent_only_listings', 'featured_projects_admin', 'inquiries'].includes(currentView.type) && (
-          <AdminPortal 
-            user={user} 
-            onLogout={() => {
-              supabase.auth.signOut();
-              setUser(null);
-              navigateHome();
-            }}
-            onRefresh={refreshProperties}
-            onAgentAccessBack={navigateHome}
-          />
+          <AdminErrorBoundary>
+            <AdminPortal 
+              user={user} 
+              onLogout={() => {
+                supabase.auth.signOut();
+                setUser(null);
+                navigateHome();
+              }}
+              onRefresh={refreshProperties}
+              onAgentAccessBack={navigateHome}
+            />
+          </AdminErrorBoundary>
         )}
 
         {currentView.type === 'agents' && (

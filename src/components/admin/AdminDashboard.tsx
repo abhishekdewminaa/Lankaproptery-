@@ -23,9 +23,8 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
+  PieChart, 
+  Pie, 
   Cell
 } from 'recharts';
 import { ChartWrapper } from '../ChartWrapper';
@@ -214,56 +213,53 @@ export default function AdminDashboard({ user }: { user: any }) {
             </button>
           </div>
           
-          <ChartWrapper 
-            height={350}
-            chart={
-              <AreaChart data={PERFORMANCE_DATA}>
-                <defs>
-                  <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#004F31" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#004F31" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                <XAxis 
-                  dataKey="day" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: '#6B7280', fontSize: 12, fontWeight: 600 }}
-                  dy={10}
-                />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: '#6B7280', fontSize: 12, fontWeight: 600 }}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    borderRadius: '16px', 
-                    border: 'none', 
-                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                    padding: '12px 16px'
-                  }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="views" 
-                  stroke="#004F31" 
-                  strokeWidth={4}
-                  fillOpacity={1} 
-                  fill="url(#colorViews)" 
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="avg" 
-                  stroke="#E5E7EB" 
-                  strokeWidth={2} 
-                  strokeDasharray="5 5"
-                  fill="none" 
-                />
-              </AreaChart>
-            }
-          />
+          <ChartWrapper height={350}>
+            <AreaChart data={PERFORMANCE_DATA}>
+              <defs>
+                <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#004F31" stopOpacity={0.1}/>
+                  <stop offset="95%" stopColor="#004F31" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+              <XAxis 
+                dataKey="day" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#6B7280', fontSize: 12, fontWeight: 600 }}
+                dy={10}
+              />
+              <YAxis 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#6B7280', fontSize: 12, fontWeight: 600 }}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  borderRadius: '16px', 
+                  border: 'none', 
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                  padding: '12px 16px'
+                }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="views" 
+                stroke="#004F31" 
+                strokeWidth={4}
+                fillOpacity={1} 
+                fill="url(#colorViews)" 
+              />
+              <Area 
+                type="monotone" 
+                dataKey="avg" 
+                stroke="#E5E7EB" 
+                strokeWidth={2} 
+                strokeDasharray="5 5"
+                fill="none" 
+              />
+            </AreaChart>
+          </ChartWrapper>
         </div>
 
         {/* Donut Chart */}
@@ -273,9 +269,8 @@ export default function AdminDashboard({ user }: { user: any }) {
             <p className="text-xs font-bold text-admin-text-gray uppercase tracking-widest mt-1">Inventory by property type</p>
           </div>
 
-          <ChartWrapper 
-            height={250}
-            chart={
+          <ChartWrapper height={250}>
+            <div className="relative w-full h-full">
               <PieChart>
                 <Pie
                   data={MARKET_SHARE_DATA}
@@ -292,11 +287,10 @@ export default function AdminDashboard({ user }: { user: any }) {
                 </Pie>
                 <Tooltip />
               </PieChart>
-            }
-          >
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl font-black text-admin-text-dark">2,410</span>
-              <span className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest">Active Units</span>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-2xl font-black text-admin-text-dark">2,410</span>
+                <span className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest">Active Units</span>
+              </div>
             </div>
           </ChartWrapper>
 

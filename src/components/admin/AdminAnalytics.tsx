@@ -158,57 +158,54 @@ export default function AdminAnalytics() {
             </div>
           </div>
 
-          <ChartWrapper 
-            height={400}
-            chart={
-              <AreaChart data={REVENUE_DATA} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#004f31" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#004f31" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 10, fontWeight: 900, fill: '#888' }}
-                  dy={15}
-                />
-                <YAxis hide />
-                <Tooltip 
-                  contentStyle={{ 
-                    borderRadius: '24px', 
-                    border: 'none', 
-                    boxShadow: '0 20px 40px rgba(0,0,0,0.1)', 
-                    padding: '16px' 
-                  }}
-                  labelStyle={{ fontWeight: 900, marginBottom: '8px' }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="value" 
-                  stroke="#004f31" 
-                  strokeWidth={4} 
-                  fillOpacity={1} 
-                  fill="url(#colorRevenue)" 
-                  dot={{ r: 6, fill: '#004f31', strokeWidth: 3, stroke: '#fff' }}
-                  activeDot={{ r: 8, fill: '#00c389' }}
-                />
-                {/* Forecast Line */}
-                <Area 
-                  type="monotone" 
-                  dataKey="value" 
-                  stroke="#004f31" 
-                  strokeWidth={4} 
-                  strokeDasharray="8 8"
-                  fill="transparent"
-                  data={REVENUE_DATA.filter(d => d.forecast || d.name === 'JUNE')}
-                />
-              </AreaChart>
-            }
-          />
+          <ChartWrapper height={400}>
+            <AreaChart data={REVENUE_DATA} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#004f31" stopOpacity={0.1}/>
+                  <stop offset="95%" stopColor="#004f31" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+              <XAxis 
+                dataKey="name" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fontSize: 10, fontWeight: 900, fill: '#888' }}
+                dy={15}
+              />
+              <YAxis hide />
+              <Tooltip 
+                contentStyle={{ 
+                  borderRadius: '24px', 
+                  border: 'none', 
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.1)', 
+                  padding: '16px' 
+                }}
+                labelStyle={{ fontWeight: 900, marginBottom: '8px' }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="value" 
+                stroke="#004f31" 
+                strokeWidth={4} 
+                fillOpacity={1} 
+                fill="url(#colorRevenue)" 
+                dot={{ r: 6, fill: '#004f31', strokeWidth: 3, stroke: '#fff' }}
+                activeDot={{ r: 8, fill: '#00c389' }}
+              />
+              {/* Forecast Line */}
+              <Area 
+                type="monotone" 
+                dataKey="value" 
+                stroke="#004f31" 
+                strokeWidth={4} 
+                strokeDasharray="8 8"
+                fill="transparent"
+                data={REVENUE_DATA.filter(d => d.forecast || d.name === 'JUNE')}
+              />
+            </AreaChart>
+          </ChartWrapper>
         </div>
       </div>
 
@@ -272,9 +269,8 @@ export default function AdminAnalytics() {
            </div>
 
            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center relative z-10">
-              <ChartWrapper 
-                height={240}
-                chart={
+              <ChartWrapper height={240}>
+                <div className="relative w-full h-full">
                   <PieChart>
                     <Pie
                         data={LEAD_SOURCE_DATA}
@@ -288,11 +284,10 @@ export default function AdminAnalytics() {
                         ))}
                     </Pie>
                   </PieChart>
-                }
-              >
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <p className="text-3xl font-black text-admin-text-dark tracking-tight">2,840</p>
-                    <p className="text-[9px] font-black text-admin-text-gray uppercase tracking-widest">Total Leads</p>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                      <p className="text-3xl font-black text-admin-text-dark tracking-tight">2,840</p>
+                      <p className="text-[9px] font-black text-admin-text-gray uppercase tracking-widest">Total Leads</p>
+                  </div>
                 </div>
               </ChartWrapper>
 

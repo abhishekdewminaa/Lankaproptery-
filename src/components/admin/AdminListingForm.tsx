@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Plus, 
@@ -16,7 +16,24 @@ import {
   ChevronRight,
   ArrowLeft,
   Trash2,
-  GripVertical
+  GripVertical,
+  Star,
+  ExternalLink,
+  ChevronUp,
+  ChevronDown,
+  Home,
+  Trees,
+  Building2,
+  Building,
+  Briefcase,
+  Palmtree,
+  Sprout,
+  Hotel,
+  Save,
+  Globe,
+  Settings,
+  User,
+  FileText
 } from 'lucide-react';
 import { 
   DndContext, 
@@ -35,38 +52,24 @@ import {
   useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GoogleGenAI, Type } from '@google/genai';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { supabase } from '../../supabaseClient';
+import toast from 'react-hot-toast';
 
-interface Property {
-  id?: string | number;
-  listing_title: string;
-  price_lkr: string | number;
-  district?: string;
-  city?: string;
-  property_category?: string;
-  listing_type?: string;
-  land_area?: string;
-  floor_area?: string;
-  floors?: number | string;
-  rooms?: number | string;
-  bathrooms?: number | string;
-  property_description?: string;
-  additional_info?: string;
-  is_negotiable?: boolean;
-  contacts?: { type: 'Mobile' | 'Landline', number: string }[];
-  images?: string[];
-  google_maps_link?: string;
-  // Fallbacks
-  title?: string;
-  price?: string | number;
-  propertyType?: string;
-  listingType?: string;
-}
+// Leaflet marker fix
+const DefaultIcon = L.icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 
 interface AdminListingFormProps {
   user: any;
-  initialData?: any; // Changed to any to handle raw Supabase data
+  initialData?: any;
   onBack: () => void;
   onRefresh?: () => void;
   onSuccess: (property: any) => void;
@@ -74,13 +77,51 @@ interface AdminListingFormProps {
 
 const DISTRICTS = ["Colombo", "Kandy", "Galle", "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Gampaha", "Hambantota", "Jaffna", "Kalutara", "Kegalle", "Kilinochchi", "Kurunegala", "Mannar", "Matale", "Matara", "Moneragala", "Mullaitivu", "Nuwara Eliya", "Polonnaruwa", "Puttalam", "Ratnapura", "Trincomalee", "Vavuniya"];
 
-interface SortableImageItemProps {
-  image: { id: string; url: string };
-  onRemove: (id: string) => void;
-  key?: any;
+const CATEGORIES = [
+  { id: 'House', label: 'House', icon: Home },
+  { id: 'Land', label: 'Land', icon: Trees },
+  { id: 'Apartment', label: 'Apartment', icon: Building2 },
+  { id: 'Building', label: 'Building', icon: Building },
+  { id: 'Commercial', label: 'Commercial', icon: Briefcase },
+  { id: 'Villa', label: 'Villa', icon: Palmtree },
+  { id: 'Farm Land', label: 'Farm Land', icon: Sprout },
+  { id: 'Hotel', label: 'Hotel', icon: Hotel },
+];
+
+function DraggableMarker({ position, setPosition }: { position: [number, number], setPosition: (pos: [number, number]) => void }) {
+  const markerRef = useRef<any>(null);
+  const eventHandlers = React.useMemo(
+    () => ({
+      dragend() {
+        const marker = markerRef.current;
+        if (marker != null) {
+          const latLng = marker.getLatLng();
+          setPosition([latLng.lat, latLng.lng]);
+        }
+      },
+    }),
+    [setPosition],
+  );
+
+  return (
+    <Marker
+      draggable={true}
+      eventHandlers={eventHandlers}
+      position={position}
+      ref={markerRef}
+    />
+  );
 }
 
-function SortableImageItem({ image, onRemove }: SortableImageItemProps) {
+function MapUpdater({ center }: { center: [number, number] }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center, 15);
+  }, [center, map]);
+  return null;
+}
+
+function SortableImageItem({ url, onRemove, onSetMain, isMain }: { url: string, onRemove: () => void, onSetMain: () => void, isMain: boolean }) {
   const {
     attributes,
     listeners,
@@ -88,7 +129,7 @@ function SortableImageItem({ image, onRemove }: SortableImageItemProps) {
     transform,
     transition,
     isDragging
-  } = useSortable({ id: image.id });
+  } = useSortable({ id: url });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -100,56 +141,78 @@ function SortableImageItem({ image, onRemove }: SortableImageItemProps) {
     <div 
       ref={setNodeRef} 
       style={style} 
-      className={`relative aspect-video rounded-2xl overflow-hidden group border border-admin-border shadow-sm h-full ${isDragging ? 'opacity-50' : 'opacity-100'}`}
+      className={`relative aspect-video rounded-2xl overflow-hidden group border border-admin-border shadow-md bg-white ${isDragging ? 'opacity-50' : 'opacity-100'}`}
     >
-      <img src={image.url} alt="Property" className="w-full h-full object-cover" />
-      <div className="absolute inset-x-0 bottom-0 bg-black/60 p-2 opacity-0 group-hover:opacity-100 transition-opacity flex justify-between items-center">
-         <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-white/50 hover:text-white">
+      <img src={url} alt="Property" className="w-full h-full object-cover" />
+      
+      {/* Overlay controls */}
+      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3">
+        <div className="flex justify-between items-start">
+          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1.5 bg-white/20 backdrop-blur-md rounded-lg text-white hover:bg-white/40">
             <GripVertical size={16} />
-         </div>
-         <button 
-           onClick={() => onRemove(image.id)}
-           className="w-8 h-8 rounded-lg bg-admin-accent text-white flex items-center justify-center hover:bg-red-700 transition-colors"
-         >
-           <Trash2 size={14} />
-         </button>
+          </div>
+          <button 
+            onClick={onRemove}
+            className="p-1.5 bg-red-500 rounded-lg text-white hover:bg-red-600 transition-colors shadow-lg"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+        
+        <button 
+          onClick={onSetMain}
+          className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isMain ? 'bg-admin-gold text-white' : 'bg-white/20 backdrop-blur-md text-white hover:bg-white/40'}`}
+        >
+          <Star size={14} fill={isMain ? "currentColor" : "none"} />
+          {isMain ? 'Main Photo' : 'Set as Main'}
+        </button>
       </div>
+
+      {isMain && (
+        <div className="absolute top-3 left-3 bg-admin-gold text-white px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-lg">
+          Main
+        </div>
+      )}
     </div>
   );
 }
 
 export default function AdminListingForm({ user, initialData, onBack, onRefresh, onSuccess }: AdminListingFormProps) {
-  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [showAIModal, setShowAIModal] = useState(false);
-  const [pastedText, setPastedText] = useState("");
-  const [isExtracting, setIsExtracting] = useState(false);
-  
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<string | null>(initialData?.updated_at || null);
+  const [imageUploadProgress, setImageUploadProgress] = useState<number | null>(null);
+
   // Form State
-  const [formData, setFormData] = useState<Property>({
-    listing_title: initialData?.listing_title || initialData?.title || "",
-    price_lkr: initialData?.price_lkr || initialData?.price?.toString().replace(/[^0-9]/g, '') || "",
-    district: initialData?.district || "Colombo",
-    city: initialData?.city || "",
-    property_category: initialData?.property_category || initialData?.propertyType || "Apartment",
-    listing_type: initialData?.listing_type || initialData?.listingType || "For Sale",
-    land_area: initialData?.land_area || initialData?.landArea || "",
-    floor_area: initialData?.floor_area || initialData?.floorArea || "",
-    floors: initialData?.floors?.toString() || "0",
-    rooms: initialData?.rooms?.toString() || "0",
-    bathrooms: initialData?.bathrooms?.toString() || "0",
-    property_description: initialData?.property_description || initialData?.description || "",
-    additional_info: initialData?.additional_info || initialData?.additionalInfo || "",
-    is_negotiable: initialData?.is_negotiable || initialData?.isNegotiable || false,
-    contacts: initialData?.contacts || [{ type: 'Mobile', number: "" }],
-    google_maps_link: initialData?.google_maps_link || initialData?.locationLink || "",
+  const [formData, setFormData] = useState({
+    listing_type: initialData?.listing_type || 'For Sale',
+    property_category: initialData?.property_category || 'Apartment',
+    listing_title: initialData?.listing_title || '',
+    district: initialData?.district || 'Colombo',
+    city: initialData?.city || '',
+    price_lkr: initialData?.price_lkr || '',
+    usd_estimate: initialData?.usd_estimate || 0,
+    is_negotiable: initialData?.is_negotiable || false,
+    land_area: initialData?.land_area || '',
+    floor_area: initialData?.floor_area || '',
+    floors: initialData?.floors || 0,
+    rooms: initialData?.rooms || 0,
+    bathrooms: initialData?.bathrooms || 0,
+    description: initialData?.property_description || '',
+    additional_info: initialData?.additional_info || '',
+    google_maps_link: initialData?.google_maps_link || '',
+    mobile: initialData?.mobile || '',
+    landline: initialData?.landline || '',
+    status: initialData?.status || 'active',
+    package_tier: initialData?.package_tier || 'Starter Free',
+    is_featured: initialData?.is_featured || false,
+    is_trending: initialData?.is_trending || false,
+    allow_inquiries: initialData?.allow_inquiries ?? true,
+    price_on_request: initialData?.price_on_request || false,
+    admin_notes: initialData?.admin_notes || '',
+    images: initialData?.images || [],
+    coordinates: initialData?.coordinates || [6.9271, 79.8612] // [lat, lng]
   });
-
-  const [images, setImages] = useState<{ id: string, url: string }[]>(
-    initialData?.images?.map(url => ({ id: Math.random().toString(36).substr(2, 9), url })) || []
-  );
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -161,594 +224,792 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      setImages((items) => {
-        const oldIndex = items.findIndex((i) => i.id === active.id);
-        const newIndex = items.findIndex((i) => i.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
+      const oldIndex = formData.images.indexOf(active.id as string);
+      const newIndex = formData.images.indexOf(over.id as string);
+      const newImages = arrayMove(formData.images, oldIndex, newIndex);
+      setFormData(prev => ({ ...prev, images: newImages }));
     }
   };
 
-  const handleAIImport = async () => {
-    if (!pastedText.trim()) return;
-    setIsExtracting(true);
+  const setAsMain = (url: string) => {
+    const newImages = [url, ...formData.images.filter(img => img !== url)];
+    setFormData(prev => ({ ...prev, images: newImages }));
+  };
+
+  const uploadImage = async (file: File) => {
+    if (formData.images.length >= 12) {
+      toast.error('Maximum 12 photos allowed');
+      return null;
+    }
+
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      const result = await ai.models.generateContent({
-        model: "gemini-1.5-flash",
-        contents: `Extract property details from the following text into JSON. 
-        Listing type: "For Sale" or "For Rent". Property type: "Apartment", "House", "Land", "Commercial".
-        Text: ${pastedText}`,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              listing_title: { type: Type.STRING },
-              property_description: { type: Type.STRING },
-              district: { type: Type.STRING },
-              city: { type: Type.STRING },
-              property_category: { type: Type.STRING },
-              listing_type: { type: Type.STRING },
-              land_area: { type: Type.STRING },
-              floor_area: { type: Type.STRING },
-              floors: { type: Type.STRING },
-              rooms: { type: Type.STRING },
-              bathrooms: { type: Type.STRING },
-              is_negotiable: { type: Type.BOOLEAN },
-              additional_info: { type: Type.STRING },
-              google_maps_link: { type: Type.STRING },
-              price_lkr: { type: Type.STRING }
-            }
-          }
-        }
-      });
+      setImageUploadProgress(10);
+      const path = `properties/${initialData?.id || 'new'}/${Date.now()}-${file.name}`;
+      
+      const { data, error } = await supabase.storage
+        .from('property-images')
+        .upload(path, file, { upsert: true });
 
-      const data = JSON.parse(result.text || "{}");
-      setFormData(prev => ({ 
-        ...prev, 
-        ...data,
-        // Fallback mapping if AI returns old names for any reason
-        listing_title: data.listing_title || data.title || prev.listing_title,
-        price_lkr: data.price_lkr || data.price || prev.price_lkr,
-        property_category: data.property_category || data.propertyType || prev.property_category,
-        listing_type: data.listing_type || data.listingType || prev.listing_type,
-        property_description: data.property_description || data.description || prev.property_description,
-        additional_info: data.additional_info || data.additionalInfo || prev.additional_info,
-        land_area: data.land_area || data.landArea || prev.land_area,
-        floor_area: data.floor_area || data.floorArea || prev.floor_area,
-        google_maps_link: data.google_maps_link || data.locationLink || prev.google_maps_link,
-        is_negotiable: data.is_negotiable ?? data.isNegotiable ?? prev.is_negotiable
-      }));
-      setShowAIModal(false);
-      setPastedText("");
-    } catch (error) {
-      console.error("AI Extraction failed:", error);
-    } finally {
-      setIsExtracting(false);
+      if (error) throw error;
+      setImageUploadProgress(60);
+
+      const { data: urlData } = supabase.storage
+        .from('property-images')
+        .getPublicUrl(path);
+
+      setImageUploadProgress(100);
+      setTimeout(() => setImageUploadProgress(null), 1000);
+      return urlData.publicUrl;
+    } catch (error: any) {
+      toast.error('Upload failed: ' + error.message);
+      setImageUploadProgress(null);
+      return null;
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const remaining = 12 - images.length;
-    const filesToProcess = files.slice(0, remaining);
+    if (!files.length) return;
 
-    filesToProcess.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const id = Math.random().toString(36).substr(2, 9);
-        setImages(prev => [...prev, { id, url: reader.result as string }].slice(0, 12));
-      };
-      reader.readAsDataURL(file as unknown as Blob);
-    });
+    for (const file of files) {
+      const url = await uploadImage(file);
+      if (url) {
+        setFormData(prev => ({ ...prev, images: [...prev.images, url] }));
+      }
+    }
     e.target.value = '';
   };
 
-  const handlePublish = async () => {
-    setLoading(true);
+  const deleteImage = async (imageUrl: string) => {
+    if (!window.confirm("Remove this photo?")) return;
+
+    const newImages = formData.images.filter(img => img !== imageUrl);
+    setFormData(prev => ({ ...prev, images: newImages }));
+
+    // Try to delete from storage if it's our own URL
     try {
-      const priceVal = parseInt(formData.price_lkr?.toString()) || 0;
-      const listingData = {
-        listing_title: formData.listing_title,
-        price_lkr: priceVal,
-        usd_estimate: priceVal / 310,
-        eur_estimate: priceVal / 335,
-        district: formData.district,
-        city: formData.city,
-        property_category: formData.property_category,
-        listing_type: formData.listing_type,
-        land_area: formData.land_area,
-        floor_area: formData.floor_area,
-        floors: parseInt(formData.floors?.toString() || '0'),
-        rooms: parseInt(formData.rooms?.toString() || '0'),
-        bathrooms: parseInt(formData.bathrooms?.toString() || '0'),
-        property_description: formData.property_description,
-        additional_info: formData.additional_info,
-        mobile: formData.contacts?.[0]?.number || '',
-        landline: formData.contacts?.[1]?.number || '',
-        is_negotiable: formData.is_negotiable,
-        images: images.map(img => img.url),
-        google_maps_link: formData.google_maps_link,
-        agent_id: user?.email || 'ADMIN',
-        status: 'active',
-        package_tier: 'Admin',
-        published_by: 'admin'
-      };
-
-      const { data, error } = initialData?.id 
-        ? await supabase.from('properties').update(listingData).eq('id', initialData.id).select().single()
-        : await supabase.from('properties').insert([listingData]).select().single();
-
-      if (error) throw error;
-      onRefresh?.();
-      onSuccess(data);
-    } catch (error: any) {
-      console.error("Publish error:", error);
-      alert(error.message);
-    } finally {
-      setLoading(false);
+      const path = imageUrl.split('property-images/')[1];
+      if (path) {
+        await supabase.storage.from('property-images').remove([path]);
+      }
+    } catch (err) {
+      console.warn("Could not delete image from storage:", err);
     }
   };
 
+  const saveProperty = useCallback(async (isAutoSave = false) => {
+    if (!isAutoSave) setIsSaving(true);
+    
+    try {
+      const priceNum = parseFloat(formData.price_lkr.toString().replace(/[^0-9.]/g, '')) || 0;
+      const usdEst = priceNum / 300;
+
+      const payload = {
+        listing_type: formData.listing_type,
+        property_category: formData.property_category,
+        listing_title: formData.listing_title,
+        district: formData.district,
+        city: formData.city,
+        price_lkr: priceNum,
+        usd_estimate: usdEst,
+        is_negotiable: formData.is_negotiable,
+        land_area: formData.land_area,
+        floor_area: formData.floor_area,
+        floors: parseInt(formData.floors.toString()),
+        rooms: parseInt(formData.rooms.toString()),
+        bathrooms: parseInt(formData.bathrooms.toString()),
+        property_description: formData.description,
+        additional_info: formData.additional_info,
+        google_maps_link: formData.google_maps_link,
+        mobile: formData.mobile,
+        landline: formData.landline,
+        status: formData.status,
+        package_tier: formData.package_tier,
+        is_featured: formData.is_featured,
+        is_trending: formData.is_trending,
+        allow_inquiries: formData.allow_inquiries,
+        price_on_request: formData.price_on_request,
+        admin_notes: formData.admin_notes,
+        images: formData.images,
+        coordinates: formData.coordinates,
+        updated_at: new Date().toISOString()
+      };
+
+      let result;
+      if (initialData?.id) {
+        result = await supabase.from('properties').update(payload).eq('id', initialData.id);
+      } else {
+        result = await supabase.from('properties').insert([{ ...payload, agent_id: user?.email }]).select().single();
+      }
+
+      if (result.error) throw result.error;
+
+      setLastSaved(new Date().toLocaleTimeString());
+      if (!isAutoSave) {
+        toast.success(initialData?.id ? 'Property updated successfully!' : 'Property published successfully!');
+        if (!initialData?.id) onSuccess(result.data);
+      }
+    } catch (error: any) {
+      if (!isAutoSave) toast.error('Failed to save: ' + error.message);
+    } finally {
+      if (!isAutoSave) setIsSaving(false);
+    }
+  }, [formData, initialData, user, onSuccess]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (formData.listing_title) {
+        saveProperty(true);
+      }
+    }, 30000);
+    return () => clearInterval(timer);
+  }, [saveProperty, formData.listing_title]);
+
+  const priceNum = parseFloat(formData.price_lkr.toString().replace(/[^0-9.]/g, '')) || 0;
+
   return (
-    <div className="max-w-4xl mx-auto space-y-10">
-      {/* Step Indicator */}
-      <div className="bg-white p-8 rounded-[32px] border border-admin-border shadow-sm flex items-center justify-between">
-         <div className="flex items-center gap-6">
-            <button 
-              onClick={onBack}
-              className="w-12 h-12 bg-admin-bg rounded-2xl flex items-center justify-center text-admin-text-dark hover:bg-admin-primary hover:text-white transition-all shadow-sm"
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <div>
-               <h2 className="text-2xl font-black text-admin-text-dark">
-                 {step === 1 ? 'Property Details' : 'Property Media'}
-               </h2>
-               <p className="text-xs font-bold text-admin-text-gray uppercase tracking-widest mt-1">
-                 Step {step} of 2
-               </p>
-            </div>
-         </div>
-         <div className="flex gap-2">
-            {[1, 2].map(s => (
-              <div key={s} className={`h-1.5 w-12 rounded-full transition-all duration-500 ${step >= s ? 'bg-admin-primary' : 'bg-admin-bg'}`} />
-            ))}
-         </div>
-      </div>
-
-      <AnimatePresence mode="wait">
-        {step === 1 ? (
-          <motion.div 
-            key="step1"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            className="space-y-8"
+    <div className="min-h-screen bg-[#F0F4F0] pb-32 animate-in fade-in duration-500">
+      {/* HEADER */}
+      <header className="sticky top-0 z-[100] bg-white/80 backdrop-blur-xl border-b border-admin-border p-6 sm:px-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-sm">
+        <div className="flex items-center gap-6">
+          <button 
+            onClick={onBack}
+            className="p-3 bg-[#F0F4F0] rounded-2xl text-[#004F31] hover:bg-[#004F31] hover:text-white transition-all shadow-sm group"
           >
-            {/* AI Import Bar */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              whileHover={{ scale: 1.01 }}
-              transition={{ duration: 0.5 }}
-              className="bg-admin-primary p-6 rounded-[32px] text-white flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-xl shadow-admin-primary/20 group cursor-pointer"
-              onClick={() => setShowAIModal(true)}
-            >
-               {/* Animated Background Elements */}
-               <motion.div 
-                 animate={{ 
-                   scale: [1, 1.2, 1],
-                   opacity: [0.1, 0.2, 0.1],
-                   rotate: [0, 90, 0]
-                 }}
-                 transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                 className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" 
-               />
-               
-               {/* Floating Stars/Sparkles */}
-               {[...Array(6)].map((_, i) => (
-                 <motion.div
-                   key={i}
-                   initial={{ opacity: 0, scale: 0 }}
-                   animate={{ 
-                     opacity: [0, 1, 0],
-                     scale: [0, 1, 0],
-                     x: [0, (i % 2 === 0 ? 20 : -20) * (i + 1)],
-                     y: [0, (i < 3 ? -20 : 20) * (i + 1)]
-                   }}
-                   transition={{ 
-                     duration: 3 + i, 
-                     repeat: Infinity, 
-                     delay: i * 0.5,
-                     ease: "easeInOut"
-                   }}
-                   className="absolute text-admin-gold/30 pointer-events-none"
-                   style={{ 
-                     left: `${15 + (i * 15)}%`, 
-                     top: `${20 + (i * 10)}%` 
-                   }}
-                 >
-                   <Sparkles size={12 + (i % 3) * 4} />
-                 </motion.div>
-               ))}
-
-               <div className="flex items-center gap-4 relative z-10 font-sans">
-                 <motion.div 
-                   whileHover={{ scale: 1.1, rotate: 15 }}
-                   animate={{ 
-                     boxShadow: ["0 0 0px rgba(255,215,0,0)", "0 0 20px rgba(255,215,0,0.4)", "0 0 0px rgba(255,215,0,0)"]
-                   }}
-                   transition={{ duration: 2, repeat: Infinity }}
-                   className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center text-admin-gold border border-white/10"
-                 >
-                   <motion.div
-                     animate={{ rotate: [0, 10, -10, 0] }}
-                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                   >
-                     <Sparkles size={28} />
-                   </motion.div>
-                 </motion.div>
-                 <div>
-                    <h4 className="font-black text-xl tracking-tight">Quick AI Import</h4>
-                    <p className="text-white/80 text-sm font-medium">Extract property data from any description instantly.</p>
-                 </div>
-               </div>
-
-               <motion.button 
-                 whileHover={{ scale: 1.05, x: 5 }}
-                 whileTap={{ scale: 0.98 }}
-                 onClick={(e) => {
-                   e.stopPropagation();
-                   setShowAIModal(true);
-                 }}
-                 className="bg-white text-admin-primary px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg hover:shadow-white/20 transition-all relative z-10 flex items-center gap-2"
-               >
-                 PASTE DESCRIPTION <ArrowRight size={18} />
-               </motion.button>
-            </motion.div>
-
-            {/* Form Sections */}
-            <div className="grid grid-cols-1 gap-8">
-               {/* Section 1: Basic Info */}
-               <div className="bg-white p-8 rounded-[40px] border border-admin-border shadow-sm space-y-8">
-                  <div className="flex items-center gap-3">
-                     <span className="w-8 h-8 rounded-lg bg-admin-bg text-admin-primary flex items-center justify-center text-xs font-black">01</span>
-                     <h3 className="text-xl font-black text-admin-text-dark">Core Details</h3>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Listing Title</label>
-                        <input 
-                          type="text" 
-                          value={formData.listing_title}
-                          onChange={e => setFormData({...formData, listing_title: e.target.value})}
-                          placeholder="e.g. Modern Luxury Villa in Rajagiriya"
-                          className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 focus:ring-4 focus:ring-admin-primary/5 rounded-2xl p-4 text-sm font-bold transition-all outline-none"
-                        />
-                     </div>
-                     <div className="grid grid-cols-2 gap-4">
-                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Property Type</label>
-                          <select 
-                            value={formData.property_category}
-                            onChange={e => setFormData({...formData, property_category: e.target.value})}
-                            className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 rounded-2xl p-4 text-sm font-bold outline-none appearance-none"
-                          >
-                             {["Apartment", "House", "Land", "Commercial"].map(t => <option key={t}>{t}</option>)}
-                          </select>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Listing Mode</label>
-                          <select 
-                            value={formData.listing_type}
-                            onChange={e => setFormData({...formData, listing_type: e.target.value})}
-                            className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 rounded-2xl p-4 text-sm font-bold outline-none appearance-none"
-                          >
-                             {["For Sale", "For Rent"].map(t => <option key={t}>{t}</option>)}
-                          </select>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-
-               {/* Section 2: Pricing & Location */}
-               <div className="bg-white p-8 rounded-[40px] border border-admin-border shadow-sm space-y-8">
-                  <div className="flex items-center gap-3">
-                     <span className="w-8 h-8 rounded-lg bg-admin-bg text-admin-primary flex items-center justify-center text-xs font-black">02</span>
-                     <h3 className="text-xl font-black text-admin-text-dark">Pricing & Location</h3>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                     <div className="md:col-span-1 space-y-2">
-                        <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Price (Rs.)</label>
-                         <div className="relative">
-                           <input 
-                              type="text" 
-                              value={formData.price_lkr}
-                              onChange={e => setFormData({...formData, price_lkr: e.target.value.replace(/[^0-9]/g, '')})}
-                              placeholder="Price"
-                              className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 rounded-2xl p-4 pl-12 text-lg font-black outline-none"
-                           />
-                           <div className="absolute left-4 top-1/2 -translate-y-1/2 text-admin-text-gray font-bold text-xs uppercase">Rs</div>
-                        </div>
-                        <button 
-                          onClick={() => setFormData({...formData, is_negotiable: !formData.is_negotiable})}
-                          className={`flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-colors ${formData.is_negotiable ? 'bg-admin-secondary/10 text-admin-secondary' : 'bg-gray-100 text-gray-400'}`}
-                        >
-                           <div className={`w-1.5 h-1.5 rounded-full ${formData.is_negotiable ? 'bg-admin-secondary' : 'bg-gray-400'}`} />
-                           Negotiable Price
-                        </button>
-                     </div>
-                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">District</label>
-                        <select 
-                           value={formData.district}
-                           onChange={e => setFormData({...formData, district: e.target.value})}
-                           className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 rounded-2xl p-4 text-sm font-bold outline-none appearance-none"
-                        >
-                           {DISTRICTS.map(d => <option key={d}>{d}</option>)}
-                        </select>
-                     </div>
-                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">City / Suburb</label>
-                        <input 
-                           type="text" 
-                           value={formData.city}
-                           onChange={e => setFormData({...formData, city: e.target.value})}
-                           placeholder="e.g. Nugegoda"
-                           className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 rounded-2xl p-4 text-sm font-bold outline-none"
-                        />
-                     </div>
-                  </div>
-               </div>
-
-               {/* Section 3: Specifications */}
-               <div className="bg-white p-8 rounded-[40px] border border-admin-border shadow-sm space-y-8">
-                  <div className="flex items-center gap-3">
-                     <span className="w-8 h-8 rounded-lg bg-admin-bg text-admin-primary flex items-center justify-center text-xs font-black">03</span>
-                     <h3 className="text-xl font-black text-admin-text-dark">Property Specifications</h3>
-                  </div>
-
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Land Area</label>
-                        <input type="text" value={formData.land_area} onChange={e => setFormData({...formData, land_area: e.target.value})} placeholder="Pe" className="form-input-admin" />
-                     </div>
-                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Floor Area</label>
-                        <input type="text" value={formData.floor_area} onChange={e => setFormData({...formData, floor_area: e.target.value})} placeholder="Sq.Ft" className="form-input-admin" />
-                     </div>
-                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Rooms</label>
-                        <input type="number" value={formData.rooms} onChange={e => setFormData({...formData, rooms: e.target.value})} className="form-input-admin" />
-                     </div>
-                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Baths</label>
-                        <input type="number" value={formData.bathrooms} onChange={e => setFormData({...formData, bathrooms: e.target.value})} className="form-input-admin" />
-                     </div>
-                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Floors</label>
-                        <input type="number" value={formData.floors} onChange={e => setFormData({...formData, floors: e.target.value})} className="form-input-admin" />
-                     </div>
-                  </div>
-               </div>
-
-               {/* Section 4: Narration */}
-               <div className="bg-white p-8 rounded-[40px] border border-admin-border shadow-sm space-y-8">
-                  <div className="flex items-center gap-3">
-                     <span className="w-8 h-8 rounded-lg bg-admin-bg text-admin-primary flex items-center justify-center text-xs font-black">04</span>
-                     <h3 className="text-xl font-black text-admin-text-dark">Description & Info</h3>
-                  </div>
-
-                  <div className="space-y-6">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Listing Description</label>
-                        <textarea 
-                           value={formData.property_description}
-                           onChange={e => setFormData({...formData, property_description: e.target.value})}
-                           placeholder="Type detailed property overview..."
-                           className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 rounded-[32px] p-6 text-sm font-medium min-h-[160px] outline-none transition-all resize-none"
-                        />
-                     </div>
-                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Google Maps Link</label>
-                        <div className="relative">
-                           <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                           <input 
-                              type="url" 
-                              value={formData.google_maps_link}
-                              onChange={e => setFormData({...formData, google_maps_link: e.target.value})}
-                              placeholder="Paste share link from Google Maps..."
-                              className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 rounded-[20px] p-4 pl-14 text-sm font-bold outline-none"
-                           />
-                        </div>
-                     </div>
-                  </div>
-               </div>
+            <ArrowLeft size={22} className="group-hover:-translate-x-1 transition-transform" />
+          </button>
+          <div className="space-y-1">
+            <h2 className="text-3xl font-black text-[#004F31] tracking-tight">
+              {initialData?.id ? `Edit Property #${String(initialData.id).split('-')[0].toUpperCase()}` : 'List New Property'}
+            </h2>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-gray-400">
+                {lastSaved ? `Last saved: ${lastSaved}` : 'Listing Draft'}
+              </span>
+              {isSaving && (
+                <span className="flex items-center gap-2 text-[10px] font-black text-[#004F31] uppercase tracking-widest animate-pulse">
+                  <Loader2 size={12} className="animate-spin" /> Saving...
+                </span>
+              )}
             </div>
-
-            {/* Bottom Bar Footer */}
-            <div className="bg-white p-6 rounded-[32px] border border-admin-border shadow-2xl flex justify-between items-center sticky bottom-8 z-20">
-               <button 
-                 onClick={onBack}
-                 className="px-6 py-3 text-admin-text-gray font-black text-xs uppercase tracking-widest hover:text-admin-text-dark transition-colors"
-               >
-                 Back to Dashboard
-               </button>
-               <button 
-                 onClick={() => setStep(2)}
-                 className="bg-admin-primary text-white px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-[0_10px_30px_rgba(0,79,49,0.2)] hover:bg-admin-secondary transition-all flex items-center gap-3 group"
-               >
-                 Continue to Media
-                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-               </button>
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div 
-            key="step2"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="space-y-10"
-          >
-            <div className="bg-white p-10 rounded-[40px] border border-admin-border shadow-sm space-y-10">
-               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                  <div>
-                    <h3 className="text-2xl font-black text-admin-text-dark">Upload Property Media</h3>
-                    <p className="text-admin-text-gray font-bold mt-1 uppercase tracking-widest text-[10px]">Manager limit: up to 12 professional photos</p>
-                  </div>
-                  <button 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="bg-admin-primary text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-admin-secondary transition-all flex items-center gap-2"
-                  >
-                    <Plus size={18} /> Add Photos
-                  </button>
-               </div>
-
-               <div className="bg-admin-bg p-6 rounded-[32px] border-2 border-dashed border-admin-border/50">
-                  <DndContext 
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                      <SortableContext 
-                        items={images.map(img => img.id)}
-                        strategy={rectSortingStrategy}
-                      >
-                        {images.map((img) => (
-                          <SortableImageItem 
-                            key={img.id} 
-                            image={img} 
-                            onRemove={(id) => setImages(prev => prev.filter(i => i.id !== id))} 
-                          />
-                        ))}
-                      </SortableContext>
-                      
-                      {Array.from({ length: Math.max(0, 12 - images.length) }).map((_, idx) => (
-                        <div 
-                          key={`empty-${idx}`} 
-                          onClick={() => fileInputRef.current?.click()}
-                          className="aspect-video bg-white/50 border border-admin-border rounded-2xl flex flex-col items-center justify-center text-gray-300 hover:border-admin-primary hover:text-admin-primary transition-all cursor-pointer group"
-                        >
-                          <Camera size={32} className="group-hover:scale-110 transition-transform mb-2" />
-                          <span className="text-[8px] font-black uppercase tracking-widest">Available Slot</span>
-                        </div>
-                      ))}
-                    </div>
-                  </DndContext>
-               </div>
-
-               <div className="p-6 bg-admin-bg rounded-3xl flex items-start gap-4">
-                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-admin-gold shrink-0">
-                    <Info size={20} />
-                  </div>
-                  <div>
-                    <h5 className="text-sm font-black text-admin-text-dark mb-1 uppercase tracking-widest">Media Tips</h5>
-                    <p className="text-xs text-admin-text-gray font-medium leading-relaxed">
-                      Upload high-resolution landscape photos (16:9) for better conversion. The first photo will be used as the listing thumbnail. You can drag and drop photos to reorder them.
-                    </p>
-                  </div>
-               </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-[32px] border border-admin-border shadow-2xl flex justify-between items-center sticky bottom-8 z-20">
-               <button 
-                 onClick={() => setStep(1)}
-                 className="px-6 py-3 text-admin-text-gray font-black text-xs uppercase tracking-widest hover:text-admin-text-dark transition-colors"
-               >
-                 Back to Details
-               </button>
-               <button 
-                 onClick={handlePublish}
-                 disabled={loading || images.length === 0}
-                 className="bg-admin-primary text-white px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-[0_10px_30px_rgba(0,79,49,0.2)] hover:bg-admin-secondary transition-all flex items-center gap-3 group disabled:opacity-50"
-               >
-                 {loading ? <Loader2 className="animate-spin" size={18} /> : (initialData?.id ? 'Update Listing' : 'Publish Listing')}
-                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-               </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <input type="file" ref={fileInputRef} onChange={handleImageUpload} multiple accept="image/*" className="hidden" />
-
-      {/* AI Modal */}
-      <AnimatePresence>
-        {showAIModal && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 px-4">
-             <motion.div 
-               initial={{ opacity: 0 }}
-               animate={{ opacity: 1 }}
-               exit={{ opacity: 0 }}
-               onClick={() => setShowAIModal(false)}
-               className="absolute inset-0 bg-admin-text-dark/80 backdrop-blur-sm"
-             />
-             <motion.div 
-               initial={{ opacity: 0, scale: 0.9, y: 20 }}
-               animate={{ opacity: 1, scale: 1, y: 0 }}
-               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-               className="bg-white w-full max-w-2xl rounded-[40px] shadow-2xl relative z-10 overflow-hidden border border-admin-border"
-             >
-                <div className="p-8 border-b border-admin-border flex justify-between items-center">
-                   <div>
-                      <h3 className="text-2xl font-black text-admin-text-dark">Quick AI Import</h3>
-                      <p className="text-xs font-bold text-admin-text-gray uppercase tracking-widest mt-1">Paste your property description</p>
-                   </div>
-                   <button onClick={() => setShowAIModal(false)} className="p-2 hover:bg-admin-bg rounded-xl transition-all">
-                      <X size={24} className="text-admin-text-gray" />
-                   </button>
-                </div>
-                <div className="p-8 space-y-6">
-                   <textarea 
-                     value={pastedText}
-                     onChange={e => setPastedText(e.target.value)}
-                     placeholder="Paste any ad text or property overview here..."
-                     className="w-full h-80 bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 rounded-[32px] p-6 text-sm font-medium outline-none resize-none transition-all"
-                   />
-                   <div className="flex gap-4">
-                      <button 
-                        onClick={() => setShowAIModal(false)}
-                        className="flex-1 py-5 rounded-3xl text-admin-text-dark font-black text-xs uppercase tracking-widest hover:bg-admin-bg transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <button 
-                        onClick={handleAIImport}
-                        disabled={isExtracting || !pastedText.trim()}
-                        className="flex-[2] bg-admin-primary text-white py-5 rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl shadow-admin-primary/20 hover:bg-admin-secondary transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-                      >
-                        {isExtracting ? <Loader2 className="animate-spin" size={18} /> : <Wand2 size={18} />}
-                        {isExtracting ? 'Extracting...' : 'Extract & Fill'}
-                      </button>
-                   </div>
-                </div>
-             </motion.div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+
+        <div className="flex items-center gap-4 w-full sm:w-auto">
+          <a 
+            href={`/property/${initialData?.id}`} 
+            target="_blank"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-4 rounded-2xl border border-admin-border font-black text-xs uppercase tracking-widest text-[#004F31] hover:bg-white transition-all shadow-sm active:scale-95"
+          >
+            <ExternalLink size={16} /> View Live
+          </a>
+          <button 
+            onClick={() => saveProperty()}
+            disabled={isSaving}
+            className="flex-[2] sm:flex-none flex items-center justify-center gap-3 px-10 py-4 rounded-2xl bg-[#004F31] text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-[#004F31]/20 hover:bg-[#003824] transition-all active:scale-95 disabled:opacity-70"
+          >
+            {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+            {initialData?.id ? 'Save Changes' : 'Publish Property'}
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto p-6 sm:p-10 space-y-10 mt-6">
+        
+        {/* SECTION 1: IMAGES */}
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-8"
+        >
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h3 className="text-2xl font-black text-[#004F31] tracking-tight">Property Images</h3>
+              <p className="text-sm font-bold text-gray-400 mt-1">Drag to reorder. First image = main photo. Maximum 12 photos.</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-xs font-black text-gray-400 uppercase tracking-widest">{formData.images.length} / 12 photos</span>
+              <button 
+                onClick={() => document.getElementById('photo-upload')?.click()}
+                disabled={formData.images.length >= 12}
+                className="bg-[#004F31] text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#003824] transition-all flex items-center gap-2 disabled:opacity-50"
+              >
+                <Plus size={16} /> Add More
+              </button>
+              <input type="file" id="photo-upload" className="hidden" onChange={handleFileChange} multiple accept="image/*" />
+            </div>
+          </div>
+
+          <AnimatePresence>
+            {imageUploadProgress !== null && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-2"
+              >
+                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-[#004F31]">
+                  <span>Uploading files...</span>
+                  <span>{imageUploadProgress}%</span>
+                </div>
+                <div className="h-1.5 w-full bg-[#F0F4F0] rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${imageUploadProgress}%` }}
+                    className="h-full bg-[#004F31]"
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <DndContext 
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              <SortableContext 
+                items={formData.images}
+                strategy={rectSortingStrategy}
+              >
+                {formData.images.map((url, i) => (
+                  <SortableImageItem 
+                    key={url} 
+                    url={url} 
+                    onRemove={() => deleteImage(url)} 
+                    onSetMain={() => setAsMain(url)}
+                    isMain={i === 0}
+                  />
+                ))}
+              </SortableContext>
+              
+              {formData.images.length < 12 && (
+                <button 
+                  onClick={() => document.getElementById('photo-upload')?.click()}
+                  className="aspect-video bg-[#F0F4F0] border-2 border-dashed border-admin-border/50 rounded-2xl flex flex-col items-center justify-center text-gray-300 hover:border-[#004F31] hover:text-[#004F31] transition-all group"
+                >
+                  <Camera size={32} className="group-hover:scale-110 transition-transform mb-2" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">+ Upload</span>
+                </button>
+              )}
+            </div>
+          </DndContext>
+        </motion.section>
+
+        {/* SECTION 2: CORE DETAILS */}
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-10"
+        >
+          <div>
+            <h3 className="text-2xl font-black text-[#004F31] tracking-tight">Core Details</h3>
+            <p className="text-sm font-bold text-gray-400 mt-1">Basic identification and categorization.</p>
+          </div>
+
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Listing Type</label>
+              <div className="flex flex-wrap gap-4">
+                {['For Sale', 'For Rent', 'For Lease'].map(type => (
+                  <button 
+                    key={type}
+                    onClick={() => setFormData({...formData, listing_type: type})}
+                    className={`px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${formData.listing_type === type ? 'bg-[#004F31] text-white shadow-lg shadow-[#004F31]/20' : 'bg-[#F0F4F0] text-gray-400 hover:bg-gray-100'}`}
+                  >
+                    {type}
+                    {formData.listing_type === type && <CheckCircle size={14} className="inline ml-2" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Property Category</label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+                {CATEGORIES.map(cat => {
+                  const Icon = cat.icon;
+                  const isActive = formData.property_category === cat.id;
+                  return (
+                    <button 
+                      key={cat.id}
+                      onClick={() => setFormData({...formData, property_category: cat.id})}
+                      className={`flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all group ${isActive ? 'bg-[#004F31]/5 border-[#004F31] shadow-md' : 'bg-white border-admin-border hover:bg-[#F0F4F0]'}`}
+                    >
+                      <Icon size={24} className={isActive ? 'text-[#004F31]' : 'text-gray-300 group-hover:text-[#004F31]'} />
+                      <span className={`text-[9px] font-black uppercase tracking-widest text-center ${isActive ? 'text-[#004F31]' : 'text-gray-400'}`}>{cat.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex justify-between items-end">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Listing Title</label>
+                <span className={`text-[9px] font-black uppercase tracking-widest ${formData.listing_title.length > 140 ? 'text-red-500' : 'text-gray-300'}`}>{formData.listing_title.length} / 150</span>
+              </div>
+              <input 
+                type="text" 
+                maxLength={150}
+                value={formData.listing_title}
+                onChange={e => setFormData({...formData, listing_title: e.target.value})}
+                placeholder="Ex: Luxury 3 Bedroom Apartment in Colombo 07"
+                className="w-full bg-[#F0F4F0] border-2 border-transparent focus:border-[#004F31]/20 focus:bg-white rounded-xl p-4 text-sm font-bold outline-none transition-all"
+              />
+            </div>
+          </div>
+        </motion.section>
+
+        {/* SECTION 3: PRICING & LOCATION */}
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-10"
+        >
+          <div>
+            <h3 className="text-2xl font-black text-[#004F31] tracking-tight">Pricing & Location</h3>
+            <p className="text-sm font-bold text-gray-400 mt-1">Define location accuracy and target list price.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+            {/* Left: Location */}
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">District</label>
+                <div className="relative">
+                  <select 
+                    value={formData.district}
+                    onChange={e => setFormData({...formData, district: e.target.value})}
+                    className="w-full bg-[#F0F4F0] border-transparent rounded-xl p-4 text-sm font-bold outline-none appearance-none cursor-pointer"
+                  >
+                    {DISTRICTS.map(d => <option key={d}>{d}</option>)}
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">City / Suburb</label>
+                <input 
+                  type="text" 
+                  value={formData.city}
+                  onChange={e => setFormData({...formData, city: e.target.value})}
+                  placeholder="Ex: Kandana"
+                  className="w-full bg-[#F0F4F0] border-transparent rounded-xl p-4 text-sm font-bold outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Right: Pricing */}
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Price (LKR)</label>
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    value={formData.price_lkr}
+                    onChange={e => setFormData({...formData, price_lkr: e.target.value.replace(/[^0-9]/g, '')})}
+                    placeholder="Ex: 87,500,000"
+                    disabled={formData.price_on_request}
+                    className="w-full bg-[#F0F4F0] border-transparent rounded-xl p-4 pl-14 text-lg font-black outline-none disabled:opacity-50"
+                  />
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-gray-400 uppercase">Rs.</span>
+                </div>
+                {!formData.price_on_request && (
+                  <div className="flex gap-4 px-2">
+                    <span className="text-[10px] font-bold text-gray-400">≈ USD ${Math.round(priceNum / 300).toLocaleString()}</span>
+                    <span className="text-[10px] font-bold text-gray-400">≈ EUR €{Math.round(priceNum / 325).toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex flex-col gap-4">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className="relative">
+                    <input 
+                      type="checkbox" 
+                      className="peer hidden" 
+                      checked={formData.is_negotiable}
+                      onChange={() => setFormData({...formData, is_negotiable: !formData.is_negotiable})}
+                    />
+                    <div className="w-6 h-6 rounded-lg bg-[#F0F4F0] border-2 border-admin-border peer-checked:bg-[#004F31] peer-checked:border-[#004F31] transition-all" />
+                    <CheckCircle size={14} className="absolute inset-0 m-auto text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                  </div>
+                  <span className="text-xs font-black text-gray-400 uppercase tracking-widest group-hover:text-[#004F31] transition-colors">Price is Negotiable</span>
+                </label>
+
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className="relative">
+                    <input 
+                      type="checkbox" 
+                      className="peer hidden" 
+                      checked={formData.price_on_request}
+                      onChange={() => setFormData({...formData, price_on_request: !formData.price_on_request})}
+                    />
+                    <div className="w-6 h-6 rounded-lg bg-[#F0F4F0] border-2 border-admin-border peer-checked:bg-[#004F31] peer-checked:border-[#004F31] transition-all" />
+                    <CheckCircle size={14} className="absolute inset-0 m-auto text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                  </div>
+                  <span className="text-xs font-black text-gray-400 uppercase tracking-widest group-hover:text-[#004F31] transition-colors">Price on request (hides price)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* SECTION 4: PROPERTY SPECIFICATIONS */}
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-10"
+        >
+          <div>
+            <h3 className="text-2xl font-black text-[#004F31] tracking-tight">Property Specifications</h3>
+            <p className="text-sm font-bold text-gray-400 mt-1">Detailed dimensions and spatial information.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Land Area (Perches)</label>
+              <input type="text" value={formData.land_area} onChange={e => setFormData({...formData, land_area: e.target.value})} placeholder="Ex: 20" className="w-full bg-[#F0F4F0] rounded-xl p-4 text-sm font-bold outline-none" />
+            </div>
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Floor Area (Sqft)</label>
+              <input type="text" value={formData.floor_area} onChange={e => setFormData({...formData, floor_area: e.target.value})} placeholder="Ex: 2,500" className="w-full bg-[#F0F4F0] rounded-xl p-4 text-sm font-bold outline-none" />
+            </div>
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Total Floors</label>
+              <input type="number" value={formData.floors} onChange={e => setFormData({...formData, floors: e.target.value})} className="w-full bg-[#F0F4F0] rounded-xl p-4 text-sm font-bold outline-none" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-4">
+            <div className="flex flex-col gap-4">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Rooms</label>
+              <div className="flex items-center gap-6">
+                <button 
+                  onClick={() => setFormData(p => ({...p, rooms: Math.max(0, parseInt(p.rooms.toString()) - 1)}))}
+                  className="w-12 h-12 bg-[#F0F4F0] rounded-xl flex items-center justify-center text-[#004F31] active:scale-95 transition-all text-2xl font-bold"
+                >−</button>
+                <span className="text-xl font-black text-admin-text-dark min-w-[30px] text-center">{formData.rooms}</span>
+                <button 
+                  onClick={() => setFormData(p => ({...p, rooms: parseInt(p.rooms.toString()) + 1}))}
+                  className="w-12 h-12 bg-[#F0F4F0] rounded-xl flex items-center justify-center text-[#004F31] active:scale-95 transition-all text-2xl font-bold"
+                >+</button>
+              </div>
+            </div>
+            <div className="flex flex-col gap-4">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Bathrooms</label>
+              <div className="flex items-center gap-6">
+                <button 
+                  onClick={() => setFormData(p => ({...p, bathrooms: Math.max(0, parseInt(p.bathrooms.toString()) - 1)}))}
+                  className="w-12 h-12 bg-[#F0F4F0] rounded-xl flex items-center justify-center text-[#004F31] active:scale-95 transition-all text-2xl font-bold"
+                >−</button>
+                <span className="text-xl font-black text-admin-text-dark min-w-[30px] text-center">{formData.bathrooms}</span>
+                <button 
+                  onClick={() => setFormData(p => ({...p, bathrooms: parseInt(p.bathrooms.toString()) + 1}))}
+                  className="w-12 h-12 bg-[#F0F4F0] rounded-xl flex items-center justify-center text-[#004F31] active:scale-95 transition-all text-2xl font-bold"
+                >+</button>
+              </div>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* SECTION 5: PROPERTY DESCRIPTION */}
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-10"
+        >
+          <div>
+            <h3 className="text-2xl font-black text-[#004F31] tracking-tight">Property Description</h3>
+            <p className="text-sm font-bold text-gray-400 mt-1">Write a compelling marketing description.</p>
+          </div>
+
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <div className="flex justify-between items-end">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Description</label>
+                <span className="text-[9px] font-black uppercase tracking-widest text-gray-300">{formData.description.length} chars</span>
+              </div>
+              <textarea 
+                value={formData.description}
+                onChange={e => setFormData({...formData, description: e.target.value})}
+                placeholder="Ex: This stunning 3 bedroom apartment offers panoramic city views..."
+                className="w-full bg-[#F0F4F0] border-transparent focus:bg-white focus:border-[#004F31]/20 rounded-2xl p-6 text-sm font-medium min-h-[220px] outline-none transition-all resize-none"
+              />
+            </div>
+            
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Additional Information (Optional)</label>
+              <textarea 
+                value={formData.additional_info}
+                onChange={e => setFormData({...formData, additional_info: e.target.value})}
+                placeholder="Ex: Security features, school zones, unique features..."
+                className="w-full bg-[#F0F4F0] border-transparent focus:bg-white focus:border-[#004F31]/20 rounded-2xl p-6 text-sm font-medium min-h-[120px] outline-none transition-all resize-none"
+              />
+            </div>
+          </div>
+        </motion.section>
+
+        {/* SECTION 6: GOOGLE MAPS LOCATION */}
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-10"
+        >
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-2xl font-black text-[#004F31] tracking-tight">Property Location</h3>
+              <p className="text-sm font-bold text-gray-400 mt-1">Drag pin to exact location.</p>
+            </div>
+            <button 
+              onClick={() => setFormData(p => ({...p, coordinates: [6.9271, 79.8612]}))}
+              className="px-4 py-2 bg-[#F0F4F0] rounded-xl text-[10px] font-black uppercase tracking-widest text-[#004F31] hover:bg-white transition-all shadow-sm"
+            >
+              Center on Property
+            </button>
+          </div>
+
+          <div className="space-y-6">
+            <div className="h-[400px] w-full rounded-[24px] overflow-hidden border border-admin-border relative z-0">
+               <MapContainer center={formData.coordinates} zoom={13} style={{ height: '100%', width: '100%' }}>
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  <DraggableMarker position={formData.coordinates} setPosition={(pos) => setFormData(p => ({...p, coordinates: pos}))} />
+                  <MapUpdater center={formData.coordinates} />
+               </MapContainer>
+            </div>
+            
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Google Maps Link</label>
+              <div className="relative">
+                <Globe className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input 
+                  type="url" 
+                  value={formData.google_maps_link}
+                  onChange={e => setFormData({...formData, google_maps_link: e.target.value})}
+                  placeholder="Paste Google Maps share link here..."
+                  className="w-full bg-[#F0F4F0] border-transparent rounded-xl p-4 pl-14 text-sm font-bold outline-none"
+                />
+              </div>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* SECTION 7: CONTACT INFORMATION */}
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-10"
+        >
+          <div>
+            <h3 className="text-2xl font-black text-[#004F31] tracking-tight">Contact Information</h3>
+            <p className="text-sm font-bold text-gray-400 mt-1">Manage numbers shown on the listing.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Phone 1 (Primary)</label>
+              <div className="flex gap-3">
+                <div className="relative shrink-0">
+                   <select className="bg-[#F0F4F0] rounded-xl px-4 py-4 text-xs font-black uppercase tracking-widest outline-none appearance-none cursor-pointer">
+                      <option>Mobile</option>
+                      <option>Off</option>
+                   </select>
+                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+                </div>
+                <input 
+                  type="text" 
+                  value={formData.mobile}
+                  onChange={e => setFormData({...formData, mobile: e.target.value})}
+                  placeholder="Ex: 077 123 4567"
+                  className="flex-grow bg-[#F0F4F0] rounded-xl p-4 text-sm font-bold outline-none"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Phone 2 (Secondary)</label>
+              <div className="flex gap-3">
+                <div className="relative shrink-0">
+                   <select className="bg-[#F0F4F0] rounded-xl px-4 py-4 text-xs font-black uppercase tracking-widest outline-none appearance-none cursor-pointer">
+                      <option>Mobile</option>
+                      <option>Landline</option>
+                   </select>
+                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+                </div>
+                <input 
+                  type="text" 
+                  value={formData.landline}
+                  onChange={e => setFormData({...formData, landline: e.target.value})}
+                  placeholder="Ex: 011 234 5678"
+                  className="flex-grow bg-[#F0F4F0] rounded-xl p-4 text-sm font-bold outline-none"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <button className="text-[10px] font-black text-[#004F31] uppercase tracking-widest hover:underline">+ Add another number</button>
+        </motion.section>
+
+        {/* SECTION 8: LISTING SETTINGS */}
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-10"
+        >
+          <div>
+            <h3 className="text-2xl font-black text-[#004F31] tracking-tight">Listing Settings</h3>
+            <p className="text-sm font-bold text-gray-400 mt-1">Admin level visibility and status controls.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="space-y-10">
+              <div className="space-y-6">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Status</label>
+                <div className="flex flex-wrap gap-4">
+                  {[
+                    { id: 'active', label: 'Active', color: 'bg-[#00B67A]' },
+                    { id: 'pending', label: 'Pending', color: 'bg-orange-500' },
+                    { id: 'expired', label: 'Expired', color: 'bg-red-500' },
+                    { id: 'paused', label: 'Paused', color: 'bg-gray-400' }
+                  ].map(stat => (
+                    <button 
+                      key={stat.id}
+                      onClick={() => setFormData({...formData, status: stat.id})}
+                      className={`flex items-center gap-3 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${formData.status === stat.id ? 'bg-[#004F31] text-white shadow-lg' : 'bg-[#F0F4F0] text-gray-400'}`}
+                    >
+                      <div className={`w-2 h-2 rounded-full ${stat.color}`} />
+                      {stat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Package Tier</label>
+                <div className="flex flex-col gap-3">
+                  {[
+                    { id: 'Starter Free', label: 'Starter Free', desc: 'Basic listing access' },
+                    { id: 'Premium Pro', label: 'Premium Pro', desc: 'Better exposure & features' },
+                    { id: 'Elite Pro', label: 'Elite Pro', desc: 'Maximum reach & VIP support' }
+                  ].map(tier => (
+                    <button 
+                      key={tier.id}
+                      onClick={() => setFormData({...formData, package_tier: tier.id})}
+                      className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${formData.package_tier === tier.id ? 'bg-[#004F31]/5 border-[#004F31]' : 'border-admin-border bg-white hover:bg-gray-50'}`}
+                    >
+                      <div className="text-left">
+                        <div className={`text-xs font-black uppercase tracking-widest ${formData.package_tier === tier.id ? 'text-[#004F31]' : 'text-admin-text-dark'}`}>{tier.label}</div>
+                        <div className="text-[10px] font-bold text-gray-400">{tier.desc}</div>
+                      </div>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.package_tier === tier.id ? 'border-[#004F31]' : 'border-gray-200'}`}>
+                         {formData.package_tier === tier.id && <div className="w-2.5 h-2.5 rounded-full bg-[#004F31]" />}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-10">
+              <div className="space-y-6">
+                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Visibility Toggles</label>
+                 <div className="space-y-4">
+                    {[
+                      { id: 'is_featured', label: 'Show on homepage featured' },
+                      { id: 'is_trending', label: 'Mark as Trending' },
+                      { id: 'allow_inquiries', label: 'Allow inquiries' }
+                    ].map(toggle => (
+                      <label key={toggle.id} className="flex items-center justify-between p-4 bg-[#F0F4F0] rounded-2xl cursor-pointer group">
+                         <span className="text-xs font-black text-admin-text-dark uppercase tracking-widest">{toggle.label}</span>
+                         <div className="relative">
+                            <input 
+                              type="checkbox" 
+                              className="peer hidden" 
+                              checked={(formData as any)[toggle.id]}
+                              onChange={() => setFormData(p => ({...p, [toggle.id]: !(p as any)[toggle.id]}))}
+                            />
+                            <div className="w-12 h-6 bg-gray-300 rounded-full transition-colors peer-checked:bg-[#00B67A]" />
+                            <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-6" />
+                         </div>
+                      </label>
+                    ))}
+                 </div>
+              </div>
+
+              <div className="space-y-4">
+                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Published By</label>
+                 <div className="flex items-center gap-4 p-4 bg-white border border-admin-border rounded-2xl">
+                    <div className="w-10 h-10 bg-[#F0F4F0] rounded-full flex items-center justify-center text-[#004F31]">
+                       <User size={18} />
+                    </div>
+                    <div>
+                       <div className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Agent</div>
+                       <div className="text-sm font-bold text-admin-text-dark">{user?.email || 'Admin'}</div>
+                    </div>
+                 </div>
+              </div>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* SECTION 9: ADMIN NOTES */}
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-10"
+        >
+          <div>
+            <h3 className="text-2xl font-black text-[#004F31] tracking-tight">Admin Notes (Internal)</h3>
+            <p className="text-sm font-bold text-gray-400 mt-1">These notes are only visible to admins.</p>
+          </div>
+
+          <textarea 
+            value={formData.admin_notes}
+            onChange={e => setFormData({...formData, admin_notes: e.target.value})}
+            placeholder="Type private admin notes here..."
+            className="w-full bg-[#F0F4F0] border-transparent focus:bg-white focus:border-[#004F31]/20 rounded-2xl p-6 text-sm font-medium min-h-[160px] outline-none transition-all resize-none"
+          />
+        </motion.section>
+
+        {/* BOTTOM SAVE BAR */}
+        <div className="bg-white p-6 rounded-[32px] border border-admin-border shadow-[0_-20px_40px_rgba(0,0,0,0.05)] flex flex-col sm:flex-row justify-between items-center gap-6 sticky bottom-8 z-[100]">
+           <button 
+             onClick={onBack}
+             className="px-6 py-3 text-gray-400 font-black text-xs uppercase tracking-widest hover:text-[#004F31] transition-colors"
+           >
+             Cancel & Back
+           </button>
+           <div className="flex items-center gap-6 w-full sm:w-auto">
+              <span className="hidden sm:inline text-[10px] font-black text-gray-300 uppercase tracking-widest">Listing Status: <span className="text-[#00B67A]">{formData.status}</span></span>
+              <button 
+                onClick={() => saveProperty()}
+                disabled={isSaving}
+                className="flex-grow sm:flex-none flex items-center justify-center gap-3 px-12 py-5 rounded-2xl bg-[#004F31] text-white font-black text-xs uppercase tracking-widest shadow-2xl shadow-[#004F31]/30 hover:bg-[#003824] transition-all active:scale-95 disabled:opacity-70"
+              >
+                {isSaving ? <Loader2 className="animate-spin" size={18} /> : <FileText size={18} />}
+                {initialData?.id ? 'Update Property' : 'Publish Property'}
+              </button>
+           </div>
+        </div>
+      </main>
 
       <style>{`
-        .form-input-admin {
-          width: 100%;
-          background-color: var(--color-admin-bg);
-          border: 1px solid transparent;
-          border-radius: 1.25rem;
-          padding: 1rem;
-          font-size: 0.875rem;
-          font-weight: 700;
-          outline: none;
-          transition: all 0.2s;
+        input::placeholder, textarea::placeholder {
+          color: #D1D5DB;
         }
-        .form-input-admin:focus {
-          background-color: white;
-          border-color: rgba(0, 79, 49, 0.2);
-          box-shadow: 0 0 0 4px rgba(0, 79, 49, 0.05);
+        .leaflet-container {
+          width: 100%;
+          height: 100%;
         }
       `}</style>
     </div>

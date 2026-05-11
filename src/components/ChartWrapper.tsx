@@ -1,43 +1,56 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { ResponsiveContainer } from 'recharts';
+import React, { useState, useEffect, useRef } from 'react'
+import { ResponsiveContainer } from 'recharts'
 
-interface ChartWrapperProps {
-  height?: number | string;
-  chart: React.ReactElement;
-  children?: React.ReactNode;
-  className?: string;
-}
-
-export const ChartWrapper = ({ height = 300, chart, children, className = "" }: ChartWrapperProps) => {
-  const [ready, setReady] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+export const ChartWrapper = ({ 
+  children, 
+  height = 300,
+  className = ""
+}: { 
+  children: React.ReactElement
+  height?: number
+  className?: string
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [dimensions, setDimensions] = useState({ 
+    width: 0, 
+    height: 0 
+  })
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setReady(true);
-    }, 150); // Slightly longer delay to be safe
-    return () => clearTimeout(timer);
-  }, []);
+    if (!containerRef.current) return
+    
+    const observer = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        setDimensions({
+          width: entry.contentRect.width,
+          height: entry.contentRect.height
+        })
+      }
+    })
+    
+    observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [])
 
   return (
     <div 
       ref={containerRef}
       className={className}
-      style={{
-        width: '100%',
-        height: typeof height === 'number' ? `${height}px` : height,
-        minHeight: typeof height === 'number' ? `${height}px` : height,
-        minWidth: '200px',
-        position: 'relative',
-        display: ready ? 'block' : 'block' // Keep block but hide content if needed
+      style={{ 
+        width: '100%', 
+        height: `${height}px`,
+        minHeight: `${height}px`
       }}
     >
-      {ready && (
-        <ResponsiveContainer width="100%" height="100%">
-          {chart}
+      {dimensions.width > 0 && (
+        <ResponsiveContainer 
+          width="100%" 
+          height="100%"
+        >
+          {children}
         </ResponsiveContainer>
       )}
-      {children}
     </div>
-  );
-};
+  )
+}
+

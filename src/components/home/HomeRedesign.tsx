@@ -7,7 +7,6 @@ import { Testimonials } from './Testimonials';
 import { RecentListings } from './RecentListings';
 import { PriceCalculator } from './PriceCalculator';
 import { TrustedPartners } from './TrustedPartners';
-import { Footer } from './Footer';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowUp } from 'lucide-react';
 
@@ -72,8 +71,6 @@ export const HomeRedesign: React.FC<HomeRedesignProps> = ({
         
         <TrustedPartners />
       </main>
-
-      <Footer onAdminClick={onAdminAccess} />
 
       {/* Scroll to Top Button */}
       <AnimatePresence>
