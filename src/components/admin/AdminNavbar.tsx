@@ -45,15 +45,6 @@ export default function AdminNavbar({ user, onPostAd, onOpenSidebar }: AdminNavb
           </button>
         </div>
 
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={onPostAd}
-          className="hidden sm:flex items-center gap-2 bg-[#006644] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-[#006644]/10 hover:bg-[#005533] transition-all"
-        >
-          Post Free Ad
-        </motion.button>
-
         <div className="flex items-center gap-3 ml-2">
           <div className="w-10 h-10 rounded-full bg-admin-bg p-0.5 border border-admin-border overflow-hidden">
             {user?.avatar_url ? (

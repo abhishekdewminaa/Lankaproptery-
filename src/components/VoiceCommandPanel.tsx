@@ -19,6 +19,151 @@ const DISTRICTS = [
   'Moneragala', 'Ratnapura', 'Kegalle'
 ];
 
+const SoundWaveRings = () => (
+  <div style={{
+    position: 'fixed',
+    bottom: '30px',
+    right: '30px',
+    width: '60px',
+    height: '60px',
+    zIndex: 9998,
+    pointerEvents: 'none'
+  }}>
+    {[1, 2, 3].map(i => (
+      <div
+        key={i}
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '60px',
+          height: '60px',
+          borderRadius: '50%',
+          border: '2px solid #CC2222',
+          animation: `ringExpand 1.5s ease-out infinite`,
+          animationDelay: `${i * 0.4}s`,
+          opacity: 0
+        }}
+      />
+    ))}
+  </div>
+);
+
+const ListeningOverlay = ({ transcript }: { transcript: string }) => (
+  <div style={{
+    position: 'fixed',
+    bottom: '110px',
+    right: '20px',
+    background: 'rgba(0,0,0,0.92)',
+    backdropFilter: 'blur(12px)',
+    borderRadius: '20px',
+    padding: '24px',
+    width: '300px',
+    zIndex: 9998,
+    animation: 'slideUpFade 0.3s ease'
+  }}>
+    {/* TOP - Status */}
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      marginBottom: '16px'
+    }}>
+      <div style={{
+        width: '10px',
+        height: '10px',
+        borderRadius: '50%',
+        background: '#CC2222',
+        animation: 'blink 1s infinite'
+      }} />
+      <span style={{ 
+        color: 'white', 
+        fontWeight: '600',
+        fontSize: '14px'
+      }}>
+        Listening...
+      </span>
+    </div>
+
+    {/* MIDDLE - Sound bars animation */}
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '4px',
+      height: '50px',
+      marginBottom: '16px'
+    }}>
+      {[1,2,3,4,5,6,7,8,9,10].map(i => (
+        <div
+          key={i}
+          style={{
+            width: '4px',
+            borderRadius: '2px',
+            background: '#00FF87',
+            animation: `soundBar 0.8s ease infinite alternate`,
+            animationDelay: `${i * 0.08}s`
+          }}
+        />
+      ))}
+    </div>
+
+    {/* BOTTOM - Live transcript */}
+    <div style={{
+      background: 'rgba(255,255,255,0.08)',
+      borderRadius: '12px',
+      padding: '12px',
+      minHeight: '50px'
+    }}>
+      {transcript ? (
+        <p style={{ 
+          color: '#00FF87',
+          fontSize: '14px',
+          margin: 0,
+          fontWeight: 'bold'
+        }}>
+          "{transcript}"
+        </p>
+      ) : (
+        <p style={{ 
+          color: '#6B7280',
+          fontSize: '13px',
+          margin: 0
+        }}>
+          Say a command...
+        </p>
+      )}
+    </div>
+
+    <p style={{
+      color: '#6B7280',
+      fontSize: '11px',
+      marginTop: '12px',
+      marginBottom: 0,
+      textAlign: 'center'
+    }}>
+      Tap mic again to stop
+    </p>
+  </div>
+);
+
+const TopListeningBar = ({ isListening }: { isListening: boolean }) => (
+  isListening ? (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: '3px',
+      background: 'linear-gradient(90deg, #004F31, #CC2222, #004F31)',
+      backgroundSize: '200% 100%',
+      animation: 'scanLine 1.5s linear infinite',
+      zIndex: 99999
+    }} />
+  ) : null
+);
+
 export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps> = ({
   onNavigateHome,
   onNavigate,
@@ -117,6 +262,16 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps> = ({
   const processCommand = (command: string) => {
     console.log('Processing voice command:', command);
     
+    const showSuccess = (action: string) => {
+      setLastAction(action);
+      // Success animation: Flash green border around whole page
+      const originalBoxShadow = document.body.style.boxShadow;
+      document.body.style.boxShadow = 'inset 0 0 0 5px #004F31';
+      setTimeout(() => {
+        document.body.style.boxShadow = originalBoxShadow;
+      }, 600);
+    };
+
     // ── SEARCH COMMANDS ──────────────────
     if (command.includes('show') || command.includes('search') || command.includes('find') || command.includes('සොයන්න') || command.includes('පෙන්වන්න')) {
       const filters: any = {};
@@ -156,32 +311,32 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps> = ({
       }
       
       onSearch(filters);
-      setLastAction(`🔍 Searching${filters.category ? ' for ' + filters.category : ''}${filters.district ? ' in ' + filters.district : ''}`);
+      showSuccess(`🔍 Searching${filters.category ? ' for ' + filters.category : ''}${filters.district ? ' in ' + filters.district : ''}`);
       return;
     }
 
     // ── NAVIGATION COMMANDS ───────────────
     if (command.includes('go to home') || command.includes('homepage') || command.includes('ප්‍රධාන පිටුව')) {
       onNavigateHome();
-      setLastAction('🏠 Going home');
+      showSuccess('🏠 Going home');
       return;
     }
 
     if (command.includes('find agent') || command.includes('show agents') || command.includes('නියෝජිතයන්')) {
       onNavigate({ type: 'agents' });
-      setLastAction('👤 Opening agents page');
+      showSuccess('👤 Opening agents page');
       return;
     }
 
     if (command.includes('open admin') || command.includes('admin panel') || command.includes('ඇඩ්මින්')) {
       onNavigate({ type: 'secret_login' });
-      setLastAction('🔐 Opening admin');
+      showSuccess('🔐 Opening admin');
       return;
     }
 
     if (command.includes('post ad') || command.includes('add property') || command.includes('new listing') || command.includes('දැන්වීමක්')) {
       onNavigate({ type: 'publish' });
-      setLastAction('📝 Opening publish form');
+      showSuccess('📝 Opening publish form');
       return;
     }
 
@@ -190,13 +345,13 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps> = ({
     if (bedroomMatch) {
       // Assuming App.tsx can handle this via some global filter state or by navigating with filters
       onSearch({ bedrooms: parseInt(bedroomMatch[1]) });
-      setLastAction(`🛏️ ${bedroomMatch[1]} bedrooms`);
+      showSuccess(`🛏️ ${bedroomMatch[1]} bedrooms`);
       return;
     }
 
     if (command.includes('clear') || command.includes('reset') || command.includes('අයින් කරන්න')) {
       onClearFilters();
-      setLastAction('✅ Filters cleared');
+      showSuccess('✅ Filters cleared');
       return;
     }
 
@@ -205,7 +360,7 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps> = ({
       const el = document.getElementById('price-calculator');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
       else onNavigateHome(); // Ensure we are on home where calculator is
-      setLastAction('🧮 Opening calculator');
+      showSuccess('🧮 Opening calculator');
       return;
     }
 
@@ -213,14 +368,14 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps> = ({
     if (command.includes('dark mode') || command.includes('night mode') || command.includes('කළු')) {
       document.documentElement.classList.add('dark');
       onToggleDarkMode();
-      setLastAction('🌙 Dark mode on');
+      showSuccess('🌙 Dark mode on');
       return;
     }
 
     if (command.includes('light mode') || command.includes('එළිය')) {
       document.documentElement.classList.remove('dark');
       onToggleDarkMode();
-      setLastAction('☀️ Light mode on');
+      showSuccess('☀️ Light mode on');
       return;
     }
 
@@ -239,7 +394,7 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps> = ({
     if (command.includes('contact agent') || command.includes('call agent') || command.includes('ඇමතීමට')) {
       const el = document.getElementById('agent-card');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
-      setLastAction('📞 Scrolling to contact');
+      showSuccess('📞 Scrolling to contact');
       return;
     }
 
@@ -247,126 +402,83 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps> = ({
     setLastAction(`❓ Not recognized: "${command}"`);
   };
 
-  const handleMouseDown = () => {
-    longPressTimerRef.current = setTimeout(() => {
-      setShowHelp(true);
-    }, 600);
-  };
-
-  const handleMouseUp = () => {
-    clearTimeout(longPressTimerRef.current);
-    if (!showHelp && !isListening) {
-      startListening();
-    } else if (isListening) {
+  const handleMicClick = () => {
+    if (isListening) {
       stopListening();
+    } else {
+      startListening();
     }
   };
 
   return (
-    <div className="fixed bottom-24 right-8 z-[200] flex flex-col items-end gap-4">
-      {/* Voice Feedback Popup */}
-      <AnimatePresence>
-        {isListening && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 10 }}
-            className="bg-white rounded-[24px] shadow-2xl p-6 border border-gray-100 w-64 mb-2 overflow-hidden relative"
-          >
-            <div className="absolute top-0 left-0 w-full h-1 bg-brand-green/10" />
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center animate-pulse">
-                <Mic size={16} className="text-white" />
-              </div>
-              <span className="text-sm font-black text-dark-navy uppercase tracking-widest">Listening...</span>
-            </div>
+    <>
+      <TopListeningBar isListening={isListening} />
+      {isListening && <SoundWaveRings />}
+      
+      <div className="fixed bottom-24 right-8 z-[200] flex flex-col items-end gap-4">
+        {/* Voice Feedback Overlay */}
+        <AnimatePresence>
+          {isListening && (
+            <ListeningOverlay transcript={transcript} />
+          )}
+        </AnimatePresence>
+
+        {/* Action Success Feedback */}
+        <AnimatePresence>
+          {lastAction && !isListening && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="bg-brand-navy text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl border border-white/10"
+            >
+              <CheckCircle size={12} className="text-brand-green" />
+              {lastAction}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="flex flex-col items-center gap-3">
+          {/* Language Switch */}
+          <div className="bg-white p-1 rounded-full shadow-lg border border-gray-100 flex gap-1">
+            <button 
+              onClick={() => setLanguage('en-US')}
+              className={`px-3 py-1 rounded-full text-[10px] font-black uppercase transition-all ${language === 'en-US' ? 'bg-brand-navy text-white' : 'text-gray-400 hover:text-dark-navy'}`}
+            >
+              EN
+            </button>
+            <button 
+              onClick={() => setLanguage('si-LK')}
+              className={`px-3 py-1 rounded-full text-[10px] font-black uppercase transition-all ${language === 'si-LK' ? 'bg-brand-navy text-white' : 'text-gray-400 hover:text-dark-navy'}`}
+            >
+              සිං
+            </button>
+          </div>
+
+          {/* Main Mic Button */}
+          <div className="relative group">
+            <button
+              onClick={handleMicClick}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                setShowHelp(true);
+              }}
+              className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 transform active:scale-95 z-[201] relative ${
+                !isSupported || isPreviewEnv ? 'bg-gray-200 cursor-not-allowed' :
+                isListening ? 'bg-[#CC2222] animate-[micPulse_1s_ease_infinite] shadow-[#CC2222]/30' : 'bg-brand-green hover:bg-brand-green-medium'
+              }`}
+            >
+              <Mic size={28} className="text-white" />
+            </button>
             
-            <div className="min-h-[40px] mb-4">
-              <p className="text-sm font-medium text-gray-500 italic">
-                {transcript || '"Show houses in Colombo"'}
-              </p>
+            {/* Tooltip */}
+            <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 bg-dark-navy text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl">
+              {isPreviewEnv ? 'Voice commands work on live site (lankaproperty.lk)' : (isSupported ? 'Click for Voice / Right-click for Help' : 'Voice not supported in this browser')}
             </div>
-
-            <div className="flex gap-2 items-center overflow-hidden h-6">
-              {[...Array(6)].map((_, i) => (
-                <motion.div 
-                  key={i}
-                  animate={{ 
-                    height: [8, Math.random() * 20 + 4, 8],
-                  }}
-                  transition={{ 
-                    duration: 0.5, 
-                    repeat: Infinity,
-                    delay: i * 0.1
-                  }}
-                  className="w-1 bg-brand-green rounded-full"
-                />
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Action Success Feedback */}
-      <AnimatePresence>
-        {lastAction && !isListening && (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            className="bg-brand-navy text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl border border-white/10"
-          >
-            <CheckCircle size={12} className="text-brand-green" />
-            {lastAction}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="flex flex-col items-center gap-3">
-        {/* Language Switch */}
-        <div className="bg-white p-1 rounded-full shadow-lg border border-gray-100 flex gap-1">
-          <button 
-            onClick={() => setLanguage('en-US')}
-            className={`px-3 py-1 rounded-full text-[10px] font-black uppercase transition-all ${language === 'en-US' ? 'bg-brand-navy text-white' : 'text-gray-400 hover:text-dark-navy'}`}
-          >
-            EN
-          </button>
-          <button 
-            onClick={() => setLanguage('si-LK')}
-            className={`px-3 py-1 rounded-full text-[10px] font-black uppercase transition-all ${language === 'si-LK' ? 'bg-brand-navy text-white' : 'text-gray-400 hover:text-dark-navy'}`}
-          >
-            සිං
-          </button>
-        </div>
-
-        {/* Main Mic Button */}
-        <div className="relative group">
-          <button
-            onMouseDown={handleMouseDown}
-            onMouseUp={handleMouseUp}
-            onTouchStart={handleMouseDown}
-            onTouchEnd={handleMouseUp}
-            className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 transform active:scale-90 ${
-              !isSupported ? 'bg-gray-200 cursor-not-allowed' :
-              isListening ? 'bg-red-500 scale-110 shadow-red-500/30' : 'bg-brand-green hover:bg-brand-green-medium'
-            }`}
-          >
-            {isListening ? <Mic size={28} className="text-white" /> : <Mic size={28} className="text-white" />}
-            
-            {/* Pulsing ring when listening */}
-            {isListening && (
-              <span className="absolute inset-0 rounded-full border-4 border-red-500 animate-ping opacity-75" />
-            )}
-          </button>
-          
-          {/* Tooltip */}
-          <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 bg-dark-navy text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl">
-            {isPreviewEnv ? 'Voice commands work on live site (lankaproperty.lk)' : (isSupported ? 'Hold for help / Click for Voice' : 'Voice not supported in this browser')}
           </div>
         </div>
-      </div>
 
-      {/* Mic Instructions Card */}
+        {/* Mic Instructions Card */}
       <AnimatePresence>
         {showMicInstructions && (
           <motion.div
@@ -484,7 +596,8 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+      </div>
+    </>
   );
 };
 

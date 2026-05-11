@@ -33,8 +33,12 @@ import {
   Globe,
   Settings,
   User,
-  FileText
+  FileText,
+  Bot,
+  Zap,
+  RotateCcw
 } from 'lucide-react';
+import { GoogleGenAI, Type } from "@google/genai";
 import { 
   DndContext, 
   closestCenter, 
@@ -182,6 +186,140 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(initialData?.updated_at || null);
   const [imageUploadProgress, setImageUploadProgress] = useState<number | null>(null);
+
+  // AI Import State
+  const [pastedText, setPastedText] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState('');
+  const [importResults, setImportResults] = useState<any>(null);
+  const [importSuccess, setImportSuccess] = useState(false);
+
+  const PROGRESS_MESSAGES = [
+    "🔍 Reading property details...",
+    "💰 Extracting price...",
+    "📱 Finding contact number...",
+    "📍 Detecting location...",
+    "✨ Filling your form..."
+  ];
+
+  useEffect(() => {
+    let interval: any;
+    if (isImporting) {
+      let i = 0;
+      setImportProgress(PROGRESS_MESSAGES[0]);
+      interval = setInterval(() => {
+        i = (i + 1) % PROGRESS_MESSAGES.length;
+        setImportProgress(PROGRESS_MESSAGES[i]);
+      }, 800);
+    }
+    return () => clearInterval(interval);
+  }, [isImporting]);
+
+  const handleQuickImport = async () => {
+    if (!pastedText.trim()) {
+      toast.error('Please paste some text first');
+      return;
+    }
+
+    setIsImporting(true);
+    setImportSuccess(false);
+    setImportResults(null);
+
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: `Extract ALL details from this real estate listing text. Respond ONLY with JSON.
+
+Text: ${pastedText}
+
+Schema:
+{
+  "listing_title": "string or null",
+  "listing_type": "For Sale | For Rent | For Lease",
+  "property_category": "House | Land | Apartment | Building | Commercial | Villa | Farm Land | Hotel",
+  "district": "string (one of: ${DISTRICTS.join(', ')})",
+  "city": "string or null",
+  "price_lkr": number or null,
+  "is_negotiable": boolean,
+  "rooms": number or null,
+  "bathrooms": number or null,
+  "floors": number or null,
+  "land_area": "string or null",
+  "floor_area": "string or null",
+  "mobile": "string or null",
+  "landline": "string or null",
+  "property_description": "string or null",
+  "additional_info": "string or null",
+  "confidence": number (0-100)
+}
+
+RULES:
+- price_lkr = number only (e.g. 45000000)
+- mobile starts with 07
+- landline starts with 011
+- Translate common Sinhala terms if present`,
+        config: {
+          responseMimeType: "application/json"
+        }
+      });
+
+      const extracted = JSON.parse(response.text || '{}');
+      fillAllFormFields(extracted);
+    } catch (err) {
+      console.error(err);
+      toast.error('Import failed. Try again.');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const fillAllFormFields = (data: any) => {
+    const newFormData = { ...formData };
+
+    if (data.listing_title) newFormData.listing_title = data.listing_title;
+    if (data.listing_type) newFormData.listing_type = data.listing_type;
+    if (data.property_category) newFormData.property_category = data.property_category;
+    if (data.district && DISTRICTS.includes(data.district)) newFormData.district = data.district;
+    if (data.city) newFormData.city = data.city;
+    if (data.price_lkr) {
+      newFormData.price_lkr = data.price_lkr;
+      newFormData.usd_estimate = Math.round(data.price_lkr / 300);
+    }
+    if (data.is_negotiable !== undefined) newFormData.is_negotiable = data.is_negotiable;
+    if (data.rooms) newFormData.rooms = data.rooms;
+    if (data.bathrooms) newFormData.bathrooms = data.bathrooms;
+    if (data.floors) newFormData.floors = data.floors;
+    if (data.land_area) newFormData.land_area = data.land_area;
+    if (data.floor_area) newFormData.floor_area = data.floor_area;
+    if (data.mobile) newFormData.mobile = data.mobile;
+    if (data.landline) newFormData.landline = data.landline;
+    if (data.property_description) newFormData.description = data.property_description;
+    if (data.additional_info) newFormData.additional_info = data.additional_info;
+
+    setFormData(newFormData);
+    setImportResults(data);
+    setImportSuccess(true);
+
+    // Visual feedback
+    setTimeout(() => {
+      const inputs = document.querySelectorAll('input:not([type="checkbox"]), textarea');
+      inputs.forEach((el: any) => {
+        if (el.value) {
+          el.style.borderColor = '#004F31';
+          el.style.backgroundColor = '#E8F5E9';
+          setTimeout(() => {
+            el.style.borderColor = '';
+            el.style.backgroundColor = '';
+          }, 2000);
+        }
+      });
+    }, 300);
+
+    toast.success(`${data.confidence}% confident - Please verify all fields!`);
+    
+    document.querySelector('.property-images-section')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   // Form State
   const [formData, setFormData] = useState({
@@ -416,11 +554,122 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
 
       <main className="max-w-6xl mx-auto p-6 sm:p-10 space-y-10 mt-6">
         
+        {/* QUICK AI IMPORT SECTION */}
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="quick-import-card"
+        >
+          <div className="flex items-center gap-3 mb-1">
+            <span className="text-2xl">🤖</span>
+            <h3>Quick AI Import</h3>
+          </div>
+          <p>Paste a property description or URL and AI will fill all fields automatically</p>
+
+          <div className="relative group">
+            <textarea
+              value={pastedText}
+              onChange={(e) => setPastedText(e.target.value)}
+              placeholder="Paste property description, URL or listing text here...&#10;&#10;Example:&#10;3 bedroom house for sale in Nugegoda, Rs. 45 million, contact 0771234567..."
+              className={`import-textarea ${isImporting ? 'bg-gray-50 opacity-60 pointer-events-none' : ''}`}
+            />
+            {isImporting && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[2px] rounded-xl z-10">
+                <Loader2 size={32} className="text-brand-green animate-spin mb-2" />
+                <span className="text-sm font-black text-brand-green uppercase tracking-widest animate-pulse">
+                  {importProgress}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between mt-6">
+            <button 
+              onClick={() => { setPastedText(''); setImportResults(null); setImportSuccess(false); }}
+              className="flex items-center gap-2 px-4 py-2 text-xs font-black text-gray-400 uppercase tracking-widest hover:text-[#004F31] transition-all"
+            >
+              <RotateCcw size={14} /> Clear
+            </button>
+            <button 
+              onClick={handleQuickImport}
+              disabled={isImporting}
+              className="import-btn"
+            >
+              {isImporting ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Zap size={16} className="fill-current" />
+                  ✨ Import with AI →
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="import-hints">
+            {['Title', 'Price', 'Location', 'Mobile', 'Bedrooms', 'Description'].map(tag => (
+              <span key={tag} className="import-hint-badge">✓ {tag}</span>
+            ))}
+          </div>
+
+          <AnimatePresence>
+            {importSuccess && importResults && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="mt-8 overflow-hidden"
+              >
+                <div className="bg-[#F0F4F0] rounded-2xl p-6 border-l-4 border-brand-green">
+                  <div className="flex justify-between items-center mb-6">
+                    <h4 className="text-sm font-black text-brand-green uppercase tracking-widest flex items-center gap-2">
+                      <CheckCircle size={16} /> Import Complete! {importResults.confidence}% confidence
+                    </h4>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className={`flex items-center gap-2 text-xs font-bold ${importResults.listing_title ? 'text-brand-green' : 'text-red-500'}`}>
+                      {importResults.listing_title ? '✓' : '✗'} Title
+                    </div>
+                    <div className={`flex items-center gap-2 text-xs font-bold ${importResults.price_lkr ? 'text-brand-green' : 'text-red-500'}`}>
+                      {importResults.price_lkr ? '✓' : '✗'} Rs. {importResults.price_lkr?.toLocaleString()}
+                    </div>
+                    <div className={`flex items-center gap-2 text-xs font-bold ${importResults.district ? 'text-brand-green' : 'text-red-500'}`}>
+                      {importResults.district ? '✓' : '✗'} {importResults.district}
+                    </div>
+                    <div className={`flex items-center gap-2 text-xs font-bold ${importResults.mobile ? 'text-brand-green' : 'text-red-500'}`}>
+                      {importResults.mobile ? '✓' : '✗'} {importResults.mobile}
+                    </div>
+                    <div className={`flex items-center gap-2 text-xs font-bold ${importResults.rooms ? 'text-brand-green' : 'text-red-500'}`}>
+                      {importResults.rooms ? '✓' : '✗'} {importResults.rooms} Bedrooms
+                    </div>
+                    <div className={`flex items-center gap-2 text-xs font-bold ${importResults.bathrooms ? 'text-brand-green' : 'text-red-500'}`}>
+                      {importResults.bathrooms ? '✓' : '✗'} {importResults.bathrooms} Bathrooms
+                    </div>
+                    <div className={`flex items-center gap-2 text-xs font-bold ${importResults.property_description ? 'text-brand-green' : 'text-red-500'}`}>
+                      {importResults.property_description ? '✓' : '✗'} Description
+                    </div>
+                    <div className={`flex items-center gap-2 text-xs font-bold ${importResults.land_area ? 'text-brand-green' : 'text-red-500'}`}>
+                      {importResults.land_area ? '✓' : '✗'} Land area
+                    </div>
+                  </div>
+
+                  <p className="mt-6 text-[10px] font-bold text-orange-600 uppercase tracking-widest flex items-center gap-2">
+                    <Info size={12} /> Please verify before publishing
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.section>
+
         {/* SECTION 1: IMAGES */}
         <motion.section 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-8"
+          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-8 property-images-section"
         >
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>

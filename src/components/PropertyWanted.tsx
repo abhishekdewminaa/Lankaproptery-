@@ -345,23 +345,23 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen pb-20">
       {/* Header */}
-      <div className="bg-primary text-white py-16 px-4">
+      <div className="bg-[#001D14] text-white pt-24 pb-20 px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10">
+          <div className="text-center mb-12">
             <motion.h1 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-4xl font-black mb-4 tracking-tight"
+              className="text-4xl md:text-5xl font-black mb-6 tracking-tight text-white"
             >
-              Property Wanted Alerts
+              Property Wanted <span className="text-[#00D27B]">Alerts</span>
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-white/80 text-lg mb-8 max-w-2xl mx-auto"
+              className="text-white/90 text-lg md:text-xl mb-10 max-w-2xl mx-auto font-medium"
             >
               Can't find what you're looking for? Post your requirement and let thousands of our top agents find the perfect match for you.
             </motion.p>
@@ -370,30 +370,30 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
               onClick={() => handleOpenForm()}
-              className="bg-secondary text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-brand-red shadow-lg shadow-primary/20 transition-all inline-flex items-center gap-2"
+              className="bg-[#007E50] text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-[#008F5D] shadow-2xl shadow-black/30 transition-all inline-flex items-center gap-3"
             >
-              <Plus size={20} />
+              <Plus size={22} className="text-white" strokeWidth={3} />
               Post Your Requirement
             </motion.button>
           </div>
 
           {/* Stats Bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
-              <div className="text-3xl font-black text-white">{stats.total}</div>
-              <div className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-1">Total Requests</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            <div className="bg-black/20 backdrop-blur-md rounded-3xl p-6 text-center border border-white/10 shadow-xl">
+              <div className="text-4xl font-black text-[#FACC15] mb-1">{stats.total}</div>
+              <div className="text-[11px] font-extrabold text-white uppercase tracking-widest">Total Requests</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
-              <div className="text-3xl font-black text-white">{stats.sale}</div>
-              <div className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-1">For Sale</div>
+            <div className="bg-black/20 backdrop-blur-md rounded-3xl p-6 text-center border border-white/10 shadow-xl">
+              <div className="text-4xl font-black text-[#FACC15] mb-1">{stats.sale}</div>
+              <div className="text-[11px] font-extrabold text-white uppercase tracking-widest">For Sale</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
-              <div className="text-3xl font-black text-white">{stats.rent}</div>
-              <div className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-1">For Rent</div>
+            <div className="bg-black/20 backdrop-blur-md rounded-3xl p-6 text-center border border-white/10 shadow-xl">
+              <div className="text-4xl font-black text-[#FACC15] mb-1">{stats.rent}</div>
+              <div className="text-[11px] font-extrabold text-white uppercase tracking-widest">For Rent</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/5">
-              <div className="text-3xl font-black text-brand-gold">{stats.today}</div>
-              <div className="text-[10px] font-bold text-brand-gold uppercase tracking-widest mt-1">Posted Today</div>
+            <div className="bg-black/20 backdrop-blur-md rounded-3xl p-6 text-center border border-white/10 shadow-xl">
+              <div className="text-4xl font-black text-[#FACC15] mb-1">{stats.today}</div>
+              <div className="text-[11px] font-extrabold text-[#FACC15] uppercase tracking-widest">Posted Today</div>
             </div>
           </div>
         </div>

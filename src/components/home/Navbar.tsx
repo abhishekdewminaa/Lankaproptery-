@@ -171,13 +171,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
             </button>
           </div>
           
-          <button
-            onClick={onPostAd}
-            className="hidden sm:block px-6 py-2.5 bg-brand-green text-white font-black uppercase tracking-widest text-[10px] rounded-xl transition-all shadow-xl shadow-brand-green/20 hover:bg-dark-navy hover:shadow-dark-navy/20 active:scale-95"
-          >
-            Post Free Ad
-          </button>
-
           {/* Mobile Menu Toggle */}
           <button 
             className="lg:hidden p-2 text-gray-600"
@@ -236,15 +229,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                   )}
                 </div>
               ))}
-              <button
-                onClick={() => {
-                  onPostAd();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full py-4 bg-brand-green text-white font-black uppercase tracking-widest text-xs rounded-xl mt-6 shadow-xl shadow-brand-green/20"
-              >
-                Post Free Ad
-              </button>
             </div>
           </motion.div>
         )}

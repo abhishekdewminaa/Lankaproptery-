@@ -6865,7 +6865,7 @@ const PackageCard = ({ name, price, subPrice, features, isPopular, onGetStarted,
 
 const AdvertisingPackagesView = ({ onGetStarted }: { onGetStarted: () => void }) => {
   return (
-    <div className="min-h-screen bg-[#F8FAF8] pt-20">
+    <div className="min-h-screen bg-[#F8FAF8]">
       {/* Hero */}
       <section className="bg-[#001D14] py-24 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-brand-green/10 rounded-full blur-3xl -mr-20 -mt-20" />
@@ -8890,7 +8890,7 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="min-h-screen bg-slate-50 flex flex-col relative pt-20"
+            className={`min-h-screen bg-slate-50 flex flex-col relative ${['packages', 'sell', 'secret_login', 'agent_access', 'agent_publish', 'agent_listings', 'agent_only_listings', 'featured_projects_admin', 'inquiries', 'wanted'].includes(currentView.type) ? '' : 'pt-20'}`}
           >
             <AnimatePresence mode="wait">
               <motion.div
