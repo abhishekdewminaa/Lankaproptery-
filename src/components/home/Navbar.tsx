@@ -56,6 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
       ]
     },
     { name: 'Sell', href: '/sell', type: 'sell' },
+    { name: 'Ad Packages', href: '/packages', type: 'packages' },
     { name: 'Wanted', href: '/wanted', type: 'wanted' },
     { name: 'Projects', href: '#', type: 'home' },
     { name: 'Find Agent', href: '#', type: 'agents' },
@@ -72,6 +73,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
          window.history.pushState({}, '', '/');
          onNavigate({ type: 'home' });
       } else {
+        if (link.href && link.href !== '#') {
+          window.history.pushState({}, '', link.href);
+        }
         onNavigate({ type: link.type });
       }
     }

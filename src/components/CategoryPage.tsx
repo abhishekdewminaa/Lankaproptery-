@@ -483,10 +483,10 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
                         
                         <div className="mb-6">
                           <div className="text-2xl font-black text-brand-green leading-none">
-                            Rs. {(p.price_lkr / 1000000).toFixed(1)}M
+                            Rs. {p.price_lkr ? (p.price_lkr / 1000000).toFixed(1) : '0'}M
                           </div>
                           <div className="text-[11px] font-bold text-gray-400 mt-1 uppercase tracking-widest">
-                            Approx. ${(p.price_lkr / USD_RATE / 1000).toFixed(1)}K USD
+                            Approx. ${p.price_lkr ? (p.price_lkr / USD_RATE / 1000).toFixed(1) : '0'}K USD
                           </div>
                         </div>
 
@@ -502,7 +502,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
                             </div>
                             <div className="flex items-center gap-1.5">
                               <Box size={16} className="text-gray-400" />
-                              <span className="text-xs font-bold text-gray-600">{p.land_size}p</span>
+                              <span className="text-xs font-bold text-gray-600">{p.land_area || p.land_size || '0'}p</span>
                             </div>
                           </div>
                           <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 group-hover:bg-brand-green group-hover:text-white transition-all">

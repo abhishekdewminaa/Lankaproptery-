@@ -3587,6 +3587,9 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
   const [appliedDiscount, setAppliedDiscount] = useState(0);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [couponError, setCouponError] = useState("");
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [pastedText, setPastedText] = useState("");
+  const [isExtracting, setIsExtracting] = useState(false);
 
   const limits = {
     "FREE": 3,
@@ -3690,7 +3693,77 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
   const removeImage = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
   };
+
+  const handleAIImport = async () => {
+    if (!pastedText.trim()) return;
+    setIsExtracting(true);
+    
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: `Extract property details from the following text. 
+        IMPORTANT: 
+        1. Extract ONLY English text for description and additional information. Skip Sinhala translations.
+        2. Format numbers clearly.
+        3. If a field is not found, leave it as an empty string (or 0 for numbers).
+        4. Listing type should be either "For Sale" or "For Rent".
+        5. Property Type should be "Apartment", "House", "Land", "Building", "Hotel", or "Commercial".
+        6. Extract contact numbers if present.
+        
+        Text to process:
+        ${pastedText}`,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              title: { type: Type.STRING },
+              description: { type: Type.STRING },
+              district: { type: Type.STRING },
+              city: { type: Type.STRING },
+              propertyType: { type: Type.STRING },
+              listingType: { type: Type.STRING },
+              landArea: { type: Type.STRING },
+              floorArea: { type: Type.STRING },
+              floors: { type: Type.STRING },
+              rooms: { type: Type.STRING },
+              bathrooms: { type: Type.STRING },
+              isNegotiable: { type: Type.BOOLEAN },
+              price: { type: Type.STRING }
+            }
+          }
+        }
+      });
+
+      const data = JSON.parse(response.text || "{}");
+      
+      if (data.title) setTitle(data.title);
+      if (data.description) setDescription(data.description);
+      if (data.district) setDistrict(data.district);
+      if (data.city) setCity(data.city);
+      if (data.propertyType) setPropertyType(data.propertyType);
+      if (data.listingType) setListingType(data.listingType);
+      if (data.landArea) setLandArea(data.landArea);
+      if (data.floorArea) setFloorArea(data.floorArea);
+      if (data.floors) setFloors(data.floors);
+      if (data.rooms) setRooms(data.rooms);
+      if (data.bathrooms) setBathrooms(data.bathrooms);
+      if (data.isNegotiable !== undefined) setIsNegotiable(data.isNegotiable);
+      if (data.price) setPrice(data.price);
+
+      setShowAIModal(false);
+      setPastedText("");
+    } catch (error) {
+      console.error("AI Extraction failed:", error);
+      alert("Failed to extract details. Please check your text and try again.");
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
   return (
+    <>
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -3703,9 +3776,31 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
               <h2 className="text-3xl font-black mb-2">Publish Your Property</h2>
               <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Create an impactful listing in minutes</p>
             </div>
-            <button onClick={onBack} className="p-3 bg-white/10 rounded-2xl hover:bg-white/20 compact-transition">
-              <Plus size={24} className="rotate-45" />
-            </button>
+            <div className="flex gap-3">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowAIModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-brand-green/20 text-brand-green border border-brand-green/30 rounded-xl hover:bg-brand-green/30 transition-all font-black text-[10px] uppercase tracking-widest relative overflow-hidden group shadow-lg shadow-brand-green/10"
+              >
+                <motion.div
+                  animate={{ rotate: [0, 15, -15, 0] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                >
+                  <Sparkles size={14} className="text-brand-green" />
+                </motion.div>
+                Quick AI Import
+                <motion.div
+                  initial={{ x: '-100%' }}
+                  animate={{ x: '200%' }}
+                  transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"
+                />
+              </motion.button>
+              <button onClick={onBack} className="p-3 bg-white/10 rounded-2xl hover:bg-white/20 compact-transition">
+                <Plus size={24} className="rotate-45" />
+              </button>
+            </div>
           </div>
           
           <div className="flex gap-2 relative z-10">
@@ -4209,6 +4304,73 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
         </div>
       </div>
     </motion.div>
+
+    {showAIModal && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-dark-navy/60 backdrop-blur-md">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white w-full max-w-2xl rounded-[40px] shadow-2xl overflow-hidden border border-gray-100"
+        >
+          <div className="p-8 border-b border-gray-50 flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-brand-green/10 rounded-2xl flex items-center justify-center text-brand-green">
+                <Sparkles size={24} className="animate-pulse" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-black text-dark-navy">Quick AI Import</h3>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Paste your property description below</p>
+              </div>
+            </div>
+            <button onClick={() => setShowAIModal(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-all">
+              <X size={24} className="text-gray-400" />
+            </button>
+          </div>
+          <div className="p-8 space-y-6">
+            <div className="bg-brand-green/5 p-4 rounded-2xl border border-brand-green/10 flex items-start gap-4">
+              <div className="p-2 bg-brand-green text-white rounded-xl">
+                <Info size={20} />
+              </div>
+              <p className="text-xs font-medium text-gray-500 leading-relaxed">
+                Our AI will automatically extract the title, price, location, and specifications from your text. It will filter out any Sinhala translations and keep only the English content.
+              </p>
+            </div>
+            <textarea 
+              value={pastedText}
+              onChange={(e) => setPastedText(e.target.value)}
+              placeholder="Paste the description here..."
+              className="w-full h-[300px] bg-gray-50 border border-gray-100 rounded-3xl p-6 text-sm font-medium focus:ring-2 focus:ring-brand-green/20 outline-none resize-none transition-all"
+            />
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setShowAIModal(false)}
+                className="flex-1 py-5 rounded-3xl text-dark-navy font-black text-xs uppercase tracking-widest hover:bg-gray-50 transition-all border border-gray-100"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleAIImport}
+                disabled={!pastedText.trim() || isExtracting}
+                className="flex-[2] py-5 bg-brand-green text-white rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark disabled:opacity-50 transition-all flex items-center justify-center gap-3"
+              >
+                {isExtracting ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    Extracting Details...
+                  </>
+                ) : (
+                  <>
+                    <Wand2 size={18} />
+                    Import & Auto-Fill
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    )}
+    </>
   );
 };
 
@@ -4317,6 +4479,7 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
         3. If a field is not found, leave it as an empty string (or 0 for numbers).
         4. Listing type should be either "For Sale" or "For Rent".
         5. Property Type should be "Apartment", "House", "Land", or "Commercial".
+        6. Extract contact numbers (mobile or landline) if present. Look for numbers starting with 07 or +94.
         
         Text to process:
         ${pastedText}`,
@@ -4339,7 +4502,17 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
               isNegotiable: { type: Type.BOOLEAN },
               additionalInfo: { type: Type.STRING },
               locationLink: { type: Type.STRING },
-              price: { type: Type.STRING }
+              price: { type: Type.STRING },
+              contacts: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    type: { type: Type.STRING, enum: ["Mobile", "Landline"] },
+                    number: { type: Type.STRING }
+                  }
+                }
+              }
             }
           }
         }
@@ -4362,6 +4535,9 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
       if (data.additionalInfo) setAdditionalInfo(data.additionalInfo);
       if (data.locationLink) setLocationLink(data.locationLink);
       if (data.price) setPrice(data.price);
+      if (data.contacts && Array.isArray(data.contacts)) {
+        setContacts(data.contacts.slice(0, 3));
+      }
 
       setShowAIModal(false);
       setPastedText("");
@@ -6619,8 +6795,8 @@ const PackageCard = ({ name, price, features, isPopular, onGetStarted }: { name:
     )}
     <h3 className="text-xl font-black text-dark-navy mb-2">{name}</h3>
     <div className="flex items-baseline gap-1 mb-8">
-      <span className="text-[12px] font-bold text-gray-400">Rs.</span>
-      <span className="text-4xl font-black text-dark-navy tracking-tight">{price}</span>
+      {price !== "Free" && price !== "0" && <span className="text-[12px] font-bold text-gray-400">Rs.</span>}
+      <span className="text-4xl font-black text-dark-navy tracking-tight">{price === "0" ? "Free" : price}</span>
       {price !== "Free" && price !== "0" && <span className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">/ad</span>}
     </div>
     <ul className="space-y-4 mb-10 flex-grow">
@@ -6641,6 +6817,101 @@ const PackageCard = ({ name, price, features, isPopular, onGetStarted }: { name:
     </button>
   </div>
 );
+
+const AdvertisingPackagesView = ({ onGetStarted }: { onGetStarted: () => void }) => {
+  return (
+    <div className="min-h-screen bg-[#F8FAF8] pt-20">
+      {/* Hero */}
+      <section className="bg-dark-navy py-24 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-brand-green/10 rounded-full blur-3xl -mr-20 -mt-20" />
+        <div className="container mx-auto px-6 relative z-10 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <h1 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tighter">
+              Boost Your Property <span className="text-brand-green">Visibility</span>
+            </h1>
+            <p className="text-white/60 text-lg md:text-xl max-w-2xl mx-auto font-medium">
+              Choose the perfect advertising package to reach thousands of potential buyers in Sri Lanka.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Pricing Grid */}
+      <section className="py-24">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            <PackageCard 
+              name="Starter" 
+              price="0" 
+              features={[
+                "Valid for 30 days",
+                "Up to 5 Photos",
+                "Standard Listing",
+                "Basic Support",
+                "Standard Search Result"
+              ]} 
+              onGetStarted={onGetStarted}
+            />
+            <PackageCard 
+              name="Premium Pro" 
+              price="2,500" 
+              isPopular 
+              features={[
+                "Valid for 60 days",
+                "Unlimited Photos",
+                "Boosted Search Position",
+                "WhatsApp Inquiry Tracking",
+                "Priority Email Support",
+                "Trending Badge"
+              ]} 
+              onGetStarted={onGetStarted}
+            />
+            <PackageCard 
+              name="Elite Pro" 
+              price="7,500" 
+              features={[
+                "Valid for 90 days",
+                "Featured on Home Page",
+                "Professional Photography",
+                "Video Walkthrough",
+                "Dedicated Account Manager",
+                "Social Media Promotion"
+              ]} 
+              onGetStarted={onGetStarted}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits */}
+      <section className="pb-24">
+        <div className="container mx-auto px-6">
+          <div className="bg-white rounded-[48px] p-12 md:p-20 shadow-sm border border-gray-50">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+              {[
+                { title: "500K+", desc: "Monthly Visitors", icon: <Globe className="text-brand-green" /> },
+                { title: "24/7", desc: "Active Support", icon: <Shield className="text-brand-green" /> },
+                { title: "10X", desc: "Faster Sales", icon: <TrendingUp className="text-brand-green" /> },
+                { title: "100%", desc: "Verified Leads", icon: <CheckCircle className="text-brand-green" /> }
+              ].map((item, i) => (
+                <div key={i} className="text-center">
+                  <div className="w-16 h-16 bg-brand-green/5 rounded-2xl flex items-center justify-center mx-auto mb-6 text-brand-green">
+                    {React.cloneElement(item.icon as React.ReactElement, { size: 32 })}
+                  </div>
+                  <h4 className="text-3xl font-black text-dark-navy mb-1">{item.title}</h4>
+                  <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
 
 const SellView = ({ onPostAd, onNavigate }: { onPostAd: () => void, onNavigate: (view: any) => void }) => {
   return (
@@ -8205,7 +8476,7 @@ export default function App() {
   const [sortOption, setSortOption] = useState<"Newest" | "Price Low-High" | "Price High-Low">("Newest");
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'verify' | 'reset-password' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'secret_login' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings' | 'agent_only_listings' | 'featured_projects_admin' | 'search_results' | 'sell', data?: any }>({ type: 'home' });
+  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'verify' | 'reset-password' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'secret_login' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings' | 'agent_only_listings' | 'featured_projects_admin' | 'search_results' | 'sell' | 'feedback', data?: any }>({ type: 'home' });
   const [user, setUser] = useState<any | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [compareList, setCompareList] = useState<number[]>([]);
@@ -8613,6 +8884,15 @@ export default function App() {
           />
         )}
 
+        {currentView.type === 'packages' && (
+          <AdvertisingPackagesView 
+            onGetStarted={() => {
+              if (user) setCurrentView({ type: 'publish' });
+              else setCurrentView({ type: 'auth', data: 'signup' });
+            }}
+          />
+        )}
+
         {currentView.type === 'category' && (
           <CategoryPage 
             category={currentView.data?.category} 
@@ -8621,6 +8901,8 @@ export default function App() {
             onPropertyClick={(p) => handleDetailClick(p)}
             favorites={favorites}
             toggleFavorite={toggleFavorite}
+            compareList={compareList}
+            toggleCompare={toggleCompare}
             isAdmin={isAdmin}
             onPostAd={() => {
               if (user) setCurrentView({ type: 'publish' });
