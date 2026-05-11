@@ -2955,7 +2955,7 @@ const PricingPackages = ({ onBack, onGetStarted }: { onBack: () => void, onGetSt
                   Get custom enterprise solutions for bulk property listings and dedicated performance tracking.
                 </p>
               </div>
-              <button className="px-8 py-5 bg-brand-green text-dark-navy font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-white hover:scale-105 active:scale-95 compact-transition shadow-2xl shadow-brand-green/20">
+              <button className="px-8 py-5 bg-[#00A651] text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-white hover:text-dark-navy hover:scale-105 active:scale-95 compact-transition shadow-2xl shadow-green-900/40">
                 Request Custom Quote
               </button>
             </div>
@@ -2968,7 +2968,7 @@ const PricingPackages = ({ onBack, onGetStarted }: { onBack: () => void, onGetSt
                 { label: "Pageviews/mo", value: "10M+" }
               ].map((stat, i) => (
                 <div key={i} className="bg-white/5 backdrop-blur-md rounded-3xl p-8 border border-white/10 flex flex-col items-center justify-center text-center">
-                  <div className="text-3xl font-black text-brand-green mb-1">{stat.value}</div>
+                  <div className="text-3xl font-black text-[#00D27B] mb-1">{stat.value}</div>
                   <div className="text-[10px] font-black text-white/70 uppercase tracking-[0.2em]">{stat.label}</div>
                 </div>
               ))}
@@ -4427,7 +4427,7 @@ const SortableImageItem = ({ image, onRemove }: { image: { id: string, url: stri
       ref={setNodeRef} 
       style={style} 
       {...attributes} 
-      className={`relative aspect-video rounded-2xl overflow-hidden group border border-gray-200 transition-shadow ${isDragging ? 'shadow-2xl ring-2 ring-brand-green z-50' : ''}`}
+      className={`relative aspect-video rounded-xl overflow-hidden group border border-gray-200 transition-shadow ${isDragging ? 'shadow-2xl ring-2 ring-brand-green z-50' : ''}`}
     >
       <img src={image.url} alt="Listing" className="w-full h-full object-cover select-none" />
       <div 
@@ -5042,7 +5042,7 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
               >
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-1">
                     <SortableContext 
                       items={images.map(img => img.id)}
                       strategy={rectSortingStrategy}
@@ -5056,10 +5056,12 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                       <div key={`empty-${idx}`} className="relative aspect-video">
                         <button 
                           onClick={handleImageUpload}
-                          className="w-full h-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-center p-4 hover:border-brand-green hover:bg-brand-green/5 transition-all group"
+                          className="w-full h-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center text-center p-2 hover:border-brand-green hover:bg-brand-green/5 transition-all group overflow-hidden"
                         >
                           <Camera size={24} className="text-gray-300 mb-2 group-hover:text-brand-green transition-colors" />
-                          <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest group-hover:text-brand-green transition-colors">Add Photo</p>
+                          <div className="bg-gray-200 group-hover:bg-brand-green/20 px-2 py-1 rounded text-[8px] font-black text-gray-400 group-hover:text-brand-green uppercase tracking-widest transition-all">
+                            + UPLOAD
+                          </div>
                         </button>
                       </div>
                     ))}
