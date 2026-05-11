@@ -24,6 +24,15 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
   const [successProperty, setSuccessProperty] = useState<any>(null);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isCheckingAdmin, setIsCheckingAdmin] = useState(true);
+  const [adminDarkMode, setAdminDarkMode] = useState(() => {
+    return localStorage.getItem('admin-dark-mode') === 'true';
+  });
+
+  const toggleAdminDark = () => {
+    const newValue = !adminDarkMode;
+    setAdminDarkMode(newValue);
+    localStorage.setItem('admin-dark-mode', String(newValue));
+  };
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -101,6 +110,8 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
       onNavigate={setActivePage} 
       user={user} 
       onLogout={onLogout}
+      adminDarkMode={adminDarkMode}
+      toggleAdminDark={toggleAdminDark}
     >
       {activePage === 'dashboard' && <AdminDashboard user={user} />}
       {activePage === 'enquiries' && <AdminInquiries user={user} />}

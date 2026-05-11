@@ -8,7 +8,9 @@ import {
   LayoutDashboard, 
   Plus, 
   LogOut,
-  Megaphone
+  Megaphone,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -16,9 +18,11 @@ interface AdminSidebarProps {
   onNavigate: (page: string) => void;
   user: any;
   onLogout: () => void;
+  adminDarkMode: boolean;
+  toggleAdminDark: () => void;
 }
 
-export default function AdminSidebar({ activePage, onNavigate, user, onLogout }: AdminSidebarProps) {
+export default function AdminSidebar({ activePage, onNavigate, user, onLogout, adminDarkMode, toggleAdminDark }: AdminSidebarProps) {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
     { id: 'listings', label: 'Properties', icon: <ClipboardList size={20} /> },
@@ -92,6 +96,27 @@ export default function AdminSidebar({ activePage, onNavigate, user, onLogout }:
           <Plus size={18} />
           Post Property
         </motion.button>
+
+        <button 
+          onClick={toggleAdminDark}
+          className={`w-full flex items-center gap-3 px-6 py-4 rounded-2xl font-bold text-sm transition-all border ${
+            adminDarkMode 
+              ? 'bg-[#374151] text-[#F9FAFB] border-[#4B5563] hover:bg-[#4B5563]' 
+              : 'bg-[#F3F4F6] text-[#374151] border-[#E5E7EB] hover:bg-admin-bg hover:text-admin-primary'
+          }`}
+        >
+          {adminDarkMode ? (
+            <>
+              <Sun size={18} className="text-yellow-400" />
+              <span>Light Mode</span>
+            </>
+          ) : (
+            <>
+              <Moon size={18} className="text-blue-500" />
+              <span>Dark Mode</span>
+            </>
+          )}
+        </button>
 
         <button 
           onClick={onLogout}

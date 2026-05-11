@@ -93,13 +93,89 @@
   transition: all 0.3s ease;
 }
 
-@keyframes fadeInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+/* Admin Dark Mode */
+.admin-dark {
+  --admin-bg: #0D0D1A;
+  --admin-card: #1A1A2E;
+  --admin-sidebar: #13131F;
+  --admin-text: #F9FAFB;
+  --admin-text-gray: #9CA3AF;
+  --admin-border: #374151;
+  --admin-input-bg: #1F2937;
+  --admin-hover: #1F2937;
+  background-color: var(--admin-bg);
+  color: var(--admin-text);
+}
+
+.admin-light {
+  --admin-bg: #F0F4F0;
+  --admin-card: #FFFFFF;
+  --admin-sidebar: #FFFFFF;
+  --admin-text: #111827;
+  --admin-text-gray: #6B7280;
+  --admin-border: #E5E7EB;
+  --admin-input-bg: #FFFFFF;
+  --admin-hover: #F9FAFB;
+  background-color: var(--admin-bg);
+  color: var(--admin-text);
+}
+
+.admin-dark,
+.admin-light {
+  transition: 
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
+  min-height: 100vh;
+}
+
+/* Apply variables to admin elements */
+.admin-dark .admin-sidebar, 
+.admin-dark [class*="AdminSidebar"] {
+  background: var(--admin-sidebar) !important;
+  border-right: 1px solid var(--admin-border) !important;
+}
+
+.admin-dark .admin-card,
+.admin-dark [class*="AdminCard"] {
+  background: var(--admin-card) !important;
+  border: 1px solid var(--admin-border) !important;
+  color: var(--admin-text) !important;
+}
+
+.admin-dark .admin-navbar,
+.admin-dark [class*="AdminNavbar"] {
+  background: var(--admin-sidebar) !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+}
+
+.admin-dark input,
+.admin-dark textarea,
+.admin-dark select {
+  background: var(--admin-input-bg) !important;
+  color: var(--admin-text) !important;
+  border-color: var(--admin-border) !important;
+}
+
+.admin-dark table {
+  background: var(--admin-card) !important;
+  color: var(--admin-text) !important;
+}
+
+.admin-dark tr:hover {
+  background: var(--admin-hover) !important;
+}
+
+.admin-dark .text-gray-500,
+.admin-dark .text-slate-500 {
+  color: var(--admin-text-gray) !important;
+}
+
+.admin-dark .bg-white {
+  background-color: var(--admin-card) !important;
+}
+
+.admin-dark .border-gray-100,
+.admin-dark .border-gray-200 {
+  border-color: var(--admin-border) !important;
 }
