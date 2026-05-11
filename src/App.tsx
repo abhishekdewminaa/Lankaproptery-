@@ -137,6 +137,9 @@ import { translateToSinhala } from "./services/geminiService";
 import PropertyWanted from "./components/PropertyWanted";
 import CustomerInquiries from "./components/CustomerInquiries";
 import LiveVisitorTracking from "./components/LiveVisitorTracking";
+import { HomeRedesign } from "./components/home/HomeRedesign";
+import { CategoryPage } from "./components/CategoryPage";
+import { PropertyDetail } from "./components/PropertyDetail";
 import { useProperties, Property } from "./hooks/useProperties";
 
 export const getDisplayViews = (property: any, isAdmin: boolean): string => {
@@ -936,7 +939,7 @@ const CategoryStrip = () => (
   </div>
 );
 
-const PropertyCard = ({ 
+export const PropertyCard = ({ 
   property, 
   onClick, 
   isFavorited, 
@@ -947,10 +950,10 @@ const PropertyCard = ({
   isAdmin
 }: any) => {
   // Extract number arrays or default logic for beds/baths/perch
-  const beds = String(property.rooms || property.bedrooms || '3 Beds');
-  const baths = String(property.baths || property.bathrooms || '2 Baths');
-  const perch = String(property.size || property.land_size || '15 Perch');
-  const houseType = String(property.type || property.listing_type || property.listingType || 'Sale');
+  const beds = String(property.bedrooms || property.rooms || '3 Beds');
+  const baths = String(property.bathrooms || property.baths || '2 Baths');
+  const perch = String(property.land_area || property.size || property.land_size || '15 Perch');
+  const houseType = String(property.listing_type || property.type || property.listingType || 'Sale');
 
   return (
     <motion.div 
@@ -975,7 +978,7 @@ const PropertyCard = ({
       <div className="absolute top-3 right-3 z-20 flex flex-col gap-2 items-end">
         <div className="flex gap-2 items-center">
           <span className="bg-white/95 text-gray-900 text-[10px] font-black px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1">
-            <MapPin size={10} className="text-brand-red" /> {property.location}
+            <MapPin size={10} className="text-brand-red" /> {property.city || property.location}
           </span>
           <button 
             onClick={(e) => {
@@ -992,7 +995,7 @@ const PropertyCard = ({
       </div>
 
       <div className="relative h-[220px] bg-gray-200 overflow-hidden">
-        <img src={property.image} alt={property.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        <img src={property.images?.[0] || property.image} alt={property.listing_title || property.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         
         {/* Top Left Status Badge */}
         <div className="absolute top-3 left-12 z-20">
@@ -1039,14 +1042,14 @@ const PropertyCard = ({
           </div>
         )}
 
-        <div className="text-[15px] font-bold text-dark-navy dark:text-white line-clamp-2 leading-snug h-10 group-hover:text-primary transition-colors">{property.title}</div>
+        <div className="text-[15px] font-bold text-dark-navy dark:text-white line-clamp-2 leading-snug h-10 group-hover:text-primary transition-colors">{property.listing_title || property.title}</div>
         
         <div className="flex flex-col gap-1">
           <span className="text-primary dark:text-secondary font-black text-[22px] tracking-tight leading-none">
-            {property.price === 'Contact for Price' ? 'Contact for Price' : (property.price.includes('LKR') || property.price.includes('Rs.') ? property.price : `Rs. ${property.price}`)}
+            {property.price_lkr ? (typeof property.price_lkr === 'number' ? `Rs. ${property.price_lkr.toLocaleString()}` : property.price_lkr) : (property.price === 'Contact for Price' ? 'Contact for Price' : (property.price?.includes('LKR') || property.price?.includes('Rs.') ? property.price : `Rs. ${property.price}`))}
           </span>
           {(() => {
-            const converted = convertPrice(property.price);
+            const converted = convertPrice(property.price_lkr || property.price);
             if (!converted) return null;
             return (
               <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
@@ -1083,668 +1086,13 @@ const PropertyCard = ({
   );
 };
 
-const splitDescriptionIntoParagraphs = (text: string) => {
-  if (!text) return [];
-  const existingParagraphs = text.split(/\n\s*\n/).filter(Boolean);
-  if (existingParagraphs.length > 2) {
-    return existingParagraphs.map(p => p.trim());
-  }
 
-  const sentences = text.match(/[^.!?]+[.!?]+[\])'"`’”]*|.+/g) || [text];
-  const paragraphs = [];
-  let currentChunk: string[] = [];
-  sentences.forEach((s) => {
-    if (s.trim().length > 0) currentChunk.push(s.trim());
-    if (currentChunk.length >= 3) {
-      paragraphs.push(currentChunk.join(' '));
-      currentChunk = [];
-    }
-  });
-  if (currentChunk.length > 0) paragraphs.push(currentChunk.join(' '));
-  return paragraphs;
-};
 
-const parseAdditionalInfo = (text: string) => {
-  if (!text) return [];
-  const rules = [
-    { match: /location|prime location/i, title: 'Location Advantage', icon: '📍' },
-    { match: /facilities|available facilities/i, title: 'Available Facilities', icon: '🏠' },
-    { match: /interior|interior highlights/i, title: 'Interior Highlights', icon: '✨' },
-    { match: /exterior|exterior features/i, title: 'Exterior Features', icon: '🏛️' },
-    { match: /additional|additional features/i, title: 'Additional Features', icon: '💡' }
-  ];
 
-  const sections: { title: string, icon: string, content: string }[] = [];
-  const sentences = text.split('. ').filter(s => s.trim().length > 0);
-  const chunkSize = 2;
-  
-  for (let i = 0; i < sentences.length; i += chunkSize) {
-    let chunk = sentences.slice(i, i + chunkSize).join('. ').trim();
-    if (!chunk.endsWith('.')) chunk += '.';
-    
-    const matchedRule = rules.find(r => r.match.test(chunk));
-    sections.push({
-      title: matchedRule ? matchedRule.title : 'Details & Info',
-      icon: matchedRule ? matchedRule.icon : '💡',
-      content: chunk
-    });
-  }
-  return sections;
-};
 
-const extractHighlights = (property: any) => {
-  const highlights: string[] = [];
-  const scan = (text?: string) => {
-    if (!text) return;
-    const lines = text.split('\n');
-    lines.forEach(line => {
-      const trimmed = line.trim();
-      if (trimmed.match(/^[-*•]\s/) || trimmed.match(/^[0-9]+\.\s/)) {
-        highlights.push(trimmed.replace(/^[-*•]\s*|^[0-9]+\.\s*/, '').trim());
-      }
-    });
-  };
-  scan(property.description);
-  scan(property.additionalInfo);
-  scan(property.additional_info);
-  scan(property.additional_information);
-  return highlights;
-};
 
-const PropertyDetail = ({ 
-  property, 
-  onBack,
-  isFavorited,
-  onToggleFavorite,
-  onOpenCalculator,
-  onPropertyClick,
-  onAgentClick,
-  onNavigate,
-  favorites,
-  compareList,
-  toggleCompare,
-  isAdmin
-}: { 
-  property: any, 
-  onBack: () => void,
-  isFavorited?: boolean,
-  onToggleFavorite?: () => void,
-  onOpenCalculator?: () => void,
-  onPropertyClick?: (p: any) => void,
-  onAgentClick?: (agent: any) => void,
-  onNavigate?: (view: any) => void,
-  favorites?: Set<number>,
-  compareList?: number[],
-  toggleCompare?: (id: number) => void,
-  isAdmin?: boolean
-}) => {
-  const images = property.images && property.images.length > 0 
-    ? property.images 
-    : [
-        property.image,
-        ...Array(11).fill(0).map((_, i) => `https://images.unsplash.com/photo-${1512917774080 + i + 1}-9991f1c4c750?auto=format&fit=crop&q=60&w=800`)
-      ];
 
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [translatedDesc, setTranslatedDesc] = useState<string | null>(null);
-  const [isTranslating, setIsTranslating] = useState(false);
-  const [showOriginal, setShowOriginal] = useState(true);
-  const [errorStatus, setErrorStatus] = useState<string | null>(null);
 
-  const nextSlide = () => setActiveIndex((prev) => (prev + 1) % images.length);
-  const prevSlide = () => setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
-
-  const handleTranslate = async () => {
-    if (translatedDesc) {
-      setShowOriginal(false);
-      setErrorStatus(null);
-      return;
-    }
-
-    setIsTranslating(true);
-    setErrorStatus(null);
-    try {
-      const translation = await translateToSinhala(property.description || "");
-      setTranslatedDesc(translation);
-      setShowOriginal(false);
-    } catch (error: any) {
-      console.error("Translation failed:", error);
-      setErrorStatus("Service busy. Please try again in 1 minute.");
-      setTimeout(() => setErrorStatus(null), 5000);
-    } finally {
-      setIsTranslating(false);
-    }
-  };
-
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="container mx-auto px-6 py-8"
-    >
-      {/* Top Header bar */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={onBack}
-            className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 compact-transition"
-          >
-            <ArrowRight className="rotate-180" size={20} />
-          </button>
-          <div>
-            <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-              <span className="flex items-center gap-1.5 peer">
-                <motion.span 
-                  animate={{ scale: [1, 1.3, 1], opacity: [1, 0.7, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="w-2 h-2 rounded-full bg-primary"
-                />
-                {isAdmin ? (
-                  (() => {
-                    const parts = getDisplayDateParts(property.created_at || new Date('2026-05-04').toISOString(), isAdmin);
-                    return parts ? (
-                      <span className="flex items-center gap-2">
-                        <span>📅 Posted: {parts.dateString}</span>
-                        <span>🕐 {parts.timeString}</span>
-                      </span>
-                    ) : <span>Active</span>;
-                  })()
-                ) : (
-                  <span className="text-primary">Active</span>
-                )}
-              </span>
-              <span className="text-gray-300">|</span>
-              <span className="flex items-center gap-1.5">
-                {isAdmin ? `👁️ Real: ${property.views_count || 47} views` : `👁️ ${getDisplayViews(property, false)} views`}
-              </span>
-              <span className="text-gray-300">|</span>
-              <span>Ref: LP-9402</span>
-            </div>
-            <h1 className="text-2xl font-bold text-dark-navy leading-tight">{property.title}</h1>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-xl font-black text-primary">{property.price}</span>
-              {(() => {
-                const converted = convertPrice(property.price);
-                if (!converted) return null;
-                return (
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
-                    <span className="bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100">{converted.usd}</span>
-                    <span className="bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100">{converted.eur}</span>
-                  </div>
-                );
-              })()}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <button 
-            onClick={onToggleFavorite}
-            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border compact-transition ${
-              isFavorited 
-              ? 'bg-brand-red text-white border-brand-red' 
-              : 'bg-white text-gray-600 border-gray-200 hover:border-brand-red hover:text-brand-red'
-            }`}
-          >
-            <Heart size={16} fill={isFavorited ? "currentColor" : "none"} />
-            {isFavorited ? 'Saved' : 'Save'}
-          </button>
-          <button className="flex items-center justify-center p-2.5 bg-white border border-gray-200 text-gray-500 rounded-xl hover:border-primary hover:text-primary compact-transition">
-            <Share2 size={18} />
-          </button>
-          <button className="flex items-center justify-center p-2.5 bg-white border border-gray-200 text-gray-500 rounded-xl hover:border-primary hover:text-primary compact-transition">
-            <Printer size={18} />
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-8">
-        {/* Gallery */}
-        <div className="order-1 lg:col-span-2 space-y-8">
-          {/* Main Gallery Carousel */}
-          <div className="space-y-4">
-            <div className="relative aspect-[16/10] sm:aspect-[16/9] rounded-2xl overflow-hidden group shadow-lg bg-gray-100">
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={activeIndex}
-                  src={images[activeIndex]}
-                  initial={{ opacity: 0, scale: 1.05 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4, ease: "easeInOut" }}
-                  className="w-full h-full object-cover"
-                  alt={`Property view ${activeIndex + 1}`}
-                />
-              </AnimatePresence>
-
-              {/* Navigation Controls */}
-              <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between items-center opacity-0 group-hover:opacity-100 compact-transition z-10">
-                <button 
-                  onClick={(e) => { e.stopPropagation(); prevSlide(); }}
-                  className="w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-dark-navy hover:bg-brand-green hover:text-white shadow-xl compact-transition"
-                >
-                  <ChevronLeft size={24} />
-                </button>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); nextSlide(); }}
-                  className="w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-dark-navy hover:bg-brand-green hover:text-white shadow-xl compact-transition"
-                >
-                  <ChevronRight size={24} />
-                </button>
-              </div>
-
-              {/* Counter Overlay */}
-              <div className="absolute bottom-4 right-4 bg-dark-navy/60 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-widest uppercase z-10 flex items-center gap-2">
-                <span>{activeIndex + 1}</span>
-                <span className="opacity-40">/</span>
-                <span className="opacity-40">{images.length}</span>
-              </div>
-            </div>
-
-            {/* Thumbnails Row */}
-            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar px-1">
-              {images.map((img, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveIndex(i)}
-                  className={`relative shrink-0 w-20 h-14 rounded-lg overflow-hidden border-2 compact-transition ${
-                    activeIndex === i ? 'border-primary scale-105 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'
-                  }`}
-                >
-                  <img src={img} className="w-full h-full object-cover" alt={`Thumb ${i + 1}`} />
-                  {activeIndex === i && <div className="absolute inset-0 bg-primary/20" />}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Content below Gallery */}
-        <div className="order-3 lg:col-span-2 space-y-8">
-              {/* Features section grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:border-primary/30 compact-transition">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-3 group-hover:scale-110 compact-transition">
-                    <Bed size={20} />
-                  </div>
-                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Beds</div>
-                  <div className="text-lg font-black text-dark-navy">{property.rooms || property.bedrooms || '04'}</div>
-                </div>
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:border-primary/30 compact-transition">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-3 group-hover:scale-110 compact-transition">
-                    <Bath size={20} />
-                  </div>
-                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Baths</div>
-                  <div className="text-lg font-black text-dark-navy">{property.bathrooms || '02'}</div>
-                </div>
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:border-primary/30 compact-transition">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-3 group-hover:scale-110 compact-transition">
-                    <Box size={20} />
-                  </div>
-                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Floor</div>
-                  <div className="text-lg font-black text-dark-navy">{property.floorArea || property.floor_area || '2,450 sqft'}</div>
-                </div>
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center group hover:border-primary/30 compact-transition">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-3 group-hover:scale-110 compact-transition">
-                    <Trees size={20} />
-                  </div>
-                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Land</div>
-                  <div className="text-lg font-black text-dark-navy">{property.landArea || property.land_area || '15.5 Perch'}</div>
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm relative">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-gray-50">
-                  <h3 className="text-lg font-bold text-dark-navy flex items-center gap-2">
-                    <CheckCircle className="text-primary" size={20} /> About This Property
-                  </h3>
-                  <div className="flex gap-2">
-                    {!showOriginal && (
-                      <button 
-                        onClick={() => setShowOriginal(true)}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-700 text-[10px] font-bold rounded-lg hover:bg-gray-200 compact-transition"
-                      >
-                        Show English
-                      </button>
-                    )}
-                    <button 
-                      onClick={handleTranslate}
-                      disabled={isTranslating || (!showOriginal && !!translatedDesc)}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold compact-transition ${
-                        !showOriginal && translatedDesc 
-                        ? 'bg-primary/10 text-primary cursor-default' 
-                        : 'bg-primary text-white hover:bg-brand-red shadow-sm'
-                      }`}
-                    >
-                      {isTranslating ? (
-                        <>
-                          <Loader2 size={12} className="animate-spin" />
-                          Translating...
-                        </>
-                      ) : (
-                        <>
-                          <Languages size={12} />
-                          {!showOriginal && translatedDesc ? 'Sinhala View' : 'Translate'}
-                        </>
-                      )}
-                    </button>
-                    {errorStatus && (
-                      <motion.span 
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="absolute top-full right-0 mt-2 text-[9px] text-brand-red font-bold bg-white px-2 py-1 rounded border border-brand-red/10 shadow-sm whitespace-nowrap z-10"
-                      >
-                        {errorStatus}
-                      </motion.span>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="prose prose-sm text-gray-600 max-w-[680px] leading-[1.8] text-[15px] space-y-4">
-                  {showOriginal ? (
-                    splitDescriptionIntoParagraphs(property.description || "No description available.").map((p, i) => (
-                      <p key={i}>{p}</p>
-                    ))
-                  ) : (
-                    <motion.div 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-brand-green-dark font-medium leading-[1.8] text-[15px] space-y-4"
-                    >
-                      {splitDescriptionIntoParagraphs(translatedDesc || "").map((p, i) => (
-                        <p key={i}>{p}</p>
-                      ))}
-                    </motion.div>
-                  )}
-                </div>
-              </div>
-
-              {/* Key Highlights */}
-              {(() => {
-                const highlights = extractHighlights(property);
-                if (highlights.length === 0) return null;
-                return (
-                  <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-                    <h3 className="text-lg font-bold text-dark-navy flex items-center gap-2 mb-6">
-                      <Star className="text-primary" size={20} /> Key Highlights
-                    </h3>
-                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {highlights.map((h, i) => (
-                        <li key={i} className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl">
-                          <CheckCircle size={18} className="text-secondary shrink-0" />
-                          <span className="text-[14px] text-gray-700 font-medium leading-tight">{h}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                );
-              })()}
-
-              {/* Additional Information */}
-              {(() => {
-                const infoText = property.additionalInfo || property.additional_info || property.additional_information;
-                if (!infoText) return null;
-                const sections = parseAdditionalInfo(infoText);
-                if (sections.length === 0) return null;
-                
-                return (
-                  <div className="space-y-4">
-                    {sections.map((section, i) => (
-                      <motion.div 
-                        key={i}
-                        initial={{ opacity: 0, x: -20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, margin: "-50px" }}
-                        transition={{ delay: i * 0.15, duration: 0.5, ease: "easeOut" }}
-                        className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group"
-                      >
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-secondary/80"></div>
-                        <div className="pl-2">
-                          <h4 className="text-sm font-bold text-dark-navy mb-2 flex items-center gap-2">
-                            <span>{section.icon}</span> {section.title}
-                          </h4>
-                          <p className="text-[14px] text-gray-600 leading-relaxed font-medium">
-                            {section.content}
-                          </p>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                );
-              })()}
-
-              {/* Amenities Grid */}
-              {property.amenities && property.amenities.length > 0 && (
-                <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-                  <h3 className="text-lg font-bold text-dark-navy mb-6 pb-4 border-b border-gray-50">Building Amenities</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {property.amenities.map((amenityStr: string, i: number) => {
-                      // Attempt to find a matching icon object
-                      const amenityObj = AMENITIES.find(a => a.name.toLowerCase() === amenityStr.toLowerCase()) || { name: amenityStr, icon: <CheckCircle size={16} /> };
-                      return (
-                        <div 
-                          key={i} 
-                          className="amenity-icon flex items-center gap-3 p-3 rounded-full bg-gray-50 border border-gray-100 compact-transition group"
-                          style={{
-                            animation: `fadeInUp 0.5s ease forwards`,
-                            animationDelay: `${i * 0.1}s`,
-                            opacity: 0
-                          }}
-                        >
-                          <div className="text-gray-400 group-hover:text-secondary bg-white p-1.5 rounded-full shadow-sm transition-colors duration-300">
-                            {amenityObj.icon}
-                          </div>
-                          <span className="text-xs font-bold text-gray-700 group-hover:text-dark-navy truncate">{amenityObj.name}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-          
-          {/* Similar Properties */}
-          <div className="pt-12 border-t border-gray-100">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-bold text-dark-navy">Similar Properties Nearby</h3>
-              <a href="#" className="text-xs text-primary font-bold">View Related &rarr;</a>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              {FEATURED_PROPERTIES.slice(0, 3).map(p => (
-                <PropertyCard 
-                  key={`sim-${p.id}`} 
-                  property={p} 
-                  onClick={() => onPropertyClick?.(p)}
-                  isFavorited={favorites?.has(p.id)}
-                  onToggleFavorite={() => onToggleFavorite?.()} // This is simplified
-                  isComparing={compareList?.includes(p.id)}
-                  onToggleCompare={() => toggleCompare?.(p.id)}
-                  isAdmin={isAdmin}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Contact & Action */}
-        <div className="order-2 lg:col-span-1 lg:row-span-2 space-y-6">
-          <div className="sticky top-24 space-y-6">
-            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 sm:block hidden" />
-              
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Asking Price</div>
-                  <div className="px-2 py-0.5 bg-primary/10 text-primary text-[9px] font-bold rounded-full uppercase tracking-wider">LKR Base</div>
-                </div>
-                
-                <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-4xl font-black text-primary tracking-tight">{property.price}</span>
-                </div>
-
-                {(() => {
-                  const converted = convertPrice(property.price);
-                  if (!converted) return null;
-                  return (
-                    <div className="flex flex-wrap items-center gap-2 mb-8">
-                      <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-xl">
-                        <DollarSign size={12} className="text-gray-400" />
-                        <span className="text-[11px] font-bold text-gray-600">{converted.usd}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-xl">
-                        <span className="text-gray-400 text-xs font-bold">€</span>
-                        <span className="text-[11px] font-bold text-gray-600">{converted.eur}</span>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                <div 
-                  onClick={() => {
-                    const agent = AGENTS.find(a => a.id === property.agentId) || AGENTS[0];
-                    onAgentClick?.(agent);
-                  }}
-                  className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mb-8 cursor-pointer hover:border-primary compact-transition group"
-                >
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="relative">
-                      {(() => {
-                        const agent = AGENTS.find(a => a.id === property.agentId) || AGENTS[0];
-                        return (
-                          <>
-                            <img src={agent.img} className="w-16 h-16 rounded-full border-2 border-primary object-cover group-hover:scale-105 compact-transition" />
-                            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white border-2 border-white">
-                              <Shield size={12} fill="currentColor" />
-                            </div>
-                          </>
-                        );
-                      })()}
-                    </div>
-                    <div>
-                      {(() => {
-                        const agent = AGENTS.find(a => a.id === property.agentId) || AGENTS[0];
-                        return (
-                          <>
-                            <div className="text-sm font-bold text-dark-navy group-hover:text-primary compact-transition">{agent.name}</div>
-                            <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-bold uppercase mt-0.5">
-                              <span className="text-secondary">{agent.role}</span>
-                              <span className="text-gray-300">•</span>
-                              <span>Verified Agent</span>
-                            </div>
-                          </>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center py-2 bg-white rounded-lg border border-gray-100">
-                      <div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Member Since</div>
-                      <div className="text-xs font-bold text-dark-navy">Feb 2021</div>
-                    </div>
-                    <div className="text-center py-2 bg-white rounded-lg border border-gray-100">
-                      <div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Active Ads</div>
-                      <div className="text-xs font-bold text-dark-navy">12 Listed</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <a 
-                    href="tel:+94771234567" 
-                    className="w-full flex items-center justify-center gap-3 bg-primary text-white font-bold py-4 rounded-xl hover:bg-brand-red compact-transition text-sm shadow-lg shadow-primary/20"
-                  >
-                    <Phone size={18} /> Call Manager
-                  </a>
-                  <button 
-                    onClick={() => onNavigate?.({ type: 'contact', data: { inquiryType: 'Property Inquiry', subject: `Inquiry about ${property.title}`, propertyId: property.id, agentId: property.agentId || property.agent_id } })}
-                    className="w-full flex items-center justify-center gap-3 bg-dark-navy text-white font-bold py-4 rounded-xl hover:opacity-90 compact-transition text-sm"
-                  >
-                    <Send size={18} /> Send Inquiry
-                  </button>
-                  
-                  <div className="relative py-4">
-                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
-                    <div className="relative flex justify-center text-[10px] uppercase font-bold text-gray-300 bg-white px-2">Financials</div>
-                  </div>
-
-                  <button 
-                    onClick={onOpenCalculator}
-                    className="w-full flex items-center justify-center gap-3 border-2 border-gray-100 text-gray-600 font-bold py-3.5 rounded-xl hover:border-primary hover:text-primary compact-transition text-xs"
-                  >
-                    <Calculator size={18} /> Mortgage Calculator
-                  </button>
-
-                  <button 
-                    onClick={() => {
-                      // @ts-ignore
-                      window.setShowVirtualTour(true);
-                    }}
-                    className="w-full flex items-center justify-center gap-3 bg-orange-500/10 text-orange-600 font-bold py-3.5 rounded-xl hover:bg-orange-500 hover:text-white compact-transition text-xs border border-orange-200"
-                  >
-                    <Box size={18} /> Launch 360° Virtual Tour
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Inquiry form */}
-            <div className="bg-gray-900 border border-gray-800 p-8 rounded-2xl text-white shadow-2xl">
-              <h4 className="text-sm font-bold mb-2">Request more information</h4>
-              <p className="text-[10px] text-gray-400 mb-6 font-medium">Lalith typically responds within 2 hours.</p>
-              <form 
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  alert("Your inquiry has been sent to Lalith. He will contact you shortly.");
-                }}
-                className="space-y-4"
-              >
-                <input required placeholder="Your Full Name" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-primary outline-none" />
-                <input required type="tel" placeholder="Phone Number" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-primary outline-none" />
-                <textarea required placeholder="Your Message..." rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs placeholder:text-gray-600 focus:ring-1 focus:ring-primary outline-none resize-none"></textarea>
-                <button type="submit" className="w-full py-3 bg-primary text-white text-xs font-bold rounded-xl hover:bg-brand-red compact-transition">Request Details</button>
-              </form>
-            </div>
-
-            {/* Map Section */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Location Map</h3>
-              <div className="h-[250px] w-full rounded-xl overflow-hidden relative z-0 border border-gray-100 shadow-inner">
-                <MapContainer 
-                  center={[property.lat || 6.9271, property.lng || 79.8612]} 
-                  zoom={15} 
-                  scrollWheelZoom={false}
-                  style={{ height: "100%", width: "100%" }}
-                >
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  <Marker position={[property.lat || 6.9271, property.lng || 79.8612]} />
-                </MapContainer>
-              </div>
-              <div className="mt-4 flex items-center justify-between text-[10px] font-bold text-gray-500">
-                <span className="flex items-center gap-1.5"><MapPin size={12} /> {property.location}</span>
-                <button className="text-secondary flex items-center gap-1 hover:underline">
-                  Open in Google Maps <ExternalLink size={10} />
-                </button>
-              </div>
-            </div>
-
-            {/* Share section */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Share Listing</h3>
-              <div className="flex gap-2">
-                <button className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#25D366] text-white rounded-xl text-[10px] font-bold hover:bg-[#1EBE5D] compact-transition shadow-sm">
-                  <MessageCircle size={14} /> WhatsApp
-                </button>
-                <button className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-primary/10 text-primary rounded-xl text-[10px] font-bold hover:bg-primary transition-all hover:text-white group border border-transparent hover:border-primary">
-                  <Copy size={14} /> Copy Link
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
 
 const Sidebar = ({ onOpenCalculator, onShowPackages }: { onOpenCalculator: () => void, onShowPackages?: () => void }) => (
   <aside className="space-y-6">
@@ -4966,20 +4314,20 @@ const SortableImageItem = ({ image, onRemove }: { image: { id: string, url: stri
 
 const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onBack: () => void, user: any, onRefresh?: () => void, initialData?: Property }) => {
   const [step, setStep] = useState(1);
-  const [price, setPrice] = useState<string>(initialData?.price.replace(/[^0-9]/g, '') || "");
-  const [title, setTitle] = useState(initialData?.title || "");
+  const [price, setPrice] = useState<string>(initialData?.price?.replace(/[^0-9]/g, '') || "");
+  const [title, setTitle] = useState(initialData?.listing_title || initialData?.title || "");
   const [district, setDistrict] = useState(initialData?.district || "Colombo");
   const [city, setCity] = useState(initialData?.city || "");
-  const [propertyType, setPropertyType] = useState(initialData?.propertyType || "Apartment");
-  const [listingType, setListingType] = useState(initialData?.listingType || "For Sale");
-  const [landArea, setLandArea] = useState(initialData?.landArea || "");
-  const [floorArea, setFloorArea] = useState(initialData?.floorArea || "");
+  const [propertyType, setPropertyType] = useState(initialData?.property_category || initialData?.propertyType || "Apartment");
+  const [listingType, setListingType] = useState(initialData?.listing_type || initialData?.listingType || "For Sale");
+  const [landArea, setLandArea] = useState(initialData?.land_area || initialData?.landArea || "");
+  const [floorArea, setFloorArea] = useState(initialData?.floor_area || initialData?.floorArea || "");
   const [floors, setFloors] = useState(initialData?.floors?.toString() || "0");
   const [rooms, setRooms] = useState(initialData?.rooms?.toString() || "0");
   const [bathrooms, setBathrooms] = useState(initialData?.bathrooms?.toString() || "0");
-  const [description, setDescription] = useState(initialData?.description || "");
-  const [additionalInfo, setAdditionalInfo] = useState(initialData?.additionalInfo || "");
-  const [isNegotiable, setIsNegotiable] = useState(initialData?.isNegotiable || false);
+  const [description, setDescription] = useState(initialData?.property_description || initialData?.description || "");
+  const [additionalInfo, setAdditionalInfo] = useState(initialData?.additional_info || initialData?.additionalInfo || "");
+  const [isNegotiable, setIsNegotiable] = useState(initialData?.is_negotiable ?? initialData?.isNegotiable ?? false);
   const [contacts, setContacts] = useState<{ type: 'Mobile' | 'Landline', number: string }[]>(
     initialData?.contacts && initialData.contacts.length > 0 
       ? initialData.contacts 
@@ -4988,7 +4336,7 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
   const [images, setImages] = useState<{ id: string, url: string }[]>(
     initialData?.images?.map(url => ({ id: Math.random().toString(36).substr(2, 9), url })) || []
   );
-  const [locationLink, setLocationLink] = useState(initialData?.locationLink || "");
+  const [locationLink, setLocationLink] = useState(initialData?.google_maps_link || initialData?.locationLink || "");
   const [isPublishing, setIsPublishing] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
   const [pastedText, setPastedText] = useState("");
@@ -8847,6 +8195,18 @@ export default function App() {
 
     if (path === '/admin-lk2026') {
       setCurrentView({ type: 'secret_login' });
+    } else if (path.startsWith('/buy/') || path.startsWith('/rent/')) {
+      const parts = path.split('/');
+      const mode = parts[1] as 'buy' | 'rent';
+      let cat = parts[2].charAt(0).toUpperCase() + parts[2].slice(1);
+      if (cat === 'Apartments') cat = 'Apartment';
+      if (cat === 'Houses') cat = 'House';
+      if (cat === 'Buildings') cat = 'Building';
+      if (cat === 'Hotels') cat = 'Hotel';
+      if (cat === 'Commercial') cat = 'Commercial';
+      if (cat === 'Land') cat = 'Land';
+      
+      setCurrentView({ type: 'category', data: { category: cat, mode } });
     } else if (hash && hash.includes("type=recovery")) {
       setCurrentView({ type: 'reset-password' });
     } else if (hash && hash.includes("type=signup")) {
@@ -8925,6 +8285,25 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [currentView.type]);
 
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path === '/') {
+        setCurrentView({ type: 'home' });
+      } else if (path.startsWith('/buy/') || path.startsWith('/rent/')) {
+        const parts = path.split('/');
+        const mode = parts[1] as 'buy' | 'rent';
+        let cat = parts[2].charAt(0).toUpperCase() + parts[2].slice(1);
+        // Normalize
+        const map: any = { 'houses': 'House', 'land': 'Land', 'apartments': 'Apartment', 'buildings': 'Building', 'hotels': 'Hotel', 'commercial': 'Commercial' };
+        cat = map[parts[2].toLowerCase()] || cat;
+        setCurrentView({ type: 'category', data: { category: cat, mode } });
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const navigateToAuth = () => setCurrentView({ type: 'auth' });
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [showCalculator, setShowCalculator] = useState(false);
@@ -8985,17 +8364,8 @@ export default function App() {
     const sType = recentFilter.toLowerCase();
     return pType.includes(sType) || pType === sType;
   });
-  const categoryProperties = currentView.type === 'category' 
-    ? displayedProperties.filter(p => {
-        const cat = currentView.data?.toLowerCase() || '';
-        const propType = p.propertyType?.toLowerCase() || '';
-        const title = p.title?.toLowerCase() || '';
-        return propType === cat || title.includes(cat);
-      })
-    : [];
-
   const handleCategoryClick = (category: string) => {
-    setCurrentView({ type: 'category', data: category });
+    setCurrentView({ type: 'category', data: { category, mode: 'buy' } });
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
@@ -9051,357 +8421,147 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      <div className="min-h-screen bg-slate-50 flex flex-col relative">
-      <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100 shadow-sm">
-        {supabaseError && (
-          <div className="bg-brand-red text-white px-6 py-4 text-center font-bold text-sm flex items-center justify-center gap-3">
-            <AlertCircle size={18} />
-            <span>Supabase Connection Error: {supabaseError}</span>
-            <button 
-              onClick={() => refreshProperties()}
-              className="bg-white text-brand-red px-3 py-1 rounded-lg hover:bg-gray-100 compact-transition text-xs"
-            >
-              Retry
-            </button>
-          </div>
-        )}
-        <nav className="container mx-auto px-6 h-20 flex justify-between items-center">
-          <div className="flex items-center cursor-pointer" onClick={(e) => { e.preventDefault(); navigateHome(); }}>
-            <a href="/" onClick={(e) => e.preventDefault()}>
-              <img 
-                src="https://qsqqolvsndvkwegvcfqv.supabase.co/storage/v1/object/sign/assets/Website%20logo%20.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MWNhMTU1MC03OGYzLTQwZGMtYTYzYi02NzVmZTRiYjM2NWMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhc3NldHMvV2Vic2l0ZSBsb2dvIC5wbmciLCJpYXQiOjE3NzgzMDk4MjksImV4cCI6MTkzNTk4OTgyOX0.LqwS9LCGK4UH1oL4YQHkiJdrNNgYGh-8CZtZBgrTO-s"
-                alt="LankaProperty.lk"
-                className="h-[45px] sm:h-[55px] dark:bg-white dark:px-[10px] dark:py-[4px] dark:rounded-[8px]"
-                style={{ 
-                  width: 'auto',
-                  objectFit: 'contain',
-                  cursor: 'pointer'
-                }}
-                onError={(e: any) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            </a>
-          </div>
-          <ul className="hidden lg:flex items-center gap-6 text-[15px] font-semibold text-slate-700">
-            {["Home", "About", "Property Wanted", "Agents", "Advertising", "Contact"].map((item) => (
-              <li key={item}>
-                <a 
-                  href="#" 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (item === 'Home') navigateHome();
-                    else if (item === 'About') setCurrentView({ type: 'about' });
-                    else if (item === 'Advertising') setCurrentView({ type: 'packages' });
-                    else if (item === 'Agents') setCurrentView({ type: 'agents' });
-                    else if (item === 'Contact') setCurrentView({ type: 'contact' });
-                    else if (item === 'Property Wanted') setCurrentView({ type: 'wanted' });
-                  }}
-                  className={`${(item === 'Home' && currentView.type === 'home' || item === 'About' && currentView.type === 'about' || item === 'Advertising' && currentView.type === 'packages' || item === 'Contact' && currentView.type === 'contact' || item === 'Property Wanted' && currentView.type === 'wanted') ? 'text-brand-green border-b-2 border-brand-green pb-1.5' : 'hover:text-brand-green'} whitespace-nowrap compact-transition`}
-                >
-                  {item}
-                </a>
-              </li>
-            ))}
-          </ul>
-          <div className="flex items-center gap-5">
-            {user ? (
-              <div 
-                onClick={() => setCurrentView({ type: 'profile' })}
-                className="flex items-center gap-2 bg-white/50 backdrop-blur-sm border border-gray-100 rounded-full pl-1.5 pr-2 py-1.5 cursor-pointer hover:bg-white hover:shadow-md compact-transition"
-              >
-                <div className="w-10 h-10 rounded-full bg-brand-green flex items-center justify-center text-white text-sm font-bold shadow-sm">
-                  {user.email[0].toUpperCase()}
-                </div>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); setUser(null); navigateHome(); }} 
-                  className="p-1.5 flex items-center justify-center text-gray-400 hover:text-brand-red compact-transition bg-gray-50 rounded-full hover:bg-red-50"
-                  title="Logout"
-                >
-                  <LogOut size={16} className="rotate-180" />
-                </button>
-              </div>
-            ) : (
-              <button 
-                onClick={() => setCurrentView({ type: 'auth' })}
-                className="text-dark-navy font-bold text-sm px-4 py-2 hover:text-brand-green compact-transition"
-              >
-                Sign In
-              </button>
-            )}
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              animate={{ 
-                boxShadow: ["0 0 0 rgba(0, 181, 98, 0)", "0 0 12px rgba(0, 181, 98, 0.5)", "0 0 0 rgba(0, 181, 98, 0)"]
-              }}
-              transition={{ 
-                boxShadow: { duration: 2, repeat: Infinity }
-              }}
-              onClick={() => {
-                if (user) setCurrentView({ type: 'publish' });
-                else setCurrentView({ type: 'auth', data: 'signup' });
-              }}
-              className="px-6 py-3 bg-brand-green text-white rounded-xl text-base font-bold hover:bg-brand-green-dark shadow-lg shadow-brand-green/20 compact-transition"
-            >
-              Post free ad
-            </motion.button>
-          </div>
-        </nav>
-      </header>
-      
       <AnimatePresence mode="wait">
-        {currentView.type === 'home' && (
-          <motion.main 
-            key="home"
+        {currentView.type === 'home' ? (
+          <motion.div
+            key="home-redesign"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="flex-grow space-y-12 pb-16"
+            className="min-h-screen"
           >
-            <Hero 
-              onDirectInquiry={() => setCurrentView({ type: 'contact' })} 
-              properties={supabaseProperties} 
-              onSearch={(results) => setCurrentView({ type: 'search_results', data: results })} 
+            <HomeRedesign 
+              propertyCount={supabaseProperties.length}
+              featuredProperties={supabaseProperties.slice(0, 4)} // Simple logic for now
+              supabaseProperties={supabaseProperties}
+              onNavigate={(view) => setCurrentView(view)}
+              onPostAd={() => {
+                if (user) setCurrentView({ type: 'publish' });
+                else setCurrentView({ type: 'auth', data: 'signup' });
+              }}
+              onAdminAccess={() => {
+                window.history.pushState({}, '', '/admin-lk2026');
+                setCurrentView({ type: 'secret_login' });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
             />
-            <div className="bg-gray-50 border-b border-gray-100 py-6">
-              <div className="container mx-auto px-6 flex justify-center items-center">
-                <div className="flex justify-center gap-8 overflow-x-auto pb-4 no-scrollbar w-full">
-                  {PROPERTY_CATEGORIES.map((cat, idx) => (
-                    <motion.div
-                      key={cat.name}
-                      onClick={() => handleCategoryClick(cat.name)}
-                      initial={{ y: 0 }}
-                      animate={{ y: [0, -8, 0] }}
-                      transition={{ duration: 5, repeat: Infinity, delay: idx * 0.7, ease: "easeInOut" }}
-                      whileHover={{ scale: 1.1, y: -12 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="flex flex-col items-center gap-2.5 min-w-[100px] cursor-pointer group"
-                    >
-                      <div className={`w-16 h-16 ${cat.bg} rounded-full shadow-md flex items-center justify-center border border-gray-100 group-hover:border-brand-green group-hover:shadow-lg group-hover:shadow-brand-green/10 compact-transition`}>
-                        <div className={`${cat.color} group-hover:scale-110 compact-transition`}>
-                          {cat.icon}
-                        </div>
-                      </div>
-                      <span className="text-sm font-bold text-gray-600 uppercase tracking-widest group-hover:text-brand-green">{cat.name}</span>
-                    </motion.div>
-                  ))}
-                </div>
-
-              </div>
-            </div>
-
-            <ExpertiseSection />
-
-            <section className="container mx-auto px-6 space-y-20">
-              <div className="flex flex-col lg:flex-row gap-8">
-                <div className="flex-1 space-y-16">
-                  {/* FEATURED PROPERTIES */}
-                  <div>
-                    <div className="flex justify-between items-end mb-6 relative">
-                      <div>
-                        <div className="flex items-center gap-3">
-                          <h2 className="text-2xl font-extrabold text-dark-navy">Featured Properties</h2>
-                          <span className="bg-brand-green/10 text-brand-green text-xs font-black px-2.5 py-1 rounded-full">{displayedProperties.length} Properties</span>
-                        </div>
-                        <p className="text-gray-500 text-sm mt-1">Hand-picked premium listings</p>
-                        <motion.div 
-                          initial={{ scaleX: 0 }}
-                          whileInView={{ scaleX: 1 }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 0.5, delay: 0.2 }}
-                          className="absolute -bottom-2 left-0 h-1 w-16 bg-brand-green origin-left rounded-full"
-                        />
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <select 
-                          value={sortOption}
-                          onChange={(e) => setSortOption(e.target.value as any)}
-                          className="bg-gray-50 border border-gray-100 text-sm font-bold text-gray-600 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-green/20"
-                        >
-                          <option>Newest</option>
-                          <option>Price Low-High</option>
-                          <option>Price High-Low</option>
-                        </select>
-                        <a href="#" className="hidden sm:block text-sm text-brand-green font-bold hover:underline">View All &rarr;</a>
-                      </div>
-                    </div>
-
-                    {listingsLoading ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {[1, 2, 3].map(i => (
-                          <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-pulse">
-                            <div className="h-[220px] bg-gray-200" />
-                            <div className="p-5 space-y-3">
-                              <div className="h-4 bg-gray-200 rounded w-3/4" />
-                              <div className="h-4 bg-gray-200 rounded w-1/2" />
-                              <div className="h-6 bg-brand-green/20 rounded w-1/3 mt-2" />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : displayedProperties.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-gray-50 rounded-3xl border border-gray-100">
-                        <div className="w-24 h-24 mb-4 text-gray-300">
-                          <Building2 size={96} strokeWidth={1} />
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-600 mb-2">No properties found</h3>
-                        <p className="text-gray-400 text-sm max-w-sm mb-6">We couldn't find any properties matching your criteria. Try adjusting your filters.</p>
-                        <button className="px-6 py-3 bg-brand-green text-white font-bold rounded-xl shadow-lg hover:shadow-brand-green/30 hover:-translate-y-0.5 transition-all">
-                          Be the first to list!
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex overflow-x-auto pb-6 -mx-6 px-6 lg:mx-0 lg:px-0 lg:grid lg:grid-cols-3 sm:grid-cols-2 gap-6 snap-x snap-mandatory lg:snap-none no-scrollbar">
-                        {displayedProperties.slice(0, 3).map((p, index) => (
-                          <motion.div 
-                            key={p.id}
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, margin: "-50px" }}
-                            transition={{ duration: 0.4, delay: index * 0.1 }}
-                            className="min-w-[85vw] sm:min-w-0 snap-center"
-                          >
-                            <PropertyCard 
-                              property={p} 
-                              onClick={() => handleDetailClick(p)}
-                              isFavorited={favorites.has(p.id)}
-                              onToggleFavorite={() => toggleFavorite(p.id)}
-                              isComparing={compareList.includes(p.id)}
-                              onToggleCompare={() => toggleCompare(p.id)}
-                              isAdmin={isAdmin}
-                            />
-                          </motion.div>
-                        ))}
-                      </div>
-                    )}
-                    <div className="mt-4 sm:hidden text-center">
-                      <a href="#" className="text-sm text-brand-green font-bold hover:underline">View All &rarr;</a>
-                    </div>
-                  </div>
-
-                  {/* RECENT LISTINGS */}
-                  <div>
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-4 relative">
-                      <div>
-                        <h2 className="text-2xl font-extrabold text-dark-navy">Recent Listings</h2>
-                        <p className="text-gray-500 text-sm mt-1">Latest properties added today</p>
-                      </div>
-                      <div className="flex bg-gray-100 p-1.5 rounded-xl border border-gray-200/50">
-                        <button onClick={() => setRecentFilter("Sale")} className={`px-6 py-2 rounded-lg text-xs font-bold transition-all ${recentFilter === 'Sale' ? 'bg-brand-green text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Buy</button>
-                        <button onClick={() => setRecentFilter("Rent")} className={`px-6 py-2 rounded-lg text-xs font-bold transition-all ${recentFilter === 'Rent' ? 'bg-brand-green text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Rent</button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {filteredRecent.slice(0, visibleRecentCount).map((p, index) => (
-                        <motion.div 
-                          key={`${recentFilter}-${p.id}`} 
-                          layout 
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.3, delay: (index % 6) * 0.1 }}
-                        >
-                          <PropertyCard 
-                            property={p} 
-                            onClick={() => handleDetailClick(p)} 
-                            isFavorited={favorites.has(p.id)}
-                            onToggleFavorite={() => toggleFavorite(p.id)}
-                            isComparing={compareList.includes(p.id)}
-                            onToggleCompare={() => toggleCompare(p.id)}
-                            isAdmin={isAdmin}
-                          />
-                        </motion.div>
-                      ))}
-                    </div>
-
-                    {visibleRecentCount < filteredRecent.length && (
-                      <div className="mt-10 text-center">
-                        <button 
-                          onClick={() => {
-                            setIsLoadingMore(true);
-                            setTimeout(() => {
-                              setVisibleRecentCount(prev => prev + 6);
-                              setIsLoadingMore(false);
-                            }, 800);
-                          }}
-                          disabled={isLoadingMore}
-                          className="px-8 py-3 bg-white border-2 border-brand-green text-brand-green font-bold rounded-xl hover:bg-brand-green hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
-                        >
-                          {isLoadingMore ? (
-                            <><Loader2 size={18} className="animate-spin" /> Loading...</>
-                          ) : (
-                            'Load More Properties'
-                          )}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="w-full lg:w-64 shrink-0">
-                  <Sidebar 
-                    onOpenCalculator={() => setShowCalculator(true)} 
-                    onShowPackages={() => setCurrentView({ type: 'packages' })}
-                  />
-                </div>
-              </div>
-            </section>
-
-            <FeaturedProjectsSection />
-            <TestimonialsSection />
-            <PropertyValuationSection />
-          </motion.main>
-        )}
-
-        {currentView.type === 'category' && (
-          <motion.main 
-            key="category"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="flex-grow pb-16"
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="header-content-view"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="min-h-screen bg-slate-50 flex flex-col relative"
           >
-            <div className="bg-white border-b border-gray-100 py-8">
-              <div className="container mx-auto px-6">
-                <div className="flex items-center gap-2 text-xs text-gray-400 mb-4 font-medium">
-                  <a href="#" onClick={navigateHome} className="hover:text-brand-green">Home</a>
-                  <ChevronDown size={12} className="-rotate-90" />
-                  <span className="text-gray-900">{currentView.data}s in Sri Lanka</span>
+            <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100 shadow-sm">
+              {supabaseError && (
+                <div className="bg-brand-red text-white px-6 py-4 text-center font-bold text-sm flex items-center justify-center gap-3">
+                  <AlertCircle size={18} />
+                  <span>Supabase Connection Error: {supabaseError}</span>
+                  <button 
+                    onClick={() => refreshProperties()}
+                    className="bg-white text-brand-red px-3 py-1 rounded-lg hover:bg-gray-100 compact-transition text-xs"
+                  >
+                    Retry
+                  </button>
                 </div>
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-                  <div>
-                    <h1 className="text-3xl font-bold text-dark-navy">{currentView.data}s For Sale & Rent</h1>
-                    <p className="text-gray-500 mt-2 text-sm">Showing verified {currentView.data?.toLowerCase()} listings</p>
-                  </div>
-                  <div className="flex bg-gray-100 p-1 rounded-lg">
-                    <button onClick={() => setRecentFilter("Sale")} className={`px-6 py-2 rounded-md text-xs font-bold compact-transition ${recentFilter === 'Sale' ? 'bg-brand-green text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>For Buy</button>
-                    <button onClick={() => setRecentFilter("Rent")} className={`px-6 py-2 rounded-md text-xs font-bold compact-transition ${recentFilter === 'Rent' ? 'bg-brand-green text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>For Rent</button>
-                  </div>
+              )}
+              <nav className="container mx-auto px-6 h-20 flex justify-between items-center">
+                <div className="flex items-center cursor-pointer" onClick={(e) => { e.preventDefault(); navigateHome(); }}>
+                  <a href="/" onClick={(e) => e.preventDefault()}>
+                    <img 
+                      src="https://qsqqolvsndvkwegvcfqv.supabase.co/storage/v1/object/sign/assets/Website%20logo%20.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MWNhMTU1MC03OGYzLTQwZGMtYTYzYi02NzVmZTRiYjM2NWMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhc3NldHMvV2Vic2l0ZSBsb2dvIC5wbmciLCJpYXQiOjE3NzgzMDk4MjksImV4cCI6MTkzNTk4OTgyOX0.LqwS9LCGK4UH1oL4YQHkiJdrNNgYGh-8CZtZBgrTO-s"
+                      alt="LankaProperty.lk"
+                      className="h-[45px] sm:h-[55px] dark:bg-white dark:px-[10px] dark:py-[4px] dark:rounded-[8px]"
+                      style={{ 
+                        width: 'auto',
+                        objectFit: 'contain',
+                        cursor: 'pointer'
+                      }}
+                      onError={(e: any) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </a>
                 </div>
-              </div>
-            </div>
-
-            <section className="container mx-auto px-6 mt-10">
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {categoryProperties.map(p => (
-                  <PropertyCard 
-                    key={p.id} 
-                    property={p} 
-                    onClick={() => handleDetailClick(p)}
-                    isFavorited={favorites.has(p.id)}
-                    onToggleFavorite={() => toggleFavorite(p.id)}
-                    isComparing={compareList.includes(p.id)}
-                    onToggleCompare={() => toggleCompare(p.id)}
-                    isAdmin={isAdmin}
-                  />
-                ))}
-              </div>
-            </section>
-          </motion.main>
-        )}
-
-        {currentView.type === 'search_results' && (
+                <ul className="hidden lg:flex items-center gap-6 text-[15px] font-semibold text-slate-700">
+                  {["Home", "About", "Property Wanted", "Agents", "Advertising", "Contact"].map((item) => (
+                    <li key={item}>
+                      <a 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (item === 'Home') navigateHome();
+                          else if (item === 'About') setCurrentView({ type: 'about' });
+                          else if (item === 'Advertising') setCurrentView({ type: 'packages' });
+                          else if (item === 'Agents') setCurrentView({ type: 'agents' });
+                          else if (item === 'Contact') setCurrentView({ type: 'contact' });
+                          else if (item === 'Property Wanted') setCurrentView({ type: 'wanted' });
+                        }}
+                        className={`${(item === 'Home' && currentView.type === 'home' || item === 'About' && currentView.type === 'about' || item === 'Advertising' && currentView.type === 'packages' || item === 'Contact' && currentView.type === 'contact' || item === 'Property Wanted' && currentView.type === 'wanted') ? 'text-brand-green border-b-2 border-brand-green pb-1.5' : 'hover:text-brand-green'} whitespace-nowrap compact-transition`}
+                      >
+                        {item}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex items-center gap-5">
+                  {user ? (
+                    <div 
+                      onClick={() => setCurrentView({ type: 'profile' })}
+                      className="flex items-center gap-2 bg-white/50 backdrop-blur-sm border border-gray-100 rounded-full pl-1.5 pr-2 py-1.5 cursor-pointer hover:bg-white hover:shadow-md compact-transition"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-brand-green flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                        {user.email[0].toUpperCase()}
+                      </div>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setUser(null); navigateHome(); }} 
+                        className="p-1.5 flex items-center justify-center text-gray-400 hover:text-brand-red compact-transition bg-gray-50 rounded-full hover:bg-red-50"
+                        title="Logout"
+                      >
+                        <LogOut size={16} className="rotate-180" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => setCurrentView({ type: 'auth' })}
+                      className="text-dark-navy font-bold text-sm px-4 py-2 hover:text-brand-green compact-transition"
+                    >
+                      Sign In
+                    </button>
+                  )}
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    animate={{ 
+                      boxShadow: ["0 0 0 rgba(0, 181, 98, 0)", "0 0 12px rgba(0, 181, 98, 0.5)", "0 0 0 rgba(0, 181, 98, 0)"]
+                    }}
+                    transition={{ 
+                      boxShadow: { duration: 2, repeat: Infinity }
+                    }}
+                    onClick={() => {
+                      if (user) setCurrentView({ type: 'publish' });
+                      else setCurrentView({ type: 'auth', data: 'signup' });
+                    }}
+                    className="px-6 py-3 bg-brand-green text-white rounded-xl text-base font-bold hover:bg-brand-green-dark shadow-lg shadow-brand-green/20 compact-transition"
+                  >
+                    Post free ad
+                  </motion.button>
+                </div>
+              </nav>
+            </header>
+            
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentView.type}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="flex-grow"
+              >
+                {currentView.type === 'search_results' && (
           <motion.main 
             key="search_results"
             initial={{ opacity: 0, x: 20 }}
@@ -9457,19 +8617,31 @@ export default function App() {
           </motion.main>
         )}
 
-        {currentView.type === 'detail' && (
-          <PropertyDetail 
-            property={currentView.data} 
-            onBack={navigateHome} 
-            isFavorited={favorites.has(currentView.data.id)}
-            onToggleFavorite={() => toggleFavorite(currentView.data.id)}
-            onOpenCalculator={() => setShowCalculator(true)}
+        {currentView.type === 'category' && (
+          <CategoryPage 
+            category={currentView.data.category}
+            mode={currentView.data.mode}
+            onBack={navigateHome}
             onPropertyClick={(p) => handleDetailClick(p)}
-            onAgentClick={(agent) => setCurrentView({ type: 'agent', data: agent })}
-            onNavigate={(view) => setCurrentView(view)}
             favorites={favorites}
+            toggleFavorite={toggleFavorite}
             compareList={compareList}
             toggleCompare={toggleCompare}
+            isAdmin={isAdmin}
+            onPostAd={() => setCurrentView({ type: 'publish' })}
+            onNavigateHome={navigateHome}
+            onNavigate={setCurrentView}
+            onGetStarted={(pkg) => setCurrentView({ type: 'packages', data: { pkg } })}
+          />
+        )}
+
+        {currentView.type === 'detail' && (
+          <PropertyDetail 
+            propertyId={currentView.data.id} 
+            onBack={navigateHome} 
+            onPropertyClick={(p) => handleDetailClick(p)}
+            favorites={favorites}
+            toggleFavorite={toggleFavorite}
             isAdmin={isAdmin}
           />
         )}
@@ -9608,19 +8780,23 @@ export default function App() {
             onRemove={removeCompare} 
           />
         )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {compareList.length > 0 && currentView.type !== 'compare' && (
-          <ComparisonBar 
-            propertyIds={compareList} 
-            properties={supabaseProperties}
-            onCompare={() => setCurrentView({ type: 'compare' })}
-            onRemove={removeCompare}
-            onClear={() => setCompareList([])}
-          />
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
         )}
       </AnimatePresence>
+
+<AnimatePresence>
+  {compareList.length > 0 && currentView.type !== 'compare' && (
+    <ComparisonBar 
+      propertyIds={compareList} 
+      properties={supabaseProperties}
+      onCompare={() => setCurrentView({ type: 'compare' })}
+      onRemove={removeCompare}
+      onClear={() => setCompareList([])}
+    />
+  )}
+</AnimatePresence>
 
       <Footer 
         onNavigateHome={navigateHome} 
@@ -9686,7 +8862,6 @@ export default function App() {
           </motion.button>
         )}
       </AnimatePresence>
-    </div>
     </>
   );
 }

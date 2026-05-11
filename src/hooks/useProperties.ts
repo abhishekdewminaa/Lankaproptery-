@@ -3,30 +3,27 @@ import { supabase } from '../supabaseClient';
 
 export interface Property {
   id: number;
-  title: string;
-  location: string;
-  price: string;
-  type: string;
-  image: string;
+  listing_title: string;
+  city: string;
+  price_lkr: string | number;
+  listing_type: string;
+  images: string[];
   lat: number;
   lng: number;
   agentId: string;
-  description: string;
-  listingType?: string;
-  propertyType?: string;
-  city?: string;
+  property_description: string;
+  property_category?: string;
   district?: string;
-  images?: string[];
   bedrooms?: number;
   bathrooms?: number;
   rooms?: number;
-  landArea?: string;
-  floorArea?: string;
+  land_area?: string;
+  floor_area?: string;
   floors?: number;
-  additionalInfo?: string;
+  additional_info?: string;
   amenities?: string[];
-  isNegotiable?: boolean;
-  locationLink?: string;
+  is_negotiable?: boolean;
+  location_link?: string;
   contacts?: { type: 'Mobile' | 'Landline', number: string }[];
   status?: 'active' | 'paused' | string;
   views_count?: number;
@@ -35,6 +32,20 @@ export interface Property {
   updated_at?: string;
   published_by?: 'admin' | 'agent' | 'user' | string;
   package_tier?: 'Starter Free' | 'Premium Pro' | 'Elite Pro' | string;
+  // Legacy aliases for compatibility during transition
+  title?: string;
+  location?: string;
+  price?: string;
+  type?: string;
+  image?: string;
+  description?: string;
+  propertyType?: string;
+  listingType?: string;
+  landArea?: string;
+  floorArea?: string;
+  additionalInfo?: string;
+  isNegotiable?: boolean;
+  locationLink?: string;
 }
 
 export function useProperties() {
@@ -51,7 +62,6 @@ export function useProperties() {
         .order('id', { ascending: false });
 
       if (error) {
-        // If "Invalid path" occurs, it's often a missing table or invalid API key
         if (error.message.includes('Invalid path') || error.message.includes('not found')) {
           console.error("Supabase Error: The 'properties' table might be missing or the API URL/Key is incorrect.");
           throw new Error("Could not connect to 'properties' table. Please ensure the table exists in your Supabase database and your API Key is valid.");
@@ -61,40 +71,45 @@ export function useProperties() {
 
       if (data) {
         const formattedData = data.map((item: any) => {
-          let price = item.price_lkr || item.price;
-          if (price && !isNaN(Number(price)) && String(price).length > 0 && !String(price).includes('Contact')) {
-            price = `Rs. ${Number(price).toLocaleString()}`;
+          let price_display = item.price_lkr || item.price;
+          if (price_display && !isNaN(Number(price_display)) && String(price_display).length > 0 && !String(price_display).includes('Contact')) {
+            price_display = `Rs. ${Number(price_display).toLocaleString()}`;
           }
+
+          const listing_type = item.listing_type === 'Rent' || item.listing_type === 'For Rent' ? 'Rent' : 'Sale';
 
           return {
             ...item,
             id: item.id,
-            title: item.listing_title || item.title,
+            listing_title: item.listing_title || item.title,
             agentId: item.agent_id,
+            city: item.city || item.city_suburb,
+            listing_type: listing_type,
+            images: item.images || [],
+            price_lkr: item.price_lkr || item.price,
+            property_description: item.property_description || item.description,
+            property_category: item.property_category || item.property_type,
+            land_area: item.land_area,
+            floor_area: item.floor_area,
+            location_link: item.google_maps_link || item.location_link,
+            is_negotiable: item.is_negotiable,
+            additional_info: item.additional_info || item.additional_information || '',
+            amenities: item.amenities || item.building_amenities || [],
+            
+            // Legacy for compatibility
+            title: item.listing_title || item.title,
             location: item.location || `${item.city || item.city_suburb}${item.district ? ', ' + item.district : ''}`,
-            type: item.listing_type === 'Rent' || item.listing_type === 'For Rent' ? 'Rent' : 'Sale',
+            type: listing_type,
             image: (item.images && item.images.length > 0) ? item.images[0] : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800',
-            price: price || 'Price on Request',
+            price: price_display || 'Price on Request',
             description: item.property_description || item.description,
-            listingType: item.listing_type,
             propertyType: item.property_category || item.property_type,
+            listingType: item.listing_type,
             landArea: item.land_area,
             floorArea: item.floor_area,
-            floors: item.floors,
-            rooms: item.rooms,
-            bathrooms: item.bathrooms,
-            city: item.city || item.city_suburb,
-            district: item.district,
-            images: item.images || [],
             additionalInfo: item.additional_info || item.additional_information || '',
-            amenities: item.amenities || item.building_amenities || [],
             isNegotiable: item.is_negotiable,
-            locationLink: item.google_maps_link || item.location_link,
-            status: item.status || 'active',
-            contacts: [
-              ...(item.mobile ? [{ type: 'Mobile', number: item.mobile }] : []),
-              ...(item.landline ? [{ type: 'Landline', number: item.landline }] : [])
-            ]
+            locationLink: item.google_maps_link || item.location_link
           };
         });
         setProperties(formattedData);

@@ -39,30 +39,34 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../../supabaseClient';
 
 interface Property {
-  id?: string;
-  title: string;
-  price: string;
-  price_lkr?: number;
+  id?: string | number;
+  listing_title: string;
+  price_lkr: string | number;
   district?: string;
   city?: string;
-  propertyType?: string;
-  listingType?: string;
-  landArea?: string;
-  floorArea?: string;
+  property_category?: string;
+  listing_type?: string;
+  land_area?: string;
+  floor_area?: string;
   floors?: number | string;
   rooms?: number | string;
   bathrooms?: number | string;
-  description?: string;
-  additionalInfo?: string;
-  isNegotiable?: boolean;
+  property_description?: string;
+  additional_info?: string;
+  is_negotiable?: boolean;
   contacts?: { type: 'Mobile' | 'Landline', number: string }[];
   images?: string[];
-  locationLink?: string;
+  google_maps_link?: string;
+  // Fallbacks
+  title?: string;
+  price?: string | number;
+  propertyType?: string;
+  listingType?: string;
 }
 
 interface AdminListingFormProps {
   user: any;
-  initialData?: Property;
+  initialData?: any; // Changed to any to handle raw Supabase data
   onBack: () => void;
   onRefresh?: () => void;
   onSuccess: (property: any) => void;
@@ -123,22 +127,22 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
   
   // Form State
   const [formData, setFormData] = useState<Property>({
-    title: initialData?.title || "",
-    price: initialData?.price?.toString().replace(/[^0-9]/g, '') || "",
+    listing_title: initialData?.listing_title || initialData?.title || "",
+    price_lkr: initialData?.price_lkr || initialData?.price?.toString().replace(/[^0-9]/g, '') || "",
     district: initialData?.district || "Colombo",
     city: initialData?.city || "",
-    propertyType: initialData?.propertyType || "Apartment",
-    listingType: initialData?.listingType || "For Sale",
-    landArea: initialData?.landArea || "",
-    floorArea: initialData?.floorArea || "",
+    property_category: initialData?.property_category || initialData?.propertyType || "Apartment",
+    listing_type: initialData?.listing_type || initialData?.listingType || "For Sale",
+    land_area: initialData?.land_area || initialData?.landArea || "",
+    floor_area: initialData?.floor_area || initialData?.floorArea || "",
     floors: initialData?.floors?.toString() || "0",
     rooms: initialData?.rooms?.toString() || "0",
     bathrooms: initialData?.bathrooms?.toString() || "0",
-    description: initialData?.description || "",
-    additionalInfo: initialData?.additionalInfo || "",
-    isNegotiable: initialData?.isNegotiable || false,
+    property_description: initialData?.property_description || initialData?.description || "",
+    additional_info: initialData?.additional_info || initialData?.additionalInfo || "",
+    is_negotiable: initialData?.is_negotiable || initialData?.isNegotiable || false,
     contacts: initialData?.contacts || [{ type: 'Mobile', number: "" }],
-    locationLink: initialData?.locationLink || "",
+    google_maps_link: initialData?.google_maps_link || initialData?.locationLink || "",
   });
 
   const [images, setImages] = useState<{ id: string, url: string }[]>(
@@ -171,7 +175,7 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const result = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-1.5-flash",
         contents: `Extract property details from the following text into JSON. 
         Listing type: "For Sale" or "For Rent". Property type: "Apartment", "House", "Land", "Commercial".
         Text: ${pastedText}`,
@@ -180,28 +184,42 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
           responseSchema: {
             type: Type.OBJECT,
             properties: {
-              title: { type: Type.STRING },
-              description: { type: Type.STRING },
+              listing_title: { type: Type.STRING },
+              property_description: { type: Type.STRING },
               district: { type: Type.STRING },
               city: { type: Type.STRING },
-              propertyType: { type: Type.STRING },
-              listingType: { type: Type.STRING },
-              landArea: { type: Type.STRING },
-              floorArea: { type: Type.STRING },
+              property_category: { type: Type.STRING },
+              listing_type: { type: Type.STRING },
+              land_area: { type: Type.STRING },
+              floor_area: { type: Type.STRING },
               floors: { type: Type.STRING },
               rooms: { type: Type.STRING },
               bathrooms: { type: Type.STRING },
-              isNegotiable: { type: Type.BOOLEAN },
-              additionalInfo: { type: Type.STRING },
-              locationLink: { type: Type.STRING },
-              price: { type: Type.STRING }
+              is_negotiable: { type: Type.BOOLEAN },
+              additional_info: { type: Type.STRING },
+              google_maps_link: { type: Type.STRING },
+              price_lkr: { type: Type.STRING }
             }
           }
         }
       });
 
       const data = JSON.parse(result.text || "{}");
-      setFormData(prev => ({ ...prev, ...data }));
+      setFormData(prev => ({ 
+        ...prev, 
+        ...data,
+        // Fallback mapping if AI returns old names for any reason
+        listing_title: data.listing_title || data.title || prev.listing_title,
+        price_lkr: data.price_lkr || data.price || prev.price_lkr,
+        property_category: data.property_category || data.propertyType || prev.property_category,
+        listing_type: data.listing_type || data.listingType || prev.listing_type,
+        property_description: data.property_description || data.description || prev.property_description,
+        additional_info: data.additional_info || data.additionalInfo || prev.additional_info,
+        land_area: data.land_area || data.landArea || prev.land_area,
+        floor_area: data.floor_area || data.floorArea || prev.floor_area,
+        google_maps_link: data.google_maps_link || data.locationLink || prev.google_maps_link,
+        is_negotiable: data.is_negotiable ?? data.isNegotiable ?? prev.is_negotiable
+      }));
       setShowAIModal(false);
       setPastedText("");
     } catch (error) {
@@ -230,28 +248,28 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
   const handlePublish = async () => {
     setLoading(true);
     try {
-      const priceVal = parseInt(formData.price) || 0;
+      const priceVal = parseInt(formData.price_lkr?.toString()) || 0;
       const listingData = {
-        listing_title: formData.title,
+        listing_title: formData.listing_title,
         price_lkr: priceVal,
         usd_estimate: priceVal / 310,
         eur_estimate: priceVal / 335,
         district: formData.district,
         city: formData.city,
-        property_category: formData.propertyType,
-        listing_type: formData.listingType,
-        land_area: formData.landArea,
-        floor_area: formData.floorArea,
+        property_category: formData.property_category,
+        listing_type: formData.listing_type,
+        land_area: formData.land_area,
+        floor_area: formData.floor_area,
         floors: parseInt(formData.floors?.toString() || '0'),
         rooms: parseInt(formData.rooms?.toString() || '0'),
         bathrooms: parseInt(formData.bathrooms?.toString() || '0'),
-        property_description: formData.description,
-        additional_info: formData.additionalInfo,
+        property_description: formData.property_description,
+        additional_info: formData.additional_info,
         mobile: formData.contacts?.[0]?.number || '',
         landline: formData.contacts?.[1]?.number || '',
-        is_negotiable: formData.isNegotiable,
+        is_negotiable: formData.is_negotiable,
         images: images.map(img => img.url),
-        google_maps_link: formData.locationLink,
+        google_maps_link: formData.google_maps_link,
         agent_id: user?.email || 'ADMIN',
         status: 'active',
         package_tier: 'Admin',
@@ -405,18 +423,18 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
                         <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Listing Title</label>
                         <input 
                           type="text" 
-                          value={formData.title}
-                          onChange={e => setFormData({...formData, title: e.target.value})}
+                          value={formData.listing_title}
+                          onChange={e => setFormData({...formData, listing_title: e.target.value})}
                           placeholder="e.g. Modern Luxury Villa in Rajagiriya"
                           className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 focus:ring-4 focus:ring-admin-primary/5 rounded-2xl p-4 text-sm font-bold transition-all outline-none"
                         />
                      </div>
                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
+                         <div className="space-y-2">
                           <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Property Type</label>
                           <select 
-                            value={formData.propertyType}
-                            onChange={e => setFormData({...formData, propertyType: e.target.value})}
+                            value={formData.property_category}
+                            onChange={e => setFormData({...formData, property_category: e.target.value})}
                             className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 rounded-2xl p-4 text-sm font-bold outline-none appearance-none"
                           >
                              {["Apartment", "House", "Land", "Commercial"].map(t => <option key={t}>{t}</option>)}
@@ -425,8 +443,8 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
                         <div className="space-y-2">
                           <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Listing Mode</label>
                           <select 
-                            value={formData.listingType}
-                            onChange={e => setFormData({...formData, listingType: e.target.value})}
+                            value={formData.listing_type}
+                            onChange={e => setFormData({...formData, listing_type: e.target.value})}
                             className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 rounded-2xl p-4 text-sm font-bold outline-none appearance-none"
                           >
                              {["For Sale", "For Rent"].map(t => <option key={t}>{t}</option>)}
@@ -446,21 +464,21 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                      <div className="md:col-span-1 space-y-2">
                         <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Price (Rs.)</label>
-                        <div className="relative">
+                         <div className="relative">
                            <input 
                               type="text" 
-                              value={formData.price}
-                              onChange={e => setFormData({...formData, price: e.target.value.replace(/[^0-9]/g, '')})}
+                              value={formData.price_lkr}
+                              onChange={e => setFormData({...formData, price_lkr: e.target.value.replace(/[^0-9]/g, '')})}
                               placeholder="Price"
                               className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 rounded-2xl p-4 pl-12 text-lg font-black outline-none"
                            />
                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-admin-text-gray font-bold text-xs uppercase">Rs</div>
                         </div>
                         <button 
-                          onClick={() => setFormData({...formData, isNegotiable: !formData.isNegotiable})}
-                          className={`flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-colors ${formData.isNegotiable ? 'bg-admin-secondary/10 text-admin-secondary' : 'bg-gray-100 text-gray-400'}`}
+                          onClick={() => setFormData({...formData, is_negotiable: !formData.is_negotiable})}
+                          className={`flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-colors ${formData.is_negotiable ? 'bg-admin-secondary/10 text-admin-secondary' : 'bg-gray-100 text-gray-400'}`}
                         >
-                           <div className={`w-1.5 h-1.5 rounded-full ${formData.isNegotiable ? 'bg-admin-secondary' : 'bg-gray-400'}`} />
+                           <div className={`w-1.5 h-1.5 rounded-full ${formData.is_negotiable ? 'bg-admin-secondary' : 'bg-gray-400'}`} />
                            Negotiable Price
                         </button>
                      </div>
@@ -497,11 +515,11 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
                      <div className="space-y-2">
                         <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Land Area</label>
-                        <input type="text" value={formData.landArea} onChange={e => setFormData({...formData, landArea: e.target.value})} placeholder="Pe" className="form-input-admin" />
+                        <input type="text" value={formData.land_area} onChange={e => setFormData({...formData, land_area: e.target.value})} placeholder="Pe" className="form-input-admin" />
                      </div>
                      <div className="space-y-2">
                         <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Floor Area</label>
-                        <input type="text" value={formData.floorArea} onChange={e => setFormData({...formData, floorArea: e.target.value})} placeholder="Sq.Ft" className="form-input-admin" />
+                        <input type="text" value={formData.floor_area} onChange={e => setFormData({...formData, floor_area: e.target.value})} placeholder="Sq.Ft" className="form-input-admin" />
                      </div>
                      <div className="space-y-2">
                         <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Rooms</label>
@@ -526,11 +544,11 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
                   </div>
 
                   <div className="space-y-6">
-                     <div className="space-y-2">
+                      <div className="space-y-2">
                         <label className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest ml-1">Listing Description</label>
                         <textarea 
-                           value={formData.description}
-                           onChange={e => setFormData({...formData, description: e.target.value})}
+                           value={formData.property_description}
+                           onChange={e => setFormData({...formData, property_description: e.target.value})}
                            placeholder="Type detailed property overview..."
                            className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 rounded-[32px] p-6 text-sm font-medium min-h-[160px] outline-none transition-all resize-none"
                         />
@@ -541,8 +559,8 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
                            <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                            <input 
                               type="url" 
-                              value={formData.locationLink}
-                              onChange={e => setFormData({...formData, locationLink: e.target.value})}
+                              value={formData.google_maps_link}
+                              onChange={e => setFormData({...formData, google_maps_link: e.target.value})}
                               placeholder="Paste share link from Google Maps..."
                               className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 rounded-[20px] p-4 pl-14 text-sm font-bold outline-none"
                            />

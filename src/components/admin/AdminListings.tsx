@@ -13,6 +13,10 @@ import {
   Power,
   ChevronRight,
   Loader2,
+  Zap,
+  Layout,
+  BarChart3,
+  Target,
   Plus,
   ClipboardList
 } from 'lucide-react';
@@ -20,7 +24,7 @@ import { supabase } from '../../supabaseClient';
 
 interface Property {
   id: string;
-  title: string;
+  listing_title: string;
   price_lkr: number;
   city: string;
   district: string;
@@ -85,40 +89,107 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-4xl font-black text-admin-text-dark tracking-tight">My Listings</h1>
-          <p className="text-admin-text-gray font-bold mt-2">Manage your inventory and track listing performance</p>
+          <h1 className="text-4xl font-black text-admin-text-dark tracking-tight">Active Properties</h1>
+          <p className="text-admin-text-gray font-bold mt-2">Manage your inventory and track listing performance across all channels.</p>
         </div>
-        <button 
-          onClick={onNewProperty}
-          className="bg-admin-primary text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-admin-primary/20 hover:bg-admin-secondary transition-all flex items-center gap-3"
-        >
-          <Plus size={20} />
-          Post New Property
-        </button>
+        <div className="flex gap-3 w-full md:w-auto">
+          <button 
+            onClick={fetchListings}
+            className="p-4 border border-admin-border rounded-2xl text-admin-text-gray hover:bg-admin-bg transition-all shadow-sm"
+          >
+            <Loader2 className={loading ? "animate-spin" : ""} size={20} />
+          </button>
+          <button 
+            onClick={onNewProperty}
+            className="flex-grow md:flex-grow-0 bg-[#006644] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-[#006644]/20 hover:bg-[#005533] transition-all flex items-center justify-center gap-3 active:scale-95"
+          >
+            <Plus size={20} />
+            Post New Ad
+          </button>
+        </div>
+      </div>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          { 
+            label: 'Total Ads', 
+            value: listings.length, 
+            tag: 'SYNCED', 
+            tagColor: 'text-green-500 bg-green-500/10',
+            icon: <Layout className="text-green-600" />,
+            bgColor: 'bg-green-50' 
+          },
+          { 
+            label: 'Active Pool', 
+            value: listings.filter(l => l.status === 'active').length, 
+            tag: 'LIVE', 
+            tagColor: 'text-blue-500 bg-blue-500/10',
+            icon: <Zap className="text-blue-600" />,
+            bgColor: 'bg-blue-50'
+          },
+          { 
+            label: 'Total Views', 
+            value: listings.reduce((acc, l) => acc + (l.views_count || 0), 0).toLocaleString(), 
+            tag: 'REACH', 
+            tagColor: 'text-indigo-500 bg-indigo-500/10',
+            icon: <Eye className="text-indigo-600" />,
+            bgColor: 'bg-indigo-50'
+          },
+          { 
+            label: 'Ad Spend', 
+            value: 'LKR 0', 
+            tag: 'FREE', 
+            tagColor: 'text-admin-gold bg-admin-gold/10',
+            icon: <Target className="text-admin-gold" />,
+            bgColor: 'bg-admin-gold/5'
+          },
+        ].map((stat, i) => (
+          <motion.div 
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className="bg-white p-8 rounded-[40px] border border-admin-border shadow-sm flex flex-col gap-6 hover:shadow-xl hover:shadow-black/5 transition-all group"
+          >
+             <div className="flex justify-between items-start">
+               <div className={`w-12 h-12 ${stat.bgColor} rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110`}>
+                  {stat.icon}
+               </div>
+               <span className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${stat.tagColor}`}>
+                 {stat.tag}
+               </span>
+             </div>
+             <div>
+                <p className="text-sm font-black text-admin-text-dark tracking-tight">{stat.label}</p>
+                <p className="text-4xl font-black text-admin-text-dark mt-1">{stat.value}</p>
+             </div>
+          </motion.div>
+        ))}
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-white p-4 rounded-[32px] border border-admin-border shadow-sm flex flex-col md:flex-row gap-4 items-center">
+      <div className="bg-white p-6 rounded-[32px] border border-admin-border shadow-sm flex flex-col md:flex-row gap-4 items-center">
          <div className="relative flex-grow w-full md:w-auto">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input 
               type="text" 
-              placeholder="Search by title, location or type..."
-              className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 rounded-2xl py-3 pl-12 pr-4 text-sm font-medium outline-none transition-all"
+              placeholder="Filter by title, location or property ID..."
+              className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-admin-primary/20 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold outline-none transition-all"
             />
          </div>
-         <div className="flex gap-2 w-full md:w-auto">
-            <select className="flex-grow md:flex-grow-0 bg-admin-bg border-transparent rounded-2xl px-6 py-3 text-sm font-bold outline-none cursor-pointer hover:bg-gray-100">
-               <option>All Types</option>
-               <option>Apartment</option>
-               <option>House</option>
-               <option>Land</option>
+         <div className="flex gap-3 w-full md:w-auto">
+            <select className="flex-grow md:flex-grow-0 bg-admin-bg border-transparent rounded-2xl px-8 py-4 text-xs font-black uppercase tracking-widest outline-none cursor-pointer hover:bg-gray-100 transition-colors">
+               <option>All Assets</option>
+               <option>Residential</option>
+               <option>Commercial</option>
+               <option>Lands</option>
             </select>
-            <button className="p-3 bg-admin-bg border-transparent rounded-2xl text-admin-text-gray hover:bg-gray-100">
+            <button className="p-4 bg-admin-bg border-transparent rounded-2xl text-admin-text-gray hover:bg-gray-100 transition-colors">
                <Filter size={20} />
             </button>
          </div>
@@ -136,104 +207,116 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
             <motion.div
               layout
               key={property.id}
-              className={`bg-white p-6 rounded-[40px] border border-admin-border shadow-sm hover:shadow-xl hover:shadow-admin-primary/5 transition-all group flex flex-col lg:flex-row gap-8 items-start lg:items-center ${property.status === 'paused' ? 'opacity-60 grayscale-[0.5]' : ''}`}
+              className={`bg-white p-8 rounded-[48px] border border-admin-border shadow-sm hover:shadow-2xl hover:shadow-black/5 transition-all group flex flex-col lg:flex-row gap-10 items-start lg:items-center ${property.status === 'paused' ? 'opacity-60 grayscale-[0.5]' : ''}`}
             >
               {/* Thumbnail */}
-              <div className="w-full lg:w-48 h-32 rounded-3xl overflow-hidden shrink-0 relative bg-gray-100">
+              <div className="w-full lg:w-60 h-40 rounded-[32px] overflow-hidden shrink-0 relative bg-gray-100 shadow-inner">
                  <img 
                    src={property.images?.[0] || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80'} 
-                   alt={property.title} 
-                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                   alt={property.listing_title} 
+                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                  />
-                 {property.status === 'paused' && (
-                   <div className="absolute inset-0 bg-admin-text-dark/40 backdrop-blur-[2px] flex items-center justify-center">
-                     <span className="bg-white text-admin-text-dark text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg">PAUSED</span>
-                   </div>
-                 )}
+                 <div className="absolute top-4 left-4">
+                    <span className={`px-3 py-1.5 rounded-xl text-[8px] font-black uppercase tracking-widest shadow-lg ${
+                      property.status === 'paused' ? 'bg-black text-white' : 'bg-white text-admin-primary'
+                    }`}>
+                      {property.status}
+                    </span>
+                 </div>
               </div>
 
               {/* Info */}
-              <div className="flex-grow min-w-0 space-y-2">
+              <div className="flex-grow min-w-0 space-y-3">
                  <div className="flex items-center gap-3">
-                    <span className="px-2.5 py-1 rounded-full bg-admin-primary/10 text-admin-primary text-[9px] font-black uppercase tracking-widest">
+                    <span className="px-3 py-1 rounded-full bg-admin-bg border border-admin-border text-admin-text-gray text-[9px] font-black uppercase tracking-widest">
                        {property.property_category || 'House'}
                     </span>
-                    <span className="text-[10px] text-admin-text-gray font-black uppercase tracking-widest">#{String(property.id).split('-')[0]}</span>
+                    <span className="text-[10px] text-admin-text-gray font-bold uppercase tracking-widest">ID: #{String(property.id).split('-')[0].toUpperCase()}</span>
                  </div>
-                 <h3 className="text-xl font-black text-admin-text-dark line-clamp-1 group-hover:text-admin-primary transition-colors">{property.title}</h3>
-                 <div className="flex items-center gap-4 text-xs font-bold text-admin-text-gray">
-                    <span className="flex items-center gap-1.5"><MapPin size={14} className="text-admin-primary" /> {property.city}, {property.district}</span>
-                    <span className="flex items-center gap-1.5"><Compass size={14} className="text-admin-primary" /> {property.listing_type}</span>
+                 <h3 className="text-2xl font-black text-admin-text-dark line-clamp-1 group-hover:text-[#006644] transition-colors tracking-tight">{property.listing_title}</h3>
+                 <div className="flex items-center gap-6 text-xs font-bold text-admin-text-gray">
+                    <span className="flex items-center gap-2"><MapPin size={16} className="text-[#006644]" /> {property.city}, {property.district}</span>
+                    <span className="flex items-center gap-2"><BarChart3 size={16} className="text-[#006644]" /> {property.listing_type}</span>
                  </div>
               </div>
 
-              {/* Stats */}
-              <div className="flex gap-8 px-6 border-x border-admin-border hidden xl:flex">
-                 <div className="text-center">
-                    <p className="text-lg font-black text-admin-text-dark tracking-tight">{property.views_count || 0}</p>
-                    <p className="text-[9px] font-black text-admin-text-gray uppercase tracking-widest">Views</p>
+              {/* Stats - Vertical Stack */}
+              <div className="hidden xl:flex flex-col gap-4 px-10 border-x border-admin-border min-w-[180px]">
+                 <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest">Views</span>
+                    <span className="text-lg font-black text-admin-text-dark">{property.views_count || 0}</span>
                  </div>
-                 <div className="text-center">
-                    <p className="text-lg font-black text-admin-text-dark tracking-tight">{property.leads_count || 0}</p>
-                    <p className="text-[9px] font-black text-admin-text-gray uppercase tracking-widest">Leads</p>
+                 <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest">Leads</span>
+                    <span className="text-lg font-black text-admin-primary">{property.leads_count || 0}</span>
                  </div>
               </div>
 
               {/* Price & Actions */}
-              <div className="flex flex-col sm:flex-row items-center gap-6 w-full lg:w-auto">
-                 <div className="text-center sm:text-right flex-grow">
-                    <p className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest mb-1">Price</p>
-                    <p className="text-xl font-black text-admin-primary tracking-tight">Rs. {property.price_lkr?.toLocaleString()}</p>
+              <div className="flex flex-col sm:flex-row items-center gap-8 w-full lg:w-auto">
+                 <div className="text-center sm:text-right flex-grow min-w-[140px]">
+                    <p className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest mb-1">Market Price</p>
+                    <p className="text-2xl font-black text-admin-text-dark tracking-tight">Rs. {property.price_lkr?.toLocaleString()}</p>
                  </div>
                  <div className="flex items-center gap-3">
-                    <button 
-                      onClick={() => toggleStatus(property.id, property.status)}
-                      disabled={updatingId === property.id}
-                      className={`p-3 rounded-2xl border transition-all ${
-                        property.status === 'paused' 
-                          ? 'border-admin-border text-gray-400 hover:text-admin-primary hover:bg-admin-bg' 
-                          : 'bg-admin-secondary text-white border-admin-secondary shadow-lg shadow-admin-secondary/20 hover:bg-admin-secondary/90'
-                      }`}
-                    >
-                      {updatingId === property.id ? <Loader2 className="animate-spin" size={20} /> : <Power size={20} />}
-                    </button>
+                    <div className="relative group/tooltip">
+                      <button 
+                        onClick={() => toggleStatus(property.id, property.status)}
+                        disabled={updatingId === property.id}
+                        className={`p-4 rounded-2xl border transition-all ${
+                          property.status === 'paused' 
+                            ? 'border-admin-border text-gray-400 hover:text-admin-primary hover:bg-admin-bg' 
+                            : 'bg-[#00B67A] text-white border-[#00B67A] shadow-lg shadow-[#00B67A]/20 hover:scale-105'
+                        }`}
+                      >
+                        {updatingId === property.id ? <Loader2 className="animate-spin" size={22} /> : <Power size={22} />}
+                      </button>
+                    </div>
+
                     <button 
                       onClick={() => onEdit(property)}
-                      className="p-3 bg-white border border-admin-border rounded-2xl text-admin-text-gray hover:text-admin-primary hover:bg-gray-50 transition-all shadow-sm"
+                      className="p-4 bg-white border border-admin-border rounded-2xl text-admin-text-dark hover:bg-admin-bg transition-all shadow-sm active:scale-95"
                     >
-                      <Edit3 size={20} />
+                      <Edit3 size={22} />
                     </button>
+
                     <button 
                       onClick={() => deleteProperty(property.id)}
-                      className="p-3 bg-white border border-admin-border rounded-2xl text-admin-text-gray hover:text-admin-accent hover:bg-admin-accent/5 transition-all shadow-sm"
+                      className="p-4 bg-white border border-admin-border rounded-2xl text-red-500 hover:bg-red-50 transition-all shadow-sm active:scale-95"
                     >
-                      <Trash2 size={20} />
+                      <Trash2 size={22} />
                     </button>
+
                     <a 
                       href={`/property/${property.id}`}
                       target="_blank"
-                      className="p-3 bg-white border border-admin-border rounded-2xl text-admin-text-gray hover:text-admin-primary hover:bg-gray-50 transition-all shadow-sm"
+                      className="p-4 bg-admin-text-dark text-white rounded-2xl hover:bg-admin-primary transition-all shadow-xl shadow-black/10 active:scale-95"
                     >
-                      <ExternalLink size={20} />
+                      <ExternalLink size={22} />
                     </a>
                  </div>
               </div>
             </motion.div>
           ))
         ) : (
-          <div className="py-24 text-center">
-             <div className="w-24 h-24 bg-admin-bg rounded-full flex items-center justify-center mx-auto mb-6">
-                <ClipboardList size={40} className="text-gray-300" />
+          <div className="py-24 text-center animate-in fade-in zoom-in duration-700">
+             <div className="relative inline-block mb-8">
+                <div className="w-32 h-32 bg-admin-bg rounded-full flex items-center justify-center">
+                  <ClipboardList size={48} className="text-gray-200" />
+                </div>
+                <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg border-4 border-admin-bg">
+                  <Plus size={20} className="text-[#006644]" />
+                </div>
              </div>
-             <h3 className="text-2xl font-black text-admin-text-dark">No Listings Found</h3>
-             <p className="text-admin-text-gray font-bold max-w-sm mx-auto mt-2">
-                You haven't posted any properties yet. Start your journey by listing your first property.
+             <h3 className="text-3xl font-black text-admin-text-dark mb-4">Inventory is empty</h3>
+             <p className="text-admin-text-gray font-bold max-w-sm mx-auto mb-10">
+                You haven't posted any properties yet. Start your journey by listing your first property and attract potential buyers.
              </p>
              <button 
                onClick={onNewProperty}
-               className="mt-8 bg-admin-primary text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-admin-primary/20 hover:bg-admin-secondary transition-all"
+               className="bg-[#006644] text-white px-10 py-5 rounded-[24px] font-black text-sm uppercase tracking-widest shadow-2xl shadow-[#006644]/20 hover:bg-[#005533] transition-all active:scale-95"
              >
-                List Property Now
+                List Your First Property
              </button>
           </div>
         )}
