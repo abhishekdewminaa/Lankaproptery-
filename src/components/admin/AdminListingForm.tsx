@@ -125,7 +125,16 @@ function MapUpdater({ center }: { center: [number, number] }) {
   return null;
 }
 
-const SortableImageItem: React.FC<{ url: string, onRemove: () => void | Promise<void>, onSetMain: () => void, isMain: boolean }> = ({ url, onRemove, onSetMain, isMain }) => {
+interface SortablePhotoSlotProps {
+  slot: { id: string, order: number, url: string | null };
+  index: number;
+  onUpload: (file: File, index: number) => void;
+  onRemove: (index: number) => void;
+}
+
+const SortablePhotoSlot: React.FC<SortablePhotoSlotProps> = ({ 
+  slot, index, onUpload, onRemove 
+}) => {
   const {
     attributes,
     listeners,
@@ -133,49 +142,80 @@ const SortableImageItem: React.FC<{ url: string, onRemove: () => void | Promise<
     transform,
     transition,
     isDragging
-  } = useSortable({ id: url });
+  } = useSortable({ id: slot.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 50 : 0
+    opacity: isDragging ? 0.4 : 1,
   };
+
+  const handleClick = () => {
+    if (!slot.url) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/jpeg,image/png,image/webp';
+      input.onchange = (e: any) => {
+        const file = e.target.files?.[0];
+        if (file) onUpload(file, index);
+      };
+      input.click();
+    }
+  };
+
+  const isMain = index === 0;
 
   return (
     <div 
-      ref={setNodeRef} 
-      style={style} 
-      className={`relative aspect-video rounded-2xl overflow-hidden group border border-admin-border shadow-md bg-white ${isDragging ? 'opacity-50' : 'opacity-100'}`}
+      ref={setNodeRef}
+      style={style}
+      className={`relative aspect-[4/3] rounded-xl overflow-hidden group border-2 transition-all ${
+        slot.url ? 'border-[#004F31]' : 'border-dashed border-gray-200 bg-gray-50'
+      } cursor-pointer`}
+      onClick={handleClick}
     >
-      <img src={url} alt="Property" className="w-full h-full object-cover" />
-      
-      {/* Overlay controls */}
-      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3">
-        <div className="flex justify-between items-start">
-          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1.5 bg-white/20 backdrop-blur-md rounded-lg text-white hover:bg-white/40">
-            <GripVertical size={16} />
-          </div>
-          <button 
-            onClick={onRemove}
-            className="p-1.5 bg-red-500 rounded-lg text-white hover:bg-red-600 transition-colors shadow-lg"
-          >
-            <Trash2 size={16} />
-          </button>
-        </div>
-        
-        <button 
-          onClick={onSetMain}
-          className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isMain ? 'bg-admin-gold text-white' : 'bg-white/20 backdrop-blur-md text-white hover:bg-white/40'}`}
-        >
-          <Star size={14} fill={isMain ? "currentColor" : "none"} />
-          {isMain ? 'Main Photo' : 'Set as Main'}
-        </button>
+      {/* Number Badge */}
+      <div className="absolute top-[6px] left-[6px] bg-black/50 text-white rounded-[4px] px-[6px] py-[2px] text-[11px] font-bold z-10" style={{ background: isMain ? '#004F31' : 'rgba(0,0,0,0.5)' }}>
+        {isMain ? 'MAIN' : index + 1}
       </div>
 
-      {isMain && (
-        <div className="absolute top-3 left-3 bg-admin-gold text-white px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-lg">
-          Main
+      {slot.url ? (
+        <>
+          <img src={slot.url} alt={`Photo ${index + 1}`} className="w-full h-full object-cover select-none" />
+          
+          {/* Hover Overlay */}
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-grab active:cursor-grabbing photo-overlay z-10">
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-white text-[12px]">⠿ Drag to reorder</span>
+            </div>
+
+            {/* Remove Button */}
+            <button 
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove(index);
+              }}
+              className="absolute top-[6px] right-[6px] w-[24px] h-[24px] bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors flex items-center justify-center shadow-lg"
+            >
+              ✕
+            </button>
+          </div>
+        </>
+      ) : (
+        <div className="flex flex-col items-center justify-center h-full gap-2 text-gray-400">
+          <Camera size={28} />
+          <span className="text-[12px] font-medium uppercase">Add Photo</span>
         </div>
+      )}
+      
+      {/* Draggable listeners only when URL exists */}
+      {slot.url && (
+        <div 
+          {...attributes}
+          {...listeners}
+          className="absolute inset-0 z-0"
+        />
       )}
     </div>
   );
@@ -348,9 +388,17 @@ RULES:
     allow_inquiries: initialData?.allow_inquiries ?? true,
     price_on_request: initialData?.price_on_request || false,
     admin_notes: initialData?.admin_notes || '',
-    images: (initialData?.images as string[]) || [],
     coordinates: (initialData?.coordinates as [number, number]) || [6.9271, 79.8612] // [lat, lng]
   });
+
+  const [images, setImages] = useState<{ id: string, order: number, url: string | null, file: File | null }[]>(
+    Array(12).fill(null).map((_, i) => ({
+      id: `slot-${i + 1}`,
+      order: i + 1,
+      url: initialData?.images?.[i] || null,
+      file: null
+    }))
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -361,79 +409,66 @@ RULES:
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = formData.images.indexOf(active.id as string);
-      const newIndex = formData.images.indexOf(over.id as string);
-      const newImages = arrayMove(formData.images, oldIndex, newIndex);
-      setFormData(prev => ({ ...prev, images: newImages }));
-    }
-  };
+    if (!over || active.id === over.id) return;
 
-  const setAsMain = (url: string) => {
-    const newImages = [url, ...formData.images.filter(img => img !== url)];
-    setFormData(prev => ({ ...prev, images: newImages }));
-  };
-
-  const uploadImage = async (file: File) => {
-    if (formData.images.length >= 12) {
-      toast.error('Maximum 12 photos allowed');
-      return null;
-    }
-
-    try {
-      setImageUploadProgress(10);
-      const path = `properties/${initialData?.id || 'new'}/${Date.now()}-${file.name}`;
+    setImages(prev => {
+      const oldIndex = prev.findIndex(img => img.id === active.id);
+      const newIndex = prev.findIndex(img => img.id === over.id);
       
-      const { data, error } = await supabase.storage
-        .from('property-images')
-        .upload(path, file, { upsert: true });
-
-      if (error) throw error;
-      setImageUploadProgress(60);
-
-      const { data: urlData } = supabase.storage
-        .from('property-images')
-        .getPublicUrl(path);
-
-      setImageUploadProgress(100);
-      setTimeout(() => setImageUploadProgress(null), 1000);
-      return urlData.publicUrl;
-    } catch (error: any) {
-      toast.error('Upload failed: ' + error.message);
-      setImageUploadProgress(null);
-      return null;
-    }
+      const reordered = arrayMove(prev, oldIndex, newIndex);
+      
+      return reordered.map((img, idx) => ({
+        ...img,
+        order: idx + 1
+      }));
+    });
+    toast.success('Photos reordered');
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []) as File[];
-    if (!files.length) return;
+  const handleUpload = async (file: File, slotIndex: number) => {
+    const position = slotIndex + 1;
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const newName = `${position}.${ext}`;
+    
+    // Create renamed file
+    const renamedFile = new File([file], newName, { type: file.type });
+    
+    // Show preview
+    const previewUrl = URL.createObjectURL(file);
+    
+    setImages(prev => prev.map((img, idx) => 
+      idx === slotIndex ? { ...img, url: previewUrl, file: renamedFile } : img
+    ));
 
-    for (const file of files) {
-      const url = await uploadImage(file);
-      if (url) {
-        setFormData(prev => ({ ...prev, images: [...prev.images, url] }));
+    // Upload to Supabase if editing
+    if (initialData?.id) {
+      const path = `properties/${initialData.id}/${newName}`;
+      try {
+        setImageUploadProgress(50);
+        await supabase.storage
+          .from('property-images')
+          .upload(path, renamedFile, { upsert: true });
+        setImageUploadProgress(100);
+        setTimeout(() => setImageUploadProgress(null), 1000);
+        toast.success(`Photo ${position} uploaded`);
+      } catch (error) {
+        console.error("Upload error:", error);
+        setImageUploadProgress(null);
+        toast.error("Failed to upload to storage");
       }
-    }
-    e.target.value = '';
-  };
-
-  const deleteImage = async (imageUrl: string) => {
-    if (!window.confirm("Remove this photo?")) return;
-
-    const newImages = formData.images.filter(img => img !== imageUrl);
-    setFormData(prev => ({ ...prev, images: newImages }));
-
-    // Try to delete from storage if it's our own URL
-    try {
-      const path = imageUrl.split('property-images/')[1];
-      if (path) {
-        await supabase.storage.from('property-images').remove([path]);
-      }
-    } catch (err) {
-      console.warn("Could not delete image from storage:", err);
+    } else {
+      toast.success(`Photo added to slot ${position}`);
     }
   };
+
+  const handleRemove = (slotIndex: number) => {
+    setImages(prev => prev.map((img, idx) => 
+      idx === slotIndex ? { ...img, url: null, file: null } : img
+    ));
+    toast.success('Photo removed');
+  };
+
+  const photoCount = images.filter(img => img.url !== null).length;
 
   const saveProperty = useCallback(async (isAutoSave = false) => {
     if (!isAutoSave) setIsSaving(true);
@@ -468,7 +503,7 @@ RULES:
         allow_inquiries: formData.allow_inquiries,
         price_on_request: formData.price_on_request,
         admin_notes: formData.admin_notes,
-        images: formData.images,
+        images: images.map(img => img.url).filter(url => url !== null),
         coordinates: formData.coordinates,
         updated_at: new Date().toISOString()
       };
@@ -677,15 +712,7 @@ RULES:
               <p className="text-sm font-bold text-gray-400 mt-1">Drag to reorder. First image = main photo. Maximum 12 photos.</p>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-xs font-black text-gray-400 uppercase tracking-widest">{formData.images.length} / 12 photos</span>
-              <button 
-                onClick={() => document.getElementById('photo-upload')?.click()}
-                disabled={formData.images.length >= 12}
-                className="bg-[#004F31] text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#003824] transition-all flex items-center gap-2 disabled:opacity-50"
-              >
-                <Plus size={16} /> Add More
-              </button>
-              <input type="file" id="photo-upload" className="hidden" onChange={handleFileChange} multiple accept="image/*" />
+              <span className="text-xs font-black text-gray-400 uppercase tracking-widest">{photoCount} / 12 photos</span>
             </div>
           </div>
 
@@ -717,31 +744,21 @@ RULES:
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
           >
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full">
               <SortableContext 
-                items={formData.images}
+                items={images.map(img => img.id)}
                 strategy={rectSortingStrategy}
               >
-                {formData.images.map((url, i) => (
-                  <SortableImageItem 
-                    key={url} 
-                    url={url} 
-                    onRemove={() => deleteImage(url)} 
-                    onSetMain={() => setAsMain(url)}
-                    isMain={i === 0}
+                {images.map((slot, index) => (
+                  <SortablePhotoSlot 
+                    key={slot.id} 
+                    slot={slot} 
+                    index={index}
+                    onUpload={handleUpload}
+                    onRemove={handleRemove}
                   />
                 ))}
               </SortableContext>
-              
-              {formData.images.length < 12 && (
-                <button 
-                  onClick={() => document.getElementById('photo-upload')?.click()}
-                  className="aspect-video bg-[#F0F4F0] border-2 border-dashed border-admin-border/50 rounded-2xl flex flex-col items-center justify-center text-gray-300 hover:border-[#004F31] hover:text-[#004F31] transition-all group"
-                >
-                  <Camera size={32} className="group-hover:scale-110 transition-transform mb-2" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">+ Upload</span>
-                </button>
-              )}
             </div>
           </DndContext>
         </motion.section>

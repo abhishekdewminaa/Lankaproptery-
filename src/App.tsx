@@ -4410,18 +4410,15 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
   );
 };
 
-interface SortableImageItemProps {
-  image: { id: string, url: string };
+interface SortablePhotoSlotProps {
+  slot: { id: string, order: number, url: string | null };
   index: number;
-  onRemove: (id: string) => void;
-  onSetMain?: (id: string) => void;
+  onUpload: (file: File, index: number) => void;
+  onRemove: (index: number) => void;
 }
 
-const SortableImageItem: React.FC<SortableImageItemProps> = ({ 
-  image, 
-  index, 
-  onRemove, 
-  onSetMain 
+const SortablePhotoSlot: React.FC<SortablePhotoSlotProps> = ({ 
+  slot, index, onUpload, onRemove 
 }) => {
   const {
     attributes,
@@ -4430,80 +4427,87 @@ const SortableImageItem: React.FC<SortableImageItemProps> = ({
     transform,
     transition,
     isDragging
-  } = useSortable({ id: image.id });
+  } = useSortable({ id: slot.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.4 : 1,
     zIndex: isDragging ? 999 : 1
+  };
+
+  const handleClick = () => {
+    if (!slot.url) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/jpeg,image/png,image/webp';
+      input.onchange = (e: any) => {
+        const file = e.target.files?.[0];
+        if (file) onUpload(file, index);
+      };
+      input.click();
+    }
   };
 
   const isMain = index === 0;
 
   return (
     <div 
-      ref={setNodeRef} 
-      style={style} 
-      className={`relative aspect-square rounded-xl overflow-hidden group border border-gray-200 transition-all ${
-        isDragging ? 'shadow-2xl ring-2 ring-brand-green' : 'hover:shadow-lg'
+      ref={setNodeRef}
+      style={style}
+      className={`relative aspect-[4/3] rounded-xl overflow-hidden group border-2 transition-all ${
+        slot.url ? 'border-brand-green' : 'border-dashed border-gray-200 bg-gray-50/50 hover:bg-brand-green/5 hover:border-brand-green'
       }`}
+      onClick={handleClick}
     >
-      <img src={image.url} alt={`Property ${index + 1}`} className="w-full h-full object-cover select-none" />
-      
       {/* Number Badge */}
-      <div className={`absolute top-2 left-2 w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black z-20 ${
-        isMain ? 'bg-brand-green text-white' : 'bg-white text-dark-navy shadow-sm'
+      <div className={`absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-black z-20 shadow-sm ${
+        isMain ? 'bg-brand-green text-white' : 'bg-white text-dark-navy'
       }`}>
-        {index + 1}
+        {isMain ? 'MAIN' : index + 1}
       </div>
 
-      {/* Main Badge */}
-      {isMain && (
-        <div className="absolute bottom-0 left-0 right-0 bg-brand-green text-white text-[8px] font-black uppercase text-center py-1.5 tracking-widest z-20">
-          MAIN PHOTO
-        </div>
-      )}
-
-      {/* Hover Overlay */}
-      <div className="absolute inset-0 bg-dark-navy/40 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex flex-col justify-between p-2">
-        <div className="flex justify-between items-start">
-          {/* Drag Handle */}
+      {slot.url ? (
+        <>
+          <img src={slot.url} alt={`Photo ${index + 1}`} className="w-full h-full object-cover select-none" />
+          
+          {/* Draggable Area & Overlay */}
           <div 
-            {...attributes} 
-            {...listeners} 
-            className="p-2 bg-white/20 hover:bg-white/40 text-white rounded-lg cursor-grab active:cursor-grabbing transition-colors"
+            {...attributes}
+            {...listeners}
+            className="absolute inset-0 bg-dark-navy/40 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing"
           >
-            <GripVertical size={16} />
+            <div className="flex flex-col items-center gap-2">
+              <GripVertical size={20} className="text-white" />
+              <span className="text-[10px] font-black text-white uppercase tracking-widest">Drag to reorder</span>
+            </div>
+
+            {/* Remove Button */}
+            <button 
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove(index);
+              }}
+              className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors shadow-lg"
+            >
+              <X size={14} strokeWidth={3} />
+            </button>
           </div>
 
-          {/* Remove Button */}
-          <button 
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove(image.id);
-            }}
-            className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors shadow-lg"
-          >
-            <X size={16} strokeWidth={3} />
-          </button>
+          {/* Main Photo Badge (Bottom) */}
+          {isMain && (
+             <div className="absolute bottom-0 left-0 right-0 bg-brand-green text-white text-[8px] font-black uppercase text-center py-1 tracking-widest z-20">
+               MAIN PHOTO
+             </div>
+          )}
+        </>
+      ) : (
+        <div className="w-full h-full flex flex-col items-center justify-center gap-2 pointer-events-none">
+          <Camera size={24} className="text-gray-300 group-hover:text-brand-green transition-colors" />
+          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-brand-green transition-colors">Add Photo</span>
         </div>
-
-        {/* Set as Main Button */}
-        {!isMain && onSetMain && (
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              onSetMain(image.id);
-            }}
-            className="w-full py-2 bg-white/20 hover:bg-white/40 backdrop-blur-md text-white text-[8px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2"
-          >
-            <Star size={10} />
-            Set as Main
-          </button>
-        )}
-      </div>
+      )}
     </div>
   );
 };
@@ -4529,8 +4533,13 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
       ? initialData.contacts 
       : [{ type: 'Mobile', number: "" }]
   );
-  const [images, setImages] = useState<{ id: string, url: string }[]>(
-    initialData?.images?.map(url => ({ id: Math.random().toString(36).substr(2, 9), url })) || []
+  const [images, setImages] = useState<{ id: string, order: number, url: string | null, file: File | null }[]>(
+    Array(12).fill(null).map((_, i) => ({
+      id: `slot-${i + 1}`,
+      order: i + 1,
+      url: initialData?.images?.[i] || null,
+      file: null
+    }))
   );
   const [locationLink, setLocationLink] = useState(initialData?.google_maps_link || initialData?.locationLink || "");
   const [isPublishing, setIsPublishing] = useState(false);
@@ -4538,12 +4547,15 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
   const [pastedText, setPastedText] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8
+      }
+    }),
     useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
+      coordinateGetter: sortableKeyboardCoordinates
     })
   );
 
@@ -4553,63 +4565,64 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
-      setImages((items) => {
-        const oldIndex = items.findIndex((i) => i.id === active.id);
-        const newIndex = items.findIndex((i) => i.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-      toast.success('Photos reordered');
-    }
-    setActiveId(null);
-  };
+    if (!over || active.id === over.id) return;
 
-  const setMainImage = (id: string) => {
     setImages(prev => {
-      const idx = prev.findIndex(img => img.id === id);
-      if (idx === -1) return prev;
-      const newImgs = [...prev];
-      const [img] = newImgs.splice(idx, 1);
-      newImgs.unshift(img);
-      return newImgs;
-    });
-    toast.success('Main photo updated');
-  };
-
-  const handleImageUpload = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const remainingSlots = 12 - images.length;
-    const filesToProcess = files.slice(0, remainingSlots);
-
-    if (filesToProcess.length === 0 && files.length > 0) {
-      toast.error('Maximum 12 photos reached');
-      return;
-    }
-
-    filesToProcess.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const id = Math.random().toString(36).substr(2, 9);
-        setImages(prev => [...prev, { id, url: reader.result as string }].slice(0, 12));
-      };
-      reader.readAsDataURL(file as File);
+      const oldIndex = prev.findIndex(img => img.id === active.id);
+      const newIndex = prev.findIndex(img => img.id === over.id);
+      
+      const reordered = arrayMove(prev, oldIndex, newIndex);
+      
+      return reordered.map((img: { id: string, order: number, url: string | null, file: File | null }, idx: number) => ({
+        ...img,
+        order: idx + 1
+      }));
     });
     
-    if (filesToProcess.length > 0) {
-      toast.success(`Uploading ${filesToProcess.length} photos...`);
-    }
-
-    e.target.value = '';
+    setActiveId(null);
+    toast.success('Photos reordered');
   };
 
-  const removeImage = (id: string) => {
-    setImages(prev => prev.filter(img => img.id !== id));
+  const handleUpload = async (file: File, slotIndex: number) => {
+    const position = slotIndex + 1;
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const newName = `${position}.${ext}`;
+    
+    // Create renamed file
+    const renamedFile = new File([file], newName, { type: file.type });
+    
+    // Show preview
+    const previewUrl = URL.createObjectURL(file);
+    
+    setImages(prev => prev.map((img, idx) => 
+      idx === slotIndex ? { ...img, url: previewUrl, file: renamedFile } : img
+    ));
+
+    // Upload to Supabase if editing
+    if (initialData?.id && supabase) {
+      const path = `properties/${initialData.id}/${newName}`;
+      try {
+        await supabase.storage
+          .from('property-images')
+          .upload(path, renamedFile, { upsert: true });
+        toast.success(`Photo ${position} uploaded`);
+      } catch (error) {
+        console.error("Upload error:", error);
+        toast.error("Failed to upload to storage");
+      }
+    } else {
+      toast.success(`Photo added to slot ${position}`);
+    }
+  };
+
+  const handleRemove = (slotIndex: number) => {
+    setImages(prev => prev.map((img, idx) => 
+      idx === slotIndex ? { ...img, url: null, file: null } : img
+    ));
     toast.success('Photo removed');
   };
+
+  const photoCount = images.filter(img => img.url !== null).length;
 
   const handleAIImport = async () => {
     if (!pastedText.trim()) return;
@@ -4739,7 +4752,7 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
         mobile,
         landline,
         is_negotiable: isNegotiable,
-        images: images.map(img => img.url),
+        images: images.map(img => img.url).filter(url => url !== null) as string[],
         google_maps_link: locationLink,
         agent_id: 'ADMIN',
         published_by: 'admin',
@@ -4817,16 +4830,6 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
               ))}
             </div>
           </div>
-
-          {/* Hidden File Input */}
-          <input 
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            multiple
-            accept="image/*"
-            className="hidden"
-          />
 
         <div className="p-10 space-y-12">
           {step === 1 && (
@@ -5129,12 +5132,12 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                   </div>
                   <div className="text-right">
                     <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">
-                      {images.length} / 12 Photos
+                      {photoCount} / 12 Photos
                     </p>
                     <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
                       <motion.div 
                         initial={{ width: 0 }}
-                        animate={{ width: `${(images.length / 12) * 100}%` }}
+                        animate={{ width: `${(photoCount / 12) * 100}%` }}
                         className="h-full bg-brand-green shadow-sm"
                       />
                     </div>
@@ -5153,41 +5156,21 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                     items={images.map(img => img.id)}
                     strategy={rectSortingStrategy}
                   >
-                    {images.map((img, index) => (
-                      <SortableImageItem 
-                        key={img.id} 
-                        image={img} 
+                    {images.map((slot, index) => (
+                      <SortablePhotoSlot 
+                        key={slot.id} 
+                        slot={slot} 
                         index={index}
-                        onRemove={removeImage} 
-                        onSetMain={setMainImage}
+                        onUpload={handleUpload}
+                        onRemove={handleRemove} 
                       />
                     ))}
                   </SortableContext>
-                  
-                  {Array.from({ length: 12 - images.length }).map((_, idx) => {
-                    const position = images.length + idx + 1;
-                    return (
-                      <div key={`empty-${idx}`} className="relative aspect-square">
-                        <button 
-                          onClick={handleImageUpload}
-                          className="w-full h-full bg-[#F9FAFB] border-2 border-dashed border-[#D1D5DB] rounded-xl flex flex-col items-center justify-center text-center p-4 hover:border-brand-green hover:bg-brand-green/5 transition-all group overflow-hidden"
-                        >
-                          <div className="absolute top-2 left-2 w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-400 group-hover:bg-brand-green group-hover:text-white transition-colors">
-                            {position}
-                          </div>
-                          <Camera size={24} className="text-gray-300 mb-2 group-hover:text-brand-green transition-colors" />
-                          <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-brand-green transition-colors">
-                            Add Photo
-                          </div>
-                        </button>
-                      </div>
-                    );
-                  })}
                 </div>
 
                 <DragOverlay adjustScale={true}>
                   {activeId ? (
-                    <div className="w-full h-full aspect-square rounded-xl overflow-hidden border-2 border-brand-green shadow-2xl scale-105 z-[1000]">
+                    <div className="w-full h-full aspect-[4/3] rounded-xl overflow-hidden border-2 border-brand-green shadow-2xl scale-105 z-[1000]">
                       <img 
                         src={images.find(img => img.id === activeId)?.url || ''} 
                         className="w-full h-full object-cover" 
