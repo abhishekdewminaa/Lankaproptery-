@@ -27,7 +27,7 @@ import {
   Pie, 
   Cell
 } from 'recharts';
-import { ChartWrapper } from '../ChartWrapper';
+import { ChartContainer } from '../ChartContainer';
 import { supabase } from '../../supabaseClient';
 
 const PERFORMANCE_DATA = [
@@ -213,7 +213,7 @@ export default function AdminDashboard({ user }: { user: any }) {
             </button>
           </div>
           
-          <ChartWrapper height={350}>
+          <ChartContainer height={350}>
             <AreaChart data={PERFORMANCE_DATA}>
               <defs>
                 <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
@@ -259,7 +259,7 @@ export default function AdminDashboard({ user }: { user: any }) {
                 fill="none" 
               />
             </AreaChart>
-          </ChartWrapper>
+          </ChartContainer>
         </div>
 
         {/* Donut Chart */}
@@ -269,7 +269,7 @@ export default function AdminDashboard({ user }: { user: any }) {
             <p className="text-xs font-bold text-admin-text-gray uppercase tracking-widest mt-1">Inventory by property type</p>
           </div>
 
-          <ChartWrapper height={250}>
+          <ChartContainer height={250}>
             <div className="relative w-full h-full">
               <PieChart>
                 <Pie
@@ -292,7 +292,7 @@ export default function AdminDashboard({ user }: { user: any }) {
                 <span className="text-[10px] font-black text-admin-text-gray uppercase tracking-widest">Active Units</span>
               </div>
             </div>
-          </ChartWrapper>
+          </ChartContainer>
 
           <div className="mt-auto space-y-3">
             {MARKET_SHARE_DATA.map((item) => (

@@ -40,7 +40,8 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent
+  DragEndEvent,
+  DragOverlay
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -98,6 +99,7 @@ import {
   Wind,
   Shield,
   ExternalLink,
+  GripVertical,
   Send,
   Globe,
   ChevronLeft,
@@ -134,7 +136,9 @@ import {
   Save
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell, PieChart, Pie } from 'recharts';
-import { ChartWrapper } from './components/ChartWrapper';
+import { ChartContainer } from './components/ChartContainer';
+
+import { Toaster, toast } from 'react-hot-toast';
 
 import { translateToSinhala } from "./services/geminiService";
 import PropertyWanted from "./components/PropertyWanted";
@@ -4406,7 +4410,19 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
   );
 };
 
-const SortableImageItem = ({ image, onRemove }: { image: { id: string, url: string }, onRemove: (id: string) => void, key?: any }) => {
+interface SortableImageItemProps {
+  image: { id: string, url: string };
+  index: number;
+  onRemove: (id: string) => void;
+  onSetMain?: (id: string) => void;
+}
+
+const SortableImageItem: React.FC<SortableImageItemProps> = ({ 
+  image, 
+  index, 
+  onRemove, 
+  onSetMain 
+}) => {
   const {
     attributes,
     listeners,
@@ -4419,30 +4435,75 @@ const SortableImageItem = ({ image, onRemove }: { image: { id: string, url: stri
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 50 : 1,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 999 : 1
   };
+
+  const isMain = index === 0;
 
   return (
     <div 
       ref={setNodeRef} 
       style={style} 
-      {...attributes} 
-      className={`relative aspect-video rounded-xl overflow-hidden group border border-gray-200 transition-shadow ${isDragging ? 'shadow-2xl ring-2 ring-brand-green z-50' : ''}`}
+      className={`relative aspect-square rounded-xl overflow-hidden group border border-gray-200 transition-all ${
+        isDragging ? 'shadow-2xl ring-2 ring-brand-green' : 'hover:shadow-lg'
+      }`}
     >
-      <img src={image.url} alt="Listing" className="w-full h-full object-cover select-none" />
-      <div 
-        {...listeners} 
-        className="absolute inset-0 bg-transparent cursor-grab active:cursor-grabbing z-10" 
-      />
-      <button 
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove(image.id);
-        }}
-        className="absolute top-2 right-2 p-2 bg-brand-red text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-lg z-20"
-      >
-        <Plus size={16} className="rotate-45" />
-      </button>
+      <img src={image.url} alt={`Property ${index + 1}`} className="w-full h-full object-cover select-none" />
+      
+      {/* Number Badge */}
+      <div className={`absolute top-2 left-2 w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black z-20 ${
+        isMain ? 'bg-brand-green text-white' : 'bg-white text-dark-navy shadow-sm'
+      }`}>
+        {index + 1}
+      </div>
+
+      {/* Main Badge */}
+      {isMain && (
+        <div className="absolute bottom-0 left-0 right-0 bg-brand-green text-white text-[8px] font-black uppercase text-center py-1.5 tracking-widest z-20">
+          MAIN PHOTO
+        </div>
+      )}
+
+      {/* Hover Overlay */}
+      <div className="absolute inset-0 bg-dark-navy/40 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex flex-col justify-between p-2">
+        <div className="flex justify-between items-start">
+          {/* Drag Handle */}
+          <div 
+            {...attributes} 
+            {...listeners} 
+            className="p-2 bg-white/20 hover:bg-white/40 text-white rounded-lg cursor-grab active:cursor-grabbing transition-colors"
+          >
+            <GripVertical size={16} />
+          </div>
+
+          {/* Remove Button */}
+          <button 
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove(image.id);
+            }}
+            className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors shadow-lg"
+          >
+            <X size={16} strokeWidth={3} />
+          </button>
+        </div>
+
+        {/* Set as Main Button */}
+        {!isMain && onSetMain && (
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              onSetMain(image.id);
+            }}
+            className="w-full py-2 bg-white/20 hover:bg-white/40 backdrop-blur-md text-white text-[8px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2"
+          >
+            <Star size={10} />
+            Set as Main
+          </button>
+        )}
+      </div>
     </div>
   );
 };
@@ -4476,6 +4537,7 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
   const [showAIModal, setShowAIModal] = useState(false);
   const [pastedText, setPastedText] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sensors = useSensors(
@@ -4485,6 +4547,10 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
     })
   );
 
+  const handleDragStart = (event: any) => {
+    setActiveId(event.active.id);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
@@ -4493,7 +4559,56 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
         const newIndex = items.findIndex((i) => i.id === over.id);
         return arrayMove(items, oldIndex, newIndex);
       });
+      toast.success('Photos reordered');
     }
+    setActiveId(null);
+  };
+
+  const setMainImage = (id: string) => {
+    setImages(prev => {
+      const idx = prev.findIndex(img => img.id === id);
+      if (idx === -1) return prev;
+      const newImgs = [...prev];
+      const [img] = newImgs.splice(idx, 1);
+      newImgs.unshift(img);
+      return newImgs;
+    });
+    toast.success('Main photo updated');
+  };
+
+  const handleImageUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const remainingSlots = 12 - images.length;
+    const filesToProcess = files.slice(0, remainingSlots);
+
+    if (filesToProcess.length === 0 && files.length > 0) {
+      toast.error('Maximum 12 photos reached');
+      return;
+    }
+
+    filesToProcess.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const id = Math.random().toString(36).substr(2, 9);
+        setImages(prev => [...prev, { id, url: reader.result as string }].slice(0, 12));
+      };
+      reader.readAsDataURL(file as File);
+    });
+    
+    if (filesToProcess.length > 0) {
+      toast.success(`Uploading ${filesToProcess.length} photos...`);
+    }
+
+    e.target.value = '';
+  };
+
+  const removeImage = (id: string) => {
+    setImages(prev => prev.filter(img => img.id !== id));
+    toast.success('Photo removed');
   };
 
   const handleAIImport = async () => {
@@ -4588,31 +4703,6 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
   const getEstimate = (val: string, rate: number) => {
     const num = parseFloat(val) || 0;
     return (num * rate).toLocaleString(undefined, { maximumFractionDigits: 0 });
-  };
-
-  const handleImageUpload = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const remainingSlots = 12 - images.length;
-    const filesToProcess = files.slice(0, remainingSlots);
-
-    filesToProcess.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const id = Math.random().toString(36).substr(2, 9);
-        setImages(prev => [...prev, { id, url: reader.result as string }].slice(0, 12));
-      };
-      reader.readAsDataURL(file as File);
-    });
-    // Reset so same file can be chosen if removed
-    e.target.value = '';
-  };
-
-  const removeImage = (id: string) => {
-    setImages(prev => prev.filter(img => img.id !== id));
   };
 
   const handlePublish = async () => {
@@ -5027,48 +5117,113 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
               </div>
             </div>
           )}
-
           {step === 2 && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-end">
-                <div>
-                  <h3 className="text-xl font-bold text-dark-navy">Property Media</h3>
-                  <p className="text-xs font-bold text-gray-400 mt-1">Professional manager limit: {images.length} of 12 photos</p>
+            <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="space-y-4">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <h3 className="text-2xl font-black text-dark-navy tracking-tight">Property Images</h3>
+                    <p className="text-sm font-medium text-gray-500 mt-1">
+                      Drag to reorder. First image = main photo. Maximum 12 photos.
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">
+                      {images.length} / 12 Photos
+                    </p>
+                    <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(images.length / 12) * 100}%` }}
+                        className="h-full bg-brand-green shadow-sm"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <DndContext 
                 sensors={sensors}
                 collisionDetection={closestCenter}
+                onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
               >
-                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-1">
-                    <SortableContext 
-                      items={images.map(img => img.id)}
-                      strategy={rectSortingStrategy}
-                    >
-                      {images.map((img: { id: string, url: string }) => (
-                        <SortableImageItem key={img.id} image={img} onRemove={removeImage} />
-                      ))}
-                    </SortableContext>
-                    
-                    {Array.from({ length: 12 - images.length }).map((_, idx) => (
-                      <div key={`empty-${idx}`} className="relative aspect-video">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <SortableContext 
+                    items={images.map(img => img.id)}
+                    strategy={rectSortingStrategy}
+                  >
+                    {images.map((img, index) => (
+                      <SortableImageItem 
+                        key={img.id} 
+                        image={img} 
+                        index={index}
+                        onRemove={removeImage} 
+                        onSetMain={setMainImage}
+                      />
+                    ))}
+                  </SortableContext>
+                  
+                  {Array.from({ length: 12 - images.length }).map((_, idx) => {
+                    const position = images.length + idx + 1;
+                    return (
+                      <div key={`empty-${idx}`} className="relative aspect-square">
                         <button 
                           onClick={handleImageUpload}
-                          className="w-full h-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center text-center p-2 hover:border-brand-green hover:bg-brand-green/5 transition-all group overflow-hidden"
+                          className="w-full h-full bg-[#F9FAFB] border-2 border-dashed border-[#D1D5DB] rounded-xl flex flex-col items-center justify-center text-center p-4 hover:border-brand-green hover:bg-brand-green/5 transition-all group overflow-hidden"
                         >
+                          <div className="absolute top-2 left-2 w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-400 group-hover:bg-brand-green group-hover:text-white transition-colors">
+                            {position}
+                          </div>
                           <Camera size={24} className="text-gray-300 mb-2 group-hover:text-brand-green transition-colors" />
-                          <div className="bg-gray-200 group-hover:bg-brand-green/20 px-2 py-1 rounded text-[8px] font-black text-gray-400 group-hover:text-brand-green uppercase tracking-widest transition-all">
-                            + UPLOAD
+                          <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-brand-green transition-colors">
+                            Add Photo
                           </div>
                         </button>
                       </div>
-                    ))}
+                    );
+                  })}
+                </div>
+
+                <DragOverlay adjustScale={true}>
+                  {activeId ? (
+                    <div className="w-full h-full aspect-square rounded-xl overflow-hidden border-2 border-brand-green shadow-2xl scale-105 z-[1000]">
+                      <img 
+                        src={images.find(img => img.id === activeId)?.url || ''} 
+                        className="w-full h-full object-cover" 
+                        alt="Dragging"
+                      />
+                    </div>
+                  ) : null}
+                </DragOverlay>
+              </DndContext>
+
+              {/* Upload Tips */}
+              <div className="bg-gray-50 rounded-[32px] p-8 border border-gray-100 mt-12">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-10 h-10 bg-brand-green text-white rounded-xl flex items-center justify-center">
+                    <Info size={20} />
+                  </div>
+                  <h4 className="text-lg font-black text-dark-navy tracking-tight">Upload Tips</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+                  {[
+                    "First photo becomes the main listing image",
+                    "Drag photos to change their order",
+                    "High-quality landscape photos (1920x1080px)",
+                    "Files are automatically named 1-12",
+                    "Maximum file size: 5MB per photo",
+                    "Supported: JPG, PNG, WEBP"
+                  ].map((tip, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <div className="mt-1.5 w-1 h-1 bg-brand-green rounded-full flex-shrink-0" />
+                      <p className="text-sm font-medium text-gray-500">{tip}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </DndContext>
-          </div>
-        )}
+            </div>
+          )}
 
           {step === 3 && (
             <div className="space-y-12 py-10 animate-in fade-in zoom-in duration-700">
@@ -5112,8 +5267,8 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                   onBack();
                 }
               }}
-              disabled={isPublishing}
-              className="ml-auto px-10 py-5 bg-brand-green text-white font-black text-lg rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition flex items-center gap-3"
+              disabled={isPublishing || (step === 2 && images.length === 0)}
+              className="ml-auto px-10 py-5 bg-brand-green text-white font-black text-lg rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPublishing ? (
                 <>
@@ -6721,7 +6876,7 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1"> engagement vs leads</p>
           </div>
 
-          <ChartWrapper height={300}>
+          <ChartContainer height={300}>
             <AreaChart data={trendData[selectedCategory]}>
               <defs>
                 <linearGradient id="colorViewsCat" x1="0" y1="0" x2="0" y2="1">
@@ -6760,7 +6915,7 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
                 animationDuration={1500}
               />
             </AreaChart>
-          </ChartWrapper>
+          </ChartContainer>
         </div>
 
         <div className="lg:col-span-2 bg-white dark:bg-dark-navy p-8 rounded-[40px] border border-gray-100 dark:border-white/5 shadow-sm flex flex-col justify-between">
@@ -6769,7 +6924,7 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Listing density by category</p>
           </div>
 
-          <ChartWrapper height={300} className="my-4">
+          <ChartContainer height={300}>
             <PieChart>
               <Pie
                 data={distributionData}
@@ -6801,7 +6956,7 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
                 }}
               />
             </PieChart>
-          </ChartWrapper>
+          </ChartContainer>
 
           <div className="space-y-3">
             {distributionData.map((item, i) => (
@@ -9245,6 +9400,7 @@ export default function App() {
           window.dispatchEvent(new CustomEvent('voice-command', { detail: cmd }));
         }}
       />
+      <Toaster position="top-right" />
     </>
   );
 }

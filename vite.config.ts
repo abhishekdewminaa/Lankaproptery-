@@ -23,9 +23,9 @@ export default defineConfig(({mode}) => {
     server: {
       hmr: {
         overlay: false,
-        clientPort: 443,
-        protocol: 'wss',
-        timeout: 5000
+      },
+      watch: {
+        usePolling: true,
       },
     },
     build: {

@@ -20,9 +20,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY, {
     persistSession: true,
     autoRefreshToken: true,
   },
-  global: {
-    fetch: safeFetch,
-  },
+  global: { fetch: (url, options) => globalThis.fetch(url, options) },
 });
 
 /**

@@ -230,6 +230,11 @@
   }
 }
 
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
 /* Quick AI Import Card Styles */
 .quick-import-card {
   background: white;

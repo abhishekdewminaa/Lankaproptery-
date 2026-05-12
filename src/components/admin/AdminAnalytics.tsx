@@ -25,7 +25,7 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import { ChartWrapper } from '../ChartWrapper';
+import { ChartContainer } from '../ChartContainer';
 
 const REVENUE_DATA = [
   { name: 'JANUARY', value: 3.2, forecast: false },
@@ -158,7 +158,7 @@ export default function AdminAnalytics() {
             </div>
           </div>
 
-          <ChartWrapper height={400}>
+          <ChartContainer height={400}>
             <AreaChart data={REVENUE_DATA} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -205,7 +205,7 @@ export default function AdminAnalytics() {
                 data={REVENUE_DATA.filter(d => d.forecast || d.name === 'JUNE')}
               />
             </AreaChart>
-          </ChartWrapper>
+          </ChartContainer>
         </div>
       </div>
 
@@ -269,7 +269,7 @@ export default function AdminAnalytics() {
            </div>
 
            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center relative z-10">
-              <ChartWrapper height={240}>
+              <ChartContainer height={240}>
                 <div className="relative w-full h-full">
                   <PieChart>
                     <Pie
@@ -289,7 +289,7 @@ export default function AdminAnalytics() {
                       <p className="text-[9px] font-black text-admin-text-gray uppercase tracking-widest">Total Leads</p>
                   </div>
                 </div>
-              </ChartWrapper>
+              </ChartContainer>
 
               <div className="grid grid-cols-2 gap-x-10 gap-y-6">
                  {LEAD_SOURCE_DATA.map((source, idx) => (
