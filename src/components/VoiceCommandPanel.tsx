@@ -9,6 +9,7 @@ interface VoiceCommandPanelProps {
   onSearch: (filters: any) => void;
   onClearFilters: () => void;
   onToggleDarkMode: () => void;
+  onStatusChange?: (status: 'idle' | 'listening' | 'paused') => void;
 }
 
 const DISTRICTS = [
@@ -19,133 +20,306 @@ const DISTRICTS = [
   'Moneragala', 'Ratnapura', 'Kegalle'
 ];
 
-const SoundWaveRings = () => (
-  <div style={{
-    position: 'fixed',
-    bottom: '30px',
-    right: '30px',
-    width: '60px',
-    height: '60px',
-    zIndex: 9998,
-    pointerEvents: 'none'
-  }}>
-    {[1, 2, 3].map(i => (
-      <div
-        key={i}
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '60px',
-          height: '60px',
-          borderRadius: '50%',
-          border: '2px solid #CC2222',
-          animation: `ringExpand 1.5s ease-out infinite`,
-          animationDelay: `${i * 0.4}s`,
-          opacity: 0
-        }}
-      />
-    ))}
-  </div>
-);
+const VoiceVisualizer = ({ isListening }: { isListening: boolean }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const animFrameRef = useRef<number | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
 
-const ListeningOverlay = ({ transcript }: { transcript: string }) => (
-  <div style={{
-    position: 'fixed',
-    bottom: '110px',
-    right: '20px',
-    background: 'rgba(0,0,0,0.92)',
-    backdropFilter: 'blur(12px)',
-    borderRadius: '20px',
-    padding: '24px',
-    width: '300px',
-    zIndex: 9998,
-    animation: 'slideUpFade 0.3s ease'
-  }}>
-    {/* TOP - Status */}
+  useEffect(() => {
+    if (isListening) {
+      initVisualizer()
+    } else {
+      cleanup()
+    }
+    return cleanup
+  }, [isListening])
+
+  const initVisualizer = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      streamRef.current = stream
+
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const source = ctx.createMediaStreamSource(stream)
+      const analyser = ctx.createAnalyser()
+      analyser.fftSize = 128
+      analyser.smoothingTimeConstant = 0.85
+      source.connect(analyser)
+      analyserRef.current = analyser
+      renderFrame()
+    } catch(e) {
+      console.log('Mic not available for visualizer')
+    }
+  }
+
+  const renderFrame = () => {
+    const canvas = canvasRef.current
+    if (!canvas || !analyserRef.current) return
+
+    const ctx2d = canvas.getContext('2d')
+    if (!ctx2d) return
+    const analyser = analyserRef.current
+    const dataArray = new Uint8Array(analyser.frequencyBinCount)
+
+    const draw = () => {
+      animFrameRef.current = requestAnimationFrame(draw)
+      analyser.getByteFrequencyData(dataArray)
+
+      const W = canvas.width
+      const H = canvas.height
+      ctx2d.clearRect(0, 0, W, H)
+
+      const bars = 40
+      const barW = W / bars
+      const centerY = H / 2
+
+      for (let i = 0; i < bars; i++) {
+        const value = dataArray[Math.floor(i * dataArray.length / bars)]
+        const percent = value / 255
+        const barH = Math.max(4, percent * H * 0.9)
+
+        // Gradient color based on frequency
+        const gradient = ctx2d.createLinearGradient(0, centerY - barH/2, 0, centerY + barH/2)
+        gradient.addColorStop(0, `rgba(0, 255, 135, ${0.4 + percent * 0.6})`)
+        gradient.addColorStop(0.5, `rgba(0, 79, 49, ${0.8 + percent * 0.2})`)
+        gradient.addColorStop(1, `rgba(0, 255, 135, ${0.4 + percent * 0.6})`)
+
+        ctx2d.fillStyle = gradient
+        ctx2d.beginPath()
+        
+        const x = i * barW + barW * 0.15
+        const w = barW * 0.7
+        const r = Math.min(w/2, 4)
+        
+        if ((ctx2d as any).roundRect) {
+            (ctx2d as any).roundRect(x, centerY - barH/2, w, barH, r)
+        } else {
+            ctx2d.rect(x, centerY - barH/2, w, barH)
+        }
+        ctx2d.fill()
+      }
+    }
+    draw()
+  }
+
+  const cleanup = () => {
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
+    streamRef.current?.getTracks().forEach(t => t.stop())
+  }
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={252}
+      height={72}
+      style={{
+        width: '100%',
+        height: '72px',
+        display: 'block'
+      }}
+    />
+  )
+}
+
+const ListeningOverlay = ({ 
+    transcript, 
+    status, 
+    onPause, 
+    onResume, 
+    onStop 
+}: { 
+    transcript: string; 
+    status: 'listening' | 'paused'; 
+    onPause: () => void;
+    onResume: () => void;
+    onStop: () => void;
+}) => (
+  <>
+    {/* Dark backdrop */}
+    <div
+      onClick={onStop}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.4)',
+        backdropFilter: 'blur(4px)',
+        zIndex: 9997,
+        animation: 'fadeIn 0.3s ease'
+      }}
+    />
+
+    {/* Popup card */}
     <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '10px',
-      marginBottom: '16px'
+      position: 'fixed',
+      bottom: '100px',
+      right: '24px',
+      width: '300px',
+      background: 'linear-gradient(145deg, #111827, #0D1117)',
+      borderRadius: '24px',
+      padding: '24px',
+      zIndex: 9998,
+      border: '1px solid rgba(0,255,135,0.15)',
+      boxShadow: `
+        0 25px 50px rgba(0,0,0,0.5),
+        0 0 0 1px rgba(0,255,135,0.05),
+        inset 0 1px 0 rgba(255,255,255,0.05)
+      `,
+      animation: 'popupSlideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+      pointerEvents: 'auto'
     }}>
+
+      {/* TOP STATUS ROW */}
       <div style={{
-        width: '10px',
-        height: '10px',
-        borderRadius: '50%',
-        background: '#CC2222',
-        animation: 'blink 1s infinite'
-      }} />
-      <span style={{ 
-        color: 'white', 
-        fontWeight: '600',
-        fontSize: '14px'
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '20px'
       }}>
-        Listening...
-      </span>
-    </div>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          {/* Blinking dot */}
+          <div style={{
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            background: 
+              status === 'listening' ? '#CC2222' :
+              status === 'paused' ? '#F5A623' :
+              '#6B7280',
+            animation: status === 'listening' ?
+              'blink 1s ease infinite' : 'none',
+            boxShadow: status === 'listening' ?
+              '0 0 8px #CC2222' : 'none'
+          }} />
+          <span style={{
+            color: 'white',
+            fontSize: '15px',
+            fontWeight: '700',
+            letterSpacing: '0.3px'
+          }}>
+            {status === 'listening' && 'Listening...'}
+            {status === 'paused' && 'Paused'}
+          </span>
+        </div>
 
-    {/* MIDDLE - Sound bars animation */}
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '4px',
-      height: '50px',
-      marginBottom: '16px'
-    }}>
-      {[1,2,3,4,5,6,7,8,9,10].map(i => (
-        <div
-          key={i}
+        {/* Close X button */}
+        <button
+          onClick={onStop}
           style={{
-            width: '4px',
-            borderRadius: '2px',
-            background: '#00FF87',
-            animation: `soundBar 0.8s ease infinite alternate`,
-            animationDelay: `${i * 0.08}s`
+            width: '28px',
+            height: '28px',
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.08)',
+            border: 'none',
+            color: '#9CA3AF',
+            cursor: 'pointer',
+            fontSize: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.2s'
           }}
-        />
-      ))}
-    </div>
+        >
+          ✕
+        </button>
+      </div>
 
-    {/* BOTTOM - Live transcript */}
-    <div style={{
-      background: 'rgba(255,255,255,0.08)',
-      borderRadius: '12px',
-      padding: '12px',
-      minHeight: '50px'
-    }}>
-      {transcript ? (
-        <p style={{ 
-          color: '#00FF87',
+      {/* REAL FREQUENCY WAVE */}
+      <div style={{
+        background: 'rgba(0,0,0,0.3)',
+        borderRadius: '16px',
+        padding: '16px',
+        marginBottom: '16px',
+        border: '1px solid rgba(0,255,135,0.08)'
+      }}>
+        <VoiceVisualizer isListening={status === 'listening'} />
+      </div>
+
+      {/* LIVE TRANSCRIPT */}
+      <div style={{
+        background: 'rgba(255,255,255,0.04)',
+        borderRadius: '12px',
+        padding: '14px',
+        marginBottom: '16px',
+        minHeight: '52px',
+        border: '1px solid rgba(255,255,255,0.06)'
+      }}>
+        {transcript ? (
+          <p style={{
+            color: '#00FF87',
+            fontSize: '14px',
+            margin: 0,
+            lineHeight: '1.5',
+            animation: 'fadeIn 0.3s ease'
+          }}>
+            "{transcript}"
+          </p>
+        ) : (
+          <p style={{
+            color: '#4B5563',
+            fontSize: '13px',
+            margin: 0,
+            fontStyle: 'italic'
+          }}>
+            Say a command...
+          </p>
+        )}
+      </div>
+
+      {/* PAUSE / RESUME BUTTON */}
+      <button
+        onClick={status === 'listening' ? onPause : onResume}
+        style={{
+          width: '100%',
+          padding: '12px',
+          borderRadius: '12px',
+          border: 'none',
+          cursor: 'pointer',
+          fontWeight: '600',
           fontSize: '14px',
-          margin: 0,
-          fontWeight: 'bold'
-        }}>
-          "{transcript}"
-        </p>
-      ) : (
-        <p style={{ 
-          color: '#6B7280',
-          fontSize: '13px',
-          margin: 0
-        }}>
-          Say a command...
-        </p>
-      )}
-    </div>
+          background: status === 'listening' ?
+            'rgba(204,34,34,0.15)' :
+            'rgba(0,79,49,0.3)',
+          color: status === 'listening' ?
+            '#FF6B6B' : '#00FF87',
+          border: `1px solid ${
+            status === 'listening' ?
+            'rgba(204,34,34,0.3)' :
+            'rgba(0,255,135,0.2)'
+          }`,
+          transition: 'all 0.2s ease',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px'
+        }}
+      >
+        {status === 'listening' ? (
+          <><MicOff size={16} /> Pause Recording</>
+        ) : (
+          <><Mic size={16} /> Resume Recording</>
+        )}
+      </button>
 
-    <p style={{
-      color: '#6B7280',
-      fontSize: '11px',
-      marginTop: '12px',
-      marginBottom: 0,
-      textAlign: 'center'
-    }}>
-      Tap mic again to stop
-    </p>
-  </div>
+      {/* HINT */}
+      <p style={{
+        color: '#374151',
+        fontSize: '11px',
+        textAlign: 'center',
+        marginTop: '12px',
+        marginBottom: 0
+      }}>
+        {status === 'listening' ?
+          'Tap mic button to pause • Click ✕ to stop' :
+          'Tap mic button to resume recording'
+        }
+      </p>
+    </div>
+  </>
 );
 
 const TopListeningBar = ({ isListening }: { isListening: boolean }) => (
@@ -164,14 +338,27 @@ const TopListeningBar = ({ isListening }: { isListening: boolean }) => (
   ) : null
 );
 
-export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps> = ({
+export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps & { isForceListening?: boolean; onToggleListening?: () => void }> = ({
   onNavigateHome,
   onNavigate,
   onSearch,
   onClearFilters,
-  onToggleDarkMode
+  onToggleDarkMode,
+  isForceListening,
+  onToggleListening,
+  onStatusChange
 }) => {
-  const [isListening, setIsListening] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'listening' | 'paused'>('idle');
+  const statusRef = useRef(status);
+  
+  useEffect(() => {
+    statusRef.current = status;
+    if (onStatusChange) onStatusChange(status);
+  }, [status]);
+
+  const isListening = status === 'listening';
+  const isPaused = status === 'paused';
+
   const [showHelp, setShowHelp] = useState(false);
   const [showMicInstructions, setShowMicInstructions] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -179,8 +366,6 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps> = ({
   const [language, setLanguage] = useState<'en-US' | 'si-LK'>('en-US');
   const [isSupported, setIsSupported] = useState(true);
   const recognitionRef = useRef<any>(null);
-  const timeoutRef = useRef<any>(null);
-  const longPressTimerRef = useRef<any>(null);
 
   const isPreviewEnv = 
     !window.location.hostname.includes('lankaproperty.lk') &&
@@ -194,58 +379,62 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps> = ({
     }
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = language;
 
     recognition.onstart = () => {
-      setIsListening(true);
+      setStatus('listening');
       setTranscript('');
       setLastAction(null);
     };
 
     recognition.onresult = (event: any) => {
-      const current = event.resultIndex;
-      const result = event.results[current][0].transcript;
-      setTranscript(result);
+      const results = event.results;
+      let finalTranscript = '';
+      let interimTranscript = '';
 
-      if (event.results[current].isFinal) {
-        processCommand(result.toLowerCase());
+      for (let i = event.resultIndex; i < results.length; ++i) {
+        if (results[i].isFinal) {
+          finalTranscript += results[i][0].transcript;
+          processCommand(finalTranscript.toLowerCase());
+          // After a command is recognized, we keep listening but clear transcript
+          setTranscript('');
+        } else {
+          interimTranscript += results[i][0].transcript;
+          setTranscript(interimTranscript);
+        }
       }
     };
 
     recognition.onerror = (event: any) => {
-      setIsListening(false);
+      console.error('Speech recognition error:', event.error);
       if (event.error === 'not-allowed') {
-        console.log('Mic not allowed - preview env');
-        return;
+        setShowMicInstructions(true);
       }
+      setStatus('idle');
+      if (onToggleListening) onToggleListening();
     };
 
     recognition.onend = () => {
-      setIsListening(false);
+      // If we are still in listening state but recognition ended naturally (e.g. silence), restart it unless we manually paused
+      if (statusRef.current === 'listening' && !isPreviewEnv) {
+        try {
+          recognition.start();
+        } catch (e) {
+            // Already started or other error
+        }
+      }
     };
 
     recognitionRef.current = recognition;
-  }, [language]);
+  }, [language, isPreviewEnv]);
 
   const startListening = async () => {
     if (!isSupported || isPreviewEnv) return;
     
-    // Check permission first
     try {
-      if (navigator.permissions && navigator.permissions.query) {
-        const permission = await navigator.permissions.query({ name: 'microphone' as any });
-        if (permission.state === 'denied') {
-          setShowMicInstructions(true);
-          return;
-        }
-      }
-      
-      // Request microphone access
       await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      // Permission granted, start recognition
       recognitionRef.current.start();
     } catch (err) {
       console.error('Failed to start recognition', err);
@@ -256,7 +445,31 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps> = ({
   const stopListening = () => {
     if (recognitionRef.current) {
       recognitionRef.current.stop();
+      setStatus('idle');
     }
+  };
+
+  useEffect(() => {
+    if (isForceListening && status === 'idle' && recognitionRef.current) {
+        startListening();
+    } else if (!isForceListening && status !== 'idle' && recognitionRef.current) {
+        stopListening();
+    }
+  }, [isForceListening]);
+
+  const handleStop = () => {
+    stopListening();
+    if (onToggleListening) onToggleListening();
+  };
+
+  const handlePause = () => {
+      recognitionRef.current?.stop();
+      setStatus('paused');
+  };
+
+  const handleResume = () => {
+      recognitionRef.current?.start();
+      setStatus('listening');
   };
 
   const processCommand = (command: string) => {
@@ -413,13 +626,20 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps> = ({
   return (
     <>
       <TopListeningBar isListening={isListening} />
-      {isListening && <SoundWaveRings />}
       
-      <div className="fixed bottom-24 right-8 z-[200] flex flex-col items-end gap-4">
+      <div className="fixed bottom-32 right-8 z-[200] flex flex-col items-end gap-4 pointer-events-none">
         {/* Voice Feedback Overlay */}
         <AnimatePresence>
-          {isListening && (
-            <ListeningOverlay transcript={transcript} />
+          {(status === 'listening' || status === 'paused') && (
+            <div className="pointer-events-auto">
+              <ListeningOverlay 
+                transcript={transcript} 
+                status={status === 'paused' ? 'paused' : 'listening'}
+                onPause={handlePause}
+                onResume={handleResume}
+                onStop={handleStop}
+              />
+            </div>
           )}
         </AnimatePresence>
 
@@ -438,7 +658,7 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps> = ({
           )}
         </AnimatePresence>
 
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-3 pointer-events-auto">
           {/* Language Switch */}
           <div className="bg-white p-1 rounded-full shadow-lg border border-gray-100 flex gap-1">
             <button 
@@ -453,28 +673,6 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps> = ({
             >
               සිං
             </button>
-          </div>
-
-          {/* Main Mic Button */}
-          <div className="relative group">
-            <button
-              onClick={handleMicClick}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                setShowHelp(true);
-              }}
-              className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 transform active:scale-95 z-[201] relative ${
-                !isSupported || isPreviewEnv ? 'bg-gray-200 cursor-not-allowed' :
-                isListening ? 'bg-[#CC2222] animate-[micPulse_1s_ease_infinite] shadow-[#CC2222]/30' : 'bg-brand-green hover:bg-brand-green-medium'
-              }`}
-            >
-              <Mic size={28} className="text-white" />
-            </button>
-            
-            {/* Tooltip */}
-            <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 bg-dark-navy text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl">
-              {isPreviewEnv ? 'Voice commands work on live site (lankaproperty.lk)' : (isSupported ? 'Click for Voice / Right-click for Help' : 'Voice not supported in this browser')}
-            </div>
           </div>
         </div>
 

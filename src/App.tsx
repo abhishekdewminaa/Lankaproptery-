@@ -9,6 +9,7 @@ import 'leaflet/dist/leaflet.css';
 import { Navbar } from "./components/home/Navbar";
 import { Feedback } from "./components/Feedback";
 import AdminPortal from './components/admin/AdminPortal';
+import FloatingActions from "./components/FloatingActions";
 
 const convertPrice = (priceStr: unknown) => {
   if (priceStr === null || priceStr === undefined || typeof priceStr !== 'string' || priceStr.toLowerCase().includes('contact')) return null;
@@ -8692,6 +8693,9 @@ function App() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isVoiceListening, setIsVoiceListening] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState<'idle' | 'listening' | 'paused'>('idle');
 
   useEffect(() => {
     if (isDarkMode) {
@@ -9365,31 +9369,6 @@ function App() {
         propertyTitle={currentView.type === 'detail' ? currentView.data.title : 'Selected Property'}
       />
 
-      <a 
-        href="https://wa.me/94773951560" 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="fixed bottom-24 right-6 z-[150] group flex flex-col items-end gap-3"
-        title="Chat with Lalith on WhatsApp"
-      >
-        <span className="bg-white text-dark-navy text-xs font-bold py-2 px-4 rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none compact-transition whitespace-nowrap border border-gray-100">
-          Chat with Lalith
-        </span>
-        <div className="relative">
-          <div className="w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 compact-transition overflow-hidden">
-            <img 
-              src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200" 
-              className="w-full h-full object-cover group-hover:opacity-0 compact-transition" 
-              alt="Lalith"
-            />
-            <MessageCircle size={30} fill="currentColor" className="absolute opacity-0 group-hover:opacity-100 compact-transition" />
-          </div>
-          <div className="absolute -top-1 -right-1 w-5 h-5 bg-[#25D366] rounded-full border-2 border-white flex items-center justify-center p-1">
-            <MessageCircle size={10} fill="currentColor" className="text-white" />
-          </div>
-        </div>
-      </a>
-
       <AnimatePresence>
         {showScrollTop && (
           <motion.button
@@ -9397,14 +9376,24 @@ function App() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0, y: 20 }}
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 w-12 h-12 bg-brand-green text-white rounded-full flex items-center justify-center shadow-xl hover:bg-brand-green-dark compact-transition z-[100]"
+            className="fixed bottom-24 right-8 w-12 h-12 bg-white text-brand-green border border-gray-100 rounded-full flex items-center justify-center shadow-xl hover:bg-brand-green hover:text-white compact-transition z-[90]"
           >
             <ArrowUp size={20} />
           </motion.button>
         )}
       </AnimatePresence>
 
+      <FloatingActions 
+        onOpenChat={() => setIsChatOpen(true)}
+        onStartVoice={() => setIsVoiceListening(!isVoiceListening)}
+        whatsappNumber="94773951560"
+        voiceStatus={voiceStatus}
+      />
+
       <VoiceCommandPanel 
+        isForceListening={isVoiceListening}
+        onToggleListening={() => setIsVoiceListening(false)}
+        onStatusChange={(status) => setVoiceStatus(status)}
         onNavigateHome={navigateHome}
         onNavigate={(view) => setCurrentView(view)}
         onSearch={handleVoiceSearch}
@@ -9419,7 +9408,7 @@ function App() {
           window.dispatchEvent(new CustomEvent('voice-command', { detail: cmd }));
         }}
       />
-      <AIChatbot />
+      <AIChatbot isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
       <Toaster position="top-right" />
     </>
   );

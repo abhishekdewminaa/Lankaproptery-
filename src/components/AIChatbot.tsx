@@ -8,8 +8,7 @@ interface Message {
   content: string;
 }
 
-export const AIChatbot = () => {
-  const [isOpen, setIsOpen] = useState(false);
+export const AIChatbot = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { role: 'bot', content: 'Hi there! I\'m your LankaProperty AI assistant. How can I help you find your dream home today?' }
@@ -45,7 +44,7 @@ export const AIChatbot = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[999] flex flex-col items-end">
+    <div className="fixed bottom-24 right-6 z-[999] flex flex-col items-end">
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -82,7 +81,7 @@ export const AIChatbot = () => {
                   {isMinimized ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
                 </button>
                 <button 
-                  onClick={() => setIsOpen(false)}
+                  onClick={onClose}
                   className="p-1.5 hover:bg-white/10 rounded-md transition-colors"
                 >
                   <X size={16} />
@@ -153,25 +152,6 @@ export const AIChatbot = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => {
-          if (!isOpen) {
-            setIsOpen(true);
-            setIsMinimized(false);
-          } else {
-            setIsMinimized(false);
-          }
-        }}
-        className={`w-14 h-14 rounded-full flex items-center justify-center text-white shadow-2xl shadow-brand-green/20 transition-all ${isOpen && !isMinimized ? 'bg-primary' : 'bg-brand-green'}`}
-      >
-        {isOpen && !isMinimized ? <MessageSquare size={24} /> : <MessageSquare size={24} />}
-        {!isOpen && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-pulse" />
-        )}
-      </motion.button>
     </div>
   );
 };
