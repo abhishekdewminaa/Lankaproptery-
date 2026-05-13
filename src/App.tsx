@@ -3620,6 +3620,9 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
   const [selectedTier, setSelectedTier] = useState<"FREE" | "PREMIUM PRO" | "ELITE PRO">(initialPackage);
   const [images, setImages] = useState<string[]>([]);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number, total: number, filename: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [couponCode, setCouponCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState(0);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
@@ -3751,11 +3754,88 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
     }, 800);
   };
 
-  const handleImageUpload = () => {
-    if (images.length < limits[selectedTier]) {
-      // Simulate adding an image
-      setImages([...images, `https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=400&h=300&random=${Date.now()}`]);
+  const handleMultipleImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    
+    if (files.length === 0) return;
+
+    // Sort files alphabetically/by name
+    // so they upload in order 1,2,3...
+    const sortedFiles = files.sort((a, b) => 
+      a.name.localeCompare(b.name)
+    );
+
+    // Max 12 photos total
+    const availableSlots = 12 - images.length;
+    const filesToUpload = sortedFiles.slice(0, availableSlots);
+
+    if (filesToUpload.length === 0) {
+      toast.error('Maximum 12 photos reached!');
+      return;
     }
+
+    // Show how many selected
+    toast(`📸 Uploading ${filesToUpload.length} photos in order...`);
+
+    setUploading(true);
+
+    // Upload all files in sequence
+    // maintaining order 1, 2, 3...
+    const uploadedUrls: string[] = [];
+
+    for (let i = 0; i < filesToUpload.length; i++) {
+      const file = filesToUpload[i];
+      
+      try {
+        // Show progress
+        setUploadProgress({
+          current: i + 1,
+          total: filesToUpload.length,
+          filename: file.name
+        });
+
+        const url = await uploadSingleImage(file, i);
+        uploadedUrls.push(url);
+
+        // Add to grid immediately as uploaded
+        setImages(prev => [...prev, url]);
+
+      } catch (err) {
+        console.error('Failed to upload:', file.name);
+      }
+    }
+
+    setUploading(false);
+    setUploadProgress(null);
+
+    toast.success(`✅ ${uploadedUrls.length} photos uploaded successfully!`);
+  };
+
+  const uploadSingleImage = async (file: File, index: number) => {
+    // Create unique filename preserving order
+    const ext = file.name.split('.').pop();
+    const fileName = `properties/${Date.now()}_${
+      String(index).padStart(2, '0')
+    }.${ext}`;
+
+    const { error } = await supabase.storage
+      .from('property-images') // As per user request
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) throw error;
+
+    const { data: urlData } = supabase.storage
+      .from('property-images')
+      .getPublicUrl(fileName);
+
+    return urlData.publicUrl;
+  };
+
+  const handleImageUpload = () => {
+    fileInputRef.current?.click();
   };
 
   const removeImage = (index: number) => {
@@ -4112,63 +4192,251 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
                 )}
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {images.map((img, idx) => (
-                  <div key={idx} className="relative aspect-video rounded-2xl overflow-hidden group border border-gray-200 shadow-sm">
-                    <img src={img} alt={`Upload ${idx}`} className="w-full h-full object-cover" />
-                    <button 
-                      onClick={() => removeImage(idx)}
-                      className="absolute top-2 right-2 p-2 bg-brand-red text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 shadow-lg"
-                    >
-                      <Plus size={16} className="rotate-45" />
-                    </button>
-                    {idx === 0 && (
-                      <div className="absolute bottom-2 left-2 bg-brand-green text-white text-[8px] font-black uppercase px-2 py-1 rounded-md shadow-lg">
-                        Thumbnail
-                      </div>
+              {uploading && uploadProgress && (
+                <div style={{
+                  background: '#E8F5E9',
+                  border: '1px solid #004F31',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  marginBottom: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}>
+                  {/* Spinner */}
+                  <div style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    border: '3px solid #E8F5E9',
+                    borderTop: '3px solid #004F31',
+                    animation: 'spin 0.8s linear infinite'
+                  }} />
+                  
+                  <div style={{ flex: 1 }}>
+                    <p style={{
+                      color: '#004F31',
+                      fontWeight: '600',
+                      fontSize: '14px',
+                      margin: '0 0 4px 0'
+                    }}>
+                      Uploading {uploadProgress.current} of {
+                        uploadProgress.total
+                      } photos...
+                    </p>
+                    
+                    {/* Progress bar */}
+                    <div style={{
+                      background: '#C8E6C9',
+                      borderRadius: '4px',
+                      height: '6px',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        background: '#004F31',
+                        height: '100%',
+                        width: `${(uploadProgress.current / 
+                          uploadProgress.total) * 100}%`,
+                        transition: 'width 0.3s ease',
+                        borderRadius: '4px'
+                      }} />
+                    </div>
+
+                    <p style={{
+                      color: '#6B7280',
+                      fontSize: '11px',
+                      margin: '4px 0 0 0'
+                    }}>
+                      {uploadProgress.filename}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {Array.from({ length: 12 }, (_, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      border: images[i] ? 
+                        '2px solid #004F31' : 
+                        '2px dashed #D1D5DB',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      aspectRatio: '4/3',
+                      position: 'relative',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onClick={() => {
+                      if (!images[i] && !uploading) {
+                        // Click empty slot = open file picker
+                        fileInputRef.current?.click();
+                      }
+                    }}
+                  >
+                    {images[i] ? (
+                      <>
+                        {/* Uploaded image */}
+                        <img
+                          src={images[i]}
+                          alt={`Photo ${i + 1}`}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            animation: 'fadeIn 0.4s ease'
+                          }}
+                        />
+
+                        {/* Slot number badge */}
+                        <div style={{
+                          position: 'absolute',
+                          top: '8px',
+                          left: '8px',
+                          background: i === 0 ? 
+                            '#004F31' : 'rgba(0,0,0,0.6)',
+                          color: 'white',
+                          padding: '2px 8px',
+                          borderRadius: '20px',
+                          fontSize: '11px',
+                          fontWeight: '700'
+                        }}>
+                          {i === 0 ? 'MAIN' : i + 1}
+                        </div>
+
+                        {/* Delete button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeImage(i);
+                          }}
+                          style={{
+                            position: 'absolute',
+                            top: '8px',
+                            right: '8px',
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            background: 'rgba(204,34,34,0.9)',
+                            border: 'none',
+                            color: 'white',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {/* Empty slot */}
+                        <div style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: '100%',
+                          gap: '8px',
+                          color: '#9CA3AF'
+                        }}>
+                          <span style={{ fontSize: '24px' }}>
+                            📷
+                          </span>
+                          <span style={{ 
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            letterSpacing: '0.5px'
+                          }}>
+                            {i === 0 ? 'ADD MAIN' : `ADD PHOTO`}
+                          </span>
+                        </div>
+
+                        {/* Slot number */}
+                        <div style={{
+                          position: 'absolute',
+                          top: '8px',
+                          left: '8px',
+                          background: 'rgba(0,0,0,0.15)',
+                          color: '#9CA3AF',
+                          padding: '2px 8px',
+                          borderRadius: '20px',
+                          fontSize: '11px',
+                          fontWeight: '700'
+                        }}>
+                          {i === 0 ? 'MAIN' : i + 1}
+                        </div>
+                      </>
                     )}
                   </div>
                 ))}
-                
-                {images.length < limits[selectedTier] && (
-                  <button 
-                    onClick={handleImageUpload}
-                    className="aspect-video bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-center p-4 hover:border-brand-green hover:bg-brand-green/5 transition-all group"
-                  >
-                    <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-gray-300 mb-2 group-hover:text-brand-green transition-all">
-                      <Camera size={20} />
-                    </div>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Add Photo</p>
-                  </button>
-                )}
               </div>
 
-              {images.length === 0 && (
-                <div onClick={handleImageUpload} className="aspect-video bg-gray-50 border-2 border-dashed border-gray-200 rounded-[32px] flex flex-col items-center justify-center text-center p-8 group cursor-pointer hover:border-brand-green hover:bg-brand-green/5 compact-transition">
-                  <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-gray-300 mb-4 group-hover:text-brand-green compact-transition">
-                    <Camera size={32} />
-                  </div>
-                  <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Upload your property photos<br/><span className="text-[10px] font-medium grayscale">Click here to add images ({images.length}/{limits[selectedTier]})</span></p>
-                </div>
-              )}
+              <div className="flex flex-col gap-4">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  style={{ display: 'none' }}
+                  onChange={handleMultipleImages}
+                />
 
-              {images.length >= limits[selectedTier] && (
-                <div className="bg-brand-green/5 border border-brand-green/20 rounded-2xl p-4 flex items-center gap-4">
-                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-brand-green">
-                    <CheckCircle size={20} />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={images.length >= 12 || uploading}
+                  style={{
+                    background: '#004F31',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '10px',
+                    padding: '10px 20px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: images.length >= 12 || uploading ? 
+                      'not-allowed' : 'pointer',
+                    opacity: images.length >= 12 || uploading ? 0.5 : 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    width: 'fit-content'
+                  }}
+                >
+                  + ADD MORE
+                  {images.length > 0 && (
+                    <span style={{
+                      background: 'rgba(255,255,255,0.2)',
+                      borderRadius: '20px',
+                      padding: '1px 8px',
+                      fontSize: '12px'
+                    }}>
+                      {images.length} / 12
+                    </span>
+                  )}
+                </button>
+
+                {images.length >= limits[selectedTier] && (
+                  <div className="bg-brand-green/5 border border-brand-green/20 rounded-2xl p-4 flex items-center gap-4">
+                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-brand-green">
+                      <CheckCircle size={20} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black text-dark-navy uppercase tracking-widest">Image Limit Reached</h4>
+                      <p className="text-[10px] font-bold text-gray-500">Upgrade to a higher plan to add more photos.</p>
+                    </div>
+                    <button 
+                      onClick={() => setStep(1)}
+                      className="ml-auto px-4 py-2 bg-brand-green text-white text-[10px] font-black uppercase rounded-lg shadow-sm"
+                    >
+                      Upgrade
+                    </button>
                   </div>
-                  <div>
-                    <h4 className="text-xs font-black text-dark-navy uppercase tracking-widest">Image Limit Reached</h4>
-                    <p className="text-[10px] font-bold text-gray-500">Upgrade to a higher plan to add more photos.</p>
-                  </div>
-                  <button 
-                    onClick={() => setStep(1)}
-                    className="ml-auto px-4 py-2 bg-brand-green text-white text-[10px] font-black uppercase rounded-lg shadow-sm"
-                  >
-                    Upgrade
-                  </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
 

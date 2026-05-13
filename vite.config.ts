@@ -22,11 +22,15 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       hmr: {
-        overlay: false
+        overlay: false,
+        timeout: 30000,
+        protocol: 'ws',
+        host: 'localhost'
       }
     },
     build: {
       outDir: 'dist',
+      sourcemap: false,
       rollupOptions: {
         output: {
           manualChunks: undefined
