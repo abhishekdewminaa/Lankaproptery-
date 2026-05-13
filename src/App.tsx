@@ -9611,19 +9611,21 @@ function App() {
   )}
 </AnimatePresence>
 
-      <Footer 
-        onNavigateHome={navigateHome} 
-        onShowContact={() => setCurrentView({ type: 'contact' })} 
-        onShowAbout={() => setCurrentView({ type: 'about' })} 
-        onShowPackages={() => setCurrentView({ type: 'packages' })} 
-        onShowPromotion={() => setCurrentView({ type: 'promotion' })}
-        onShowWanted={() => setCurrentView({ type: 'wanted' })}
-        onShowSecretLogin={() => {
-          window.history.pushState({}, '', '/admin-lk2026');
-          setCurrentView({ type: 'secret_login' });
-          window.scrollTo({ top: 0, behavior: 'instant' });
-        }}
-      />
+      {!['secret_login', 'agent_access', 'agent_publish', 'agent_listings', 'agent_only_listings', 'featured_projects_admin', 'inquiries'].includes(currentView.type) && (
+        <Footer 
+          onNavigateHome={navigateHome} 
+          onShowContact={() => setCurrentView({ type: 'contact' })} 
+          onShowAbout={() => setCurrentView({ type: 'about' })} 
+          onShowPackages={() => setCurrentView({ type: 'packages' })} 
+          onShowPromotion={() => setCurrentView({ type: 'promotion' })}
+          onShowWanted={() => setCurrentView({ type: 'wanted' })}
+          onShowSecretLogin={() => {
+            window.history.pushState({}, '', '/admin-lk2026');
+            setCurrentView({ type: 'secret_login' });
+            window.scrollTo({ top: 0, behavior: 'instant' });
+          }}
+        />
+      )}
 
       <MortgageCalculatorModal 
         isOpen={showCalculator} 
