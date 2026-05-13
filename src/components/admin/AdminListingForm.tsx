@@ -36,9 +36,16 @@ import {
   FileText,
   Bot,
   Zap,
-  RotateCcw
+  RotateCcw,
+  Languages
 } from 'lucide-react';
 import { GoogleGenAI, Type } from "@google/genai";
+import { 
+  analyzePropertyImage, 
+  extractPropertyDetails, 
+  translateDescription,
+  getMarketAnalysis 
+} from '../../services/geminiService';
 import { 
   DndContext, 
   closestCenter, 
@@ -70,6 +77,88 @@ const DefaultIcon = L.icon({
   iconAnchor: [12, 41],
 });
 L.Marker.prototype.options.icon = DefaultIcon;
+
+const Speedometer = ({ position = 50 }) => {
+  const angle = (position / 100) * 180 - 90;
+  
+  const needleX = 150 + 100 * Math.cos((angle - 90) * Math.PI / 180);
+  const needleY = 150 + 100 * Math.sin((angle - 90) * Math.PI / 180);
+
+  return (
+    <svg viewBox="0 0 300 170" width="300" height="170">
+      <defs>
+        <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#EF4444"/>
+          <stop offset="25%" stopColor="#F59E0B"/>
+          <stop offset="50%" stopColor="#10B981"/>
+          <stop offset="75%" stopColor="#F59E0B"/>
+          <stop offset="100%" stopColor="#EF4444"/>
+        </linearGradient>
+      </defs>
+      <path
+        d="M 20 150 A 130 130 0 0 1 280 150"
+        fill="none"
+        stroke="url(#gaugeGrad)"
+        strokeWidth="25"
+        strokeLinecap="round"
+      />
+      <line
+        x1="150"
+        y1="150"
+        x2={needleX}
+        y2={needleY}
+        stroke="#1F2937"
+        strokeWidth="3"
+        strokeLinecap="round"
+        style={{ transition: 'x2 1s ease, y2 1s ease' }}
+      />
+      <circle cx="150" cy="150" r="8" fill="#1F2937" />
+      <text x="10" y="168" fontSize="10" fill="#6B7280" fontWeight="700">Too Low</text>
+      <text x="55" y="130" fontSize="10" fill="#6B7280" fontWeight="700">Low</text>
+      <text x="138" y="115" fontSize="10" fill="#6B7280" fontWeight="700">Fair</text>
+      <text x="210" y="130" fontSize="10" fill="#6B7280" fontWeight="700">High</text>
+      <text x="240" y="168" fontSize="10" fill="#6B7280" fontWeight="700">Too High</text>
+    </svg>
+  );
+};
+
+const verdictConfig = {
+  too_low: {
+    color: '#EF4444',
+    bg: '#FEE2E2',
+    icon: '⬇️',
+    text: 'Too Low',
+    advice: 'Consider raising your price'
+  },
+  low: {
+    color: '#F59E0B',
+    bg: '#FEF3C7',
+    icon: '↙️',
+    text: 'Below Market',
+    advice: 'Price is slightly below market'
+  },
+  fair: {
+    color: '#10B981',
+    bg: '#D1FAE5',
+    icon: '✅',
+    text: 'Fair Price',
+    advice: 'Great price for this market'
+  },
+  high: {
+    color: '#F59E0B',
+    bg: '#FEF3C7',
+    icon: '↗️',
+    text: 'Above Market',
+    advice: 'Price is slightly above market'
+  },
+  too_high: {
+    color: '#EF4444',
+    bg: '#FEE2E2',
+    icon: '⬆️',
+    text: 'Too High',
+    advice: 'Consider reducing your price'
+  }
+};
 
 interface AdminListingFormProps {
   user: any;
@@ -132,8 +221,8 @@ interface SortablePhotoSlotProps {
   onRemove: (index: number) => void;
 }
 
-const SortablePhotoSlot: React.FC<SortablePhotoSlotProps> = ({ 
-  slot, index, onUpload, onRemove 
+const SortablePhotoSlot: React.FC<SortablePhotoSlotProps & { analysis?: any }> = ({ 
+  slot, index, onUpload, onRemove, analysis 
 }) => {
   const {
     attributes,
@@ -183,6 +272,12 @@ const SortablePhotoSlot: React.FC<SortablePhotoSlotProps> = ({
         <>
           <img src={slot.url} alt={`Photo ${index + 1}`} className="w-full h-full object-cover select-none" />
           
+          {analysis && (
+            <div className="absolute bottom-0 left-0 right-0 bg-brand-green/90 text-white p-2 text-[10px] font-bold z-20">
+              🤖 AI detected: {analysis.features.join(', ')}
+            </div>
+          )}
+
           {/* Hover Overlay */}
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-grab active:cursor-grabbing photo-overlay z-10">
             <div className="flex flex-col items-center gap-1">
@@ -233,6 +328,8 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
   const [importProgress, setImportProgress] = useState('');
   const [importResults, setImportResults] = useState<any>(null);
   const [importSuccess, setImportSuccess] = useState(false);
+  const [imageAnalysis, setImageAnalysis] = useState<Record<number, any>>({});
+  const [isTranslating, setIsTranslating] = useState<string | null>(null);
 
   const PROGRESS_MESSAGES = [
     "🔍 Reading property details...",
@@ -266,45 +363,8 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
     setImportResults(null);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: `Extract ALL details from this real estate listing text. Respond ONLY with JSON.
-
-Text: ${pastedText}
-
-Schema:
-{
-  "listing_title": "string or null",
-  "listing_type": "For Sale | For Rent | For Lease",
-  "property_category": "House | Land | Apartment | Building | Commercial | Villa | Farm Land | Hotel",
-  "district": "string (one of: ${DISTRICTS.join(', ')})",
-  "city": "string or null",
-  "price_lkr": number or null,
-  "is_negotiable": boolean,
-  "rooms": number or null,
-  "bathrooms": number or null,
-  "floors": number or null,
-  "land_area": "string or null",
-  "floor_area": "string or null",
-  "mobile": "string or null",
-  "landline": "string or null",
-  "property_description": "string or null",
-  "additional_info": "string or null",
-  "confidence": number (0-100)
-}
-
-RULES:
-- price_lkr = number only (e.g. 45000000)
-- mobile starts with 07
-- landline starts with 011
-- Translate common Sinhala terms if present`,
-        config: {
-          responseMimeType: "application/json"
-        }
-      });
-
-      const extracted = JSON.parse(response.text || '{}');
+      setImportProgress("🤖 Gemini is thinking...");
+      const extracted = await extractPropertyDetails(pastedText);
       fillAllFormFields(extracted);
     } catch (err) {
       console.error(err);
@@ -334,6 +394,7 @@ RULES:
     if (data.floor_area) newFormData.floor_area = data.floor_area;
     if (data.mobile) newFormData.mobile = data.mobile;
     if (data.landline) newFormData.landline = data.landline;
+    if (data.google_maps_link) newFormData.google_maps_link = data.google_maps_link;
     if (data.property_description) newFormData.description = data.property_description;
     if (data.additional_info) newFormData.additional_info = data.additional_info;
 
@@ -400,6 +461,40 @@ RULES:
     }))
   );
 
+  const [calculating, setCalculating] = useState(false);
+  const [marketData, setMarketData] = useState<any>(null);
+
+  const calculateMarketValue = async () => {
+    if (!formData.district || !formData.property_category || !formData.price_lkr) return;
+    
+    setCalculating(true);
+    try {
+      const result = await getMarketAnalysis(formData);
+      if (result) setMarketData(result);
+    } catch (err) {
+      console.error('Calculation failed:', err);
+      toast.error('Market analysis failed');
+    } finally {
+      setCalculating(false);
+    }
+  };
+
+  useEffect(() => {
+    if (formData.district && formData.property_category && formData.price_lkr && parseFloat(formData.price_lkr.toString()) > 0) {
+      const timer = setTimeout(() => {
+        calculateMarketValue();
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [
+    formData.district,
+    formData.property_category,
+    formData.price_lkr,
+    formData.rooms,
+    formData.land_area,
+    formData.floor_area
+  ]);
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -417,7 +512,7 @@ RULES:
       
       const reordered = arrayMove(prev, oldIndex, newIndex);
       
-      return reordered.map((img, idx) => ({
+      return reordered.map((img: { id: string, order: number, url: string | null, file: File | null }, idx: number) => ({
         ...img,
         order: idx + 1
       }));
@@ -439,6 +534,29 @@ RULES:
     setImages(prev => prev.map((img, idx) => 
       idx === slotIndex ? { ...img, url: previewUrl, file: renamedFile } : img
     ));
+
+    // Vision Analysis
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        const base64 = reader.result as string;
+        const analysis = await analyzePropertyImage(base64);
+        if (analysis) {
+          setImageAnalysis(prev => ({ ...prev, [slotIndex]: analysis }));
+          
+          // If description is empty and we have a suggested sentence
+          setFormData(prev => {
+            if (!prev.description && analysis.description) {
+              return { ...prev, description: analysis.description };
+            }
+            return prev;
+          });
+        }
+      };
+    } catch (e) {
+      console.error("Image analysis failed", e);
+    }
 
     // Upload to Supabase if editing
     if (initialData?.id) {
@@ -707,10 +825,15 @@ RULES:
           className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-8 property-images-section"
         >
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+            >
               <h3 className="text-2xl font-black text-[#004F31] tracking-tight">Property Images</h3>
               <p className="text-sm font-bold text-gray-400 mt-1">Drag to reorder. First image = main photo. Maximum 12 photos.</p>
-            </div>
+            </motion.div>
             <div className="flex items-center gap-4">
               <span className="text-xs font-black text-gray-400 uppercase tracking-widest">{photoCount} / 12 photos</span>
             </div>
@@ -756,6 +879,7 @@ RULES:
                     index={index}
                     onUpload={handleUpload}
                     onRemove={handleRemove}
+                    analysis={imageAnalysis[index]}
                   />
                 ))}
               </SortableContext>
@@ -925,6 +1049,96 @@ RULES:
           </div>
         </motion.section>
 
+        {/* MARKET PRICE ANALYSIS SECTION */}
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-8"
+        >
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">📊</span>
+                <h3 className="text-2xl font-black text-[#004F31] tracking-tight">Market Price Analysis</h3>
+              </div>
+              <p className="text-sm font-bold text-gray-400 mt-1">See how your price compares to current market value.</p>
+            </div>
+            {marketData && (
+              <button 
+                onClick={calculateMarketValue}
+                disabled={calculating}
+                className="flex items-center gap-2 px-4 py-2 bg-[#F0F4F0] rounded-xl text-[10px] font-black uppercase tracking-widest text-[#004F31] hover:bg-white transition-all shadow-sm"
+              >
+                <RotateCcw size={14} className={calculating ? 'animate-spin' : ''} />
+                Recalculate
+              </button>
+            )}
+          </div>
+
+          {!formData.district || !formData.property_category || !formData.price_lkr ? (
+            <div className="py-10 text-center border-2 border-dashed border-gray-100 rounded-3xl">
+              <p className="text-sm font-medium text-gray-400 italic">Fill in property type, location and price above to see market analysis</p>
+            </div>
+          ) : calculating ? (
+            <div className="py-20 flex flex-col items-center justify-center gap-4">
+              <Loader2 size={40} className="text-[#004F31] animate-spin" />
+              <p className="text-xs font-black text-[#004F31] uppercase tracking-widest animate-pulse">Analyzing market data...</p>
+            </div>
+          ) : marketData ? (
+            <div className="space-y-10">
+              <div className="flex flex-col items-center justify-center py-6 bg-gray-50 rounded-3xl relative overflow-hidden">
+                <div className="text-center mb-4">
+                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Market Position</p>
+                </div>
+                <Speedometer position={marketData.gauge_position} />
+                <div className="mt-4 text-center">
+                  <span 
+                    className="px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest shadow-sm"
+                    style={{ 
+                      backgroundColor: verdictConfig[marketData.rating as keyof typeof verdictConfig]?.bg || '#F3F4F6',
+                      color: verdictConfig[marketData.rating as keyof typeof verdictConfig]?.color || '#6B7280'
+                    }}
+                  >
+                    {verdictConfig[marketData.rating as keyof typeof verdictConfig]?.icon} {verdictConfig[marketData.rating as keyof typeof verdictConfig]?.text}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div className="p-6 bg-white border border-gray-100 rounded-2xl shadow-sm text-center">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Market Range</p>
+                  <p className="text-sm font-black text-[#004F31]">Rs. {(marketData.market_min / 1000000).toFixed(1)}M - {(marketData.market_max / 1000000).toFixed(1)}M</p>
+                  <p className="text-[9px] font-bold text-gray-400 mt-1">Similar properties</p>
+                </div>
+                <div className="p-6 bg-white border border-gray-100 rounded-2xl shadow-sm text-center">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Your Price</p>
+                  <p className="text-sm font-black" style={{ color: verdictConfig[marketData.rating as keyof typeof verdictConfig]?.color }}>
+                    Rs. {parseInt(formData.price_lkr.toString()).toLocaleString()}
+                  </p>
+                  <p className="text-[9px] font-bold text-gray-400 mt-1">Listing price</p>
+                </div>
+                <div className="p-6 bg-white border border-gray-100 rounded-2xl shadow-sm text-center">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Verdict</p>
+                  <p className="text-sm font-black text-gray-800">{marketData.verdict}</p>
+                  <p className="text-[9px] font-bold text-gray-400 mt-1">AI Recommendation</p>
+                </div>
+              </div>
+
+              <div className="p-6 bg-[#D1FAE5] rounded-2xl flex items-start gap-4">
+                <span className="text-xl">💡</span>
+                <p className="text-sm font-medium text-[#004F31] leading-relaxed">
+                  {marketData.advice}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="py-20 flex flex-col items-center justify-center gap-4">
+               <button onClick={calculateMarketValue} className="px-8 py-3 bg-[#004F31] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg">Start Analysis</button>
+            </div>
+          )}
+        </motion.section>
+
         {/* SECTION 4: PROPERTY SPECIFICATIONS */}
         <motion.section 
           initial={{ opacity: 0, y: 20 }}
@@ -1000,6 +1214,36 @@ RULES:
             <div className="space-y-4">
               <div className="flex justify-between items-end">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Description</label>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={async () => {
+                      if (!formData.description) return;
+                      setIsTranslating('sinhala');
+                      const trans = await translateDescription(formData.description, 'sinhala');
+                      if (trans) setFormData({ ...formData, description: formData.description + "\n\n(Sinhala Translation):\n" + trans });
+                      setIsTranslating(null);
+                    }}
+                    disabled={!!isTranslating}
+                    className="flex items-center gap-1.5 px-3 py-1 bg-brand-green/5 text-brand-green text-[10px] font-black uppercase rounded-lg hover:bg-brand-green hover:text-white transition-all disabled:opacity-50"
+                  >
+                    {isTranslating === 'sinhala' ? <Loader2 size={12} className="animate-spin" /> : <Languages size={12} />}
+                    To Sinhala
+                  </button>
+                  <button 
+                    onClick={async () => {
+                      if (!formData.description) return;
+                      setIsTranslating('tamil');
+                      const trans = await translateDescription(formData.description, 'tamil');
+                      if (trans) setFormData({ ...formData, description: formData.description + "\n\n(Tamil Translation):\n" + trans });
+                      setIsTranslating(null);
+                    }}
+                    disabled={!!isTranslating}
+                    className="flex items-center gap-1.5 px-3 py-1 bg-brand-green/5 text-brand-green text-[10px] font-black uppercase rounded-lg hover:bg-brand-green hover:text-white transition-all disabled:opacity-50"
+                  >
+                    {isTranslating === 'tamil' ? <Loader2 size={12} className="animate-spin" /> : <Languages size={12} />}
+                    To Tamil
+                  </button>
+                </div>
                 <span className="text-[9px] font-black uppercase tracking-widest text-gray-300">{formData.description.length} chars</span>
               </div>
               <textarea 
@@ -1154,31 +1398,6 @@ RULES:
                     >
                       <div className={`w-2 h-2 rounded-full ${stat.color}`} />
                       {stat.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Package Tier</label>
-                <div className="flex flex-col gap-3">
-                  {[
-                    { id: 'Starter Free', label: 'Starter Free', desc: 'Basic listing access' },
-                    { id: 'Premium Pro', label: 'Premium Pro', desc: 'Better exposure & features' },
-                    { id: 'Elite Pro', label: 'Elite Pro', desc: 'Maximum reach & VIP support' }
-                  ].map(tier => (
-                    <button 
-                      key={tier.id}
-                      onClick={() => setFormData({...formData, package_tier: tier.id})}
-                      className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${formData.package_tier === tier.id ? 'bg-[#004F31]/5 border-[#004F31]' : 'border-admin-border bg-white hover:bg-gray-50'}`}
-                    >
-                      <div className="text-left">
-                        <div className={`text-xs font-black uppercase tracking-widest ${formData.package_tier === tier.id ? 'text-[#004F31]' : 'text-admin-text-dark'}`}>{tier.label}</div>
-                        <div className="text-[10px] font-bold text-gray-400">{tier.desc}</div>
-                      </div>
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.package_tier === tier.id ? 'border-[#004F31]' : 'border-gray-200'}`}>
-                         {formData.package_tier === tier.id && <div className="w-2.5 h-2.5 rounded-full bg-[#004F31]" />}
-                      </div>
                     </button>
                   ))}
                 </div>

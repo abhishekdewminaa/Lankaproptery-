@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, Component } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { GoogleGenAI, Type } from "@google/genai";
 import { supabase } from "./supabaseClient";
 import { motion, AnimatePresence } from "motion/react";
@@ -12,8 +12,8 @@ import AdminPortal from './components/admin/AdminPortal';
 const USD_RATE = 300;
 const EUR_RATE = 325;
 
-const convertPrice = (priceStr: string) => {
-  if (!priceStr || priceStr.toLowerCase().includes('contact')) return null;
+const convertPrice = (priceStr: string | null | undefined) => {
+  if (!priceStr || typeof priceStr !== 'string' || priceStr.toLowerCase().includes('contact')) return null;
   
   // Extract number
   const numericStr = priceStr.replace(/[^0-9]/g, '');
@@ -140,7 +140,7 @@ import { ChartContainer } from './components/ChartContainer';
 
 import { Toaster, toast } from 'react-hot-toast';
 
-import { translateToSinhala } from "./services/geminiService";
+import { translateDescription } from "./services/geminiService";
 import PropertyWanted from "./components/PropertyWanted";
 import CustomerInquiries from "./components/CustomerInquiries";
 import LiveVisitorTracking from "./components/LiveVisitorTracking";
@@ -148,7 +148,9 @@ import { HomeRedesign } from "./components/home/HomeRedesign";
 import { VoiceCommandPanel } from './components/VoiceCommandPanel';
 import { CategoryPage } from "./components/CategoryPage";
 import { PropertyDetail } from "./components/PropertyDetail";
+import { AIChatbot } from "./components/AIChatbot";
 import { useProperties, Property } from "./hooks/useProperties";
+import { AppErrorBoundary } from "./components/AppErrorBoundary";
 
 export const getDisplayViews = (property: any, isAdmin: boolean): string => {
   if (isAdmin) {
@@ -536,7 +538,7 @@ const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry:
       const parsePrice = (priceStr: string | number) => {
         if (!priceStr) return 0;
         if (typeof priceStr === 'number') return priceStr;
-        return parseInt(priceStr.toString().replace(/[^0-9]/g, ''), 10) || 0;
+        return parseInt(String(priceStr || '0').replace(/[^0-9]/g, ''), 10) || 0;
       };
 
       const propPrice = parsePrice(p.price || p.price_lkr || 0);
@@ -550,8 +552,8 @@ const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry:
       }
 
       if (beds !== 'Any Beds') {
-        const bedVal = parseInt(beds.replace(/[^0-9]/g, '')) || 0;
-        const propBeds = parseInt((p.rooms || p.bedrooms || '').toString().replace(/[^0-9]/g, '')) || 0;
+        const bedVal = parseInt(String(beds || '0').replace(/[^0-9]/g, '')) || 0;
+        const propBeds = parseInt(String(p.rooms || p.bedrooms || '').replace(/[^0-9]/g, '')) || 0;
         if (propBeds < bedVal) return false;
       }
 
@@ -566,7 +568,8 @@ const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry:
       query = query.eq('listing_type', activeStatus);
       
       if (propertyType !== 'All Types') {
-        query = query.ilike('property_category', `%${propertyType.replace(/[^a-zA-Z\s]/g, '').trim()}%`);
+        const cat = propertyType.replace(/[^a-zA-Z\s]/g, '').trim();
+        query = query.ilike('property_category', `%${cat}%`);
       }
       if (selectedDistrict !== 'All') {
         query = query.eq('district', selectedDistrict);
@@ -575,21 +578,42 @@ const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry:
         query = query.ilike('city', `%${citySearch}%`);
       }
       if (minPrice !== 'No Min') {
-        query = query.gte('price_lkr', parseInt(minPrice.replace(/[^0-9]/g, ''), 10));
+        query = query.gte('price_lkr', parseInt(String(minPrice || '0').replace(/[^0-9]/g, ''), 10));
       }
       if (maxPrice !== 'No Max') {
-        query = query.lte('price_lkr', parseInt(maxPrice.replace(/[^0-9]/g, ''), 10));
+        query = query.lte('price_lkr', parseInt(String(maxPrice || '0').replace(/[^0-9]/g, ''), 10));
       }
       if (beds !== 'Any Beds') {
-        query = query.gte('rooms', parseInt(beds.replace(/[^0-9]/g, ''), 10));
+        query = query.gte('rooms', parseInt(String(beds || '0').replace(/[^0-9]/g, ''), 10));
       }
 
       const { data, error } = await query;
       if (error) throw error;
-      if (onSearch && data) onSearch(data);
+      
+      if (data && data.length > 0) {
+        if (onSearch) onSearch(data);
+      } else {
+        // Fallback to local filtering if Supabase returns nothing or fails
+        console.warn('Search returned no results from Supabase, using local filter fallback');
+        const localResults = properties.filter(p => {
+           // Basic status check
+           const pType = (p.listing_type || '').toLowerCase();
+           if (!pType.includes(activeStatus.toLowerCase())) return false;
+           return true; 
+        });
+        if (onSearch) onSearch(localResults);
+      }
     } catch (err) {
-      console.error(err);
-      if (onSearch) onSearch([]);
+      console.warn('Search fetch failed, using local filter fallback:', err);
+      // Fallback
+      if (onSearch) {
+        const localResults = properties.filter(p => {
+           const pType = (p.listing_type || '').toLowerCase();
+           if (!pType.includes(activeStatus.toLowerCase())) return false;
+           return true;
+        });
+        onSearch(localResults);
+      }
     }
   };
 
@@ -1012,9 +1036,9 @@ export const PropertyCard = ({
         <hr className="border-gray-100 dark:border-white/5 my-2" />
 
         <div className="flex items-center justify-between text-[12px] text-gray-500 font-semibold mb-2">
-          <span className="flex items-center gap-1.5"><Bed size={14} className="text-secondary" /> {beds.replace(/Bed(s)?(rooms?)?/gi, '').trim()} Beds</span>
-          <span className="flex items-center gap-1.5"><Bath size={14} className="text-secondary" /> {baths.replace(/Bath(s)?(rooms?)?/gi, '').trim()} Baths</span>
-          <span className="flex items-center gap-1.5"><LandPlot size={14} className="text-secondary" /> {perch.replace(/Perch(es)?/gi, '').trim()} Perch</span>
+          <span className="flex items-center gap-1.5"><Bed size={14} className="text-secondary" /> {String(beds || '').replace(/Bed(s)?(rooms?)?/gi, '').trim()} Beds</span>
+          <span className="flex items-center gap-1.5"><Bath size={14} className="text-secondary" /> {String(baths || '').replace(/Bath(s)?(rooms?)?/gi, '').trim()} Baths</span>
+          <span className="flex items-center gap-1.5"><LandPlot size={14} className="text-secondary" /> {String(perch || '').replace(/Perch(es)?/gi, '').trim()} Perch</span>
         </div>
         
         <div className="grid grid-cols-2 gap-2 mt-auto">
@@ -2807,7 +2831,7 @@ const PricingPackages = ({ onBack, onGetStarted }: { onBack: () => void, onGetSt
     >
       <div className="text-center mb-24">
         <h1 className="text-5xl md:text-6xl font-black text-brand-green tracking-tighter mb-6">
-          Advertising Packages
+          Advertised Packages
         </h1>
         <p className="text-gray-500 max-w-2xl mx-auto font-bold text-lg leading-relaxed">
           Choose the perfect plan to reach over 500,000 potential buyers and renters every month in Sri Lanka.
@@ -8653,7 +8677,7 @@ const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBac
   );
 };
 
-export default function App() {
+function App() {
   const { properties: supabaseProperties, loading: listingsLoading, error: supabaseError, refresh: refreshProperties } = useProperties();
   const [recentFilter, setRecentFilter] = useState<"Sale" | "Rent">("Sale");
   const [visibleRecentCount, setVisibleRecentCount] = useState(6);
@@ -8897,30 +8921,30 @@ export default function App() {
   };
 
   let displayedProperties = (supabaseProperties.length > 0 ? supabaseProperties : FEATURED_PROPERTIES)
-    .filter(p => p.status === 'active' || !p.status);
+    .filter((p: any) => p.status === 'active' || !p.status);
     
   if (sortOption === 'Price Low-High') {
-    displayedProperties = displayedProperties.sort((a, b) => {
-      const pA = parseInt((a.price_lkr || a.price || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
-      const pB = parseInt((b.price_lkr || b.price || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
+    displayedProperties = (displayedProperties as any[]).sort((a, b) => {
+      const pA = parseInt(String(a.price_lkr || a.price || '0').replace(/[^0-9]/g, ''), 10) || 0;
+      const pB = parseInt(String(b.price_lkr || b.price || '0').replace(/[^0-9]/g, ''), 10) || 0;
       return pA - pB;
     });
   } else if (sortOption === 'Price High-Low') {
-    displayedProperties = displayedProperties.sort((a, b) => {
-      const pA = parseInt((a.price_lkr || a.price || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
-      const pB = parseInt((b.price_lkr || b.price || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
+    displayedProperties = (displayedProperties as any[]).sort((a, b) => {
+      const pA = parseInt(String(a.price_lkr || a.price || '0').replace(/[^0-9]/g, ''), 10) || 0;
+      const pB = parseInt(String(b.price_lkr || b.price || '0').replace(/[^0-9]/g, ''), 10) || 0;
       return pB - pA;
     });
   } else {
-    displayedProperties = displayedProperties.sort((a, b) => {
+    displayedProperties = (displayedProperties as any[]).sort((a, b) => {
       const dA = new Date(a.created_at || 0).getTime();
       const dB = new Date(b.created_at || 0).getTime();
       return dB - dA;
     });
   }
   
-  const filteredRecent = displayedProperties.filter(p => {
-    const pType = (p.listing_type || p.type || '').toLowerCase();
+  const filteredRecent = (displayedProperties as any[]).filter(p => {
+    const pType = String(p.listing_type || p.type || '').toLowerCase();
     const sType = recentFilter.toLowerCase();
     return pType.includes(sType) || pType === sType;
   });
@@ -9011,7 +9035,6 @@ export default function App() {
             <HomeRedesign 
               propertyCount={supabaseProperties.length}
               featuredProperties={supabaseProperties.slice(0, 4)} 
-              supabaseProperties={supabaseProperties}
               onNavigate={(view) => setCurrentView(view)}
               onPostAd={() => {
                 if (user) setCurrentView({ type: 'publish' });
@@ -9373,8 +9396,8 @@ export default function App() {
         onNavigate={(view) => setCurrentView(view)}
         onSearch={handleVoiceSearch}
         onClearFilters={() => {
-          setRecentFilter('all');
-          setSortOption('Newest First');
+          setRecentFilter('Sale');
+          setSortOption('Newest');
         }}
         onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
         onCommandReached={(cmd) => {
@@ -9383,8 +9406,17 @@ export default function App() {
           window.dispatchEvent(new CustomEvent('voice-command', { detail: cmd }));
         }}
       />
+      <AIChatbot />
       <Toaster position="top-right" />
     </>
+  );
+}
+
+export default function Root() {
+  return (
+    <AppErrorBoundary>
+      <App />
+    </AppErrorBoundary>
   );
 }
 

@@ -1,58 +1,49 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { 
+  useEffect, 
+  useRef, 
+  useState 
+} from 'react'
 import { ResponsiveContainer } from 'recharts'
 
-interface ChartContainerProps {
-  height?: number
+export function ChartContainer({ 
+  children, 
+  height = 300 
+}: { 
   children: React.ReactElement
-}
-
-export const ChartContainer = ({ 
-  height = 300, 
-  children 
-}: ChartContainerProps) => {
-  const ref = useRef<HTMLDivElement>(null)
-  const [ready, setReady] = useState(false)
+  height?: number 
+}) {
+  const divRef = useRef<HTMLDivElement>(null)
+  const [show, setShow] = useState(false)
 
   useEffect(() => {
-    // Wait for DOM to have real dimensions
-    const timer = setTimeout(() => {
-      if (ref.current && 
-          ref.current.offsetWidth > 0) {
-        setReady(true)
+    let raf: number
+    const check = () => {
+      if (divRef.current && divRef.current.clientWidth > 0) {
+        setShow(true)
+      } else {
+        raf = requestAnimationFrame(check)
       }
-    }, 50)
-    
-    return () => clearTimeout(timer)
+    }
+    raf = requestAnimationFrame(check)
+    return () => cancelAnimationFrame(raf)
   }, [])
 
   return (
     <div
-      ref={ref}
-      style={{
-        width: '100%',
-        height: `${height}px`,
-        minHeight: `${height}px`,
-        minWidth: '200px',
-        position: 'relative'
+      ref={divRef}
+      style={{ 
+        width: '100%', 
+        height,
+        minWidth: 100 
       }}
     >
-      {ready ? (
+      {show && (
         <ResponsiveContainer 
           width="100%" 
           height="100%"
         >
           {children}
         </ResponsiveContainer>
-      ) : (
-        <div style={{
-          width: '100%',
-          height: '100%',
-          background: 
-            'linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%)',
-          backgroundSize: '200% 100%',
-          animation: 'shimmer 1.5s infinite',
-          borderRadius: '8px'
-        }} />
       )}
     </div>
   )

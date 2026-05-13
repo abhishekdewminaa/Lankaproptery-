@@ -270,26 +270,27 @@ export default function AdminAnalytics() {
 
            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center relative z-10">
               <ChartContainer height={240}>
-                <div className="relative w-full h-full">
-                  <PieChart>
-                    <Pie
-                        data={LEAD_SOURCE_DATA}
-                        innerRadius={70}
-                        outerRadius={90}
-                        paddingAngle={8}
-                        dataKey="value"
-                    >
-                        {LEAD_SOURCE_DATA.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                    </Pie>
-                  </PieChart>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      <p className="text-3xl font-black text-admin-text-dark tracking-tight">2,840</p>
-                      <p className="text-[9px] font-black text-admin-text-gray uppercase tracking-widest">Total Leads</p>
-                  </div>
-                </div>
+                <PieChart>
+                  <Pie
+                      data={LEAD_SOURCE_DATA}
+                      innerRadius={70}
+                      outerRadius={90}
+                      paddingAngle={8}
+                      dataKey="value"
+                  >
+                      {LEAD_SOURCE_DATA.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
               </ChartContainer>
+              
+              {/* Manual Overlay for Centered Text */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mb-10 translate-x-[-25%]">
+                  <p className="text-3xl font-black text-admin-text-dark tracking-tight">2,840</p>
+                  <p className="text-[9px] font-black text-admin-text-gray uppercase tracking-widest">Total Leads</p>
+              </div>
 
               <div className="grid grid-cols-2 gap-x-10 gap-y-6">
                  {LEAD_SOURCE_DATA.map((source, idx) => (

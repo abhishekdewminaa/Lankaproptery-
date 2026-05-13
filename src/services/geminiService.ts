@@ -1,57 +1,200 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 
-let aiInstance: GoogleGenAI | null = null;
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-export const getGeminiAI = () => {
-  if (!aiInstance) {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error("GEMINI_API_KEY is not set in environment variables");
+export const analyzePropertyImage = async (imageBase64: string) => {
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: [{
+      parts: [
+        {
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: imageBase64.split(',')[1] // Remove prefix if present
+          }
+        },
+        {
+          text: `Analyze this property image and provide:
+          1. Property type visible
+          2. Key features (pool, garden, modern kitchen, hardwood floors, etc)
+          3. Condition assessment (Excellent, Good, Fair, Needs Renovation)
+          4. Suggested description sentence
+          
+          Return ONLY JSON:
+          {
+            "property_type": "string",
+            "features": ["string"],
+            "condition": "string",
+            "description": "string"
+          }`
+        }
+      ]
+    }],
+    config: {
+      responseMimeType: "application/json"
     }
-    aiInstance = new GoogleGenAI({ apiKey });
+  });
+  
+  try {
+    return JSON.parse(response.text || '{}');
+  } catch (e) {
+    console.error("Failed to parse image analysis", e);
+    return null;
   }
-  return aiInstance;
 };
 
-export const translateToSinhala = async (text: string, retries = 3): Promise<string> => {
-  let lastError: any;
-  
-  for (let i = 0; i < retries; i++) {
-    try {
-      const ai = getGeminiAI();
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: `Translate the following real estate description into Sinhala. Keep it natural, professional, and attractive for potential buyers. Only return the translated text.
+export const extractPropertyDetails = async (text: string) => {
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `Extract ALL details from this real estate listing text. Respond ONLY with JSON.
 
-Description: ${text}`,
-      });
+Text: ${text}
 
-      const translatedText = response.text;
-      if (!translatedText) {
-        throw new Error("No translation returned from Gemini");
-      }
-      
-      return translatedText.trim();
-    } catch (error: any) {
-      lastError = error;
-      
-      const errorMessage = error?.message?.toLowerCase() || "";
-      
-      // Handle rate limits or high demand (429)
-      if (errorMessage.includes("429") || errorMessage.includes("exhausted") || errorMessage.includes("demand")) {
-        const waitTime = Math.pow(2, i) * 1000;
-        console.warn(`Gemini API busy (429). Retrying in ${waitTime}ms... (Attempt ${i + 1}/${retries})`);
-        await new Promise(resolve => setTimeout(resolve, waitTime));
-        continue;
-      }
-      
-      // If it's a 404, it might be the model name or endpoint. 
-      // But using 'gemini-3-flash-preview' with the correct SDK should fix the 404.
-      
-      throw error;
+Schema:
+{
+  "listing_title": "string or null",
+  "listing_type": "For Sale | For Rent | For Lease",
+  "property_category": "House | Land | Apartment | Building | Commercial | Villa | Farm Land | Hotel",
+  "district": "string (Capitalized)",
+  "city": "string or null",
+  "price_lkr": number or null,
+  "is_negotiable": boolean,
+  "rooms": number or null,
+  "bathrooms": number or null,
+  "land_area": "string or null",
+  "floor_area": "string or null",
+  "property_description": "string or null",
+  "additional_info": "string or null",
+  "mobile": "string or null",
+  "google_maps_link": "string or null",
+  "confidence": number (0-100)
+}
+
+RULES:
+- price_lkr = number only (e.g. 45000000)
+- mobile starts with 07
+- If location is mentioned as "Colombo 7", district is "Colombo" and city is "Colombo 7"
+- Extract any google maps links found`,
+    config: {
+      responseMimeType: "application/json"
     }
+  });
+
+  try {
+    return JSON.parse(response.text || '{}');
+  } catch (e) {
+    console.error("Failed to parse extraction", e);
+    return null;
   }
+};
+
+export const translateDescription = async (text: string, targetLanguage: 'sinhala' | 'tamil') => {
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `Translate the following property description into professional and accurate ${targetLanguage} for a real estate listing in Sri Lanka.
+    
+    Description:
+    ${text}
+    
+    Return ONLY the translated text.`,
+  });
   
-  console.error("Translation error after retries:", lastError);
-  throw lastError;
+  return response.text;
+};
+
+export const getSmartSearchFilters = async (query: string) => {
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `Extract search filters from this natural language real estate query: "${query}"
+    
+    Return ONLY JSON:
+    {
+      "category": "House | Land | Apartment | Building | Commercial | Villa | Farm Land | Hotel | null",
+      "location": "string | null",
+      "max_price": number | null,
+      "min_price": number | null,
+      "features": ["string"],
+      "type": "For Sale | For Rent | null"
+    }`,
+    config: {
+      responseMimeType: "application/json"
+    }
+  });
+  
+  try {
+    return JSON.parse(response.text || '{}');
+  } catch (e) {
+    return null;
+  }
+};
+
+export const getChatbotResponse = async (userMessage: string, history: any[], propertyContext?: string) => {
+  const chat = ai.chats.create({
+    model: "gemini-3-flash-preview",
+    config: {
+      systemInstruction: `You are a helpful assistant for LankaProperty.lk Sri Lanka's premier real estate website. 
+      Help visitors find properties, answer questions about listings and the Sri Lankan property market.
+      Keep responses concise and informative. 
+      ${propertyContext ? `Currently, the user is looking at this property: ${propertyContext}` : ''}`,
+    },
+    // We can't easily pass history array here simplified for now or implement properly
+  });
+  
+  const response = await chat.sendMessage({ message: userMessage });
+  return response.text;
+};
+
+export const getMarketAnalysis = async (data: {
+  listing_type: string;
+  property_category: string;
+  district: string;
+  city: string;
+  price_lkr: string | number;
+  rooms: string | number;
+  bathrooms: string | number;
+  land_area: string;
+  floor_area: string;
+}) => {
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `You are a Sri Lankan real estate expert. Analyze this property price vs market value:
+        
+        Listing Type: ${data.listing_type}
+        Category: ${data.property_category}
+        District: ${data.district}
+        City: ${data.city}
+        Price: Rs. ${data.price_lkr}
+        Bedrooms: ${data.rooms}
+        Bathrooms: ${data.bathrooms}
+        Land Area: ${data.land_area}
+        Floor Area: ${data.floor_area}
+        
+        Return ONLY this JSON:
+        {
+          "market_min": number,
+          "market_max": number,
+          "market_avg": number,
+          "gauge_position": number,
+          "rating": "too_low" | "low" | "fair" | "high" | "too_high",
+          "price_per_perch": number | null,
+          "verdict": "string",
+          "advice": "string"
+        }
+        
+        gauge_position:
+        0-20 = Too Low
+        20-40 = Low  
+        40-60 = Fair
+        60-80 = High
+        80-100 = Too High`,
+    config: {
+      responseMimeType: "application/json"
+    }
+  });
+
+  try {
+    return JSON.parse(response.text || '{}');
+  } catch (e) {
+    return null;
+  }
 };

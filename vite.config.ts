@@ -23,6 +23,7 @@ export default defineConfig(({mode}) => {
     server: {
       hmr: {
         overlay: false,
+        timeout: 30000
       },
       watch: {
         usePolling: true,

@@ -3,12 +3,12 @@ import { motion } from 'motion/react';
 import { LandPlot, Home, Building2, Building, Hotel, Briefcase } from 'lucide-react';
 
 const CATEGORIES = [
-  { icon: <LandPlot />, label: 'LAND' },
-  { icon: <Home />, label: 'HOUSE' },
-  { icon: <Building2 />, label: 'APARTMENT' },
-  { icon: <Building />, label: 'BUILDING' },
-  { icon: <Hotel />, label: 'HOTEL' },
-  { icon: <Briefcase />, label: 'BUSINESS' },
+  { icon: <LandPlot size={32} />, label: 'LAND' },
+  { icon: <Home size={32} />, label: 'HOUSE' },
+  { icon: <Building2 size={32} />, label: 'APARTMENT' },
+  { icon: <Building size={32} />, label: 'BUILDING' },
+  { icon: <Hotel size={32} />, label: 'HOTEL' },
+  { icon: <Briefcase size={32} />, label: 'BUSINESS' },
 ];
 
 interface CategoryIconsProps {
@@ -48,7 +48,7 @@ export const CategoryIcons: React.FC<CategoryIconsProps> = ({ onNavigate }) => {
               className="flex flex-col items-center gap-4 group cursor-pointer"
             >
               <div className="w-16 h-16 md:w-20 md:h-20 bg-brand-green/5 rounded-full flex items-center justify-center text-brand-green transition-all group-hover:bg-brand-green group-hover:text-white shadow-sm">
-                {React.cloneElement(cat.icon as React.ReactElement, { size: 32 })}
+                {cat.icon}
               </div>
               <span className="text-[10px] md:text-xs font-black text-gray-500 tracking-widest uppercase transition-colors group-hover:text-brand-green">
                 {cat.label}

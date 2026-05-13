@@ -16,11 +16,19 @@ const safeFetch = (...args: any[]) => {
 };
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY, {
+  global: {
+    fetch: (...args) => {
+      return globalThis.fetch(...args as [any, any]);
+    }
+  },
   auth: {
     persistSession: true,
     autoRefreshToken: true,
+    detectSessionInUrl: false
   },
-  global: { fetch: (url, options) => globalThis.fetch(url, options) },
+  db: {
+    schema: 'public'
+  }
 });
 
 /**

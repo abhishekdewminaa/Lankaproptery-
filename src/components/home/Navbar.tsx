@@ -56,7 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
       ]
     },
     { name: 'Sell', href: '/sell', type: 'sell' },
-    { name: 'Ad Packages', href: '/packages', type: 'packages' },
+    { name: 'Advertised Packages', href: '/packages', type: 'packages' },
     { name: 'Wanted', href: '/wanted', type: 'wanted' },
     { name: 'Projects', href: '#', type: 'home' },
     { name: 'Find Agent', href: '#', type: 'agents' },

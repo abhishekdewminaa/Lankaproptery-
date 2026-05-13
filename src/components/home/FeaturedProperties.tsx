@@ -8,6 +8,7 @@ interface Property {
   price_lkr: string | number;
   city: string;
   images: string[];
+  image?: string;
   trending?: boolean;
   luxury?: boolean;
 }

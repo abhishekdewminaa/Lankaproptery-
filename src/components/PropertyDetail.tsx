@@ -26,7 +26,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { supabase } from '../supabaseClient';
-import { translateToSinhala } from '../services/geminiService';
+import { translateDescription } from '../services/geminiService';
 
 const USD_RATE = 305.50; // Current estimated LKR to USD
 const EUR_RATE = 330.15; // Current estimated LKR to EUR
@@ -39,7 +39,7 @@ const convertPrice = (priceVal: any) => {
     amount = priceVal;
   } else if (typeof priceVal === 'string') {
     if (priceVal.toLowerCase().includes('contact')) return null;
-    const numericStr = priceVal.replace(/[^0-9]/g, '');
+    const numericStr = (priceVal || '').replace(/[^0-9]/g, '');
     amount = parseInt(numericStr);
   }
   
@@ -239,7 +239,7 @@ export const PropertyDetail = ({
 
     setIsTranslating(true);
     try {
-      const result = await translateToSinhala(desc);
+      const result = await translateDescription(desc, 'sinhala');
       setTranslatedDesc(result);
       setShowOriginal(false);
     } catch (err) {
