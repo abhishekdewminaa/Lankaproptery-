@@ -27,21 +27,12 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { supabase } from '../supabaseClient';
 import { translateDescription } from '../services/geminiService';
-
-const USD_RATE = 305.50; // Current estimated LKR to USD
-const EUR_RATE = 330.15; // Current estimated LKR to EUR
+import { safeStr, safeReplace, formatPriceLong, getFirstImageSafe, USD_RATE, EUR_RATE } from '../utils/safeUtils';
 
 const convertPrice = (priceVal: any) => {
   if (!priceVal) return null;
-  
-  let amount = 0;
-  if (typeof priceVal === 'number') {
-    amount = priceVal;
-  } else if (typeof priceVal === 'string') {
-    if (priceVal.toLowerCase().includes('contact')) return null;
-    const numericStr = (priceVal || '').replace(/[^0-9]/g, '');
-    amount = parseInt(numericStr);
-  }
+  const numericStr = safeReplace(priceVal, /[^0-9]/g, '');
+  const amount = parseInt(numericStr);
   
   if (isNaN(amount) || amount === 0) return null;
   
@@ -157,26 +148,41 @@ export const PropertyDetail = ({
 
   useEffect(() => {
     const fetchPropertyData = async () => {
+      if (!propertyId) return;
       setLoading(true);
       try {
+        const idToFetch = isNaN(Number(propertyId)) ? propertyId : Number(propertyId);
+        
         // Fetch property
         const { data, error } = await supabase
           .from('properties')
           .select('*')
-          .eq('id', propertyId)
+          .eq('id', idToFetch)
           .single();
 
         if (error) throw error;
+        if (!data) throw new Error('Property not found');
+        
         setProperty(data);
 
         // Increment views
-        await supabase.rpc('increment_views', { listing_id: propertyId });
+        await supabase.rpc('increment_views', { listing_id: idToFetch });
 
         // Fetch similar properties
         if (data) {
           const { data: similar, error: similarError } = await supabase
             .from('properties')
-            .select('*')
+            .select(`
+              id,
+              listing_title,
+              price_lkr,
+              city,
+              images,
+              rooms,
+              bathrooms,
+              land_area,
+              status
+            `)
             .eq('district', data.district)
             .eq('status', 'active')
             .neq('id', data.id)
@@ -186,7 +192,7 @@ export const PropertyDetail = ({
             setSimilarProperties(similar || []);
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching property:', error);
       } finally {
         setLoading(false);

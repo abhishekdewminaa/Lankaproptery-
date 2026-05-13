@@ -13,12 +13,16 @@ interface HomeRedesignProps {
   propertyCount: number;
   featuredProperties: any[];
   onNavigate: (view: any) => void;
+  onPostAd?: () => void;
+  onAdminAccess?: () => void;
 }
 
 export const HomeRedesign: React.FC<HomeRedesignProps> = ({
   propertyCount,
   featuredProperties,
   onNavigate,
+  onPostAd,
+  onAdminAccess
 }) => {
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -44,11 +48,16 @@ export const HomeRedesign: React.FC<HomeRedesignProps> = ({
         
         <CategoryIcons onNavigate={onNavigate} />
         
-        <FeaturedProperties properties={featuredProperties} />
+        <FeaturedProperties 
+          properties={featuredProperties} 
+          onNavigate={onNavigate}
+        />
         
         <Testimonials />
         
-        <RecentListings />
+        <RecentListings 
+          onNavigate={onNavigate}
+        />
         
         <PriceCalculator />
         

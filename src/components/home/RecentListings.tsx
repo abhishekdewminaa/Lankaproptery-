@@ -39,7 +39,11 @@ const LISTINGS: ListingProps[] = [
   }
 ];
 
-export const RecentListings: React.FC = () => {
+interface RecentListingsProps {
+  onNavigate: (view: any) => void;
+}
+
+export const RecentListings: React.FC<RecentListingsProps> = ({ onNavigate }) => {
   return (
     <section className="py-20 bg-white">
       <div className="container mx-auto px-6">
@@ -48,7 +52,7 @@ export const RecentListings: React.FC = () => {
           <div className="flex-grow lg:w-2/3">
             <div className="flex justify-between items-center mb-10">
               <h2 className="text-3xl font-bold text-gray-900">Recent Listings</h2>
-              <a href="#" className="flex items-center gap-2 text-brand-green font-bold text-sm hover:underline">
+              <a href="#" onClick={(e) => { e.preventDefault(); onNavigate({ type: 'home' }); window.scrollTo({ top: 800, behavior: 'smooth' }); }} className="flex items-center gap-2 text-brand-green font-bold text-sm hover:underline">
                 View All <ArrowRight size={16} />
               </a>
             </div>
@@ -62,6 +66,7 @@ export const RecentListings: React.FC = () => {
                   viewport={{ once: true, amount: 0.2 }}
                   transition={{ duration: 0.5, delay: idx * 0.15 }}
                   whileHover={{ y: -8 }}
+                  onClick={() => onNavigate({ type: 'detail', data: listing })}
                   className="group bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100/50 cursor-pointer"
                 >
                   <div className="relative h-56 overflow-hidden">

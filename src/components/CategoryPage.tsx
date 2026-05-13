@@ -86,7 +86,23 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
     setLoading(true);
     let query = supabase
       .from('properties')
-      .select('*', { count: 'exact' })
+      .select(`
+        id,
+        listing_title,
+        listing_type,
+        property_category,
+        district,
+        city,
+        price_lkr,
+        rooms,
+        bathrooms,
+        land_area,
+        floor_area,
+        images,
+        status,
+        created_at,
+        is_trending
+      `, { count: 'exact' })
       .eq('status', 'active');
     
     // Normalizing category search
@@ -116,7 +132,8 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
     }
 
     if (filters.minBeds !== 'All') {
-      const beds = parseInt(filters.minBeds.replace('+', ''));
+      const bedsVal = String(filters.minBeds || '').replace('+', '');
+      const beds = parseInt(bedsVal);
       query = query.gte('rooms', beds);
     }
 
@@ -447,7 +464,8 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
                       <div className="relative h-64 overflow-hidden">
                         <img 
                           src={p.images?.[0] || 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&q=80&w=800'} 
-                          alt={p.title}
+                          alt={p.listing_title || p.title}
+                          loading="lazy"
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />

@@ -100,12 +100,23 @@ const fetchWithRetry = async (queryFn: () => any, retries = 3) => {
   }
 };
 
+const propertyCache = new Map<string, { data: Property[], timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 export function useProperties() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   async function fetchProperties() {
+    const cacheKey = 'all_properties';
+    const cached = propertyCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      setProperties(cached.data);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -113,8 +124,27 @@ export function useProperties() {
       const data = await fetchWithRetry(() => 
         supabase
           .from('properties')
-          .select('*')
-          .order('id', { ascending: false })
+          .select(`
+            id,
+            listing_title,
+            listing_type,
+            property_category,
+            district,
+            city,
+            price_lkr,
+            rooms,
+            bathrooms,
+            land_area,
+            floor_area,
+            images,
+            status,
+            created_at,
+            agent_id,
+            views_count,
+            leads_count,
+            package_tier
+          `)
+          .order('created_at', { ascending: false })
       );
 
       const rawData = data && data.length > 0 ? data : DEMO_LISTINGS;
@@ -127,7 +157,7 @@ export function useProperties() {
 
         const listing_type = item.listing_type === 'Rent' || item.listing_type === 'For Rent' ? 'Rent' : 'Sale';
 
-        return {
+        const formatted = {
           ...item,
           id: item.id,
           listing_title: item.listing_title || item.title,
@@ -160,7 +190,10 @@ export function useProperties() {
           isNegotiable: item.is_negotiable,
           locationLink: item.google_maps_link || item.location_link
         };
+        return formatted;
       });
+      
+      propertyCache.set(cacheKey, { data: formattedData, timestamp: Date.now() });
       setProperties(formattedData);
     } catch (err: any) {
       console.warn('Using demo data due to fetch error:', err);

@@ -703,7 +703,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                          {['bedrooms', 'bathrooms', 'floor', 'land_area'].map(key => (
                            selectedRequest[key as keyof WantedRequest] ? (
                              <div key={key} className="bg-white p-3 rounded-xl border border-gray-100 flex justify-between">
-                               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{key.replace('_', ' ')}</span>
+                               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{(key || '').replace('_', ' ')}</span>
                                <span className="text-sm font-black text-dark-navy">{selectedRequest[key as keyof WantedRequest]}</span>
                              </div>
                            ) : null

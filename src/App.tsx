@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { BrowserRouter, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { GoogleGenAI, Type } from "@google/genai";
 import { supabase } from "./supabaseClient";
 import { motion, AnimatePresence } from "motion/react";
@@ -9,11 +10,8 @@ import { Navbar } from "./components/home/Navbar";
 import { Feedback } from "./components/Feedback";
 import AdminPortal from './components/admin/AdminPortal';
 
-const USD_RATE = 300;
-const EUR_RATE = 325;
-
-const convertPrice = (priceStr: string | null | undefined) => {
-  if (!priceStr || typeof priceStr !== 'string' || priceStr.toLowerCase().includes('contact')) return null;
+const convertPrice = (priceStr: unknown) => {
+  if (priceStr === null || priceStr === undefined || typeof priceStr !== 'string' || priceStr.toLowerCase().includes('contact')) return null;
   
   // Extract number
   const numericStr = priceStr.replace(/[^0-9]/g, '');
@@ -151,6 +149,9 @@ import { PropertyDetail } from "./components/PropertyDetail";
 import { AIChatbot } from "./components/AIChatbot";
 import { useProperties, Property } from "./hooks/useProperties";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
+import { SkeletonList } from "./components/SkeletonCard";
+import { prefetchProperty } from "./lib/prefetch";
+import { safeStr, safeReplace, formatPriceLong, getFirstImageSafe, USD_RATE, EUR_RATE } from "./utils/safeUtils";
 
 export const getDisplayViews = (property: any, isAdmin: boolean): string => {
   if (isAdmin) {
@@ -519,7 +520,7 @@ const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry:
       if (!pType.includes(sType) && pType !== sType) return false;
 
       if (propertyType !== 'All Types') {
-        const cat = propertyType.replace(/[^a-zA-Z\s]/g, '').trim().toLowerCase();
+        const cat = (propertyType || '').replace(/[^a-zA-Z\s]/g, '').trim().toLowerCase();
         const pCat = (p.property_category || p.propertyCategory || '').toLowerCase();
         if (!pCat.includes(cat) && !cat.includes(pCat)) return false;
       }
@@ -568,7 +569,7 @@ const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry:
       query = query.eq('listing_type', activeStatus);
       
       if (propertyType !== 'All Types') {
-        const cat = propertyType.replace(/[^a-zA-Z\s]/g, '').trim();
+        const cat = (propertyType || '').replace(/[^a-zA-Z\s]/g, '').trim();
         query = query.ilike('property_category', `%${cat}%`);
       }
       if (selectedDistrict !== 'All') {
@@ -927,11 +928,12 @@ export const PropertyCard = ({
   const beds = String(property.bedrooms || property.rooms || '3 Beds');
   const baths = String(property.bathrooms || property.baths || '2 Baths');
   const perch = String(property.land_area || property.size || property.land_size || '15 Perch');
-  const houseType = String(property.listing_type || property.type || property.listingType || 'Sale');
+  const houseType = safeStr(property?.listing_type || property?.type || property?.listingType || 'Sale');
 
   return (
     <motion.div 
       onClick={onClick}
+      onMouseEnter={() => property?.id && prefetchProperty(property.id)}
       className="group bg-white dark:bg-white/5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-xl hover:-translate-y-1 overflow-hidden flex flex-col border border-gray-100 dark:border-white/10 hover:border-secondary transition-all duration-300 cursor-pointer relative"
     >
       <div className="absolute top-3 left-3 z-20">
@@ -952,7 +954,7 @@ export const PropertyCard = ({
       <div className="absolute top-3 right-3 z-20 flex flex-col gap-2 items-end">
         <div className="flex gap-2 items-center">
           <span className="bg-white/95 text-gray-900 text-[10px] font-black px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1">
-            <MapPin size={10} className="text-brand-red" /> {property.city || property.location}
+            <MapPin size={10} className="text-brand-red" /> {safeStr(property?.city || property?.location)}
           </span>
           <button 
             onClick={(e) => {
@@ -969,7 +971,12 @@ export const PropertyCard = ({
       </div>
 
       <div className="relative h-[220px] bg-gray-200 overflow-hidden">
-        <img src={property.images?.[0] || property.image} alt={property.listing_title || property.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        <img 
+          src={getFirstImageSafe(property?.images || property?.image)} 
+          alt={safeStr(property?.listing_title || property?.title)} 
+          loading="lazy"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+        />
         
         {/* Top Left Status Badge */}
         <div className="absolute top-3 left-12 z-20">
@@ -980,7 +987,7 @@ export const PropertyCard = ({
 
         {/* Bottom Left Fire Badge */}
         <div className="absolute bottom-3 left-3 flex z-20 pointer-events-none">
-          {((isAdmin ? (Number(property.views_count) || 0) : Number(getDisplayViews(property, false).replace(/,/g, ''))) > 300) && (
+          {((isAdmin ? (Number(property?.views_count) || 0) : Number(safeReplace(getDisplayViews(property, false), /,/g, ''))) > 300) && (
             <div className="flex items-center gap-1 backdrop-blur-md bg-brand-gold text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg border border-white/20">
               <Flame size={12} fill="currentColor" />
               <span>Trending</span>
@@ -997,33 +1004,33 @@ export const PropertyCard = ({
               <div className="flex items-center gap-1 text-[9px] uppercase font-bold text-gray-400 mb-1">
                 <Eye size={10} /> Views
               </div>
-              <span className="text-[14px] font-black text-gray-700 dark:text-gray-300">{isAdmin ? (property.views_count || 0) : getDisplayViews(property, false)}</span>
+              <span className="text-[14px] font-black text-gray-700 dark:text-gray-300">{isAdmin ? (property?.views_count || 0) : getDisplayViews(property, false)}</span>
             </div>
             <div className="flex flex-col items-start bg-primary/5 p-2 rounded-xl" title="Total Leads/Inquiries">
               <div className="flex items-center gap-1 text-[9px] uppercase font-bold text-primary mb-1">
                 <Users size={10} /> Leads
               </div>
-              <span className="text-[14px] font-black text-primary">{property.leads_count || 0}</span>
+              <span className="text-[14px] font-black text-primary">{property?.leads_count || 0}</span>
             </div>
             <div className="flex flex-col items-start bg-secondary/5 p-2 rounded-xl" title="Conversion Rate">
               <div className="flex items-center gap-1 text-[9px] uppercase font-bold text-secondary mb-1">
                 <Activity size={10} /> Conv
               </div>
               <span className="text-[14px] font-black text-secondary">
-                {((Number(property.leads_count||0) / Number(isAdmin ? (property.views_count || 1) : getDisplayViews(property, false).replace(/,/g, ''))) * 100).toFixed(1)}%
+                {((Number(property?.leads_count||0) / Number(isAdmin ? (property?.views_count || 1) : safeReplace(getDisplayViews(property, false), /,/g, ''))) * 100).toFixed(1)}%
               </span>
             </div>
           </div>
         )}
 
-        <div className="text-[15px] font-bold text-dark-navy dark:text-white line-clamp-2 leading-snug h-10 group-hover:text-primary transition-colors">{property.listing_title || property.title}</div>
+        <div className="text-[15px] font-bold text-dark-navy dark:text-white line-clamp-2 leading-snug h-10 group-hover:text-primary transition-colors">{safeStr(property?.listing_title || property?.title)}</div>
         
         <div className="flex flex-col gap-1">
           <span className="text-primary dark:text-secondary font-black text-[22px] tracking-tight leading-none">
-            {property.price_lkr ? (typeof property.price_lkr === 'number' ? `Rs. ${property.price_lkr.toLocaleString()}` : property.price_lkr) : (property.price === 'Contact for Price' ? 'Contact for Price' : (property.price?.includes('LKR') || property.price?.includes('Rs.') ? property.price : `Rs. ${property.price}`))}
+            {formatPriceLong(property?.price_lkr || property?.price)}
           </span>
           {(() => {
-            const converted = convertPrice(property.price_lkr || property.price);
+            const converted = convertPrice(property?.price_lkr || property?.price);
             if (!converted) return null;
             return (
               <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
@@ -1036,9 +1043,9 @@ export const PropertyCard = ({
         <hr className="border-gray-100 dark:border-white/5 my-2" />
 
         <div className="flex items-center justify-between text-[12px] text-gray-500 font-semibold mb-2">
-          <span className="flex items-center gap-1.5"><Bed size={14} className="text-secondary" /> {String(beds || '').replace(/Bed(s)?(rooms?)?/gi, '').trim()} Beds</span>
-          <span className="flex items-center gap-1.5"><Bath size={14} className="text-secondary" /> {String(baths || '').replace(/Bath(s)?(rooms?)?/gi, '').trim()} Baths</span>
-          <span className="flex items-center gap-1.5"><LandPlot size={14} className="text-secondary" /> {String(perch || '').replace(/Perch(es)?/gi, '').trim()} Perch</span>
+          <span className="flex items-center gap-1.5"><Bed size={14} className="text-secondary" /> {safeReplace(safeStr(property?.bedrooms || property?.rooms || '3'), /Bed(s)?(rooms?)?/gi, '').trim()} Beds</span>
+          <span className="flex items-center gap-1.5"><Bath size={14} className="text-secondary" /> {safeReplace(safeStr(property?.bathrooms || property?.baths || '2'), /Bath(s)?(rooms?)?/gi, '').trim()} Baths</span>
+          <span className="flex items-center gap-1.5"><LandPlot size={14} className="text-secondary" /> {safeReplace(safeStr(property?.land_area || property?.size || property?.land_size || '15'), /Perch(es)?/gi, '').trim()} Perch</span>
         </div>
         
         <div className="grid grid-cols-2 gap-2 mt-auto">
@@ -2452,7 +2459,7 @@ const PropertyValuationSection = () => {
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                         />
                         <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl">
-                          <span className="text-dark-navy font-black text-sm">Rs. {(prop.price_lkr / 1000000).toFixed(1)}M</span>
+                          <span className="text-dark-navy font-black text-sm">Rs. {(Number(safeReplace(prop.price_lkr || '0', /[^0-9.]/g, '')) / 1000000).toFixed(1)}M</span>
                         </div>
                       </div>
                       <div className="p-6">
@@ -4538,7 +4545,7 @@ const SortablePhotoSlot: React.FC<SortablePhotoSlotProps> = ({
 
 const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onBack: () => void, user: any, onRefresh?: () => void, initialData?: Property }) => {
   const [step, setStep] = useState(1);
-  const [price, setPrice] = useState<string>(initialData?.price?.replace(/[^0-9]/g, '') || "");
+  const [price, setPrice] = useState<string>(safeReplace(initialData?.price, /[^0-9]/g, '') || "");
   const [title, setTitle] = useState(initialData?.listing_title || initialData?.title || "");
   const [district, setDistrict] = useState(initialData?.district || "Colombo");
   const [city, setCity] = useState(initialData?.city || "");
@@ -7100,14 +7107,14 @@ const AdvertisingPackagesView = ({ onGetStarted }: { onGetStarted: () => void })
           <div className="bg-white rounded-[48px] p-12 md:p-20 shadow-sm border border-gray-50">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
               {[
-                { title: "500K+", desc: "Monthly Visitors", icon: <Globe className="text-brand-green" /> },
-                { title: "24/7", desc: "Active Support", icon: <Shield className="text-brand-green" /> },
-                { title: "10X", desc: "Faster Sales", icon: <TrendingUp className="text-brand-green" /> },
-                { title: "100%", desc: "Verified Leads", icon: <CheckCircle className="text-brand-green" /> }
+                { title: "500K+", desc: "Monthly Visitors", icon: <Globe size={32} className="text-brand-green" /> },
+                { title: "24/7", desc: "Active Support", icon: <Shield size={32} className="text-brand-green" /> },
+                { title: "10X", desc: "Faster Sales", icon: <TrendingUp size={32} className="text-brand-green" /> },
+                { title: "100%", desc: "Verified Leads", icon: <CheckCircle size={32} className="text-brand-green" /> }
               ].map((item, i) => (
                 <div key={i} className="text-center">
                   <div className="w-16 h-16 bg-brand-green/5 rounded-2xl flex items-center justify-center mx-auto mb-6 text-brand-green">
-                    {React.cloneElement(item.icon as React.ReactElement, { size: 32 })}
+                    {item.icon}
                   </div>
                   <h4 className="text-3xl font-black text-dark-navy mb-1">{item.title}</h4>
                   <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">{item.desc}</p>
@@ -8698,7 +8705,7 @@ function App() {
     let result = [...supabaseProperties];
     
     if (filters.category) {
-      result = result.filter(p => (p.category || p.property_category || '').toLowerCase() === filters.category.toLowerCase());
+      result = result.filter(p => ((p as any).property_category || (p as any).category || '').toLowerCase() === filters.category.toLowerCase());
     }
     
     if (filters.district) {
@@ -8712,7 +8719,7 @@ function App() {
     
     if (filters.maxPrice) {
       result = result.filter(p => {
-        const pPrice = parseInt((p.price_lkr || p.price || '0').toString().replace(/[^0-9]/g, ''), 10) || 0;
+        const pPrice = parseInt(safeReplace(p?.price_lkr || p?.price || '0', /[^0-9]/g, ''), 10) || 0;
         return pPrice <= filters.maxPrice;
       });
     }
@@ -8925,14 +8932,14 @@ function App() {
     
   if (sortOption === 'Price Low-High') {
     displayedProperties = (displayedProperties as any[]).sort((a, b) => {
-      const pA = parseInt(String(a.price_lkr || a.price || '0').replace(/[^0-9]/g, ''), 10) || 0;
-      const pB = parseInt(String(b.price_lkr || b.price || '0').replace(/[^0-9]/g, ''), 10) || 0;
+      const pA = parseInt(safeReplace(a?.price_lkr || a?.price || '0', /[^0-9]/g, ''), 10) || 0;
+      const pB = parseInt(safeReplace(b?.price_lkr || b?.price || '0', /[^0-9]/g, ''), 10) || 0;
       return pA - pB;
     });
   } else if (sortOption === 'Price High-Low') {
     displayedProperties = (displayedProperties as any[]).sort((a, b) => {
-      const pA = parseInt(String(a.price_lkr || a.price || '0').replace(/[^0-9]/g, ''), 10) || 0;
-      const pB = parseInt(String(b.price_lkr || b.price || '0').replace(/[^0-9]/g, ''), 10) || 0;
+      const pA = parseInt(safeReplace(a?.price_lkr || a?.price || '0', /[^0-9]/g, ''), 10) || 0;
+      const pB = parseInt(safeReplace(b?.price_lkr || b?.price || '0', /[^0-9]/g, ''), 10) || 0;
       return pB - pA;
     });
   } else {
@@ -8944,8 +8951,8 @@ function App() {
   }
   
   const filteredRecent = (displayedProperties as any[]).filter(p => {
-    const pType = String(p.listing_type || p.type || '').toLowerCase();
-    const sType = recentFilter.toLowerCase();
+    const pType = safeStr(p?.listing_type || p?.type || '').toLowerCase();
+    const sType = (recentFilter || '').toLowerCase();
     return pType.includes(sType) || pType === sType;
   });
   const handleCategoryClick = (category: string) => {
@@ -8954,7 +8961,9 @@ function App() {
   };
 
   const handleDetailClick = (property: any) => {
+    if (!property?.id) return;
     setCurrentView({ type: 'detail', data: property });
+    window.history.pushState({}, '', `/property/${property.id}`);
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
@@ -9090,19 +9099,23 @@ function App() {
 
             <section className="container mx-auto px-6 mt-10">
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {((currentView.data as any[]) || []).map(p => (
-                  <PropertyCard 
-                    key={p.id} 
-                    property={p} 
-                    onClick={() => handleDetailClick(p)}
-                    isFavorited={favorites.has(p.id)}
-                    onToggleFavorite={() => toggleFavorite(p.id)}
-                    isComparing={compareList.includes(p.id)}
-                    onToggleCompare={() => toggleCompare(p.id)}
-                    isAdmin={isAdmin}
-                  />
-                ))}
-                {(!currentView.data || (currentView.data as any[]).length === 0) && (
+                {listingsLoading ? (
+                  <SkeletonList count={8} />
+                ) : (
+                  ((currentView.data as any[]) || []).map(p => (
+                    <PropertyCard 
+                      key={p.id} 
+                      property={p} 
+                      onClick={() => handleDetailClick(p)}
+                      isFavorited={favorites.has(p.id)}
+                      onToggleFavorite={() => toggleFavorite(p.id)}
+                      isComparing={compareList.includes(p.id)}
+                      onToggleCompare={() => toggleCompare(p.id)}
+                      isAdmin={isAdmin}
+                    />
+                  ))
+                )}
+                {(!listingsLoading && (!currentView.data || (currentView.data as any[]).length === 0)) && (
                   <div className="col-span-full py-20 text-center flex flex-col items-center">
                     <Search className="text-gray-300 w-16 h-16 mb-4" />
                     <h3 className="text-xl font-bold text-gray-500">No properties found</h3>
@@ -9343,7 +9356,7 @@ function App() {
       <MortgageCalculatorModal 
         isOpen={showCalculator} 
         onClose={() => setShowCalculator(false)} 
-        initialAmount={currentView.type === 'detail' ? parseInt(currentView.data.price.replace(/[^0-9]/g, '')) || 10000000 : 10000000}
+        initialAmount={currentView.type === 'detail' ? parseInt(safeReplace(currentView.data?.price_lkr || currentView.data?.price || '0', /[^0-9]/g, '')) || 10000000 : 10000000}
       />
 
       <VirtualTourModal 
@@ -9415,7 +9428,9 @@ function App() {
 export default function Root() {
   return (
     <AppErrorBoundary>
-      <App />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </AppErrorBoundary>
   );
 }

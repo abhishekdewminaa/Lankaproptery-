@@ -15,9 +15,10 @@ interface Property {
 
 interface FeaturedPropertiesProps {
   properties: Property[];
+  onNavigate: (view: any) => void;
 }
 
-export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properties }) => {
+export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properties, onNavigate }) => {
   // Use provided properties or fallback to defaults
   const displayProperties = properties.length >= 4 ? properties.slice(0, 4) : [
     { id: 1, listing_title: 'Skyline Penthouse, Colombo 03', price_lkr: 'Rs. 185,000,000', city: 'Colombo 03', images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=1200'], trending: true, luxury: true },
@@ -47,6 +48,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
+            onClick={() => onNavigate({ type: 'detail', data: displayProperties[0] })}
             className="md:col-span-2 md:row-span-2 relative group rounded-3xl overflow-hidden shadow-xl cursor-pointer"
           >
             <div className="absolute inset-0 z-0 overflow-hidden">
@@ -81,6 +83,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, delay: 0.15, ease: "easeOut" }}
+            onClick={() => onNavigate({ type: 'detail', data: displayProperties[1] })}
             className="md:col-span-2 relative group rounded-3xl overflow-hidden shadow-xl cursor-pointer"
           >
             <div className="absolute inset-0 z-0 overflow-hidden">
@@ -107,6 +110,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+            onClick={() => onNavigate({ type: 'detail', data: displayProperties[2] })}
             className="relative group rounded-3xl overflow-hidden shadow-lg cursor-pointer"
           >
             <div className="absolute inset-0 z-0 overflow-hidden">
@@ -130,6 +134,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, delay: 0.45, ease: "easeOut" }}
+            onClick={() => onNavigate({ type: 'detail', data: displayProperties[3] })}
             className="relative group rounded-3xl overflow-hidden shadow-lg cursor-pointer"
           >
             <div className="absolute inset-0 z-0 overflow-hidden">
