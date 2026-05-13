@@ -1136,7 +1136,7 @@ const Sidebar = ({ onOpenCalculator, onShowPackages }: { onOpenCalculator: () =>
 );
 
 const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, onShowPromotion, onShowWanted, onShowSecretLogin }: { onNavigateHome: () => void, onShowContact: () => void, onShowAbout: () => void, onShowPackages: () => void, onShowPromotion: () => void, onShowWanted: () => void, onShowSecretLogin: () => void }) => (
-  <footer className="bg-[#0A1628] text-gray-400 pt-20 pb-10">
+  <footer className="bg-gradient-to-br from-[#004F31] to-[#002618] text-gray-300 pt-20 pb-10">
     <div className="container mx-auto px-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
         <div className="space-y-8">
@@ -1220,7 +1220,7 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
             <input 
               type="email" 
               placeholder="Your email address" 
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-base focus:outline-none focus:border-secondary compact-transition"
+              className="w-full bg-white border border-white/10 rounded-xl px-4 py-4 text-base text-[#002618] placeholder:text-gray-400 focus:outline-none focus:border-[#004F31] compact-transition"
             />
             <button className="absolute right-2 top-2 bottom-2 px-6 bg-primary text-white rounded-lg text-sm font-bold hover:bg-brand-red compact-transition">
               Join

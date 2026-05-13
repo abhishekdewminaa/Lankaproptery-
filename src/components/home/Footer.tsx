@@ -8,7 +8,7 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onAdminClick }) => {
   return (
-    <footer className="bg-[#0A1628] text-white pt-20 pb-8 overflow-hidden relative">
+    <footer className="bg-gradient-to-br from-[#004F31] to-[#002618] text-white pt-20 pb-8 overflow-hidden relative">
       {/* Footer Grid */}
       <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16 relative z-10">
         
@@ -85,7 +85,7 @@ export const Footer: React.FC<FooterProps> = ({ onAdminClick }) => {
             <input 
               type="email" 
               placeholder="Email Address"
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-5 text-sm outline-none focus:border-brand-green focus:bg-white/10 transition-all"
+              className="w-full bg-white border border-white/10 rounded-xl py-4 px-5 text-sm outline-none focus:border-brand-green text-[#002618] placeholder:text-gray-400 transition-all"
             />
             <button className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-brand-green rounded-lg flex items-center justify-center hover:bg-brand-green-medium transition-all shadow-lg active:scale-90">
               <Send size={18} />

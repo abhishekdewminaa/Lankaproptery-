@@ -749,14 +749,14 @@ export const PropertyDetail = ({
       </section>
 
       {/* Footer */}
-      <footer className="mt-20 pt-12 pb-8 border-t border-gray-100 text-center">
-        <h2 className="text-xl font-bold text-[#004F31] mb-6">LankaProperty</h2>
-        <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 mb-8 text-sm font-medium text-gray-500">
-          <a href="#" className="hover:text-[#004F31] transition-colors">About Us</a>
-          <a href="#" className="hover:text-[#004F31] transition-colors">Privacy Policy</a>
-          <a href="#" className="hover:text-[#004F31] transition-colors">Terms of Service</a>
-          <a href="#" className="hover:text-[#004F31] transition-colors">Help Center</a>
-          <a href="#" className="hover:text-[#004F31] transition-colors">Contact</a>
+      <footer className="mt-20 pt-12 pb-8 bg-gradient-to-br from-[#004F31] to-[#002618] text-center rounded-t-[40px]">
+        <h2 className="text-xl font-bold text-white mb-6">LankaProperty</h2>
+        <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 mb-8 text-sm font-medium text-gray-300">
+          <a href="#" className="hover:text-white transition-colors">About Us</a>
+          <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+          <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+          <a href="#" className="hover:text-white transition-colors">Help Center</a>
+          <a href="#" className="hover:text-white transition-colors">Contact</a>
         </div>
         <p className="text-xs text-gray-400">
           © 2024 LankaProperty.lk - Sri Lanka's Most Trusted Real Estate Marketplace
