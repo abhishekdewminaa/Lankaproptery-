@@ -277,7 +277,6 @@ const ListeningOverlay = ({
           width: '100%',
           padding: '12px',
           borderRadius: '12px',
-          border: 'none',
           cursor: 'pointer',
           fontWeight: '600',
           fontSize: '14px',

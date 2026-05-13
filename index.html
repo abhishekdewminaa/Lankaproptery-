@@ -11,10 +11,8 @@
     'unhandledrejection',
     function(e) {
       if (e && e.reason && (
-        (e.reason.message && 
-         e.reason.message.includes('WebSocket')) ||
-        (e.reason.toString && 
-         e.reason.toString().includes('WebSocket'))
+        (e.reason.message && e.reason.message.toLowerCase().includes('websocket')) ||
+        (e.reason.toString && e.reason.toString().toLowerCase().includes('websocket'))
       )) {
         e.preventDefault();
         e.stopImmediatePropagation();
@@ -23,24 +21,37 @@
     }, true
   );
 
+  window.addEventListener('error', function(e) {
+    if (e.message && e.message.toLowerCase().includes('websocket')) {
+      e.stopPropagation();
+      e.preventDefault();
+      return false;
+    }
+  }, true);
+
   window.onerror = function(msg) {
-    if (typeof msg === 'string' && 
-        msg.includes('WebSocket')) {
+    if (typeof msg === 'string' && msg.toLowerCase().includes('websocket')) {
       return true;
     }
   };
 
-  // Override console.error to hide WebSocket
-  var origError = console.error;
-  console.error = function() {
-    var args = Array.from(arguments);
-    var str = args.join(' ');
-    if (str.includes('WebSocket') || 
-        str.includes('websocket')) {
-      return;
-    }
-    origError.apply(console, args);
-  };
+  // Override console methods to hide WebSocket logs
+  ['error', 'warn', 'log', 'info'].forEach(method => {
+    var original = console[method];
+    console[method] = function() {
+      var args = Array.from(arguments);
+      var str = args.map(a => {
+        try {
+          return (a && a.stack) ? a.stack : String(a);
+        } catch(e) { return ""; }
+      }).join(' ').toLowerCase();
+      
+      if (str.includes('websocket') || str.includes('wss://')) {
+        return;
+      }
+      original.apply(console, arguments);
+    };
+  });
 })();
 </script>
   </head>

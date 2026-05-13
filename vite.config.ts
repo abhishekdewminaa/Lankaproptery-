@@ -21,12 +21,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      hmr: {
-        overlay: false,
-        timeout: 30000,
-        protocol: 'ws',
-        host: 'localhost'
-      }
+      hmr: false
     },
     build: {
       outDir: 'dist',

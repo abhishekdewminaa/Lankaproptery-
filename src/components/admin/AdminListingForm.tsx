@@ -41,7 +41,6 @@ import {
 } from 'lucide-react';
 import { GoogleGenAI, Type } from "@google/genai";
 import { 
-  analyzePropertyImage, 
   extractPropertyDetails, 
   translateDescription,
   getMarketAnalysis 
@@ -221,8 +220,8 @@ interface SortablePhotoSlotProps {
   onRemove: (index: number) => void;
 }
 
-const SortablePhotoSlot: React.FC<SortablePhotoSlotProps & { analysis?: any }> = ({ 
-  slot, index, onUpload, onRemove, analysis 
+const SortablePhotoSlot: React.FC<SortablePhotoSlotProps> = ({ 
+  slot, index, onUpload, onRemove 
 }) => {
   const {
     attributes,
@@ -272,12 +271,6 @@ const SortablePhotoSlot: React.FC<SortablePhotoSlotProps & { analysis?: any }> =
         <>
           <img src={slot.url} alt={`Photo ${index + 1}`} className="w-full h-full object-cover select-none" />
           
-          {analysis && (
-            <div className="absolute bottom-0 left-0 right-0 bg-brand-green/90 text-white p-2 text-[10px] font-bold z-20">
-              🤖 AI detected: {analysis.features.join(', ')}
-            </div>
-          )}
-
           {/* Hover Overlay */}
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-grab active:cursor-grabbing photo-overlay z-10">
             <div className="flex flex-col items-center gap-1">
@@ -328,7 +321,6 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
   const [importProgress, setImportProgress] = useState('');
   const [importResults, setImportResults] = useState<any>(null);
   const [importSuccess, setImportSuccess] = useState(false);
-  const [imageAnalysis, setImageAnalysis] = useState<Record<number, any>>({});
   const [isTranslating, setIsTranslating] = useState<string | null>(null);
 
   const PROGRESS_MESSAGES = [
@@ -534,29 +526,6 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
     setImages(prev => prev.map((img, idx) => 
       idx === slotIndex ? { ...img, url: previewUrl, file: renamedFile } : img
     ));
-
-    // Vision Analysis
-    try {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = async () => {
-        const base64 = reader.result as string;
-        const analysis = await analyzePropertyImage(base64);
-        if (analysis) {
-          setImageAnalysis(prev => ({ ...prev, [slotIndex]: analysis }));
-          
-          // If description is empty and we have a suggested sentence
-          setFormData(prev => {
-            if (!prev.description && analysis.description) {
-              return { ...prev, description: analysis.description };
-            }
-            return prev;
-          });
-        }
-      };
-    } catch (e) {
-      console.error("Image analysis failed", e);
-    }
 
     // Upload to Supabase if editing
     if (initialData?.id) {
@@ -879,7 +848,6 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
                     index={index}
                     onUpload={handleUpload}
                     onRemove={handleRemove}
-                    analysis={imageAnalysis[index]}
                   />
                 ))}
               </SortableContext>

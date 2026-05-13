@@ -2,47 +2,6 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-export const analyzePropertyImage = async (imageBase64: string) => {
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: [{
-      parts: [
-        {
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: imageBase64.split(',')[1] // Remove prefix if present
-          }
-        },
-        {
-          text: `Analyze this property image and provide:
-          1. Property type visible
-          2. Key features (pool, garden, modern kitchen, hardwood floors, etc)
-          3. Condition assessment (Excellent, Good, Fair, Needs Renovation)
-          4. Suggested description sentence
-          
-          Return ONLY JSON:
-          {
-            "property_type": "string",
-            "features": ["string"],
-            "condition": "string",
-            "description": "string"
-          }`
-        }
-      ]
-    }],
-    config: {
-      responseMimeType: "application/json"
-    }
-  });
-  
-  try {
-    return JSON.parse(response.text || '{}');
-  } catch (e) {
-    console.error("Failed to parse image analysis", e);
-    return null;
-  }
-};
-
 export const extractPropertyDetails = async (text: string) => {
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
