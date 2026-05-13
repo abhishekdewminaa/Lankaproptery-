@@ -5,27 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Google AI Studio App</title>
     <script>
-    ;(function(){
-      var sup = function(msg){
-        return typeof msg === 'string' && 
-          msg.indexOf('WebSocket') !== -1
+(function() {
+  // Suppress WebSocket errors in preview
+  var origOnError = window.onerror;
+  window.onerror = function(msg, src, line, col, err) {
+    if (typeof msg === 'string' && 
+        msg.toLowerCase().indexOf('websocket') > -1) {
+      return true;
+    }
+    return origOnError ? 
+      origOnError(msg, src, line, col, err) : false;
+  };
+  
+  window.addEventListener('unhandledrejection', 
+    function(event) {
+      if (event.reason && (
+        (event.reason.message && 
+         event.reason.message
+           .toLowerCase()
+           .indexOf('websocket') > -1) ||
+        (typeof event.reason === 'string' && 
+         event.reason
+           .toLowerCase()
+           .indexOf('websocket') > -1)
+      )) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
       }
-      window.addEventListener('error', 
-        function(e){ 
-          if(sup(e.message)){ 
-            e.preventDefault()
-            return false
-          }
-        }, true)
-      window.addEventListener(
-        'unhandledrejection', 
-        function(e){ 
-          if(e.reason && 
-             sup(e.reason.message)){
-            e.preventDefault()
-          }
-        }, true)
-    })()
+    }, true
+  );
+})();
     </script>
   </head>
   <body>
