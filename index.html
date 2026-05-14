@@ -6,35 +6,43 @@
     <title>LankaProperty.lk - Sri Lanka's #1 Real Estate Marketplace</title>
     <script>
 ;(function(){
-  var _onerror = window.onerror
-  window.onerror = function(msg){
-    if(typeof msg === 'string' && 
-       msg.indexOf('WebSocket') > -1){
-      return true
-    }
-    return _onerror ? 
-      _onerror.apply(this, arguments) : false
-  }
-  window.addEventListener(
-    'unhandledrejection',
-    function(e){
-      var msg = e.reason?.message || ''
-      if(msg.indexOf('WebSocket') > -1 ||
-         msg.indexOf('websocket') > -1){
-        e.preventDefault()
-        e.stopImmediatePropagation()
-      }
-    }, true
-  )
-  var _consoleError = console.error
-  console.error = function(){
-    var str = Array.from(arguments).join(' ')
-    if(str.indexOf('WebSocket') > -1 ||
-       str.indexOf('websocket') > -1){
+  var _warn = console.warn
+  console.warn = function() {
+    var msg = Array.from(arguments).join(' ')
+    if (
+      msg.indexOf('width') > -1 ||
+      msg.indexOf('height') > -1 ||
+      msg.indexOf('chart') > -1 ||
+      msg.indexOf('Chart') > -1 ||
+      msg.indexOf('WebSocket') > -1 ||
+      msg.indexOf('websocket') > -1 ||
+      msg.indexOf('ResponsiveContainer') > -1
+    ) {
       return
     }
-    _consoleError.apply(console, arguments)
+    _warn.apply(console, arguments)
   }
+
+  var _error = console.error
+  console.error = function() {
+    var msg = Array.from(arguments).join(' ')
+    if (
+      msg.indexOf('WebSocket') > -1 ||
+      msg.indexOf('websocket') > -1 ||
+      msg.indexOf('width') > -1 ||
+      msg.indexOf('height') > -1
+    ) {
+      return
+    }
+    _error.apply(console, arguments)
+  }
+
+  window.addEventListener(
+    'unhandledrejection',
+    function(e) {
+      e.preventDefault()
+    }, true
+  )
 })()
 </script>
   </head>

@@ -137,7 +137,6 @@ import {
   EyeOff
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell, PieChart, Pie } from 'recharts';
-import { ChartContainer } from './utils/ChartContainer';
 
 import { Toaster, toast } from 'react-hot-toast';
 
@@ -7125,46 +7124,44 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1"> engagement vs leads</p>
           </div>
 
-          <ChartContainer height={300}>
-            <AreaChart data={trendData[selectedCategory]}>
-              <defs>
-                <linearGradient id="colorViewsCat" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={selectedCategory === 'land' ? '#3b82f6' : selectedCategory === 'apartment' ? '#6366f1' : '#00b562'} stopOpacity={0.1}/>
-                  <stop offset="95%" stopColor={selectedCategory === 'land' ? '#3b82f6' : selectedCategory === 'apartment' ? '#6366f1' : '#00b562'} stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridColor} />
-              <XAxis 
-                dataKey="name" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fontSize: 10, fontWeight: 700, fill: chartTheme.textColor }} 
-                dy={10}
-              />
-              <YAxis hide />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: chartTheme.tooltipBg,
-                  color: chartTheme.tooltipText,
-                  borderRadius: '16px', 
-                  border: 'none', 
-                  boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
-                  fontSize: '12px',
-                  fontWeight: 'bold'
-                }}
-                itemStyle={{ color: chartTheme.tooltipText }}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="views" 
-                stroke={selectedCategory === 'land' ? '#3b82f6' : selectedCategory === 'apartment' ? '#6366f1' : '#00b562'} 
-                strokeWidth={4}
-                fillOpacity={1} 
-                fill="url(#colorViewsCat)" 
-                animationDuration={1500}
-              />
-            </AreaChart>
-          </ChartContainer>
+          <AreaChart width={600} height={280} data={trendData[selectedCategory]} style={{ width: '100%' }}>
+            <defs>
+              <linearGradient id="colorViewsCat" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={selectedCategory === 'land' ? '#3b82f6' : selectedCategory === 'apartment' ? '#6366f1' : '#00b562'} stopOpacity={0.1}/>
+                <stop offset="95%" stopColor={selectedCategory === 'land' ? '#3b82f6' : selectedCategory === 'apartment' ? '#6366f1' : '#00b562'} stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridColor} />
+            <XAxis 
+              dataKey="name" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fontSize: 10, fontWeight: 700, fill: chartTheme.textColor }} 
+              dy={10}
+            />
+            <YAxis hide />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: chartTheme.tooltipBg,
+                color: chartTheme.tooltipText,
+                borderRadius: '16px', 
+                border: 'none', 
+                boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
+                fontSize: '12px',
+                fontWeight: 'bold'
+              }}
+              itemStyle={{ color: chartTheme.tooltipText }}
+            />
+            <Area 
+              type="monotone" 
+              dataKey="views" 
+              stroke={selectedCategory === 'land' ? '#3b82f6' : selectedCategory === 'apartment' ? '#6366f1' : '#00b562'} 
+              strokeWidth={4}
+              fillOpacity={1} 
+              fill="url(#colorViewsCat)" 
+              animationDuration={1500}
+            />
+          </AreaChart>
         </div>
 
         <div className="lg:col-span-2 bg-white dark:bg-dark-navy p-8 rounded-[40px] border border-gray-100 dark:border-white/5 shadow-sm flex flex-col justify-between">
@@ -7173,39 +7170,37 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Listing density by category</p>
           </div>
 
-          <ChartContainer height={300}>
-            <PieChart>
-              <Pie
-                data={distributionData}
-                cx="50%"
-                cy="50%"
-                innerRadius={85}
-                outerRadius={110}
-                paddingAngle={5}
-                dataKey="value"
-                animationDuration={1500}
-                stroke="none"
-              >
-                {distributionData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: chartTheme.tooltipBg,
-                  color: chartTheme.tooltipText,
-                  borderRadius: '16px', 
-                  border: 'none', 
-                  boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
-                  fontSize: '12px',
-                  fontWeight: 'bold'
-                }}
-                itemStyle={{
-                  color: chartTheme.tooltipText
-                }}
-              />
-            </PieChart>
-          </ChartContainer>
+          <PieChart width={260} height={260}>
+            <Pie
+              data={distributionData}
+              cx="50%"
+              cy="50%"
+              innerRadius={85}
+              outerRadius={110}
+              paddingAngle={5}
+              dataKey="value"
+              animationDuration={1500}
+              stroke="none"
+            >
+              {distributionData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: chartTheme.tooltipBg,
+                color: chartTheme.tooltipText,
+                borderRadius: '16px', 
+                border: 'none', 
+                boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
+                fontSize: '12px',
+                fontWeight: 'bold'
+              }}
+              itemStyle={{
+                color: chartTheme.tooltipText
+              }}
+            />
+          </PieChart>
 
           <div className="space-y-3">
             {distributionData.map((item, i) => (
