@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, MapPin, ChevronDown, Activity, Trash2, Sparkles, Loader2, Bot } from 'lucide-react';
 import { getSmartSearchFilters } from '../../services/geminiService';
+import { DISTRICTS_BY_PROVINCE } from '../../constants/districts';
 
 interface HeroProps {
   propertyCount: number;
@@ -175,10 +176,14 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch }) => {
                     </div>
                     <div className="relative">
                       <select className="w-full bg-gray-50 border border-transparent focus:border-brand-green focus:bg-white rounded-xl py-4 px-4 appearance-none text-sm font-medium outline-none transition-all cursor-pointer">
-                        <option>All Districts</option>
-                        <option>Colombo</option>
-                        <option>Kandy</option>
-                        <option>Galle</option>
+                        <option value="">All Districts</option>
+                        {Object.entries(DISTRICTS_BY_PROVINCE).map(([province, districts]) => (
+                          <optgroup key={province} label={province}>
+                            {districts.map(district => (
+                              <option key={district} value={district}>{district}</option>
+                            ))}
+                          </optgroup>
+                        ))}
                       </select>
                       <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
                     </div>
@@ -214,11 +219,27 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch }) => {
                       <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
                     </div>
                   </div>
-                  <button 
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    animate={{ 
+                      boxShadow: [
+                        "0 10px 20px -5px rgba(0, 79, 49, 0.2)",
+                        "0 10px 30px 5px rgba(0, 79, 49, 0.4)",
+                        "0 10px 20px -5px rgba(0, 79, 49, 0.2)"
+                      ]
+                    }}
+                    transition={{
+                      boxShadow: {
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }
+                    }}
                     className="w-full md:w-auto md:min-w-[200px] h-[52px] bg-brand-green hover:bg-brand-green-medium text-white font-black uppercase tracking-widest text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-xl shadow-brand-green/20"
                   >
                     <Search size={18} strokeWidth={3} /> Search Now
-                  </button>
+                  </motion.button>
                 </div>
               </motion.div>
             )}

@@ -64,6 +64,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { supabase } from '../../supabaseClient';
 import toast from 'react-hot-toast';
+import { DISTRICTS_BY_PROVINCE, SRI_LANKA_DISTRICTS as DISTRICTS } from '../../constants/districts';
 
 const Speedometer = ({ position = 50 }) => {
   const angle = (position / 100) * 180 - 90;
@@ -154,8 +155,6 @@ interface AdminListingFormProps {
   onRefresh?: () => void;
   onSuccess: (property: any) => void;
 }
-
-const DISTRICTS = ["Colombo", "Kandy", "Galle", "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Gampaha", "Hambantota", "Jaffna", "Kalutara", "Kegalle", "Kilinochchi", "Kurunegala", "Mannar", "Matale", "Matara", "Moneragala", "Mullaitivu", "Nuwara Eliya", "Polonnaruwa", "Puttalam", "Ratnapura", "Trincomalee", "Vavuniya"];
 
 const CATEGORIES = [
   { id: 'House', label: 'House', icon: Home },
@@ -871,7 +870,11 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
                     onChange={e => setFormData({...formData, district: e.target.value})}
                     className="w-full bg-[#F0F4F0] border-transparent rounded-xl p-4 text-sm font-bold outline-none appearance-none cursor-pointer"
                   >
-                    {DISTRICTS.map(d => <option key={d}>{d}</option>)}
+                    {Object.entries(DISTRICTS_BY_PROVINCE).map(([province, districts]) => (
+                      <optgroup key={province} label={province}>
+                        {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                      </optgroup>
+                    ))}
                   </select>
                   <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
                 </div>

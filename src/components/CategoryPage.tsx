@@ -10,6 +10,7 @@ import {
   LandPlot, TrendingUp
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import { DISTRICTS_BY_PROVINCE } from '../constants/districts';
 
 import { safeQuery } from '../utils/supabaseQuery';
 
@@ -29,14 +30,6 @@ interface CategoryPageProps {
 }
 
 const USD_RATE = 300;
-
-const DISTRICTS = [
-  "All Districts", "Colombo", "Kandy", "Galle", "Ampara", "Anuradhapura", "Badulla", 
-  "Batticaloa", "Gampaha", "Hambantota", "Jaffna", "Kalutara", "Kegalle", 
-  "Kilinochchi", "Kurunegala", "Mannar", "Matale", "Matara", "Moneragala", 
-  "Mullaitivu", "Nuwara Eliya", "Polonnaruwa", "Puttalam", "Ratnapura", 
-  "Trincomalee", "Vavuniya"
-];
 
 const AMENITIES = [
   "Garden", "Swimming Pool", "Parking", "Security", "Gym", "Air Conditioning", "Generator"
@@ -452,7 +445,12 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
                     onChange={(e) => setFilters(f => ({ ...f, district: e.target.value }))}
                     className="w-full bg-gray-50 p-3.5 rounded-2xl border border-gray-100 text-xs font-bold outline-none appearance-none pr-10 cursor-pointer"
                   >
-                    {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+                    <option value="All Districts">All Districts</option>
+                    {Object.entries(DISTRICTS_BY_PROVINCE).map(([province, districts]) => (
+                      <optgroup key={province} label={province}>
+                        {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                      </optgroup>
+                    ))}
                   </select>
                   <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                 </div>

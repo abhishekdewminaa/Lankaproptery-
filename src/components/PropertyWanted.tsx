@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Search, MapPin, DollarSign, Home, MessageSquare, Plus, Filter, Loader2, Phone, Save, Eye, Share2, CheckCircle, RefreshCw, X, Calendar, Edit2, Trash2, Sparkles } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { Property } from '../hooks/useProperties';
+import { DISTRICTS_BY_PROVINCE } from '../constants/districts';
 
 interface WantedRequest {
   id: number;
@@ -15,10 +16,14 @@ interface WantedRequest {
   budget_max: number;
   rooms: string | number;
   bathrooms: string | number;
+  floor?: string;
+  land_area?: string;
   description: string;
+  contact_name: string;
   contact_phone: string;
   contact_email: string;
   status: string;
+  user_email: string;
   created_at: string;
   views_count: number;
 }
@@ -65,7 +70,6 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
   });
 
   const categories = ['All', 'House', 'Land', 'Apartment', 'Commercial', 'Villa'];
-  const districts = ['All', 'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Galle', 'Matara', 'Kurunegala', 'Nuwara Eliya', 'Other'];
 
   const fetchRequests = async () => {
     try {
@@ -299,15 +303,16 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
     if (activeTab === 'mine' && req.user_email !== user?.email) return false;
     if (activeTab === 'all' && req.status !== 'active') return false;
     
-    if (selectedCategory !== 'All' && req.category !== selectedCategory) return false;
+    if (selectedCategory !== 'All' && req.property_category !== selectedCategory) return false;
     if (filterType !== 'All' && req.listing_type !== filterType) return false;
     if (filterDistrict !== 'All' && req.district !== filterDistrict) return false;
-    if (filterBedrooms !== 'All' && req.bedrooms !== filterBedrooms) return false;
+    if (filterBedrooms !== 'All' && req.rooms.toString() !== filterBedrooms) return false;
     if (filterBudget && req.budget_max > Number(filterBudget)) return false;
     
     if (searchTerm) {
       const s = searchTerm.toLowerCase();
-      if (!req.title?.toLowerCase().includes(s) && !req.description?.toLowerCase().includes(s) && !req.location?.toLowerCase().includes(s)) {
+      const locationStr = `${req.city} ${req.district}`.toLowerCase();
+      if (!req.title?.toLowerCase().includes(s) && !req.description?.toLowerCase().includes(s) && !locationStr.includes(s)) {
          return false;
       }
     }
@@ -449,7 +454,12 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                     onChange={(e) => setFilterDistrict(e.target.value)}
                     className="w-full p-3 bg-gray-50 rounded-xl border border-gray-100 font-medium text-sm outline-none"
                   >
-                    {districts.map(d => <option key={d} value={d}>{d === 'All' ? 'Any District' : d}</option>)}
+                    <option value="All">Any District</option>
+                    {Object.entries(DISTRICTS_BY_PROVINCE).map(([province, districts]) => (
+                      <optgroup key={province} label={province}>
+                        {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                      </optgroup>
+                    ))}
                   </select>
                 </div>
 
@@ -655,7 +665,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                  <div className="p-8 md:p-10 border-r border-gray-100 overflow-y-auto bg-gray-50/30">
                     <div className="flex gap-2 mb-4">
                       <span className="px-3 py-1 bg-brand-green/10 text-brand-green text-[10px] font-black uppercase tracking-widest rounded-full">{selectedRequest.listing_type}</span>
-                      <span className="px-3 py-1 bg-dark-navy/5 text-dark-navy text-[10px] font-black uppercase tracking-widest rounded-full">{selectedRequest.category}</span>
+                      <span className="px-3 py-1 bg-dark-navy/5 text-dark-navy text-[10px] font-black uppercase tracking-widest rounded-full">{selectedRequest.property_category}</span>
                     </div>
                     <h2 className="text-3xl font-black text-dark-navy mb-4 leading-tight">{selectedRequest.title}</h2>
                     
@@ -666,14 +676,14 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600"><MapPin size={16} /></div>
-                        Location: {selectedRequest.location}
+                        Location: {selectedRequest.city}, {selectedRequest.district}
                       </div>
                     </div>
 
                     <div className="mb-8">
                       <h4 className="text-xs font-black text-dark-navy uppercase tracking-widest mb-3">Specifications</h4>
                       <div className="grid grid-cols-2 gap-3">
-                         {['bedrooms', 'bathrooms', 'floor', 'land_area'].map(key => (
+                         {['rooms', 'bathrooms', 'floor', 'land_area'].map(key => (
                            selectedRequest[key as keyof WantedRequest] ? (
                              <div key={key} className="bg-white p-3 rounded-xl border border-gray-100 flex justify-between">
                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{(key || '').replace('_', ' ')}</span>
@@ -754,7 +764,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                       </div>
                     ) : null}
 
-                    {matchingProperties.length === 0 && !isMatching && selectedRequest.views > 0 && (
+                    {matchingProperties.length === 0 && !isMatching && selectedRequest.views_count > 0 && (
                        <div className="text-center py-10 bg-gray-50 rounded-3xl border border-gray-100">
                          <span className="text-4xl block mb-2">😢</span>
                          <h4 className="text-sm font-black text-dark-navy">No Matches Found</h4>
@@ -838,7 +848,11 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                          className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-200 outline-none focus:ring-2 focus:ring-brand-green/20 font-bold text-dark-navy text-sm"
                        >
                          <option value="">Select District</option>
-                         {districts.filter(d => d !== 'All').map(d => <option key={d}>{d}</option>)}
+                         {Object.entries(DISTRICTS_BY_PROVINCE).map(([province, districts]) => (
+                           <optgroup key={province} label={province}>
+                             {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                           </optgroup>
+                         ))}
                        </select>
                     </div>
                     <div className="space-y-2">

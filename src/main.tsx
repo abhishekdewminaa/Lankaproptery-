@@ -17,6 +17,34 @@ try {
   // Suppress fetch guard initialization warning
 }
 
+// Suppress recharts and websocket warnings globally at the earliest possible point
+const originalWarn = console.warn.bind(console)
+console.warn = (...args: any[]) => {
+  const msg = args.join(' ')
+  if (
+    msg.includes('width') ||
+    msg.includes('height') ||
+    msg.includes('chart') ||
+    msg.includes('Chart') ||
+    msg.includes('ResponsiveContainer') ||
+    msg.includes('WebSocket') ||
+    msg.includes('greater than 0')
+  ) return
+  originalWarn(...args)
+}
+
+const originalError = console.error.bind(console)
+console.error = (...args: any[]) => {
+  const msg = args.join(' ')
+  if (
+    msg.includes('WebSocket') ||
+    msg.includes('width') ||
+    msg.includes('height') ||
+    msg.includes('greater than 0')
+  ) return
+  originalError(...args)
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

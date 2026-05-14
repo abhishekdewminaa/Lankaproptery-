@@ -1248,7 +1248,7 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
           </div>
           <div 
             onClick={() => onShowPromotion()}
-            className="flex items-center gap-3 mt-6 text-xs bg-primary/10 border border-primary/20 p-4 rounded-xl text-primary font-bold cursor-pointer hover:bg-primary/20 compact-transition"
+            className="flex items-center gap-3 mt-6 text-xs bg-white border border-gray-100 p-4 rounded-xl text-[#004F31] font-bold cursor-pointer hover:shadow-md transition-all shadow-sm"
           >
             <Percent size={16} />
             <span>Get 10% off your first ad listing!</span>
@@ -1258,11 +1258,13 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
 
       <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
         <div className="flex flex-col gap-2">
-          <div className="text-[11px] font-bold text-gray-500 tracking-wider">
+          <div className="text-[11px] font-bold text-white/80 tracking-wider">
             &copy; 2026 LANKAPROPERTY.LK. ALL RIGHTS RESERVED. DESIGNED FOR EXCELLENCE.
           </div>
           <div>
-            <button onClick={onShowSecretLogin} className="text-xs text-gray-600 hover:text-gray-400">Admin Access</button>
+            <button onClick={onShowSecretLogin} className="text-white/60 hover:text-white transition-colors" title="Admin Access">
+              <HomeIcon size={16} />
+            </button>
           </div>
         </div>
         <div className="flex gap-8 items-center">
@@ -6494,14 +6496,14 @@ const AdminFeaturedProjectsView = ({ onBack, onShowToast }: { onBack: () => void
     } else {
       setEditingProject({} as FeaturedProject);
       setFormData({
-        project_name: '',
-        banner_image: '',
+        title: '',
+        main_image: '',
         description: '',
         location: '',
-        starting_price: '',
+        price_from: '',
         developer_name: '',
         developer_logo: '',
-        status: 'active'
+        is_active: true
       });
     }
   };
@@ -6618,11 +6620,11 @@ const AdminFeaturedProjectsView = ({ onBack, onShowToast }: { onBack: () => void
     }
   };
 
-  const toggleActive = async (id: number, currentStatus: string) => {
+  const toggleActive = async (id: number, currentStatus: boolean) => {
     try {
       const { error } = await supabase
         .from('featured_projects')
-        .update({ status: currentStatus === 'active' ? 'paused' : 'active' })
+        .update({ is_active: !currentStatus })
         .eq('id', id);
       if (error) throw error;
       fetchProjects();

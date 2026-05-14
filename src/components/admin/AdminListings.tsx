@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import toast from 'react-hot-toast';
+import { DISTRICTS_BY_PROVINCE } from '../../constants/districts';
 
 interface Property {
   id: string;
@@ -46,6 +47,11 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
   const [listings, setListings] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  
+  // Filter States
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All Assets');
+  const [selectedDistrict, setSelectedDistrict] = useState('All Districts');
 
   // Modal States
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean, property: Property | null }>({ isOpen: false, property: null });
@@ -116,6 +122,23 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
       setDeleteModal({ isOpen: false, property: null });
     }
   };
+
+  const filteredListings = listings.filter(p => {
+    const matchesSearch = !searchQuery || 
+      p.listing_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      String(p.id).toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesCategory = selectedCategory === 'All Assets' || 
+      (selectedCategory === 'Residential' && ['House', 'Apartment', 'Villa'].includes(p.property_category)) ||
+      (selectedCategory === 'Commercial' && ['Commercial', 'Building', 'Hotel', 'Business'].includes(p.property_category)) ||
+      (selectedCategory === 'Lands' && ['Land', 'Farm Land'].includes(p.property_category)) ||
+      p.property_category === selectedCategory;
+
+    const matchesDistrict = selectedDistrict === 'All Districts' || p.district === selectedDistrict;
+
+    return matchesSearch && matchesCategory && matchesDistrict;
+  });
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 min-h-screen pb-20">
@@ -207,19 +230,45 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input 
               type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Filter by title, location or property ID..."
               className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-[#004F31]/20 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold outline-none transition-all"
             />
          </div>
-         <div className="flex gap-3 w-full md:w-auto">
-            <select className="flex-grow md:flex-grow-0 bg-admin-bg border-transparent rounded-2xl px-8 py-4 text-xs font-black uppercase tracking-widest outline-none cursor-pointer hover:bg-gray-100 transition-colors">
+         <div className="flex flex-wrap md:flex-nowrap gap-3 w-full md:w-auto">
+            <select 
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="flex-grow md:flex-grow-0 bg-admin-bg border-transparent rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest outline-none cursor-pointer hover:bg-gray-100 transition-colors"
+            >
                <option>All Assets</option>
                <option>Residential</option>
                <option>Commercial</option>
                <option>Lands</option>
             </select>
-            <button className="p-4 bg-admin-bg border-transparent rounded-2xl text-admin-text-gray hover:bg-gray-100 transition-colors">
-               <Filter size={20} />
+            <select 
+              value={selectedDistrict}
+              onChange={(e) => setSelectedDistrict(e.target.value)}
+              className="flex-grow md:flex-grow-0 bg-admin-bg border-transparent rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest outline-none cursor-pointer hover:bg-gray-100 transition-colors"
+            >
+               <option value="All Districts">All Districts</option>
+               {Object.entries(DISTRICTS_BY_PROVINCE).map(([province, districts]) => (
+                 <optgroup key={province} label={province}>
+                   {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                 </optgroup>
+               ))}
+            </select>
+            <button 
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategory('All Assets');
+                setSelectedDistrict('All Districts');
+              }}
+              className="p-4 bg-admin-bg border-transparent rounded-2xl text-admin-text-gray hover:bg-gray-100 transition-colors"
+              title="Clear Filters"
+            >
+               <X size={20} />
             </button>
          </div>
       </div>
@@ -231,8 +280,8 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
              <Loader2 className="animate-spin text-admin-primary" size={48} />
              <p className="text-admin-text-gray font-black text-sm uppercase tracking-widest">Syncing inventory...</p>
           </div>
-        ) : listings.length > 0 ? (
-          listings.map((property) => (
+        ) : filteredListings.length > 0 ? (
+          filteredListings.map((property) => (
             <motion.div
               layout
               key={property.id}
