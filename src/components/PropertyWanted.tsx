@@ -7,26 +7,20 @@ import { Property } from '../hooks/useProperties';
 interface WantedRequest {
   id: number;
   listing_type: string;
-  category: string;
+  property_category: string;
   title: string;
-  location: string;
   district: string;
   city: string;
   budget_min: number;
   budget_max: number;
-  bedrooms: string;
-  bathrooms: string;
-  floor: string;
-  land_area: string;
+  rooms: string | number;
+  bathrooms: string | number;
   description: string;
-  contact_name: string;
   contact_phone: string;
   contact_email: string;
   status: string;
   created_at: string;
-  expires_at: string;
-  user_email: string;
-  views: number;
+  views_count: number;
 }
 
 export default function PropertyWanted({ onContact, user, isAdmin }: { onContact?: (data: any) => void, user?: any, isAdmin?: boolean }) {
@@ -129,18 +123,18 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
       setEditingId(req.id);
       setFormData({
         listing_type: req.listing_type,
-        category: req.category,
+        category: req.property_category,
         title: req.title,
         district: req.district,
         city: req.city,
         budget_min: req.budget_min?.toString() || '',
         budget_max: req.budget_max?.toString() || '',
-        bedrooms: req.bedrooms || '',
-        bathrooms: req.bathrooms || '',
-        floor: req.floor || '',
-        land_area: req.land_area || '',
+        bedrooms: req.rooms?.toString() || '',
+        bathrooms: req.bathrooms?.toString() || '',
+        floor: '',
+        land_area: '',
         description: req.description || '',
-        contact_name: req.contact_name || '',
+        contact_name: '',
         contact_phone: req.contact_phone || '',
         contact_email: req.contact_email || ''
       });
@@ -159,26 +153,20 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
 
       const payload = {
         listing_type: formData.listing_type,
-        category: formData.category,
+        property_category: formData.category,
         title: formData.title,
-        location: `${formData.city}, ${formData.district}`,
         district: formData.district,
         city: formData.city,
         budget_min: Number(formData.budget_min) || 0,
         budget_max: Number(formData.budget_max) || 0,
-        bedrooms: formData.bedrooms,
-        bathrooms: formData.bathrooms,
-        floor: formData.floor,
-        land_area: formData.land_area,
+        rooms: parseInt(formData.bedrooms || '0'),
+        bathrooms: parseInt(formData.bathrooms || '0'),
         description: formData.description,
-        contact_name: formData.contact_name,
         contact_phone: formData.contact_phone,
         contact_email: formData.contact_email,
         status: editingId ? undefined : 'active',
         created_at: editingId ? undefined : new Date().toISOString(),
-        expires_at: expiresAt.toISOString(),
-        user_email: user?.email || 'anonymous',
-        views: editingId ? undefined : 0
+        views_count: editingId ? undefined : 0
       };
 
       if (editingId) {
@@ -261,7 +249,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
     setSelectedRequest(req);
     try {
       // 1. Increment view count
-      await supabase.from('property_wanted').update({ views: req.views + 1 }).eq('id', req.id);
+      await supabase.from('property_wanted').update({ views_count: (req.views_count || 0) + 1 }).eq('id', req.id);
       
       // 2. Query properties that might match
       // First try to just get properties by the agent (if user is agent)
@@ -530,14 +518,14 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                             {item.listing_type}
                           </span>
                           <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-gray-100 text-gray-600">
-                            {item.category}
+                            {item.property_category}
                           </span>
                           {activeTab === 'mine' && item.status === 'found' && (
                              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-primary text-white flex gap-1 items-center">
                                 <CheckCircle size={10} /> Property Found
                              </span>
                           )}
-                           {activeTab === 'mine' && item.status === 'expired' && (
+                          {activeTab === 'mine' && item.status === 'expired' && (
                              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-600 flex gap-1 items-center">
                                 Expired
                              </span>
@@ -548,7 +536,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                         </h3>
                         <div className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-widest">
                            <MapPin size={12} className="text-primary" />
-                           {item.location} {isAdmin && <>• <span className="text-gray-300 normal-case">{new Date(item.created_at).toLocaleDateString()}</span></>}
+                           {item.city}, {item.district} {isAdmin && <>• <span className="text-gray-300 normal-case">{new Date(item.created_at).toLocaleDateString()}</span></>}
                         </div>
                       </div>
                       
@@ -563,9 +551,9 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                     </p>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
-                       {item.bedrooms && (
+                       {item.rooms && (
                          <div className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
-                           <div className="text-lg font-black text-dark-navy leading-none">{item.bedrooms}</div>
+                           <div className="text-lg font-black text-dark-navy leading-none">{item.rooms}</div>
                            <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Beds</div>
                          </div>
                        )}
@@ -573,18 +561,6 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                          <div className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
                            <div className="text-lg font-black text-dark-navy leading-none">{item.bathrooms}</div>
                            <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Baths</div>
-                         </div>
-                       )}
-                       {item.land_area && (
-                         <div className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
-                           <div className="text-sm font-black text-dark-navy mt-1 truncate px-1">{item.land_area}</div>
-                           <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Area</div>
-                         </div>
-                       )}
-                       {item.floor && (
-                         <div className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
-                           <div className="text-sm font-black text-dark-navy mt-1 truncate px-1">{item.floor}</div>
-                           <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Floor</div>
                          </div>
                        )}
                     </div>
@@ -630,10 +606,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                       ) : (
                         <div className="flex gap-4 items-center">
                           <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                             {isAdmin ? `👁️ Real: ${item.views} views` : `👁️ ${Math.floor(((item.id * 9301 + 49297) % 233280) / 233280 * (2000 - 500) + 500).toLocaleString()} views`}
-                          </div>
-                          <div className="flex items-center gap-1.5 text-[10px] font-bold text-brand-gold uppercase tracking-widest pr-4">
-                             <Calendar size={14} /> {getDaysRemaining(item.expires_at)} Days Left
+                             {isAdmin ? `👁️ Real: ${item.views_count} views` : `👁️ ${Math.floor(((item.id * 9301 + 49297) % 233280) / 233280 * (2000 - 500) + 500).toLocaleString()} views`}
                           </div>
                           <button 
                             onClick={() => handleMatchMyListings(item)}

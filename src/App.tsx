@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { BrowserRouter, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { GoogleGenAI, Type } from "@google/genai";
 import { supabase } from "./supabaseClient";
+import { safeQuery } from "./utils/supabaseQuery";
 import { motion, AnimatePresence } from "motion/react";
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -132,7 +133,8 @@ import {
   Lightbulb,
   Power,
   Edit,
-  Save
+  Save,
+  EyeOff
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell, PieChart, Pie } from 'recharts';
 import ChartWrapper from './components/ChartWrapper';
@@ -565,32 +567,50 @@ const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry:
 
   const handleSearch = async () => {
     try {
-      let query = supabase.from('properties').select('*').eq('status', 'active');
-      
-      query = query.eq('listing_type', activeStatus);
-      
-      if (propertyType !== 'All Types') {
-        const cat = (propertyType || '').replace(/[^a-zA-Z\s]/g, '').trim();
-        query = query.ilike('property_category', `%${cat}%`);
-      }
-      if (selectedDistrict !== 'All') {
-        query = query.eq('district', selectedDistrict);
-      }
-      if (citySearch) {
-        query = query.ilike('city', `%${citySearch}%`);
-      }
-      if (minPrice !== 'No Min') {
-        query = query.gte('price_lkr', parseInt(String(minPrice || '0').replace(/[^0-9]/g, ''), 10));
-      }
-      if (maxPrice !== 'No Max') {
-        query = query.lte('price_lkr', parseInt(String(maxPrice || '0').replace(/[^0-9]/g, ''), 10));
-      }
-      if (beds !== 'Any Beds') {
-        query = query.gte('rooms', parseInt(String(beds || '0').replace(/[^0-9]/g, ''), 10));
-      }
+      const { data } = await safeQuery(() => {
+        let query = supabase.from('properties').select(`
+          id,
+          listing_title,
+          listing_type,
+          property_category,
+          district,
+          city,
+          price_lkr,
+          usd_estimate,
+          rooms,
+          bathrooms,
+          land_area,
+          floor_area,
+          images,
+          status,
+          views_count,
+          created_at
+        `).eq('status', 'active');
+        
+        query = query.eq('listing_type', activeStatus);
+        
+        if (propertyType !== 'All Types') {
+          const cat = (propertyType || '').replace(/[^a-zA-Z\s]/g, '').trim();
+          query = query.ilike('property_category', `%${cat}%`);
+        }
+        if (selectedDistrict !== 'All') {
+          query = query.eq('district', selectedDistrict);
+        }
+        if (citySearch) {
+          query = query.ilike('city', `%${citySearch}%`);
+        }
+        if (minPrice !== 'No Min') {
+          query = query.gte('price_lkr', parseInt(String(minPrice || '0').replace(/[^0-9]/g, ''), 10));
+        }
+        if (maxPrice !== 'No Max') {
+          query = query.lte('price_lkr', parseInt(String(maxPrice || '0').replace(/[^0-9]/g, ''), 10));
+        }
+        if (beds !== 'Any Beds') {
+          query = query.gte('rooms', parseInt(String(beds || '0').replace(/[^0-9]/g, ''), 10));
+        }
 
-      const { data, error } = await query;
-      if (error) throw error;
+        return query;
+      });
       
       if (data && data.length > 0) {
         if (onSearch) onSearch(data);
@@ -1719,8 +1739,7 @@ const FeaturedProjectsSection = () => {
         const { data, error } = await supabase
           .from('featured_projects')
           .select('*')
-          .eq('is_active', true)
-          .order('sort_order', { ascending: true });
+          .eq('status', 'active');
         
         if (data && data.length > 0) {
           setProjects(data);
@@ -2001,7 +2020,7 @@ const PropertyValuationSection = () => {
     setLoading(true);
     setResult(null);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const ai = new GoogleGenAI({ apiKey: (import.meta.env.VITE_GEMINI_API_KEY as string) });
       const prompt = `You are a Sri Lankan real estate valuation expert. Calculate the market value for this property:
       Type: ${formData.listingType} - ${formData.propertyType}
       Location: ${formData.city}, ${formData.district}, Sri Lanka
@@ -3689,26 +3708,20 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
         listing_title: title,
         price_lkr: toNumber(price),
         usd_estimate: price ? toNumber(Number(price) / USD_RATE) : null,
-        eur_estimate: price ? toNumber(Number(price) / EUR_RATE) : null,
         district,
         city,
-        city_suburb: city,
         property_category: propertyType,
         listing_type: listingType,
         land_area: landArea,
         floor_area: floorArea,
-        floors: toNumber(floors),
         rooms: toNumber(rooms),
         bathrooms: toNumber(bathrooms),
         property_description: description || title,
         is_negotiable: isNegotiable,
         images: images,
-        package_tier: packageMap[selectedTier] || 'Starter Free',
-        published_by: 'user',
         agent_id: user?.email || 'anonymous',
         status: 'active',
-        created_at: new Date().toISOString(),
-        expires_at: expiresAtDate.toISOString()
+        created_at: new Date().toISOString()
       };
 
       const { error } = await supabase
@@ -3847,7 +3860,7 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
     setIsExtracting(true);
     
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const ai = new GoogleGenAI({ apiKey: (import.meta.env.VITE_GEMINI_API_KEY as string) });
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: `Extract property details from the following text. 
@@ -4929,7 +4942,7 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
     setIsExtracting(true);
     
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const ai = new GoogleGenAI({ apiKey: (import.meta.env.VITE_GEMINI_API_KEY as string) });
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: `Extract property details from the following text. 
@@ -5036,27 +5049,18 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
         listing_title: title,
         price_lkr: toNumber(price),
         usd_estimate: price ? toNumber(Number(price) / USD_RATE) : null,
-        eur_estimate: price ? toNumber(Number(price) / EUR_RATE) : null,
         district,
         city,
-        city_suburb: city,
         property_category: propertyType,
         listing_type: listingType,
         land_area: landArea,
         floor_area: floorArea,
-        floors: toNumber(floors),
         rooms: toNumber(rooms),
         bathrooms: toNumber(bathrooms),
         property_description: description,
-        additional_info: additionalInfo,
-        mobile,
-        landline,
         is_negotiable: isNegotiable,
         images: images.map(img => img.url).filter(url => url !== null) as string[],
-        google_maps_link: locationLink,
         agent_id: 'ADMIN',
-        published_by: 'admin',
-        package_tier: 'Admin',
         status: 'active',
         created_at: initialData?.id ? undefined : new Date().toISOString(),
       };
@@ -5775,12 +5779,8 @@ const AdminEditPropertyModal = ({ propertyId, onClose, onRefresh, onShowToast }:
           price_lkr: toNumber(formData.price_lkr),
           rooms: toNumber(formData.rooms),
           bathrooms: toNumber(formData.bathrooms),
-          floors: toNumber(formData.floors),
           land_area: formData.land_area,
           floor_area: formData.floor_area,
-          mobile: formData.mobile,
-          landline: formData.landline,
-          package_tier: formData.package_tier,
           status: formData.status,
           updated_at: new Date().toISOString()
         })
@@ -6059,15 +6059,31 @@ const AgentListingsView = ({ onBack, onEdit, onRefresh, user, onShowToast }: { o
   const fetchAdminProperties = async () => {
     setLoadingProps(true);
     try {
-      const { data, error } = await supabase
-        .from('properties')
-        .select('*')
-        .in('published_by', ['admin', 'user'])
-        .order('created_at', { ascending: false });
+      const { data } = await safeQuery(() => 
+        supabase
+          .from('properties')
+          .select(`
+            id,
+            listing_title,
+            listing_type,
+            property_category,
+            district,
+            city,
+            price_lkr,
+            usd_estimate,
+            rooms,
+            bathrooms,
+            land_area,
+            floor_area,
+            images,
+            status,
+            agent_id,
+            created_at
+          `)
+          .order('created_at', { ascending: false })
+      );
         
-      if (error) {
-        console.error("Error fetching properties:", error);
-      } else if (data) {
+      if (data) {
         setLocalProperties(data.map((item: any) => ({
           ...item,
           id: item.id,
@@ -6083,7 +6099,7 @@ const AgentListingsView = ({ onBack, onEdit, onRefresh, user, onShowToast }: { o
         })));
       }
     } catch (err: any) {
-      console.error("Fetch full error:", err);
+      console.warn("Fetch full error:", err);
     } finally {
       setLoadingProps(false);
     }
@@ -6221,44 +6237,32 @@ const AgentListingsView = ({ onBack, onEdit, onRefresh, user, onShowToast }: { o
       </div>
 
       {/* Admin Stats Bar */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center">
           <div className="text-2xl font-black text-dark-navy">{localProperties.length}</div>
           <div className="text-[9px] font-black uppercase text-gray-400 tracking-widest mt-1">Total Props</div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center border-b-4 border-b-purple-500">
-          <div className="text-2xl font-black text-purple-600">{localProperties.filter(p => p.published_by === 'admin').length}</div>
+          <div className="text-2xl font-black text-purple-600">{localProperties.filter(p => !p.agent_id || p.agent_id === 'ADMIN').length}</div>
           <div className="text-[9px] font-black uppercase text-purple-400 tracking-widest mt-1">Admin Posted</div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center border-b-4 border-b-orange-400">
-          <div className="text-2xl font-black text-orange-500">{localProperties.filter(p => p.published_by === 'user').length}</div>
+          <div className="text-2xl font-black text-orange-500">{localProperties.filter(p => p.agent_id && p.agent_id !== 'ADMIN').length}</div>
           <div className="text-[9px] font-black uppercase text-gray-400 tracking-widest mt-1">User Posted</div>
-        </div>
-        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center">
-          <div className="text-2xl font-black text-gray-700">{localProperties.filter(p => !p.package_tier || p.package_tier === 'Starter Free' || p.package_tier === 'FREE').length}</div>
-          <div className="text-[9px] font-black uppercase text-gray-400 tracking-widest mt-1">Starter Free</div>
-        </div>
-        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center">
-          <div className="text-2xl font-black text-blue-600">{localProperties.filter(p => p.package_tier === 'Premium Pro' || p.package_tier === 'PREMIUM PRO').length}</div>
-          <div className="text-[9px] font-black uppercase text-gray-400 tracking-widest mt-1">Premium Pro</div>
-        </div>
-        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center">
-          <div className="text-2xl font-black text-brand-green">{localProperties.filter(p => p.package_tier === 'Elite Pro' || p.package_tier === 'ELITE PRO').length}</div>
-          <div className="text-[9px] font-black uppercase text-gray-400 tracking-widest mt-1">Elite Pro</div>
         </div>
       </div>
 
       {/* Filter Tabs */}
       <div className="flex flex-wrap gap-3 mb-8">
-        {(['all', 'admin', 'user', 'package'] as const).map(tab => (
+        {(['all', 'admin', 'user'] as const).map(tab => (
           <button 
             key={tab}
-            onClick={() => setFilterTab(tab)}
+            onClick={() => setFilterTab(tab as any)}
             className={`px-6 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest compact-transition border-2 ${
               filterTab === tab ? 'bg-dark-navy text-white border-dark-navy shadow-lg shadow-dark-navy/20' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'
             }`}
           >
-            {tab === 'all' ? 'All Listings' : tab === 'admin' ? 'Admin Posted' : tab === 'user' ? 'User Posted' : 'By Package'}
+            {tab === 'all' ? 'All Listings' : tab === 'admin' ? 'Admin Posted' : 'User Posted'}
           </button>
         ))}
       </div>
@@ -6274,46 +6278,11 @@ const AgentListingsView = ({ onBack, onEdit, onRefresh, user, onShowToast }: { o
               <p className="text-sm text-gray-400">The platform currently has no properties.</p>
             </div>
           </div>
-        ) : filterTab === 'package' ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* STARTER FREE */}
-            <div className="space-y-4">
-              <div className="bg-gray-100 p-4 rounded-2xl border border-gray-200">
-                <h4 className="text-sm font-black text-gray-600 uppercase tracking-widest text-center">Starter Free</h4>
-                <p className="text-[10px] text-gray-400 font-bold text-center mt-1">{localProperties.filter(p => !p.package_tier || p.package_tier === 'Starter Free' || p.package_tier === 'FREE').length} Listings</p>
-              </div>
-              {localProperties.filter(p => !p.package_tier || p.package_tier === 'Starter Free' || p.package_tier === 'FREE').map((property) => (
-                <PropertyAdminCard key={property.id} property={property} onEdit={(p: any) => setAdminEditPropertyId(p.id)} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
-              ))}
-            </div>
-            
-            {/* PREMIUM PRO */}
-            <div className="space-y-4">
-              <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100">
-                <h4 className="text-sm font-black text-blue-600 uppercase tracking-widest text-center">Premium Pro</h4>
-                <p className="text-[10px] text-blue-400 font-bold text-center mt-1">{localProperties.filter(p => p.package_tier === 'Premium Pro' || p.package_tier === 'PREMIUM PRO').length} Listings</p>
-              </div>
-              {localProperties.filter(p => p.package_tier === 'Premium Pro' || p.package_tier === 'PREMIUM PRO').map((property) => (
-                <PropertyAdminCard key={property.id} property={property} onEdit={(p: any) => setAdminEditPropertyId(p.id)} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
-              ))}
-            </div>
-
-            {/* ELITE PRO */}
-            <div className="space-y-4">
-              <div className="bg-green-50 p-4 rounded-2xl border border-green-100">
-                <h4 className="text-sm font-black text-green-600 uppercase tracking-widest text-center">Elite Pro</h4>
-                <p className="text-[10px] text-brand-green/60 font-bold text-center mt-1">{localProperties.filter(p => p.package_tier === 'Elite Pro' || p.package_tier === 'ELITE PRO').length} Listings</p>
-              </div>
-              {localProperties.filter(p => p.package_tier === 'Elite Pro' || p.package_tier === 'ELITE PRO').map((property) => (
-                <PropertyAdminCard key={property.id} property={property} onEdit={(p: any) => setAdminEditPropertyId(p.id)} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
-              ))}
-            </div>
-          </div>
         ) : (
           localProperties.filter(p => {
             if (filterTab === 'all') return true;
-            if (filterTab === 'admin') return p.published_by === 'admin';
-            if (filterTab === 'user') return p.published_by === 'user';
+            if (filterTab === 'admin') return !p.agent_id || p.agent_id === 'ADMIN';
+            if (filterTab === 'user') return p.agent_id && p.agent_id !== 'ADMIN';
             return true;
           }).map((property) => (
             <PropertyAdminCard key={property.id} property={property} onEdit={(p: any) => setAdminEditPropertyId(p.id)} setDeleteConfirmId={setDeleteConfirmId} updatingId={updatingId} toggleStatus={toggleStatus} />
@@ -6504,8 +6473,7 @@ const AdminFeaturedProjectsView = ({ onBack, onShowToast }: { onBack: () => void
     try {
       const { data, error } = await supabase
         .from('featured_projects')
-        .select('*')
-        .order('sort_order', { ascending: true });
+        .select('*');
       if (error) throw error;
       setProjects(data || []);
     } catch (err: any) {
@@ -6527,16 +6495,14 @@ const AdminFeaturedProjectsView = ({ onBack, onShowToast }: { onBack: () => void
     } else {
       setEditingProject({} as FeaturedProject);
       setFormData({
-        title: '',
-        main_image: '',
+        project_name: '',
+        banner_image: '',
         description: '',
         location: '',
-        price_from: '',
+        starting_price: '',
         developer_name: '',
         developer_logo: '',
-        contact_phone: '',
-        is_active: true,
-        sort_order: projects.length + 1
+        status: 'active'
       });
     }
   };
@@ -6653,11 +6619,11 @@ const AdminFeaturedProjectsView = ({ onBack, onShowToast }: { onBack: () => void
     }
   };
 
-  const toggleActive = async (id: number, currentStatus: boolean) => {
+  const toggleActive = async (id: number, currentStatus: string) => {
     try {
       const { error } = await supabase
         .from('featured_projects')
-        .update({ is_active: !currentStatus })
+        .update({ status: currentStatus === 'active' ? 'paused' : 'active' })
         .eq('id', id);
       if (error) throw error;
       fetchProjects();
@@ -7521,6 +7487,7 @@ const SellView = ({ onPostAd, onNavigate }: { onPostAd: () => void, onNavigate: 
 const SecretLoginView = ({ onBack, onSuccess }: { onBack: () => void, onSuccess: (email: string) => void }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -7536,16 +7503,15 @@ const SecretLoginView = ({ onBack, onSuccess }: { onBack: () => void, onSuccess:
       const isFallbackCreds = (email.toLowerCase() === 'abhishekdewminaa@gmail.com' && password === 'LANKApMAX2026$') || (email.toLowerCase() === 'ceo.lankaland@gmail.com' && password === 'CEOlankaP2026$');
 
       if (authError && isFallbackCreds) {
-        // Auto sign up the admin if they don't exist yet
         const { error: signUpError } = await supabase.auth.signUp({ email, password });
         if (!signUpError) {
-           authError = null; // Successfully created and logged in
+           authError = null;
         }
       }
 
       if (authError) {
         setIsLoading(false);
-        setErrorMsg(authError.message);
+        setErrorMsg('Invalid email or password. Please try again.');
         return;
       }
       
@@ -7559,12 +7525,9 @@ const SecretLoginView = ({ onBack, onSuccess }: { onBack: () => void, onSuccess:
         console.error("Error querying admin_users:", adminError);
       }
         
-      // Fallback for Abhishek if table check fails entirely (e.g. table not created yet)
       const allowedEmails = ['abhishekdewminaa@gmail.com', 'ceo.lankaland@gmail.com'];
       const isFallbackAdmin = allowedEmails.includes(email.toLowerCase());
       if (!isAdmin && !isFallbackAdmin) {
-        // Not an admin, allow them in but they might just see limited stuff or we can redirect
-        // For now keep the original logic of redirecting back if not authorized
         onBack();
         return;
       }
@@ -7572,102 +7535,185 @@ const SecretLoginView = ({ onBack, onSuccess }: { onBack: () => void, onSuccess:
       onSuccess(email);
     } catch (err) {
       console.error("Login exception:", err);
-      onBack();
+      setErrorMsg('A system error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen relative flex flex-col font-sans">
-      {/* Background Image with Blur */}
-      <div className="absolute inset-0 z-0">
-        <img 
-          src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=2000" 
-          className="w-full h-full object-cover blur-[8px] scale-110"
-          alt="Login Background"
-          referrerPolicy="no-referrer"
-        />
-        <div className="absolute inset-0 bg-black/20" />
-      </div>
-
-      {/* Header Logo */}
-      <div className="relative z-10 p-8">
-        <h1 className="text-2xl font-black text-brand-green tracking-tight">LankaProperty</h1>
-      </div>
-
-      {/* Main Container */}
-      <div className="flex-1 relative z-10 flex items-center justify-center -mt-16 px-6">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-[500px] bg-white/95 backdrop-blur-md p-10 rounded-2xl shadow-[0_32px_64px_rgba(0,0,0,0.15)] border border-white/20"
-        >
-          <div className="text-center mb-10">
-            <h2 className="text-4xl font-bold text-[#1A1A1A] mb-3">Sign In</h2>
-            <p className="text-[#6B7280] font-medium">Access your account</p>
+    <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-white overflow-hidden font-sans">
+      {/* Left Side - Brand Panel (Hidden on Mobile) */}
+      <motion.div 
+        initial={{ x: -100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="hidden md:flex flex-col justify-between p-12 bg-[#004F31] relative overflow-hidden"
+      >
+        {/* Decorative Circles */}
+        <div className="absolute top-[-10%] right-[-10%] w-[400px] h-[400px] bg-white/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[300px] h-[300px] bg-brand-green/30 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
+              <HomeIcon className="text-[#004F31]" size={24} />
+            </div>
+            <h1 className="text-2xl font-black text-white tracking-tight">LankaProperty.lk</h1>
           </div>
-          
+        </div>
+
+        <div className="relative z-10 max-w-sm">
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            <h2 className="text-5xl font-black text-white mb-6 leading-[1.1] tracking-tight">
+              Welcome <br/>Back
+            </h2>
+            <p className="text-white/80 text-lg font-medium leading-relaxed">
+              Sri Lanka's Premier Real Estate Management Platform
+            </p>
+          </motion.div>
+        </div>
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-4 text-xs font-bold text-white/40 uppercase tracking-widest">
+            <span>Real Estate</span>
+            <div className="w-1 h-1 bg-white/20 rounded-full" />
+            <span>Management</span>
+            <div className="w-1 h-1 bg-white/20 rounded-full" />
+            <span>2026</span>
+          </div>
+        </div>
+
+        {/* Abstract Background Overlay */}
+        <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+          <img 
+            src="https://images.unsplash.com/photo-1626178793926-22b28830aa30?auto=format&fit=crop&q=80&w=1200" 
+            className="w-full h-full object-cover mix-blend-overlay"
+            alt=""
+          />
+        </div>
+      </motion.div>
+
+      {/* Right Side - Login Form */}
+      <div className="flex items-center justify-center p-8 md:p-12 bg-white min-h-screen">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="w-full max-w-md"
+        >
+          {/* Logo for Mobile */}
+          <div className="md:hidden mb-12 flex justify-center">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-[#004F31] rounded-lg flex items-center justify-center">
+                <HomeIcon className="text-white" size={18} />
+              </div>
+              <h1 className="text-xl font-black text-[#004F31] tracking-tight">LankaProperty</h1>
+            </div>
+          </div>
+
+          <div className="mb-10">
+            <span className="inline-block px-3 py-1 bg-brand-green/10 text-brand-green text-[10px] font-black uppercase tracking-widest rounded-full mb-4">
+              Admin Access
+            </span>
+            <h2 className="text-4xl font-black text-dark-navy mb-2 tracking-tight">Sign In</h2>
+            <p className="text-gray-500 font-medium">Enter your credentials to access the admin panel</p>
+          </div>
+
           <form onSubmit={handleLogin} className="space-y-6">
-            {errorMsg && (
-              <div className="p-4 bg-brand-red/10 text-brand-red rounded-xl text-sm font-bold text-center">
-                {errorMsg}
-              </div>
-            )}
-            
+            <AnimatePresence mode="wait">
+              {errorMsg && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0, x: [0, -5, 5, -5, 5, 0] }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="p-4 bg-brand-red/5 border border-brand-red/10 text-brand-red rounded-xl text-sm font-bold flex items-center gap-3"
+                >
+                  <X size={18} className="shrink-0" />
+                  <p>{errorMsg}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <div className="space-y-2">
-              <label className="text-[11px] font-black text-[#374151] uppercase tracking-[0.05em]">EMAIL ADDRESS</label>
-              <input 
-                type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@company.com"
-                className="w-full bg-[#F3F4F6]/50 border border-[#E5E7EB] rounded-xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green focus:bg-white compact-transition font-medium text-[#1A1A1A] placeholder:text-[#9CA3AF]"
-                required
-              />
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Email Address</label>
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-green transition-colors">
+                  <Mail size={18} />
+                </div>
+                <input 
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@lankaproperty.lk"
+                  disabled={isLoading}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-12 pr-4 py-3.5 text-sm font-bold text-dark-navy focus:outline-none focus:ring-4 focus:ring-brand-green/5 focus:border-brand-green focus:bg-white transition-all placeholder:text-gray-300 disabled:opacity-50"
+                  required
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between items-center px-1">
-                <label className="text-[11px] font-black text-[#374151] uppercase tracking-[0.05em]">PASSWORD</label>
-                <a href="#" className="text-[11px] font-black text-brand-green hover:opacity-80 compact-transition">Forgot Password?</a>
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Password</label>
+                <button type="button" className="text-[10px] font-bold text-brand-green hover:underline">Forgot Password?</button>
               </div>
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-[#F3F4F6]/50 border border-[#E5E7EB] rounded-xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green focus:bg-white compact-transition font-medium text-[#1A1A1A] placeholder:text-[#9CA3AF]"
-                required
-              />
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-green transition-colors">
+                  <Lock size={18} />
+                </div>
+                <input 
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  disabled={isLoading}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-12 pr-12 py-3.5 text-sm font-bold text-dark-navy focus:outline-none focus:ring-4 focus:ring-brand-green/5 focus:border-brand-green focus:bg-white transition-all placeholder:text-gray-300 disabled:opacity-50"
+                  required
+                />
+                <button 
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-dark-navy transition-colors p-1"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
-            <button 
+            <motion.button 
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="w-full py-4 bg-[#00B67A] text-white font-bold rounded-xl shadow-lg shadow-[#00B67A]/20 hover:bg-[#00A06B] active:scale-[0.98] compact-transition flex items-center justify-center gap-2"
+              className="w-full py-4 bg-[#004F31] text-white font-black rounded-xl shadow-lg shadow-brand-green/20 hover:bg-[#003824] transition-all flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed mt-4 text-sm uppercase tracking-widest"
             >
-              {isLoading ? <Loader2 className="animate-spin" size={24} /> : 'Sign In'}
-            </button>
+              {isLoading ? (
+                <>
+                  <Loader2 className="animate-spin" size={18} />
+                  <span>Signing In...</span>
+                </>
+              ) : (
+                <>
+                  <span>Sign In</span>
+                  <ArrowRight size={18} />
+                </>
+              )}
+            </motion.button>
 
-            <div className="text-center pt-4">
-              <p className="text-sm font-medium text-[#6B7280]">
-                Don't have an account? <a href="#" className="font-bold text-brand-green hover:underline">Sign up for free</a>
-              </p>
+            <div className="pt-10 flex flex-col items-center gap-6">
+              <div className="flex items-center gap-2 text-gray-400">
+                <Shield size={14} />
+                <span className="text-[10px] font-bold uppercase tracking-widest">Secured by LankaProperty.lk</span>
+              </div>
             </div>
           </form>
         </motion.div>
       </div>
-
-      {/* Footer */}
-      <footer className="relative z-10 p-8 flex flex-col sm:flex-row justify-between items-center text-xs font-medium text-white/80 gap-4 mt-auto">
-        <p>© 2024 LankaProperty.lk. All rights reserved.</p>
-        <div className="flex gap-6">
-          <a href="#" className="hover:text-white compact-transition">Privacy Policy</a>
-          <a href="#" className="hover:text-white compact-transition">Terms of Service</a>
-          <a href="#" className="hover:text-white compact-transition">Help Center</a>
-        </div>
-      </footer>
     </div>
   );
 };
@@ -7782,7 +7828,7 @@ const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowL
 
           const { error: updateError } = await supabase
             .from('agents')
-            .update({ avatar_url: urlData.publicUrl })
+            .update({ photo_url: urlData.publicUrl })
             .eq('id', user.id);
             
           if (updateError) throw updateError;
@@ -7804,13 +7850,13 @@ const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowL
       supabase.from('agents').select('*').eq('id', user.id).single()
         .then(({ data }) => {
           if (data) {
-             const parts = (data.name || '').split(' ');
+             const parts = (data.display_name || '').split(' ');
              setFormData({
                firstName: parts[0] || '',
                lastName: parts.slice(1).join(' ') || '',
                email: data.email || user.email || '',
                phone: data.phone || '',
-               agency: data.agency || ''
+               agency: data.company || ''
              });
           }
         });
@@ -7823,9 +7869,9 @@ const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowL
       const { error } = await supabase
         .from('agents')
         .update({
-          name: `${formData.firstName} ${formData.lastName}`.trim(),
+          display_name: `${formData.firstName} ${formData.lastName}`.trim(),
           email: formData.email,
-          agency: formData.agency,
+          company: formData.agency,
           phone: formData.phone,
           updated_at: new Date().toISOString()
         })
@@ -9131,17 +9177,17 @@ function App() {
     }
   }, [toast]);
 
-  const toggleCompare = (id: number) => {
+  const toggleCompare = useCallback((id: number) => {
     setCompareList(prev => {
       if (prev.includes(id)) return prev.filter(item => item !== id);
       if (prev.length >= 4) return prev;
       return [...prev, id];
     });
-  };
+  }, []);
 
-  const removeCompare = (id: number) => {
+  const removeCompare = useCallback((id: number) => {
     setCompareList(prev => prev.filter(item => item !== id));
-  };
+  }, []);
 
   // Scroll to top when view changes
   useEffect(() => {
@@ -9190,14 +9236,14 @@ function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const toggleFavorite = (id: number) => {
+  const toggleFavorite = useCallback((id: number) => {
     setFavorites(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  };
+  }, []);
 
   let displayedProperties = (supabaseProperties.length > 0 ? supabaseProperties : FEATURED_PROPERTIES)
     .filter((p: any) => p.status === 'active' || !p.status);
@@ -9227,25 +9273,25 @@ function App() {
     const sType = (recentFilter || '').toLowerCase();
     return pType.includes(sType) || pType === sType;
   });
-  const handleCategoryClick = (category: string) => {
+  const handleCategoryClick = useCallback((category: string) => {
     setCurrentView({ type: 'category', data: { category, mode: 'buy' } });
     window.scrollTo({ top: 0, behavior: 'instant' });
-  };
+  }, []);
 
-  const handleDetailClick = (property: any) => {
+  const handleDetailClick = useCallback((property: any) => {
     if (!property?.id) return;
     setCurrentView({ type: 'detail', data: property });
     window.history.pushState({}, '', `/property/${property.id}`);
     window.scrollTo({ top: 0, behavior: 'instant' });
-  };
+  }, []);
 
-  const navigateHome = () => {
+  const navigateHome = useCallback(() => {
     setCurrentView({ type: 'home' });
     if (window.location.pathname !== '/') {
       window.history.pushState({}, '', '/');
     }
     window.scrollTo({ top: 0, behavior: 'instant' });
-  };
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

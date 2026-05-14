@@ -3,17 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
+    <title>LankaProperty.lk - Sri Lanka's #1 Real Estate Marketplace</title>
     <script>
 (function() {
   // Block ALL WebSocket errors silently
+  function isWsError(msg) {
+    if (!msg) return false;
+    const s = String(msg).toLowerCase();
+    return s.includes('websocket') || 
+           s.includes('wss://') || 
+           s.includes('[vite] failed to connect');
+  }
+
   window.addEventListener(
     'unhandledrejection',
     function(e) {
-      if (e && e.reason && (
-        (e.reason.message && e.reason.message.toLowerCase().includes('websocket')) ||
-        (e.reason.toString && e.reason.toString().toLowerCase().includes('websocket'))
-      )) {
+      if (e && e.reason && isWsError(e.reason.message || e.reason)) {
         e.preventDefault();
         e.stopImmediatePropagation();
         return false;
@@ -22,7 +27,7 @@
   );
 
   window.addEventListener('error', function(e) {
-    if (e.message && e.message.toLowerCase().includes('websocket')) {
+    if (isWsError(e.message)) {
       e.stopPropagation();
       e.preventDefault();
       return false;
@@ -30,23 +35,24 @@
   }, true);
 
   window.onerror = function(msg) {
-    if (typeof msg === 'string' && msg.toLowerCase().includes('websocket')) {
+    if (isWsError(msg)) {
       return true;
     }
   };
 
-  // Override console methods to hide WebSocket logs
+  // Override console methods to hide WebSocket and Vite connection logs
   ['error', 'warn', 'log', 'info'].forEach(method => {
     var original = console[method];
     console[method] = function() {
       var args = Array.from(arguments);
       var str = args.map(a => {
         try {
-          return (a && a.stack) ? a.stack : String(a);
-        } catch(e) { return ""; }
+          if (typeof a === 'string') return a;
+          return (a && a.stack) ? a.stack : JSON.stringify(a);
+        } catch(e) { return String(a); }
       }).join(' ').toLowerCase();
       
-      if (str.includes('websocket') || str.includes('wss://')) {
+      if (isWsError(str)) {
         return;
       }
       original.apply(console, arguments);

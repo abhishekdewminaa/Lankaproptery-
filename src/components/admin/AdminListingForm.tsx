@@ -62,20 +62,8 @@ import {
   useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import { supabase } from '../../supabaseClient';
 import toast from 'react-hot-toast';
-
-// Leaflet marker fix
-const DefaultIcon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
-L.Marker.prototype.options.icon = DefaultIcon;
 
 const Speedometer = ({ position = 50 }) => {
   const angle = (position / 100) * 180 - 90;
@@ -179,39 +167,6 @@ const CATEGORIES = [
   { id: 'Farm Land', label: 'Farm Land', icon: Sprout },
   { id: 'Hotel', label: 'Hotel', icon: Hotel },
 ];
-
-function DraggableMarker({ position, setPosition }: { position: [number, number], setPosition: (pos: [number, number]) => void }) {
-  const markerRef = useRef<any>(null);
-  const eventHandlers = React.useMemo(
-    () => ({
-      dragend() {
-        const marker = markerRef.current;
-        if (marker != null) {
-          const latLng = marker.getLatLng();
-          setPosition([latLng.lat, latLng.lng]);
-        }
-      },
-    }),
-    [setPosition],
-  );
-
-  return (
-    <Marker
-      draggable={true}
-      eventHandlers={eventHandlers}
-      position={position}
-      ref={markerRef}
-    />
-  );
-}
-
-function MapUpdater({ center }: { center: [number, number] }) {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, 15);
-  }, [center, map]);
-  return null;
-}
 
 interface SortablePhotoSlotProps {
   slot: { id: string, order: number, url: string | null };
@@ -381,14 +336,9 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
     if (data.is_negotiable !== undefined) newFormData.is_negotiable = data.is_negotiable;
     if (data.rooms) newFormData.rooms = data.rooms;
     if (data.bathrooms) newFormData.bathrooms = data.bathrooms;
-    if (data.floors) newFormData.floors = data.floors;
     if (data.land_area) newFormData.land_area = data.land_area;
     if (data.floor_area) newFormData.floor_area = data.floor_area;
-    if (data.mobile) newFormData.mobile = data.mobile;
-    if (data.landline) newFormData.landline = data.landline;
-    if (data.google_maps_link) newFormData.google_maps_link = data.google_maps_link;
     if (data.property_description) newFormData.description = data.property_description;
-    if (data.additional_info) newFormData.additional_info = data.additional_info;
 
     setFormData(newFormData);
     setImportResults(data);
@@ -426,22 +376,11 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
     is_negotiable: initialData?.is_negotiable || false,
     land_area: initialData?.land_area || '',
     floor_area: initialData?.floor_area || '',
-    floors: initialData?.floors || 0,
     rooms: initialData?.rooms || 0,
     bathrooms: initialData?.bathrooms || 0,
     description: initialData?.property_description || '',
-    additional_info: initialData?.additional_info || '',
-    google_maps_link: initialData?.google_maps_link || '',
-    mobile: initialData?.mobile || '',
-    landline: initialData?.landline || '',
     status: initialData?.status || 'active',
-    package_tier: initialData?.package_tier || 'Starter Free',
-    is_featured: initialData?.is_featured || false,
-    is_trending: initialData?.is_trending || false,
-    allow_inquiries: initialData?.allow_inquiries ?? true,
     price_on_request: initialData?.price_on_request || false,
-    admin_notes: initialData?.admin_notes || '',
-    coordinates: (initialData?.coordinates as [number, number]) || [6.9271, 79.8612] // [lat, lng]
   });
 
   const [images, setImages] = useState<{ id: string, order: number, url: string | null, file: File | null }[]>(
@@ -575,23 +514,11 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
         is_negotiable: formData.is_negotiable,
         land_area: formData.land_area,
         floor_area: formData.floor_area,
-        floors: parseInt(formData.floors.toString()),
         rooms: parseInt(formData.rooms.toString()),
         bathrooms: parseInt(formData.bathrooms.toString()),
         property_description: formData.description,
-        additional_info: formData.additional_info,
-        google_maps_link: formData.google_maps_link,
-        mobile: formData.mobile,
-        landline: formData.landline,
         status: formData.status,
-        package_tier: formData.package_tier,
-        is_featured: formData.is_featured,
-        is_trending: formData.is_trending,
-        allow_inquiries: formData.allow_inquiries,
-        price_on_request: formData.price_on_request,
-        admin_notes: formData.admin_notes,
         images: images.map(img => img.url).filter(url => url !== null),
-        coordinates: formData.coordinates,
         updated_at: new Date().toISOString()
       };
 
@@ -1119,7 +1046,7 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
             <p className="text-sm font-bold text-gray-400 mt-1">Detailed dimensions and spatial information.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-3">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Land Area (Perches)</label>
               <input type="text" value={formData.land_area} onChange={e => setFormData({...formData, land_area: e.target.value})} placeholder="Ex: 20" className="w-full bg-[#F0F4F0] rounded-xl p-4 text-sm font-bold outline-none" />
@@ -1127,10 +1054,6 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
             <div className="space-y-3">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Floor Area (Sqft)</label>
               <input type="text" value={formData.floor_area} onChange={e => setFormData({...formData, floor_area: e.target.value})} placeholder="Ex: 2,500" className="w-full bg-[#F0F4F0] rounded-xl p-4 text-sm font-bold outline-none" />
-            </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Total Floors</label>
-              <input type="number" value={formData.floors} onChange={e => setFormData({...formData, floors: e.target.value})} className="w-full bg-[#F0F4F0] rounded-xl p-4 text-sm font-bold outline-none" />
             </div>
           </div>
 
@@ -1221,119 +1144,7 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
                 className="w-full bg-[#F0F4F0] border-transparent focus:bg-white focus:border-[#004F31]/20 rounded-2xl p-6 text-sm font-medium min-h-[220px] outline-none transition-all resize-none"
               />
             </div>
-            
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Additional Information (Optional)</label>
-              <textarea 
-                value={formData.additional_info}
-                onChange={e => setFormData({...formData, additional_info: e.target.value})}
-                placeholder="Ex: Security features, school zones, unique features..."
-                className="w-full bg-[#F0F4F0] border-transparent focus:bg-white focus:border-[#004F31]/20 rounded-2xl p-6 text-sm font-medium min-h-[120px] outline-none transition-all resize-none"
-              />
-            </div>
           </div>
-        </motion.section>
-
-        {/* SECTION 6: GOOGLE MAPS LOCATION */}
-        <motion.section 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-10"
-        >
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-2xl font-black text-[#004F31] tracking-tight">Property Location</h3>
-              <p className="text-sm font-bold text-gray-400 mt-1">Drag pin to exact location.</p>
-            </div>
-            <button 
-              onClick={() => setFormData(p => ({...p, coordinates: [6.9271, 79.8612]}))}
-              className="px-4 py-2 bg-[#F0F4F0] rounded-xl text-[10px] font-black uppercase tracking-widest text-[#004F31] hover:bg-white transition-all shadow-sm"
-            >
-              Center on Property
-            </button>
-          </div>
-
-          <div className="space-y-6">
-            <div className="h-[400px] w-full rounded-[24px] overflow-hidden border border-admin-border relative z-0">
-               <MapContainer center={formData.coordinates} zoom={13} style={{ height: '100%', width: '100%' }}>
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  <DraggableMarker position={formData.coordinates} setPosition={(pos) => setFormData(p => ({...p, coordinates: pos}))} />
-                  <MapUpdater center={formData.coordinates} />
-               </MapContainer>
-            </div>
-            
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Google Maps Link</label>
-              <div className="relative">
-                <Globe className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input 
-                  type="url" 
-                  value={formData.google_maps_link}
-                  onChange={e => setFormData({...formData, google_maps_link: e.target.value})}
-                  placeholder="Paste Google Maps share link here..."
-                  className="w-full bg-[#F0F4F0] border-transparent rounded-xl p-4 pl-14 text-sm font-bold outline-none"
-                />
-              </div>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* SECTION 7: CONTACT INFORMATION */}
-        <motion.section 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-10"
-        >
-          <div>
-            <h3 className="text-2xl font-black text-[#004F31] tracking-tight">Contact Information</h3>
-            <p className="text-sm font-bold text-gray-400 mt-1">Manage numbers shown on the listing.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Phone 1 (Primary)</label>
-              <div className="flex gap-3">
-                <div className="relative shrink-0">
-                   <select className="bg-[#F0F4F0] rounded-xl px-4 py-4 text-xs font-black uppercase tracking-widest outline-none appearance-none cursor-pointer">
-                      <option>Mobile</option>
-                      <option>Off</option>
-                   </select>
-                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
-                </div>
-                <input 
-                  type="text" 
-                  value={formData.mobile}
-                  onChange={e => setFormData({...formData, mobile: e.target.value})}
-                  placeholder="Ex: 077 123 4567"
-                  className="flex-grow bg-[#F0F4F0] rounded-xl p-4 text-sm font-bold outline-none"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Phone 2 (Secondary)</label>
-              <div className="flex gap-3">
-                <div className="relative shrink-0">
-                   <select className="bg-[#F0F4F0] rounded-xl px-4 py-4 text-xs font-black uppercase tracking-widest outline-none appearance-none cursor-pointer">
-                      <option>Mobile</option>
-                      <option>Landline</option>
-                   </select>
-                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
-                </div>
-                <input 
-                  type="text" 
-                  value={formData.landline}
-                  onChange={e => setFormData({...formData, landline: e.target.value})}
-                  placeholder="Ex: 011 234 5678"
-                  className="flex-grow bg-[#F0F4F0] rounded-xl p-4 text-sm font-bold outline-none"
-                />
-              </div>
-            </div>
-          </div>
-          
-          <button className="text-[10px] font-black text-[#004F31] uppercase tracking-widest hover:underline">+ Add another number</button>
         </motion.section>
 
         {/* SECTION 8: LISTING SETTINGS */}
@@ -1371,67 +1182,7 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
                 </div>
               </div>
             </div>
-
-            <div className="space-y-10">
-              <div className="space-y-6">
-                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Visibility Toggles</label>
-                 <div className="space-y-4">
-                    {[
-                      { id: 'is_featured', label: 'Show on homepage featured' },
-                      { id: 'is_trending', label: 'Mark as Trending' },
-                      { id: 'allow_inquiries', label: 'Allow inquiries' }
-                    ].map(toggle => (
-                      <label key={toggle.id} className="flex items-center justify-between p-4 bg-[#F0F4F0] rounded-2xl cursor-pointer group">
-                         <span className="text-xs font-black text-admin-text-dark uppercase tracking-widest">{toggle.label}</span>
-                         <div className="relative">
-                            <input 
-                              type="checkbox" 
-                              className="peer hidden" 
-                              checked={(formData as any)[toggle.id]}
-                              onChange={() => setFormData(p => ({...p, [toggle.id]: !(p as any)[toggle.id]}))}
-                            />
-                            <div className="w-12 h-6 bg-gray-300 rounded-full transition-colors peer-checked:bg-[#00B67A]" />
-                            <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-6" />
-                         </div>
-                      </label>
-                    ))}
-                 </div>
-              </div>
-
-              <div className="space-y-4">
-                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Published By</label>
-                 <div className="flex items-center gap-4 p-4 bg-white border border-admin-border rounded-2xl">
-                    <div className="w-10 h-10 bg-[#F0F4F0] rounded-full flex items-center justify-center text-[#004F31]">
-                       <User size={18} />
-                    </div>
-                    <div>
-                       <div className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Agent</div>
-                       <div className="text-sm font-bold text-admin-text-dark">{user?.email || 'Admin'}</div>
-                    </div>
-                 </div>
-              </div>
-            </div>
           </div>
-        </motion.section>
-
-        {/* SECTION 9: ADMIN NOTES */}
-        <motion.section 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-10"
-        >
-          <div>
-            <h3 className="text-2xl font-black text-[#004F31] tracking-tight">Admin Notes (Internal)</h3>
-            <p className="text-sm font-bold text-gray-400 mt-1">These notes are only visible to admins.</p>
-          </div>
-
-          <textarea 
-            value={formData.admin_notes}
-            onChange={e => setFormData({...formData, admin_notes: e.target.value})}
-            placeholder="Type private admin notes here..."
-            className="w-full bg-[#F0F4F0] border-transparent focus:bg-white focus:border-[#004F31]/20 rounded-2xl p-6 text-sm font-medium min-h-[160px] outline-none transition-all resize-none"
-          />
         </motion.section>
 
         {/* BOTTOM SAVE BAR */}

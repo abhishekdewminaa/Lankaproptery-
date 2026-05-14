@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
+import { safeQuery } from '../utils/supabaseQuery';
+
 interface CategoryPageProps {
   category: string; 
   mode: 'buy' | 'rent';
@@ -46,6 +48,108 @@ const PROPERTY_TYPES_MAP: Record<string, string[]> = {
   'Apartment': ['Studio', 'Penthouse', 'Standard Apartment', 'Luxury Apartment'],
   'Building': ['OFFICE', 'RETAIL', 'WAREHOUSE']
 };
+
+const SkeletonCard = () => (
+  <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+    <div className="h-56 bg-gray-100 animate-shimmer" />
+    <div className="p-6 space-y-4">
+      <div className="h-4 bg-gray-100 animate-shimmer w-1/4 rounded" />
+      <div className="h-6 bg-gray-100 animate-shimmer w-3/4 rounded" />
+      <div className="h-4 bg-gray-100 animate-shimmer w-1/2 rounded" />
+      <div className="pt-4 border-t border-gray-50 flex gap-4">
+        <div className="h-4 bg-gray-100 animate-shimmer w-12 rounded" />
+        <div className="h-4 bg-gray-100 animate-shimmer w-12 rounded" />
+        <div className="h-4 bg-gray-100 animate-shimmer w-12 rounded" />
+      </div>
+    </div>
+  </div>
+);
+
+const PropertyCard = React.memo(({ p, idx, onPropertyClick, favorites, toggleFavorite }: { 
+  p: any, idx: number, onPropertyClick: (p: any) => void, favorites: Set<number>, toggleFavorite: (id: number) => void 
+}) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: idx * 0.05 }}
+      className="group"
+    >
+      <div 
+        onClick={() => onPropertyClick(p)}
+        className="bg-white rounded-[32px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer"
+      >
+        <div className="relative h-64 overflow-hidden">
+          <img 
+            src={p.images?.[0] || 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&q=80&w=600'} 
+            alt={p.listing_title || p.title}
+            loading="lazy"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
+          
+          <div className="absolute top-4 left-4 flex flex-col gap-2">
+            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg ${
+              p.listing_type === 'For Sale' ? 'bg-brand-red text-white' : 'bg-brand-gold text-dark-navy'
+            }`}>
+              {p.listing_type?.toUpperCase()}
+            </span>
+            {p.is_trending && (
+              <span className="px-4 py-1.5 bg-brand-green text-white rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg">
+                <TrendingUp size={12} /> TRENDING
+              </span>
+            )}
+          </div>
+
+          <button 
+            onClick={(e) => { e.stopPropagation(); toggleFavorite(p.id); }}
+            className={`absolute top-4 right-4 p-3 rounded-full shadow-lg transition-all ${
+              favorites.has(p.id) ? 'bg-brand-red text-white' : 'bg-white/90 text-dark-navy hover:bg-white'
+            }`}
+          >
+            <Heart size={18} fill={favorites.has(p.id) ? "currentColor" : "none"} />
+          </button>
+        </div>
+
+        <div className="p-8">
+          <div className="flex items-center gap-2 text-brand-green text-[10px] font-black uppercase tracking-widest mb-3">
+            <MapPin size={12} /> {p.district}
+          </div>
+          <h3 className="text-xl font-black text-dark-navy mb-2 line-clamp-1 group-hover:text-brand-green transition-colors">{p.listing_title || p.title || 'Property Listing'}</h3>
+          
+          <div className="mb-6">
+            <div className="text-2xl font-black text-brand-green leading-none">
+              Rs. {p.price_lkr ? (p.price_lkr / 1000000).toFixed(1) : '0'}M
+            </div>
+            <div className="text-[11px] font-bold text-gray-400 mt-1 uppercase tracking-widest">
+              Approx. ${p.price_lkr ? (p.price_lkr / USD_RATE / 1000).toFixed(1) : '0'}K USD
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-6 border-t border-gray-50">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5">
+                <Bed size={16} className="text-gray-400" />
+                <span className="text-xs font-bold text-gray-600">{p.rooms || 0}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Bath size={16} className="text-gray-400" />
+                <span className="text-xs font-bold text-gray-600">{p.bathrooms || 0}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Box size={16} className="text-gray-400" />
+                <span className="text-xs font-bold text-gray-600">{(p.land_area || p.land_size || '0') + 'p'}</span>
+              </div>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 group-hover:bg-brand-green group-hover:text-white transition-all">
+               <ArrowRight size={16} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
 
 export const CategoryPage: React.FC<CategoryPageProps> = ({
   category,
@@ -84,92 +188,83 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
 
   const fetchProperties = useCallback(async () => {
     setLoading(true);
-    let query = supabase
-      .from('properties')
-      .select(`
-        id,
-        listing_title,
-        listing_type,
-        property_category,
-        district,
-        city,
-        price_lkr,
-        rooms,
-        bathrooms,
-        land_area,
-        floor_area,
-        images,
-        status,
-        created_at,
-        is_trending
-      `, { count: 'exact' })
-      .eq('status', 'active');
     
-    // Normalizing category search
-    if (category === 'Commercial') {
-       query = query.in('property_category', ['Commercial', 'Business']);
-    } else {
-       query = query.eq('property_category', category);
-    }
-    
-    // Filter by type (Sale vs Rent)
-    if (mode === 'buy') {
-       query = query.eq('listing_type', 'For Sale');
-    } else {
-       query = query.eq('listing_type', 'For Rent');
-    }
-
-    if (filters.district !== 'All Districts') {
-      query = query.eq('district', filters.district);
-    }
-
-    if (filters.minPrice) {
-      query = query.gte('price_lkr', parseInt(filters.minPrice));
-    }
-
-    if (filters.maxPrice) {
-      query = query.lte('price_lkr', parseInt(filters.maxPrice));
-    }
-
-    if (filters.minBeds !== 'All') {
-      const bedsVal = String(filters.minBeds || '').replace('+', '');
-      const beds = parseInt(bedsVal);
-      query = query.gte('rooms', beds);
-    }
-
-    if (filters.propertySubTypes.length > 0) {
-      // Assuming property_category or a subcategory field exists or we filtering by some other logic
-      // For now we'll just check if there are sub-types selected
-      // query = query.in('property_subtype', filters.propertySubTypes);
-    }
-
-    // Sorting
-    switch (filters.sortBy) {
-      case 'Price: Low to High': query = query.order('price_lkr', { ascending: true }); break;
-      case 'Price: High to Low': query = query.order('price_lkr', { ascending: false }); break;
-      case 'Most Viewed': query = query.order('views_count', { ascending: false }); break;
-      case 'Bedrooms': query = query.order('rooms', { ascending: false }); break;
-      default: query = query.order('created_at', { ascending: false });
-    }
-
     const start = (page - 1) * 8;
     const end = start + 7;
-    query = query.range(start, end);
 
-    const { data, count, error } = await query;
+    const { data, count } = await safeQuery(() => {
+      let query = supabase
+        .from('properties')
+        .select(`
+          id,
+          listing_title,
+          listing_type,
+          property_category,
+          district,
+          city,
+          price_lkr,
+          usd_estimate,
+          rooms,
+          bathrooms,
+          land_area,
+          floor_area,
+          images,
+          status,
+          created_at,
+          is_trending,
+          views_count
+        `, { count: 'exact' })
+        .eq('status', 'active');
+      
+      // Normalizing category search
+      if (category === 'Commercial') {
+         query = query.in('property_category', ['Commercial', 'Business']);
+      } else {
+         query = query.eq('property_category', category);
+      }
+      
+      // Filter by type (Sale vs Rent)
+      const listingType = mode === 'buy' ? 'For Sale' : 'For Rent';
+      query = query.eq('listing_type', listingType);
 
-    if (error) {
-      console.error('Error fetching properties:', error);
-    } else {
-      setProperties(data || []);
-      setTotalCount(count || 0);
-    }
+      if (filters.district !== 'All Districts') {
+        query = query.eq('district', filters.district);
+      }
+
+      if (filters.minPrice) {
+        query = query.gte('price_lkr', parseInt(filters.minPrice));
+      }
+
+      if (filters.maxPrice) {
+        query = query.lte('price_lkr', parseInt(filters.maxPrice));
+      }
+
+      if (filters.minBeds !== 'All') {
+        const bedsVal = String(filters.minBeds || '').replace('+', '');
+        const beds = parseInt(bedsVal);
+        query = query.gte('rooms', beds);
+      }
+
+      // Sorting
+      switch (filters.sortBy) {
+        case 'Price: Low to High': query = query.order('price_lkr', { ascending: true }); break;
+        case 'Price: High to Low': query = query.order('price_lkr', { ascending: false }); break;
+        case 'Most Viewed': query = query.order('views_count', { ascending: false }); break;
+        case 'Bedrooms': query = query.order('rooms', { ascending: false }); break;
+        default: query = query.order('created_at', { ascending: false });
+      }
+
+      return query.range(start, end);
+    });
+
+    setProperties(data || []);
+    setTotalCount(count || 0);
     setLoading(false);
   }, [category, mode, filters, page]);
 
   useEffect(() => {
     fetchProperties();
-  }, [fetchProperties]);
+  }, [page, category, mode, filters, fetchProperties]);
 
   const clearFilters = () => {
     setFilters({
@@ -203,29 +298,13 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
     }));
   };
 
-  const SkeletonCard = () => (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-      <div className="h-56 bg-gray-100 animate-shimmer" />
-      <div className="p-6 space-y-4">
-        <div className="h-4 bg-gray-100 animate-shimmer w-1/4 rounded" />
-        <div className="h-6 bg-gray-100 animate-shimmer w-3/4 rounded" />
-        <div className="h-4 bg-gray-100 animate-shimmer w-1/2 rounded" />
-        <div className="pt-4 border-t border-gray-50 flex gap-4">
-          <div className="h-4 bg-gray-100 animate-shimmer w-12 rounded" />
-          <div className="h-4 bg-gray-100 animate-shimmer w-12 rounded" />
-          <div className="h-4 bg-gray-100 animate-shimmer w-12 rounded" />
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div className="bg-[#F8FAF8] min-h-screen pb-20">
       {/* Category Hero Section */}
       <section className="relative h-[300px] w-full flex flex-col justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=2000" 
+            src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200" 
             alt={category} 
             className="w-full h-full object-cover"
           />
@@ -450,86 +529,14 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
                 </div>
               ) : (
                 properties.map((p, idx) => (
-                  <motion.div
-                    key={p.id}
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="group"
-                  >
-                    <div 
-                      onClick={() => onPropertyClick(p)}
-                      className="bg-white rounded-[32px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer"
-                    >
-                      <div className="relative h-64 overflow-hidden">
-                        <img 
-                          src={p.images?.[0] || 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&q=80&w=800'} 
-                          alt={p.listing_title || p.title}
-                          loading="lazy"
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
-                        
-                        <div className="absolute top-4 left-4 flex flex-col gap-2">
-                          <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg ${
-                            p.listing_type === 'For Sale' ? 'bg-brand-red text-white' : 'bg-brand-gold text-dark-navy'
-                          }`}>
-                            {p.listing_type?.toUpperCase()}
-                          </span>
-                          {p.is_trending && (
-                            <span className="px-4 py-1.5 bg-brand-green text-white rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg">
-                              <TrendingUp size={12} /> TRENDING
-                            </span>
-                          )}
-                        </div>
-
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); toggleFavorite(p.id); }}
-                          className={`absolute top-4 right-4 p-3 rounded-full shadow-lg transition-all ${
-                            favorites.has(p.id) ? 'bg-brand-red text-white' : 'bg-white/90 text-dark-navy hover:bg-white'
-                          }`}
-                        >
-                          <Heart size={18} fill={favorites.has(p.id) ? "currentColor" : "none"} />
-                        </button>
-                      </div>
-
-                      <div className="p-8">
-                        <div className="flex items-center gap-2 text-brand-green text-[10px] font-black uppercase tracking-widest mb-3">
-                          <MapPin size={12} /> {p.district}
-                        </div>
-                        <h3 className="text-xl font-black text-dark-navy mb-2 line-clamp-1 group-hover:text-brand-green transition-colors">{p.title}</h3>
-                        
-                        <div className="mb-6">
-                          <div className="text-2xl font-black text-brand-green leading-none">
-                            Rs. {p.price_lkr ? (p.price_lkr / 1000000).toFixed(1) : '0'}M
-                          </div>
-                          <div className="text-[11px] font-bold text-gray-400 mt-1 uppercase tracking-widest">
-                            Approx. ${p.price_lkr ? (p.price_lkr / USD_RATE / 1000).toFixed(1) : '0'}K USD
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-6 border-t border-gray-50">
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-1.5">
-                              <Bed size={16} className="text-gray-400" />
-                              <span className="text-xs font-bold text-gray-600">{p.rooms}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <Bath size={16} className="text-gray-400" />
-                              <span className="text-xs font-bold text-gray-600">{p.baths}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <Box size={16} className="text-gray-400" />
-                              <span className="text-xs font-bold text-gray-600">{p.land_area || p.land_size || '0'}p</span>
-                            </div>
-                          </div>
-                          <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 group-hover:bg-brand-green group-hover:text-white transition-all">
-                             <ArrowRight size={16} />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
+                  <PropertyCard 
+                    key={p.id} 
+                    p={p} 
+                    idx={idx} 
+                    onPropertyClick={onPropertyClick} 
+                    favorites={favorites} 
+                    toggleFavorite={toggleFavorite} 
+                  />
                 ))
               )}
             </div>

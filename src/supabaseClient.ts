@@ -1,35 +1,31 @@
 /// <reference types="vite/client" />
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js'
 
-const SUPABASE_URL = "https://qsqqolvsndvkwegvcfqv.supabase.co";
-const SUPABASE_PUBLIC_KEY = "sb_publishable_srMG0yYK9V0lH1ipf9C4Hw_ae0_eCe5";
+const SUPABASE_URL = 
+  import.meta.env.VITE_SUPABASE_URL?.
+    replace(/\/rest\/v1\/?$/, '').
+    replace(/\/$/, '') ||
+  "https://qsqqolvsndvkwegvcfqv.supabase.co"
 
-/**
- * Configure Supabase Client
- * 
- * FIX for "Uncaught TypeError: Cannot set property fetch of #<Window> which has only a getter"
- * We explicitly pass the browser's fetch to avoid polyfill attempts.
- */
-// Safe fetch initialization
-const safeFetch = (...args: any[]) => {
-  return globalThis.fetch(...args as [any, any]);
-};
+const SUPABASE_KEY =
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  "sb_publishable_srMG0yYK9V0lH1ipf9C4Hw_ae0_eCe5"
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY, {
-  global: {
-    fetch: (...args) => {
-      return globalThis.fetch(...args as [any, any]);
+export const supabase = createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY,
+  {
+    global: {
+      fetch: (...args) => 
+        globalThis.fetch(...args)
+    },
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: false
     }
-  },
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: false
-  },
-  db: {
-    schema: 'public'
   }
-});
+)
 
 /**
  * Expected Supabase Schema for 'properties' table:
