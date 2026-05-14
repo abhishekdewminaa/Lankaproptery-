@@ -5,60 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LankaProperty.lk - Sri Lanka's #1 Real Estate Marketplace</title>
     <script>
-(function() {
-  // Block ALL WebSocket errors silently
-  function isWsError(msg) {
-    if (!msg) return false;
-    const s = String(msg).toLowerCase();
-    return s.includes('websocket') || 
-           s.includes('wss://') || 
-           s.includes('[vite] failed to connect');
+;(function(){
+  var _onerror = window.onerror
+  window.onerror = function(msg){
+    if(typeof msg === 'string' && 
+       msg.indexOf('WebSocket') > -1){
+      return true
+    }
+    return _onerror ? 
+      _onerror.apply(this, arguments) : false
   }
-
   window.addEventListener(
     'unhandledrejection',
-    function(e) {
-      if (e && e.reason && isWsError(e.reason.message || e.reason)) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        return false;
+    function(e){
+      var msg = e.reason?.message || ''
+      if(msg.indexOf('WebSocket') > -1 ||
+         msg.indexOf('websocket') > -1){
+        e.preventDefault()
+        e.stopImmediatePropagation()
       }
     }, true
-  );
-
-  window.addEventListener('error', function(e) {
-    if (isWsError(e.message)) {
-      e.stopPropagation();
-      e.preventDefault();
-      return false;
+  )
+  var _consoleError = console.error
+  console.error = function(){
+    var str = Array.from(arguments).join(' ')
+    if(str.indexOf('WebSocket') > -1 ||
+       str.indexOf('websocket') > -1){
+      return
     }
-  }, true);
-
-  window.onerror = function(msg) {
-    if (isWsError(msg)) {
-      return true;
-    }
-  };
-
-  // Override console methods to hide WebSocket and Vite connection logs
-  ['error', 'warn', 'log', 'info'].forEach(method => {
-    var original = console[method];
-    console[method] = function() {
-      var args = Array.from(arguments);
-      var str = args.map(a => {
-        try {
-          if (typeof a === 'string') return a;
-          return (a && a.stack) ? a.stack : JSON.stringify(a);
-        } catch(e) { return String(a); }
-      }).join(' ').toLowerCase();
-      
-      if (isWsError(str)) {
-        return;
-      }
-      original.apply(console, arguments);
-    };
-  });
-})();
+    _consoleError.apply(console, arguments)
+  }
+})()
 </script>
   </head>
   <body>

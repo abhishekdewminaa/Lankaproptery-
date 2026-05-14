@@ -137,7 +137,7 @@ import {
   EyeOff
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell, PieChart, Pie } from 'recharts';
-import ChartWrapper from './components/ChartWrapper';
+import { ChartContainer } from './utils/ChartContainer';
 
 import { Toaster, toast } from 'react-hot-toast';
 
@@ -7125,7 +7125,7 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1"> engagement vs leads</p>
           </div>
 
-          <ChartWrapper height={300}>
+          <ChartContainer height={300}>
             <AreaChart data={trendData[selectedCategory]}>
               <defs>
                 <linearGradient id="colorViewsCat" x1="0" y1="0" x2="0" y2="1">
@@ -7164,7 +7164,7 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
                 animationDuration={1500}
               />
             </AreaChart>
-          </ChartWrapper>
+          </ChartContainer>
         </div>
 
         <div className="lg:col-span-2 bg-white dark:bg-dark-navy p-8 rounded-[40px] border border-gray-100 dark:border-white/5 shadow-sm flex flex-col justify-between">
@@ -7173,7 +7173,7 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Listing density by category</p>
           </div>
 
-          <ChartWrapper height={300}>
+          <ChartContainer height={300}>
             <PieChart>
               <Pie
                 data={distributionData}
@@ -7205,7 +7205,7 @@ const AnalyticsOverview = ({ user, isAdmin }: { user: any, isAdmin?: boolean }) 
                 }}
               />
             </PieChart>
-          </ChartWrapper>
+          </ChartContainer>
 
           <div className="space-y-3">
             {distributionData.map((item, i) => (

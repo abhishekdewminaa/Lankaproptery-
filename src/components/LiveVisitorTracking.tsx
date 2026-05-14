@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Activity, Users, Eye, Globe, Clock, Smartphone, Monitor, ChevronUp, Shield, AlertTriangle } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
-import ChartWrapper from './ChartWrapper';
+import { ChartContainer } from '../utils/ChartContainer';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -198,7 +198,7 @@ export default function LiveVisitorTracking({ visitors = [], isDark = false }: {
             </h4>
             <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm">
               <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Daily Traffic Retention (24h Window)</p>
-            <ChartWrapper height={300}>
+            <ChartContainer height={300}>
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorToday" x1="0" y1="0" x2="0" y2="1">
@@ -223,7 +223,7 @@ export default function LiveVisitorTracking({ visitors = [], isDark = false }: {
                 <Area type="monotone" dataKey="yesterday" stroke="#cbd5e1" strokeDasharray="8 8" fill="none" strokeWidth={2} name="Yesterday" />
                 <Area type="monotone" dataKey="today" stroke="#004F31" fillOpacity={1} fill="url(#colorToday)" strokeWidth={4} name="Today" />
               </AreaChart>
-            </ChartWrapper>
+            </ChartContainer>
             </div>
           </div>
           
@@ -234,7 +234,7 @@ export default function LiveVisitorTracking({ visitors = [], isDark = false }: {
             </h4>
             <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm">
               <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Top performing pages by views</p>
-            <ChartWrapper height={300}>
+            <ChartContainer height={300}>
               <BarChart data={popularPages} layout="vertical" margin={{ top: 0, right: 30, left: 30, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke={chartTheme.gridColor} />
                 <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: chartTheme.textColor, fontWeight: 'bold' }} />
@@ -252,7 +252,7 @@ export default function LiveVisitorTracking({ visitors = [], isDark = false }: {
                 />
                 <Bar dataKey="views" fill="#004F31" radius={[0, 8, 8, 0]} barSize={32} />
               </BarChart>
-            </ChartWrapper>
+            </ChartContainer>
             </div>
           </div>
         </div>
@@ -294,7 +294,7 @@ export default function LiveVisitorTracking({ visitors = [], isDark = false }: {
                 <span>Direct Traffic</span>
                 <span className="text-[10px] text-brand-green font-black bg-brand-green/10 px-2 py-0.5 rounded-md tracking-tighter">LIVE FEED</span>
              </h4>
-             <ChartWrapper height={180}>
+             <ChartContainer height={180}>
                 <div className="flex items-center h-full">
                   <div style={{ width: '60%', height: '100%', minWidth: '120px' }}>
                     <PieChart>
@@ -318,7 +318,7 @@ export default function LiveVisitorTracking({ visitors = [], isDark = false }: {
                      ))}
                   </div>
                 </div>
-             </ChartWrapper>
+             </ChartContainer>
           </div>
         </div>
       </div>

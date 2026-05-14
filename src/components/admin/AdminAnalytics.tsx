@@ -25,7 +25,7 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import ChartWrapper from '../ChartWrapper';
+import { ChartContainer } from '../../utils/ChartContainer';
 
 const REVENUE_DATA = [
   { name: 'JANUARY', value: 3.2, forecast: false },
@@ -158,7 +158,7 @@ export default function AdminAnalytics() {
             </div>
           </div>
 
-          <ChartWrapper height={400}>
+          <ChartContainer height={400}>
             <AreaChart data={REVENUE_DATA} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -205,7 +205,7 @@ export default function AdminAnalytics() {
                 data={REVENUE_DATA.filter(d => d.forecast || d.name === 'JUNE')}
               />
             </AreaChart>
-          </ChartWrapper>
+          </ChartContainer>
         </div>
       </div>
 
@@ -269,7 +269,7 @@ export default function AdminAnalytics() {
            </div>
 
            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center relative z-10">
-              <ChartWrapper height={240}>
+              <ChartContainer height={240}>
                 <PieChart>
                   <Pie
                       data={LEAD_SOURCE_DATA}
@@ -284,7 +284,7 @@ export default function AdminAnalytics() {
                   </Pie>
                   <Tooltip />
                 </PieChart>
-              </ChartWrapper>
+              </ChartContainer>
               
               {/* Manual Overlay for Centered Text */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mb-10 translate-x-[-25%]">

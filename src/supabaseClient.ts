@@ -17,7 +17,7 @@ export const supabase = createClient(
   {
     global: {
       fetch: (...args) => 
-        globalThis.fetch(...args)
+        globalThis.fetch(...(args as [RequestInfo | URL, RequestInit | undefined]))
     },
     auth: {
       persistSession: true,
