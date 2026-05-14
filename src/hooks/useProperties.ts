@@ -104,7 +104,11 @@ export function useProperties() {
           property_description,
           views_count,
           leads_count,
-          created_at
+          created_at,
+          published_by,
+          package_tier,
+          is_featured,
+          is_trending
         `)
         .eq('status', 'active')
         .order('created_at', { ascending: false })

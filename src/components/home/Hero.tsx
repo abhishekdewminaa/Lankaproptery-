@@ -227,14 +227,14 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch }) => {
                         "0 10px 20px -5px rgba(0, 79, 49, 0.2)",
                         "0 10px 30px 5px rgba(0, 79, 49, 0.4)",
                         "0 10px 20px -5px rgba(0, 79, 49, 0.2)"
-                      ]
+                      ],
+                      x: [0, -2, 2, -2, 2, 0],
+                      opacity: [1, 0.8, 1]
                     }}
                     transition={{
-                      boxShadow: {
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }
+                      boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+                      x: { duration: 0.5, repeat: Infinity, repeatDelay: 3 },
+                      opacity: { duration: 1, repeat: Infinity, repeatDelay: 5 }
                     }}
                     className="w-full md:w-auto md:min-w-[200px] h-[52px] bg-brand-green hover:bg-brand-green-medium text-white font-black uppercase tracking-widest text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-xl shadow-brand-green/20"
                   >

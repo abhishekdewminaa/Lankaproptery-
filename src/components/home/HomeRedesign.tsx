@@ -57,6 +57,7 @@ export const HomeRedesign: React.FC<HomeRedesignProps> = ({
         
         <RecentListings 
           onNavigate={onNavigate}
+          properties={featuredProperties}
         />
         
         <PriceCalculator />

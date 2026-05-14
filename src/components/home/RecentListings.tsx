@@ -41,9 +41,13 @@ const LISTINGS: ListingProps[] = [
 
 interface RecentListingsProps {
   onNavigate: (view: any) => void;
+  properties?: any[];
 }
 
-export const RecentListings: React.FC<RecentListingsProps> = ({ onNavigate }) => {
+export const RecentListings: React.FC<RecentListingsProps> = ({ onNavigate, properties = [] }) => {
+  // Use provided properties or fallback to static ones if truly needed (but we prefer dynamic)
+  const displayProperties = properties.length > 0 ? properties.slice(0, 4) : LISTINGS;
+
   return (
     <section className="py-20 bg-white">
       <div className="container mx-auto px-6">
@@ -51,14 +55,14 @@ export const RecentListings: React.FC<RecentListingsProps> = ({ onNavigate }) =>
           {/* Recent Listings Column */}
           <div className="flex-grow lg:w-2/3">
             <div className="flex justify-between items-center mb-10">
-              <h2 className="text-3xl font-bold text-gray-900">Recent Listings</h2>
-              <a href="#" onClick={(e) => { e.preventDefault(); onNavigate({ type: 'home' }); window.scrollTo({ top: 800, behavior: 'smooth' }); }} className="flex items-center gap-2 text-brand-green font-bold text-sm hover:underline">
+              <h2 className="text-3xl font-bold text-gray-900 uppercase">Recent Listings</h2>
+              <a href="#" onClick={(e) => { e.preventDefault(); onNavigate({ type: 'home' }); window.scrollTo({ top: 800, behavior: 'smooth' }); }} className="flex items-center gap-2 text-brand-green font-bold text-sm hover:underline uppercase tracking-widest">
                 View All <ArrowRight size={16} />
               </a>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {LISTINGS.map((listing, idx) => (
+              {displayProperties.map((listing, idx) => (
                 <motion.div
                   key={listing.id}
                   initial={{ opacity: 0, y: 50 }}
@@ -67,27 +71,29 @@ export const RecentListings: React.FC<RecentListingsProps> = ({ onNavigate }) =>
                   transition={{ duration: 0.5, delay: idx * 0.15 }}
                   whileHover={{ y: -8 }}
                   onClick={() => onNavigate({ type: 'detail', data: listing })}
-                  className="group bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100/50 cursor-pointer"
+                  className="group bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100/50 cursor-pointer h-full"
                 >
                   <div className="relative h-56 overflow-hidden">
                     <img 
-                      src={listing.images?.[0] || (listing as any).image} 
+                      src={listing.images?.[0] || listing.image} 
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                      alt={listing.listing_title}
+                      alt={listing.listing_title || listing.title}
                     />
                     <div className="absolute top-4 left-4">
-                      <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full text-white shadow-lg ${listing.listing_type === 'sale' ? 'bg-red-600' : 'bg-brand-green'}`}>
-                        FOR {listing.listing_type}
+                      <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full text-white shadow-lg ${listing.listing_type?.toLowerCase().includes('sale') ? 'bg-red-600' : 'bg-brand-green'}`}>
+                        FOR {listing.listing_type || 'Sale'}
                       </span>
                     </div>
                   </div>
                   <div className="p-6">
-                    <div className="text-brand-green font-black text-xl mb-2">{listing.price_lkr}</div>
-                    <h3 className="text-gray-900 font-bold mb-4 line-clamp-1 group-hover:text-brand-green transition-colors">{listing.listing_title}</h3>
-                    <div className="flex items-center justify-between text-gray-500 text-xs font-medium border-t border-gray-50 pt-4">
-                      <span className="flex items-center gap-1.5"><Bed size={14} className="text-brand-green" /> {listing.bedrooms} Beds</span>
-                      <span className="flex items-center gap-1.5"><Bath size={14} className="text-brand-green" /> {listing.bathrooms} Baths</span>
-                      <span className="flex items-center gap-1.5"><LandPlot size={14} className="text-brand-green" /> {listing.size}</span>
+                    <div className="text-brand-green font-black text-xl mb-2">
+                       {typeof listing.price_lkr === 'number' ? `Rs. ${listing.price_lkr.toLocaleString()}` : (listing.price_lkr || listing.price || 'Price on Request')}
+                    </div>
+                    <h3 className="text-gray-900 font-bold mb-4 line-clamp-1 group-hover:text-brand-green transition-colors">{listing.listing_title || listing.title}</h3>
+                    <div className="flex items-center justify-between text-gray-500 text-[10px] font-black uppercase tracking-widest border-t border-gray-50 pt-4">
+                      <span className="flex items-center gap-1.5"><Bed size={14} className="text-brand-green" /> {listing.bedrooms || 0} Beds</span>
+                      <span className="flex items-center gap-1.5"><Bath size={14} className="text-brand-green" /> {listing.bathrooms || 0} Baths</span>
+                      <span className="flex items-center gap-1.5"><LandPlot size={14} className="text-brand-green" /> {listing.land_area || listing.size || 'N/A'}</span>
                     </div>
                   </div>
                 </motion.div>

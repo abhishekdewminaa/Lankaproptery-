@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { BrowserRouter, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { GoogleGenAI, Type } from "@google/genai";
 import { supabase } from "./supabaseClient";
@@ -145,6 +145,7 @@ import PropertyWanted from "./components/PropertyWanted";
 import CustomerInquiries from "./components/CustomerInquiries";
 import LiveVisitorTracking from "./components/LiveVisitorTracking";
 import { HomeRedesign } from "./components/home/HomeRedesign";
+import { FeaturedView } from "./components/home/FeaturedView";
 import { VoiceCommandPanel } from './components/VoiceCommandPanel';
 import { CategoryPage } from "./components/CategoryPage";
 import { PropertyDetail } from "./components/PropertyDetail";
@@ -1235,7 +1236,7 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
 
         <div>
           <h4 className="text-white font-bold mb-6 uppercase text-sm tracking-widest">Newsletter</h4>
-          <p className="text-base font-medium mb-6 leading-relaxed">Subscribe to receive the latest property market insights and deals.</p>
+          <p className="text-base font-medium mb-6 leading-relaxed text-white">Subscribe to receive the latest property market insights and deals.</p>
           <div className="relative">
             <input 
               type="email" 
@@ -1248,22 +1249,22 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
           </div>
           <div 
             onClick={() => onShowPromotion()}
-            className="flex items-center gap-3 mt-6 text-xs bg-white border border-gray-100 p-4 rounded-xl text-[#004F31] font-bold cursor-pointer hover:shadow-md transition-all shadow-sm"
+            className="flex items-center gap-3 mt-6 text-xs bg-white border-2 border-brand-green/20 p-4 rounded-xl text-[#004F31] font-black cursor-pointer hover:bg-brand-green hover:text-white transition-all shadow-lg active:scale-95"
           >
-            <Percent size={16} />
-            <span>Get 10% off your first ad listing!</span>
+            <Percent size={16} className="animate-bounce" />
+            <span className="uppercase tracking-widest">Get 10% off your first ad listing!</span>
           </div>
         </div>
       </div>
 
       <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
         <div className="flex flex-col gap-2">
-          <div className="text-[11px] font-bold text-white/80 tracking-wider">
+          <div className="text-[11px] font-bold text-white tracking-wider">
             &copy; 2026 LANKAPROPERTY.LK. ALL RIGHTS RESERVED. DESIGNED FOR EXCELLENCE.
           </div>
           <div>
-            <button onClick={onShowSecretLogin} className="text-white/60 hover:text-white transition-colors" title="Admin Access">
-              <HomeIcon size={16} />
+            <button onClick={onShowSecretLogin} className="text-white hover:text-white transition-colors p-2 bg-white/10 rounded-lg text-xs" title="Admin Access">
+              <HomeIcon size={18} />
             </button>
           </div>
         </div>
@@ -6308,7 +6309,6 @@ const AgentOnlyListingsView = ({ onBack, onRefresh, onShowToast }: { onBack: () 
       const { data, error } = await supabase
         .from('properties')
         .select('*')
-        .eq('published_by', 'agent')
         .order('created_at', { ascending: false });
         
       if (error) {
@@ -8998,6 +8998,19 @@ const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBac
 
 function App() {
   const { properties: supabaseProperties, loading: listingsLoading, error: supabaseError, refresh: refreshProperties } = useProperties();
+
+  const featuredProps = useMemo(() => {
+    return supabaseProperties.filter(p => 
+      p.is_featured === true || 
+      p.package_tier === 'Elite Pro' || 
+      p.package_tier === 'Premium Pro' || 
+      p.published_by === 'admin'
+    );
+  }, [supabaseProperties]);
+
+  const recentProps = useMemo(() => {
+    return supabaseProperties.slice(0, 4);
+  }, [supabaseProperties]);
   const [recentFilter, setRecentFilter] = useState<"Sale" | "Rent">("Sale");
   const [visibleRecentCount, setVisibleRecentCount] = useState(6);
   const [sortOption, setSortOption] = useState<"Newest" | "Price Low-High" | "Price High-Low">("Newest");
@@ -9045,7 +9058,7 @@ function App() {
     
     setCurrentView({ type: 'search_results', data: result });
   };
-  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'contact' | 'about' | 'packages' | 'auth' | 'verify' | 'reset-password' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'secret_login' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings' | 'agent_only_listings' | 'featured_projects_admin' | 'search_results' | 'sell' | 'feedback', data?: any }>({ type: 'home' });
+  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'featured' | 'contact' | 'about' | 'packages' | 'auth' | 'verify' | 'reset-password' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'secret_login' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings' | 'agent_only_listings' | 'featured_projects_admin' | 'search_results' | 'sell' | 'feedback', data?: any }>({ type: 'home' });
   const [user, setUser] = useState<any | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [compareList, setCompareList] = useState<number[]>([]);
@@ -9358,8 +9371,11 @@ function App() {
           >
             <HomeRedesign 
               propertyCount={supabaseProperties.length}
-              featuredProperties={supabaseProperties.slice(0, 4)} 
-              onNavigate={(view) => setCurrentView(view)}
+              featuredProperties={featuredProps.slice(0, 4)} 
+              onNavigate={(view) => {
+                setCurrentView(view);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               onPostAd={() => {
                 if (user) setCurrentView({ type: 'publish' });
                 else setCurrentView({ type: 'auth', data: 'signup' });
@@ -9388,6 +9404,16 @@ function App() {
                 transition={{ duration: 0.3 }}
                 className="flex-grow"
               >
+                {currentView.type === 'featured' && (
+                  <FeaturedView 
+                    onBack={() => setCurrentView({ type: 'home' })}
+                    onNavigate={(view) => {
+                      setCurrentView(view);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                  />
+                )}
+
                 {currentView.type === 'search_results' && (
           <motion.main 
             key="search_results"
