@@ -7495,37 +7495,33 @@ const SecretLoginView = ({ onBack, onSuccess }: { onBack: () => void, onSuccess:
     
     setIsLoading(true);
     try {
-      let { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+      // 1. Sign in with Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email: email.trim(), 
+        password: password 
+      });
       
-      const isFallbackCreds = (email.toLowerCase() === 'abhishekdewminaa@gmail.com' && password === 'LANKApMAX2026$') || (email.toLowerCase() === 'ceo.lankaland@gmail.com' && password === 'CEOlankaP2026$');
-
-      if (authError && isFallbackCreds) {
-        const { error: signUpError } = await supabase.auth.signUp({ email, password });
-        if (!signUpError) {
-           authError = null;
-        }
-      }
-
-      if (authError) {
+      if (error) {
         setIsLoading(false);
         setErrorMsg('Invalid email or password. Please try again.');
         return;
       }
       
+      // 2. Then check admin_users table
       const { data: isAdmin, error: adminError } = await supabase
         .from('admin_users')
         .select('id')
-        .eq('email', email)
+        .eq('email', email.trim().toLowerCase())
         .single();
         
-      if (adminError && adminError.code !== 'PGRST116') {
-        console.error("Error querying admin_users:", adminError);
-      }
-        
-      const allowedEmails = ['abhishekdewminaa@gmail.com', 'ceo.lankaland@gmail.com'];
-      const isFallbackAdmin = allowedEmails.includes(email.toLowerCase());
-      if (!isAdmin && !isFallbackAdmin) {
-        onBack();
+      // 3. If found in admin_users → allow access
+      //    If not found → deny access + sign out
+      if (!isAdmin) {
+        await supabase.auth.signOut();
+        setIsLoading(false);
+        setErrorMsg('Access denied. You are not registered as an administrator.');
+        // We can choose to onBack() or just show error. instructions say "deny access + sign out"
+        // I'll show error and keep them on login page so they know WHY it failed
         return;
       }
       
@@ -7783,9 +7779,9 @@ const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowL
           console.error("Error querying admin_users in Agent Access:", adminError);
         }
 
-        const allowedEmails = ['abhishekdewminaa@gmail.com', 'ceo.lankaland@gmail.com'];
-        const isFallbackAdmin = allowedEmails.includes(activeEmail.toLowerCase());
-        if (!isAdmin && !isFallbackAdmin) {
+        // 3. If found in admin_users → allow access
+        //    If not found → deny access
+        if (!isAdmin) {
           onBack();
           return;
         }
@@ -9022,6 +9018,16 @@ function App() {
   const [voiceStatus, setVoiceStatus] = useState<'idle' | 'listening' | 'paused'>('idle');
 
   useEffect(() => {
+    const handleVoiceToggle = (e: any) => {
+      if (e.detail === 'open') {
+        setIsVoiceListening(true);
+      }
+    };
+    window.addEventListener('voice-command', handleVoiceToggle);
+    return () => window.removeEventListener('voice-command', handleVoiceToggle);
+  }, []);
+
+  useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
     } else {
@@ -9070,17 +9076,11 @@ function App() {
       const { data } = await supabase
         .from('admin_users')
         .select('id')
-        .eq('email', email)
+        .eq('email', email.trim().toLowerCase())
         .single();
-      if (data) {
-        setIsAdmin(true);
-      } else {
-        const allowedEmails = ['abhishekdewminaa@gmail.com', 'ceo.lankaland@gmail.com'];
-        setIsAdmin(allowedEmails.includes(email.toLowerCase()));
-      }
+      setIsAdmin(!!data);
     } catch (err) {
-      const allowedEmails = ['abhishekdewminaa@gmail.com', 'ceo.lankaland@gmail.com'];
-      setIsAdmin(false || allowedEmails.includes(email?.toLowerCase() || ''));
+      setIsAdmin(false);
     }
   };
 

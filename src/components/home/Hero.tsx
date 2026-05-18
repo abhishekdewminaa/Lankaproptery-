@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, MapPin, ChevronDown, Activity, Trash2, Sparkles, Loader2, Bot } from 'lucide-react';
+import { Search, MapPin, ChevronDown, Activity, Trash2, Sparkles, Loader2, Bot, Mic } from 'lucide-react';
 import { getSmartSearchFilters } from '../../services/geminiService';
 import { DISTRICTS_BY_PROVINCE } from '../../constants/districts';
 
@@ -105,8 +105,16 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch }) => {
                 AI Smart Search
               </button>
             </div>
-            <a href="#" className="text-brand-green font-bold text-sm flex items-center gap-1 hover:underline whitespace-nowrap">
-              Direct Inquiry
+            <a 
+              href="#" 
+              onClick={(e) => {
+                e.preventDefault();
+                window.dispatchEvent(new CustomEvent('voice-command', { detail: 'open' }));
+              }} 
+              className="text-brand-green font-bold text-sm flex items-center gap-2 hover:underline whitespace-nowrap"
+            >
+              <Mic size={16} />
+              Call voice Assistant
               <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>↗</motion.span>
             </a>
           </div>

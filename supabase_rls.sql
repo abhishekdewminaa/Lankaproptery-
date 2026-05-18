@@ -6,7 +6,9 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
 );
 
 -- 2. Add some specific admins
--- INSERT INTO public.admin_users (email) VALUES ('admin@example.com');
+-- Note: These users must also be created in Supabase Auth via the dashboard or signUp
+INSERT INTO public.admin_users (email) VALUES ('abhishekdewminaa@gmail.com') ON CONFLICT (email) DO NOTHING;
+INSERT INTO public.admin_users (email) VALUES ('ceo.lankaland@gmail.com') ON CONFLICT (email) DO NOTHING;
 
 -- 3. In order to allow admins to edit any property, we need an RLS policy on the properties table.
 -- Enable RLS on properties if not already enabled.
