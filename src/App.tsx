@@ -9722,10 +9722,11 @@ function App() {
         )}
       </AnimatePresence>
 
+
+
       <FloatingActions 
         onOpenChat={() => setIsChatOpen(true)}
-        onStartVoice={() => setIsVoiceListening(!isVoiceListening)}
-        whatsappNumber="94773951560"
+        onStartVoice={() => setIsVoiceListening(true)}
         voiceStatus={voiceStatus}
       />
 

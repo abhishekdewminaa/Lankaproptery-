@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mic, MicOff, X, HelpCircle, CheckCircle, Search, Home, User, PlusCircle, Trash2, Moon, Sun, Calculator, ArrowDown, ArrowUp, Phone } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 interface VoiceCommandPanelProps {
   onCommandReached: (command: string) => void;
@@ -49,22 +50,20 @@ const VoiceVisualizer = ({ isListening }: { isListening: boolean }) => {
       analyserRef.current = analyser
       renderFrame()
     } catch(e) {
-      console.log('Mic not available for visualizer')
+      console.log('Mic not available for direct visualizer analysis, using simulated reactive wave')
+      renderFrame()
     }
   }
 
   const renderFrame = () => {
     const canvas = canvasRef.current
-    if (!canvas || !analyserRef.current) return
+    if (!canvas) return
 
     const ctx2d = canvas.getContext('2d')
     if (!ctx2d) return
-    const analyser = analyserRef.current
-    const dataArray = new Uint8Array(analyser.frequencyBinCount)
 
     const draw = () => {
       animFrameRef.current = requestAnimationFrame(draw)
-      analyser.getByteFrequencyData(dataArray)
 
       const W = canvas.width
       const H = canvas.height
@@ -74,12 +73,32 @@ const VoiceVisualizer = ({ isListening }: { isListening: boolean }) => {
       const barW = W / bars
       const centerY = H / 2
 
-      for (let i = 0; i < bars; i++) {
-        const value = dataArray[Math.floor(i * dataArray.length / bars)]
-        const percent = value / 255
-        const barH = Math.max(4, percent * H * 0.9)
+      const simulatedData: number[] = []
+      if (analyserRef.current) {
+        const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount)
+        analyserRef.current.getByteFrequencyData(dataArray)
+        for (let i = 0; i < bars; i++) {
+          simulatedData.push(dataArray[Math.floor(i * dataArray.length / bars)]);
+        }
+      } else {
+        const time = Date.now() * 0.007;
+        for (let i = 0; i < bars; i++) {
+          const distanceToCenter = Math.abs(i - bars / 2) / (bars / 2); // 0 to 1
+          const centerWeight = Math.cos(distanceToCenter * Math.PI / 2); // bells shape
+          const wave1 = Math.sin(i * 0.25 - time) * 0.5 + 0.5;
+          const wave2 = Math.cos(i * 0.12 + time * 1.3) * 0.4 + 0.4;
+          const noise = Math.random() * 0.15; // random jitter to simulate micro-vibrations
+          const pulse = Math.sin(time * 0.6) * 0.2 + 0.8;
+          const val = Math.floor((wave1 * 0.55 + wave2 * 0.35 + noise * 0.1) * centerWeight * pulse * 230);
+          simulatedData.push(val);
+        }
+      }
 
-        // Gradient color based on frequency
+      for (let i = 0; i < bars; i++) {
+        const value = simulatedData[i]
+        const percent = value / 255
+        const barH = Math.max(5, percent * H * 0.85)
+
         const gradient = ctx2d.createLinearGradient(0, centerY - barH/2, 0, centerY + barH/2)
         gradient.addColorStop(0, `rgba(0, 255, 135, ${0.4 + percent * 0.6})`)
         gradient.addColorStop(0.5, `rgba(0, 79, 49, ${0.8 + percent * 0.2})`)
@@ -105,7 +124,9 @@ const VoiceVisualizer = ({ isListening }: { isListening: boolean }) => {
 
   const cleanup = () => {
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
-    streamRef.current?.getTracks().forEach(t => t.stop())
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop())
+    }
   }
 
   return (
@@ -127,13 +148,15 @@ const ListeningOverlay = ({
     status, 
     onPause, 
     onResume, 
-    onStop 
+    onStop,
+    onTypeCommand
 }: { 
     transcript: string; 
     status: 'listening' | 'paused'; 
     onPause: () => void;
     onResume: () => void;
     onStop: () => void;
+    onTypeCommand: (cmd: string) => void;
 }) => (
   <>
     {/* Dark backdrop */}
@@ -142,8 +165,8 @@ const ListeningOverlay = ({
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.4)',
-        backdropFilter: 'blur(4px)',
+        background: 'rgba(0,0,0,0.5)',
+        backdropFilter: 'blur(5px)',
         zIndex: 9997,
         animation: 'fadeIn 0.3s ease'
       }}
@@ -154,15 +177,15 @@ const ListeningOverlay = ({
       position: 'fixed',
       bottom: '100px',
       right: '24px',
-      width: '300px',
+      width: '320px',
       background: 'linear-gradient(145deg, #111827, #0D1117)',
       borderRadius: '24px',
       padding: '24px',
       zIndex: 9998,
-      border: '1px solid rgba(0,255,135,0.15)',
+      border: '1px solid rgba(0,255,135,0.2)',
       boxShadow: `
-        0 25px 50px rgba(0,0,0,0.5),
-        0 0 0 1px rgba(0,255,135,0.05),
+        0 25px 50px rgba(0,0,0,0.6),
+        0 0 0 1px rgba(0,255,135,0.1),
         inset 0 1px 0 rgba(255,255,255,0.05)
       `,
       animation: 'popupSlideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)',
@@ -191,7 +214,7 @@ const ListeningOverlay = ({
               status === 'paused' ? '#F5A623' :
               '#6B7280',
             animation: status === 'listening' ?
-              'blink 1s ease infinite' : 'none',
+              'blink 1.0s ease infinite' : 'none',
             boxShadow: status === 'listening' ?
               '0 0 8px #CC2222' : 'none'
           }} />
@@ -250,7 +273,7 @@ const ListeningOverlay = ({
       }}>
         {transcript ? (
           <p style={{
-            color: '#00FF87',
+            color: transcript.toLowerCase().includes('permission') || transcript.toLowerCase().includes('error') ? '#FFA8A8' : '#00FF87',
             fontSize: '14px',
             margin: 0,
             lineHeight: '1.5',
@@ -271,52 +294,136 @@ const ListeningOverlay = ({
       </div>
 
       {/* PAUSE / RESUME BUTTON */}
-      <button
-        onClick={status === 'listening' ? onPause : onResume}
-        style={{
-          width: '100%',
-          padding: '12px',
-          borderRadius: '12px',
-          cursor: 'pointer',
-          fontWeight: '600',
-          fontSize: '14px',
-          background: status === 'listening' ?
-            'rgba(204,34,34,0.15)' :
-            'rgba(0,79,49,0.3)',
-          color: status === 'listening' ?
-            '#FF6B6B' : '#00FF87',
-          border: `1px solid ${
-            status === 'listening' ?
-            'rgba(204,34,34,0.3)' :
-            'rgba(0,255,135,0.2)'
-          }`,
-          transition: 'all 0.2s ease',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px'
-        }}
-      >
-        {status === 'listening' ? (
-          <><MicOff size={16} /> Pause Recording</>
-        ) : (
-          <><Mic size={16} /> Resume Recording</>
-        )}
-      </button>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+        <button
+          onClick={status === 'listening' ? onPause : onResume}
+          style={{
+            flex: 1,
+            padding: '12px',
+            borderRadius: '12px',
+            cursor: 'pointer',
+            fontWeight: '600',
+            fontSize: '13px',
+            background: status === 'listening' ?
+              'rgba(245,166,35,0.15)' :
+              'rgba(0,255,135,0.1)',
+            color: status === 'listening' ?
+              '#FFE0B2' : '#00FF87',
+            border: `1px solid ${
+              status === 'listening' ?
+              'rgba(245,166,35,0.3)' :
+              'rgba(0,255,135,0.2)'
+            }`,
+            transition: 'all 0.2s ease',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}
+        >
+          {status === 'listening' ? (
+            <><MicOff size={15} /> Pause</>
+          ) : (
+            <><Mic size={15} /> Resume</>
+          )}
+        </button>
+      </div>
 
-      {/* HINT */}
-      <p style={{
-        color: '#374151',
-        fontSize: '11px',
-        textAlign: 'center',
-        marginTop: '12px',
-        marginBottom: 0
+      {/* TEXT FALLBACK INPUT */}
+      <div style={{
+        borderTop: '1px dashed rgba(255,255,255,0.1)',
+        paddingTop: '16px'
       }}>
-        {status === 'listening' ?
-          'Tap mic button to pause • Click ✕ to stop' :
-          'Tap mic button to resume recording'
-        }
-      </p>
+        <div style={{
+          display: 'flex',
+          gap: '8px',
+          marginBottom: '12px'
+        }}>
+          <input
+            type="text"
+            placeholder="Or type a command..."
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                const target = e.target as HTMLInputElement;
+                if (target.value.trim()) {
+                  onTypeCommand(target.value);
+                  target.value = '';
+                }
+              }
+            }}
+            style={{
+              flex: 1,
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(0,255,135,0.2)',
+              borderRadius: '12px',
+              padding: '10px 14px',
+              color: 'white',
+              fontSize: '13px',
+              outline: 'none',
+              transition: 'all 0.2s'
+            }}
+          />
+          <button
+            onClick={(e) => {
+              const input = e.currentTarget.previousSibling as HTMLInputElement;
+              if (input && input.value.trim()) {
+                onTypeCommand(input.value);
+                input.value = '';
+              }
+            }}
+            style={{
+              background: '#00FF87',
+              color: '#0A0F1D',
+              border: 'none',
+              borderRadius: '12px',
+              padding: '0 16px',
+              cursor: 'pointer',
+              fontWeight: '700',
+              fontSize: '12px',
+              transition: 'all 0.2s'
+            }}
+          >
+            Run
+          </button>
+        </div>
+
+        {/* Dynamic Suggestions */}
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '6px'
+        }}>
+          {['Show houses in Colombo', 'Post free ad', 'Calculate price', 'Dark mode'].map((suggestion) => (
+            <button
+              key={suggestion}
+              onClick={() => onTypeCommand(suggestion)}
+              style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: '8px',
+                padding: '4px 8px',
+                color: '#9CA3AF',
+                fontSize: '10px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(0,255,135,0.1)';
+                e.currentTarget.style.borderColor = 'rgba(0,255,135,0.3)';
+                e.currentTarget.style.color = '#00FF87';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
+                e.currentTarget.style.color = '#9CA3AF';
+              }}
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      </div>
+
     </div>
   </>
 );
@@ -345,7 +452,8 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps & { isForceListe
   onToggleDarkMode,
   isForceListening,
   onToggleListening,
-  onStatusChange
+  onStatusChange,
+  onCommandReached
 }) => {
   const [status, setStatus] = useState<'idle' | 'listening' | 'paused'>('idle');
   const statusRef = useRef(status);
@@ -365,10 +473,6 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps & { isForceListe
   const [language, setLanguage] = useState<'en-US' | 'si-LK'>('en-US');
   const [isSupported, setIsSupported] = useState(true);
   const recognitionRef = useRef<any>(null);
-
-  const isPreviewEnv = 
-    !window.location.hostname.includes('lankaproperty.lk') &&
-    !window.location.hostname.includes('localhost');
 
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -408,16 +512,19 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps & { isForceListe
 
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
-      if (event.error === 'not-allowed') {
+      if (event.error === 'not-allowed' || event.error === 'permission-denied' || event.error === 'service-not-allowed') {
         setShowMicInstructions(true);
+        setStatus('listening');
+        setTranscript('Microphone access blocked. Please try typing your command below!');
+      } else {
+        setStatus('idle');
+        if (onToggleListening) onToggleListening();
       }
-      setStatus('idle');
-      if (onToggleListening) onToggleListening();
     };
 
     recognition.onend = () => {
       // If we are still in listening state but recognition ended naturally (e.g. silence), restart it unless we manually paused
-      if (statusRef.current === 'listening' && !isPreviewEnv) {
+      if (statusRef.current === 'listening') {
         try {
           recognition.start();
         } catch (e) {
@@ -427,17 +534,23 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps & { isForceListe
     };
 
     recognitionRef.current = recognition;
-  }, [language, isPreviewEnv]);
+  }, [language]);
 
   const startListening = async () => {
-    if (!isSupported || isPreviewEnv) return;
-    
-    try {
-      await navigator.mediaDevices.getUserMedia({ audio: true });
-      recognitionRef.current.start();
-    } catch (err) {
-      console.error('Failed to start recognition', err);
-      setShowMicInstructions(true);
+    if (isSupported && recognitionRef.current) {
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        recognitionRef.current.start();
+      } catch (err) {
+        console.error('Failed to start recognition due to permissions', err);
+        setShowMicInstructions(true);
+        setStatus('listening');
+        setTranscript('Microphone access blocked. Please type your command.');
+      }
+    } else {
+      // Fallback for browsers without Web Speech recognition or inside restricted workspaces
+      setStatus('listening');
+      setTranscript('Web Speech is limited in this environment. Try typing your query.');
     }
   };
 
@@ -473,6 +586,7 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps & { isForceListe
 
   const processCommand = (command: string) => {
     console.log('Processing voice command:', command);
+    const cmdClean = command.trim().toLowerCase();
     
     const showSuccess = (action: string) => {
       setLastAction(action);
@@ -484,24 +598,31 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps & { isForceListe
       }, 600);
     };
 
+    // Propagate the raw message to dynamic active listeners like publish page form
+    onCommandReached(command);
+
     // ── SEARCH COMMANDS ──────────────────
-    if (command.includes('show') || command.includes('search') || command.includes('find') || command.includes('සොයන්න') || command.includes('පෙන්වන්න')) {
+    if (cmdClean.includes('show') || cmdClean.includes('search') || cmdClean.includes('find') || cmdClean.includes('සොයන්න') || cmdClean.includes('පෙන්වන්න')) {
       const filters: any = {};
       
       // Property Type
-      if (command.includes('house') || command.includes('ගෙවල්')) filters.category = 'House';
-      if (command.includes('land') || command.includes('ඉඩම්')) filters.category = 'Land';
-      if (command.includes('apartment') || command.includes('ඇපාර්ට්මන්ට්')) filters.category = 'Apartment';
-      if (command.includes('villa') || command.includes('විලා')) filters.category = 'Villa';
+      if (cmdClean.includes('house') || cmdClean.includes('houses') || cmdClean.includes('ගෙවල්')) {
+        filters.category = 'House';
+      } else if (cmdClean.includes('apartment') || cmdClean.includes('apartments') || cmdClean.includes('ඇපාර්ට්මන්ට්')) {
+        filters.category = 'Apartment';
+      } else if (cmdClean.includes('land') || cmdClean.includes('lands') || cmdClean.includes('ඉඩම්')) {
+        filters.category = 'Land';
+      } else if (cmdClean.includes('villa') || cmdClean.includes('villas') || cmdClean.includes('විලා')) {
+        filters.category = 'Villa';
+      }
       
       // District
       DISTRICTS.forEach(district => {
-        if (command.includes(district.toLowerCase())) {
+        if (cmdClean.includes(district.toLowerCase())) {
           filters.district = district;
         }
       });
 
-      // Special check for Sinhala districts if needed, but usually transcript gives English names for locations even in Sinhala mode sometimes, or we can add Sinhala names
       const sinhalaDistricts: {[key: string]: string} = {
         'කොළඹ': 'Colombo',
         'ගම්පහ': 'Gampaha',
@@ -509,108 +630,165 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps & { isForceListe
         'ගාල්ල': 'Galle'
       };
       Object.entries(sinhalaDistricts).forEach(([sin, eng]) => {
-        if (command.includes(sin)) filters.district = eng;
+        if (cmdClean.includes(sin)) filters.district = eng;
       });
       
       // Listing Type
-      if (command.includes('rent') || command.includes('කුලියට')) filters.mode = 'rent';
-      if (command.includes('sale') || command.includes('buy') || command.includes('විකුණන්න')) filters.mode = 'buy';
+      if (cmdClean.includes('rent') || cmdClean.includes('කුලියට')) filters.mode = 'rent';
+      if (cmdClean.includes('sale') || cmdClean.includes('buy') || cmdClean.includes('විකුණන්න')) filters.mode = 'buy';
       
       // Price
-      const priceMatch = command.match(/under (\d+) million/) || command.match(/මිලියන (\d+)/);
-      if (priceMatch) {
-        filters.maxPrice = parseInt(priceMatch[1]) * 1000000;
+      const millionMatch = cmdClean.match(/under\s*(\d+)\s*million/) || cmdClean.match(/price\s*(\d+)\s*million/) || cmdClean.match(/(\d+)\s*million/) || cmdClean.match(/මිලියන\s*(\d+)/);
+      if (millionMatch) {
+        filters.maxPrice = parseInt(millionMatch[1]) * 1000000;
       }
       
       onSearch(filters);
-      showSuccess(`🔍 Searching${filters.category ? ' for ' + filters.category : ''}${filters.district ? ' in ' + filters.district : ''}`);
+      
+      const categoryLabel = filters.category ? filters.category.toLowerCase() + 's' : 'properties';
+      const districtLabel = filters.district ? ` in ${filters.district}` : '';
+      const modeLabel = filters.mode ? ` for ${filters.mode}` : '';
+      const priceLabel = filters.maxPrice ? ` under ${filters.maxPrice / 1000000} million` : '';
+      const queryStr = `🔍 Searching ${categoryLabel}${districtLabel}${modeLabel}${priceLabel}...`;
+      
+      toast.success(queryStr, { duration: 3000 });
+      showSuccess(`🔍 Searching: ${categoryLabel}${districtLabel}`);
+      
+      setTimeout(() => {
+        handleStop();
+      }, 1200);
       return;
     }
 
     // ── NAVIGATION COMMANDS ───────────────
-    if (command.includes('go to home') || command.includes('homepage') || command.includes('ප්‍රධාන පිටුව')) {
+    if (cmdClean.includes('go to home') || cmdClean.includes('homepage') || cmdClean.includes('ප්‍රධාන පිටුව')) {
       onNavigateHome();
+      toast.success('🏠 Navigating to Home...');
       showSuccess('🏠 Going home');
+      setTimeout(() => handleStop(), 1200);
       return;
     }
 
-    if (command.includes('find agent') || command.includes('show agents') || command.includes('නියෝජිතයන්')) {
+    if (cmdClean.includes('find agent') || cmdClean.includes('show agents') || cmdClean.includes('නියෝජිතයන්')) {
       onNavigate({ type: 'agents' });
+      toast.success('👤 Opening Agents directory...');
       showSuccess('👤 Opening agents page');
+      setTimeout(() => handleStop(), 1200);
       return;
     }
 
-    if (command.includes('open admin') || command.includes('admin panel') || command.includes('ඇඩ්මින්')) {
-      onNavigate({ type: 'secret_login' });
-      showSuccess('🔐 Opening admin');
-      return;
-    }
-
-    if (command.includes('post ad') || command.includes('add property') || command.includes('new listing') || command.includes('දැන්වීමක්')) {
+    if (cmdClean.includes('post free ad') || cmdClean.includes('post ad') || cmdClean.includes('add property') || cmdClean.includes('new listing') || cmdClean.includes('දැන්වීමක්')) {
       onNavigate({ type: 'publish' });
+      toast.success('📝 Opening Property Publish form...');
       showSuccess('📝 Opening publish form');
+      setTimeout(() => handleStop(), 1200);
       return;
     }
 
-    // ── FILTER COMMANDS ───────────────────
-    const bedroomMatch = command.match(/(\d+) bedroom/);
-    if (bedroomMatch) {
-      // Assuming App.tsx can handle this via some global filter state or by navigating with filters
-      onSearch({ bedrooms: parseInt(bedroomMatch[1]) });
-      showSuccess(`🛏️ ${bedroomMatch[1]} bedrooms`);
+    if (cmdClean.includes('open admin') || cmdClean.includes('admin panel') || cmdClean.includes('ඇඩ්මින්')) {
+      onNavigate({ type: 'secret_login' });
+      toast.success('🔐 Accessing Admin Panel Login...');
+      showSuccess('🔐 Opening admin');
+      setTimeout(() => handleStop(), 1200);
       return;
     }
 
-    if (command.includes('clear') || command.includes('reset') || command.includes('අයින් කරන්න')) {
+    // ── FORM FILL COMMANDS (on publish page) ──
+    if (cmdClean.startsWith('title ') || cmdClean.includes('title is')) {
+      const extractedTitle = cmdClean.includes('title is') ? cmdClean.split('title is')[1] : cmdClean.substring(6);
+      if (extractedTitle) {
+        toast.success(`📝 Set Title to: "${extractedTitle.trim()}"`);
+        showSuccess(`📝 Set Title: ${extractedTitle.trim()}`);
+      }
+      return;
+    }
+
+    if (cmdClean.startsWith('price ') || cmdClean.includes('price of') || cmdClean.includes('price is')) {
+      const millionMatch = cmdClean.match(/price\s*(\d+)\s*million/) || cmdClean.match(/(\d+)\s*million/) || cmdClean.match(/\d+/);
+      if (millionMatch) {
+         let value = parseInt(millionMatch[1] || millionMatch[0]);
+         if (cmdClean.includes('million')) {
+           toast.success(`💰 Price set to ${value.toLocaleString()} Million LKR`);
+         } else {
+           toast.success(`💰 Price set to LKR ${value.toLocaleString()}`);
+         }
+         showSuccess(`💰 Price updated`);
+         return;
+      }
+    }
+
+    if (cmdClean.includes('bedroom') || cmdClean.includes('bathroom')) {
+      toast.success(`🛏️ Rooms and bathrooms updated`);
+      showSuccess(`🛏️ Rooms/baths updated`);
+      return;
+    }
+
+    if (cmdClean.includes('publish ad') || cmdClean.includes('submit ad') || cmdClean.includes('publish ad') || cmdClean.includes('submit form')) {
+      toast.success('🚀 Submitting property ad...');
+      showSuccess('🚀 Ad submitted');
+      setTimeout(() => handleStop(), 1200);
+      return;
+    }
+
+    // ── CONTROL COMMANDS ───────────────────
+    if (cmdClean.includes('clear filters') || cmdClean.includes('reset filters') || cmdClean.includes('clear filter') || cmdClean.includes('reset filter') || cmdClean.includes('අයින් කරන්න')) {
       onClearFilters();
+      toast.success('🧹 All search filters cleared');
       showSuccess('✅ Filters cleared');
+      setTimeout(() => handleStop(), 1200);
       return;
     }
 
-    // ── CALCULATOR COMMANDS ───────────────
-    if (command.includes('calculate') || command.includes('price estimate') || command.includes('ගණනය')) {
-      const el = document.getElementById('price-calculator');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-      else onNavigateHome(); // Ensure we are on home where calculator is
-      showSuccess('🧮 Opening calculator');
-      return;
-    }
-
-    // ── DARK MODE ─────────────────────────
-    if (command.includes('dark mode') || command.includes('night mode') || command.includes('කළු')) {
+    if (cmdClean.includes('dark mode') || cmdClean.includes('night mode') || cmdClean.includes('කළු')) {
       document.documentElement.classList.add('dark');
       onToggleDarkMode();
+      toast.success('🌙 Switching to Dark Mode');
       showSuccess('🌙 Dark mode on');
+      setTimeout(() => handleStop(), 1200);
       return;
     }
 
-    if (command.includes('light mode') || command.includes('එළිය')) {
+    if (cmdClean.includes('light mode') || cmdClean.includes('එළිය')) {
       document.documentElement.classList.remove('dark');
       onToggleDarkMode();
+      toast.success('☀️ Switching to Light Mode');
       showSuccess('☀️ Light mode on');
+      setTimeout(() => handleStop(), 1200);
       return;
     }
 
-    // ── SCROLL COMMANDS ───────────────────
-    if (command.includes('scroll down') || command.includes('පහළට')) {
-      window.scrollBy({ top: 500, behavior: 'smooth' });
+    if (cmdClean.includes('scroll down') || cmdClean.includes('පහළට')) {
+      window.scrollBy({ top: window.innerHeight * 0.75, behavior: 'smooth' });
+      toast.success('⬇️ Scrolling down');
+      setTimeout(() => handleStop(), 1200);
       return;
     }
 
-    if (command.includes('scroll up') || command.includes('go to top') || command.includes('ඉහළට')) {
+    if (cmdClean.includes('scroll up') || cmdClean.includes('go to top') || cmdClean.includes('ඉහළට')) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      toast.success('⬆️ Scrolling to top');
+      setTimeout(() => handleStop(), 1200);
       return;
     }
 
-    // ── CONTACT COMMANDS ──────────────────
-    if (command.includes('contact agent') || command.includes('call agent') || command.includes('ඇමතීමට')) {
-      const el = document.getElementById('agent-card');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-      showSuccess('📞 Scrolling to contact');
+    if (cmdClean.includes('calculate price') || cmdClean.includes('price estimates') || cmdClean.includes('estimate price') || cmdClean.includes('calculator') || cmdClean.includes('ගණනය')) {
+      const el = document.getElementById('price-calculator');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        onNavigateHome();
+        setTimeout(() => {
+          document.getElementById('price-calculator')?.scrollIntoView({ behavior: 'smooth' });
+        }, 600);
+      }
+      toast.success('🧮 Opening LankaProperty Price Estimator');
+      showSuccess('🧮 Opening price estimator');
+      setTimeout(() => handleStop(), 1200);
       return;
     }
 
     // Unknown command
+    toast.error(`❓ Command not recognized: "${command}"`);
     setLastAction(`❓ Not recognized: "${command}"`);
   };
 
@@ -637,6 +815,7 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps & { isForceListe
                 onPause={handlePause}
                 onResume={handleResume}
                 onStop={handleStop}
+                onTypeCommand={processCommand}
               />
             </div>
           )}
