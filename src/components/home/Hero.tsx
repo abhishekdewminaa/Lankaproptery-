@@ -105,18 +105,42 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch }) => {
                 AI Smart Search
               </button>
             </div>
-            <a 
+            <motion.a 
               href="#" 
               onClick={(e) => {
                 e.preventDefault();
                 window.dispatchEvent(new CustomEvent('voice-command', { detail: 'open' }));
               }} 
-              className="text-brand-green font-bold text-sm flex items-center gap-2 hover:underline whitespace-nowrap"
+              initial={{ scale: 1 }}
+              animate={{ 
+                scale: [1, 1.05, 1, 1.05, 1],
+                rotate: [0, -3, 3, -3, 3, 0],
+                boxShadow: [
+                  "0 0 10px rgba(0, 79, 49, 0.4)",
+                  "0 0 25px rgba(0, 79, 49, 0.8)",
+                  "0 0 10px rgba(0, 79, 49, 0.4)",
+                  "0 0 25px rgba(0, 79, 49, 0.8)",
+                  "0 0 10px rgba(0, 79, 49, 0.4)"
+                ]
+              }}
+              transition={{ 
+                duration: 3,
+                repeat: Infinity,
+                repeatType: "loop",
+                ease: "easeInOut"
+              }}
+              whileHover={{ scale: 1.1, rotate: 0 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-brand-green text-white font-extrabold text-sm flex items-center gap-2.5 px-5 py-2.5 rounded-full whitespace-nowrap border border-brand-green/30 select-none cursor-pointer"
             >
-              <Mic size={16} />
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#81C784]"></span>
+              </span>
+              <Mic size={16} className="animate-pulse" />
               Call voice Assistant
               <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>↗</motion.span>
-            </a>
+            </motion.a>
           </div>
 
           <AnimatePresence mode="wait">
