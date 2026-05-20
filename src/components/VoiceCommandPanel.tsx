@@ -473,6 +473,7 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps & { isForceListe
   const [language, setLanguage] = useState<'en-US' | 'si-LK'>('en-US');
   const [isSupported, setIsSupported] = useState(true);
   const recognitionRef = useRef<any>(null);
+  const micBlockedRef = useRef(false);
 
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -513,6 +514,7 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps & { isForceListe
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       if (event.error === 'not-allowed' || event.error === 'permission-denied' || event.error === 'service-not-allowed') {
+        micBlockedRef.current = true;
         setShowMicInstructions(true);
         setStatus('listening');
         setTranscript('Microphone access blocked. Please try typing your command below!');
@@ -523,8 +525,8 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps & { isForceListe
     };
 
     recognition.onend = () => {
-      // If we are still in listening state but recognition ended naturally (e.g. silence), restart it unless we manually paused
-      if (statusRef.current === 'listening') {
+      // If we are still in listening state but recognition ended naturally (e.g. silence), restart it unless we manually paused or mic is blocked
+      if (statusRef.current === 'listening' && !micBlockedRef.current) {
         try {
           recognition.start();
         } catch (e) {
@@ -537,12 +539,19 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps & { isForceListe
   }, [language]);
 
   const startListening = async () => {
+    if (micBlockedRef.current) {
+      setStatus('listening');
+      setTranscript('Microphone access blocked. Please type your command.');
+      return;
+    }
+
     if (isSupported && recognitionRef.current) {
       try {
         await navigator.mediaDevices.getUserMedia({ audio: true });
         recognitionRef.current.start();
       } catch (err) {
         console.error('Failed to start recognition due to permissions', err);
+        micBlockedRef.current = true;
         setShowMicInstructions(true);
         setStatus('listening');
         setTranscript('Microphone access blocked. Please type your command.');
@@ -562,10 +571,17 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps & { isForceListe
   };
 
   useEffect(() => {
-    if (isForceListening && status === 'idle' && recognitionRef.current) {
+    if (isForceListening) {
+      if ((window as any).voiceDefaultLanguage) {
+        setLanguage((window as any).voiceDefaultLanguage);
+        // Clear it so it doesn't persistently override
+        delete (window as any).voiceDefaultLanguage;
+      }
+      if (status === 'idle' && recognitionRef.current) {
         startListening();
+      }
     } else if (!isForceListening && status !== 'idle' && recognitionRef.current) {
-        stopListening();
+      stopListening();
     }
   }, [isForceListening]);
 

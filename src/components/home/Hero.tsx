@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, MapPin, ChevronDown, Activity, Trash2, Sparkles, Loader2, Bot, Mic } from 'lucide-react';
 import { getSmartSearchFilters } from '../../services/geminiService';
@@ -14,6 +14,19 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch }) => {
   const [isAISearch, setIsAISearch] = useState(false);
   const [aiQuery, setAiQuery] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [bilingualIndex, setBilingualIndex] = useState(0);
+
+  const bilingualTexts = [
+    "Call voice Assistant",
+    "හඬ සහායකය අමතන්න (සිංහල)"
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBilingualIndex((prev) => (prev === 0 ? 1 : 0));
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleAISearch = async () => {
     if (!aiQuery.trim() || isAnalyzing) return;
@@ -109,36 +122,50 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch }) => {
               href="#" 
               onClick={(e) => {
                 e.preventDefault();
-                window.dispatchEvent(new CustomEvent('voice-command', { detail: 'open' }));
+                const currentLang = bilingualIndex === 1 ? 'open-si' : 'open';
+                window.dispatchEvent(new CustomEvent('voice-command', { detail: currentLang }));
               }} 
               initial={{ scale: 1 }}
               animate={{ 
                 scale: [1, 1.05, 1, 1.05, 1],
-                rotate: [0, -3, 3, -3, 3, 0],
+                rotate: [0, -2, 2, -2, 2, 0],
                 boxShadow: [
-                  "0 0 10px rgba(0, 79, 49, 0.4)",
-                  "0 0 25px rgba(0, 79, 49, 0.8)",
-                  "0 0 10px rgba(0, 79, 49, 0.4)",
-                  "0 0 25px rgba(0, 79, 49, 0.8)",
-                  "0 0 10px rgba(0, 79, 49, 0.4)"
+                  "0 0 12px rgba(0, 255, 135, 0.4)",
+                  "0 0 28px rgba(0, 255, 135, 0.7)",
+                  "0 0 12px rgba(0, 255, 135, 0.4)",
+                  "0 0 28px rgba(0, 255, 135, 0.7)",
+                  "0 0 12px rgba(0, 255, 135, 0.4)"
                 ]
               }}
               transition={{ 
-                duration: 3,
+                duration: 4,
                 repeat: Infinity,
                 repeatType: "loop",
                 ease: "easeInOut"
               }}
-              whileHover={{ scale: 1.1, rotate: 0 }}
+              whileHover={{ scale: 1.08, rotate: 0 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-brand-green text-white font-extrabold text-sm flex items-center gap-2.5 px-5 py-2.5 rounded-full whitespace-nowrap border border-brand-green/30 select-none cursor-pointer"
+              className="bg-brand-navy hover:bg-brand-navy/90 text-[#00FF87] font-black text-xs uppercase tracking-wider flex items-center gap-3 px-6 py-3 rounded-full whitespace-nowrap border-2 border-[#00FF87]/30 select-none cursor-pointer shadow-lg shadow-[#00FF87]/10"
             >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#81C784]"></span>
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00FF87] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#00FF87]"></span>
               </span>
-              <Mic size={16} className="animate-pulse" />
-              Call voice Assistant
+              <Mic size={16} className="text-[#00FF87] shrink-0" />
+              <div className="w-[185px] overflow-hidden text-left flex items-center">
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={bilingualIndex}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.35, ease: 'easeOut' }}
+                    className="block truncate font-extrabold text-[#00FF87]"
+                  >
+                    {bilingualTexts[bilingualIndex]}
+                  </motion.span>
+                </AnimatePresence>
+              </div>
               <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>↗</motion.span>
             </motion.a>
           </div>

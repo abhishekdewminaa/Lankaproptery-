@@ -9020,6 +9020,10 @@ function App() {
   useEffect(() => {
     const handleVoiceToggle = (e: any) => {
       if (e.detail === 'open') {
+        (window as any).voiceDefaultLanguage = 'en-US';
+        setIsVoiceListening(true);
+      } else if (e.detail === 'open-si') {
+        (window as any).voiceDefaultLanguage = 'si-LK';
         setIsVoiceListening(true);
       }
     };
