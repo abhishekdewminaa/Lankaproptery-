@@ -5711,14 +5711,14 @@ const PropertyAdminCard = ({ property, onEdit, setDeleteConfirmId, updatingId, t
               href={`/property/${property.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2.5 bg-gray-50 text-gray-500 rounded-xl hover:bg-brand-green hover:text-white compact-transition"
+              className="p-2.5 bg-[#0B0F19] text-[#00FF87] border border-[#00FF87]/20 rounded-xl hover:bg-[#00FF87] hover:text-[#0B0F19] hover:shadow-[0_0_15px_rgba(0,255,135,0.4)] compact-transition group/btn"
               onClick={(e) => {
                 // Prevent navigation if it's meant to be handled by app router? 
                 // Normally we would use a Link component or onClick handler.
                 // But native a tag with target="_blank" is easier for "View on website"
               }}
             >
-              <ExternalLink size={18} />
+              <ExternalLink size={18} className="transition-transform group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
             </a>
             <button 
               onClick={() => onEdit(property)}
@@ -9118,6 +9118,10 @@ function App() {
       setCurrentView({ type: 'secret_login' });
     } else if (path === '/sell') {
       setCurrentView({ type: 'sell' });
+    } else if (path.startsWith('/property/')) {
+      const parts = path.split('/');
+      const id = isNaN(Number(parts[2])) ? parts[2] : Number(parts[2]);
+      setCurrentView({ type: 'detail', data: { id } });
     } else if (path.startsWith('/buy/') || path.startsWith('/rent/')) {
       const parts = path.split('/');
       const mode = parts[1] as 'buy' | 'rent';
@@ -9221,6 +9225,10 @@ function App() {
         const map: any = { 'houses': 'House', 'land': 'Land', 'apartments': 'Apartment', 'buildings': 'Building', 'hotels': 'Hotel', 'commercial': 'Commercial' };
         cat = map[parts[2].toLowerCase()] || cat;
         setCurrentView({ type: 'category', data: { category: cat, mode } });
+      } else if (path.startsWith('/property/')) {
+        const parts = path.split('/');
+        const id = isNaN(Number(parts[2])) ? parts[2] : Number(parts[2]);
+        setCurrentView({ type: 'detail', data: { id } });
       }
     };
     window.addEventListener('popstate', handlePopState);

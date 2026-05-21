@@ -381,9 +381,10 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
                     <a 
                       href={`/property/${property.id}`}
                       target="_blank"
-                      className="w-12 h-12 bg-admin-text-dark text-white rounded-2xl flex items-center justify-center hover:bg-[#004F31] transition-all shadow-xl shadow-black/10 active:scale-95"
+                      className="w-12 h-12 bg-admin-text-dark text-[#00FF87] border border-[#00FF87]/30 rounded-2xl flex items-center justify-center hover:bg-[#00FF87] hover:text-[#0B0F19] hover:shadow-[0_0_20px_rgba(0,255,135,0.45)] transition-all shadow-xl active:scale-95 duration-300 group/link"
+                      title="View Details"
                     >
-                      <ExternalLink size={20} />
+                      <ExternalLink size={20} className="transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 duration-300" />
                     </a>
                  </div>
               </div>
