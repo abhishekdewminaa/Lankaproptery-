@@ -25,6 +25,7 @@ import {
   Share2
 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
+import { triggerNotification } from '../../services/notificationService';
 
 interface Inquiry {
   id: string;
@@ -91,6 +92,17 @@ export default function AdminInquiries({ user }: { user: any }) {
         .update({ status: newStatus })
         .eq('id', id);
       if (error) throw error;
+
+      const targetInquiry = inquiries.find(i => i.id === id);
+      if (targetInquiry) {
+        triggerNotification('inquiry_status_change', {
+          new_status: newStatus,
+          client_name: targetInquiry.name,
+          property_title: targetInquiry.propertyTitle || 'Property Inquiry',
+          agent_email: user?.email || 'admin@lankaproperty.lk'
+        }).catch(err => console.warn('Failed to dispatch status update alert:', err));
+      }
+
       setInquiries(prev => prev.map(i => i.id === id ? { ...i, status: newStatus } : i));
     } catch (err) {
       console.error("Failed to update status:", err);

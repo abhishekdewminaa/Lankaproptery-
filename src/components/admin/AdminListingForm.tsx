@@ -63,6 +63,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { supabase } from '../../supabaseClient';
+import { triggerNotification } from '../../services/notificationService';
 import toast from 'react-hot-toast';
 import { DISTRICTS_BY_PROVINCE, SRI_LANKA_DISTRICTS as DISTRICTS } from '../../constants/districts';
 
@@ -594,24 +595,42 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
         rooms: parseInt(formData.rooms.toString()),
         bathrooms: parseInt(formData.bathrooms.toString()),
         property_description: formData.description,
-        status: formData.status,
+        status: 'active',
+        is_featured: true,
+        is_trending: false,
+        published_by: 'admin',
         images: images.map(img => img.url).filter(url => url !== null),
         updated_at: new Date().toISOString()
       };
 
       let result;
+      const isNew = !initialData?.id;
       if (initialData?.id) {
-        result = await supabase.from('properties').update(payload).eq('id', initialData.id);
+        result = await supabase.from('properties').update(payload).eq('id', initialData.id).select().single();
       } else {
-        result = await supabase.from('properties').insert([{ ...payload, agent_id: user?.email }]).select().single();
+        result = await supabase.from('properties').insert([{ 
+          ...payload, 
+          agent_id: user?.email,
+          created_at: new Date().toISOString()
+        }]).select().single();
       }
 
       if (result.error) throw result.error;
 
+      // Trigger notification for new published properties
+      if (isNew && !isAutoSave) {
+        triggerNotification('new_property', {
+          title: payload.listing_title,
+          price_lkr: payload.price_lkr,
+          category: payload.property_category,
+          agent_email: user?.email || 'admin@lankaproperty.lk'
+        }).catch(err => console.warn('Failed to dispatch publish notification:', err));
+      }
+
       setLastSaved(new Date().toLocaleTimeString());
       if (!isAutoSave) {
         toast.success(initialData?.id ? 'Property updated successfully!' : 'Property published successfully!');
-        if (!initialData?.id) onSuccess(result.data);
+        onSuccess(result.data);
       }
     } catch (error: any) {
       if (!isAutoSave) toast.error('Failed to save: ' + error.message);

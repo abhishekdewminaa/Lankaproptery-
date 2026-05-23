@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Bell, Settings, Menu, X, ChevronDown } from 'lucide-react';
+import { NotificationBell } from './NotificationBell';
 
 interface NavbarProps {
   onPostAd: () => void;
@@ -8,9 +9,10 @@ interface NavbarProps {
   onAdminAccess: () => void;
   onNavigate?: (view: any) => void;
   currentView?: string;
+  user?: any;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdminAccess, onNavigate, currentView }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdminAccess, onNavigate, currentView, user }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -164,12 +166,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
 
         {/* Right side */}
         <div className="flex items-center gap-4">
-          <div className="hidden sm:flex items-center gap-2 mr-2">
-            <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors relative">
-              <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-brand-red rounded-full" />
-            </button>
-          </div>
+          {user && (
+            <div className="flex items-center gap-2 mr-2">
+              <NotificationBell user={user} onNavigate={onNavigate} />
+            </div>
+          )}
           
           {/* Mobile Menu Toggle */}
           <button 

@@ -26,6 +26,97 @@ async function startServer() {
     }
   });
 
+  // Local handler for send-notification proxy
+  app.post("/api/send-notification", async (req, res) => {
+    try {
+      const { type, data } = req.body;
+      console.log(`[Notification Service] Type: ${type}`, data);
+
+      if (type === 'new_inquiry') {
+        const body = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: #004F31; padding: 20px; text-align: center;">
+              <h1 style="color: white; margin: 0;">LankaProperty.lk</h1>
+            </div>
+            <div style="padding: 30px; background: #f9f9f9;">
+              <h2 style="color: #004F31;">🏠 New Property Inquiry!</h2>
+              <p>You have received a new inquiry for your property:</p>
+              <div style="background: white; border-left: 4px solid #004F31; padding: 16px; margin: 16px 0; border-radius: 4px;">
+                <p><b>Property:</b> ${data.property_title || 'N/A'}</p>
+                <p><b>Location:</b> ${data.district || ''}, ${data.city || ''}</p>
+                <p><b>Price:</b> Rs. ${data.price_lkr || 'N/A'}</p>
+              </div>
+              <div style="background: white; border-left: 4px solid #007E50; padding: 16px; margin: 16px 0; border-radius: 4px;">
+                <h3 style="color: #004F31; margin-top: 0;">👤 Buyer Details:</h3>
+                <p><b>Name:</b> ${data.client_name || 'N/A'}</p>
+                <p><b>Phone:</b> ${data.client_phone || 'N/A'}</p>
+                <p><b>Email:</b> ${data.client_email || 'N/A'}</p>
+                <p><b>Message:</b> ${data.message || 'N/A'}</p>
+              </div>
+              <a href="https://lankaproperty.lk/admin-lk2026" style="background: #004F31; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block; margin-top: 16px;">
+                View in Dashboard →
+              </a>
+            </div>
+            <div style="background: #004F31; padding: 16px; text-align: center; color: #A7F3D0; font-size: 12px;">
+              © 2026 LankaProperty.lk
+            </div>
+          </div>
+        `;
+
+        if (process.env.RESEND_API_KEY && data.agent_email) {
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              from: 'LankaProperty.lk <noreply@lankaproperty.lk>',
+              to: [data.agent_email],
+              subject: `🏠 New Inquiry: ${data.property_title || 'Property Inquiry'}`,
+              html: body
+            })
+          });
+          console.log(`[Notification Service] Email sent successfully via Resend to ${data.agent_email}`);
+        } else {
+          console.log(`[Notification Service API Fallback] No RESEND_API_KEY configured. Email structure simulation:\nTo: ${data.agent_email || 'N/A'}\nSubject: New Inquiry: ${data.property_title}\nMessage: ${data.message}`);
+        }
+
+        // WhatsApp trigger
+        if (data.agent_phone && data.agent_whatsapp_key) {
+          const phone = data.agent_phone.replace(/[^0-9]/g, '');
+          const apiKey = data.agent_whatsapp_key;
+          const message = 
+            `🏠 *New Property Inquiry!*\n\n` +
+            `*Property:* ${data.property_title || 'Property'}\n` +
+            `*Location:* ${data.district || 'Sri Lanka'}\n\n` +
+            `👤 *Buyer Details:*\n` +
+            `Name: ${data.client_name || 'N/A'}\n` +
+            `Phone: ${data.client_phone || 'N/A'}\n` +
+            `Email: ${data.client_email || 'N/A'}\n\n` +
+            `💬 *Message:*\n${data.message || 'N/A'}\n\n` +
+            `View dashboard: https://lankaproperty.lk/admin-lk2026`;
+
+          await fetch(
+            `https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodeURIComponent(message)}&apikey=${apiKey}`
+          );
+          console.log(`[Notification Service] WhatsApp triggered via CallMeBot for ${phone}`);
+        }
+      } else if (type === 'new_agent') {
+        console.log(`[Notification Service] New Agent Register Simulated alert for ${data.name} (${data.email})`);
+      } else if (type === 'new_property') {
+        console.log(`[Notification Service] New Property Published Simulated alert for ${data.title}`);
+      } else if (type === 'inquiry_status_change') {
+        console.log(`[Notification Service] Inquiry status changed to ${data.new_status} for client ${data.client_name}`);
+      }
+
+      res.json({ status: "OK" });
+    } catch (error: any) {
+      console.error("[Notification Service] Error", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Health check
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });

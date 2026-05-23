@@ -2,6 +2,32 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, TrendingUp, Sparkles, ChevronRight, Play, Pause } from 'lucide-react';
 
+const getPropertyImage = (images: any, index = 0) => {
+  if (!images) return '/placeholder-property.jpg'
+  
+  if (Array.isArray(images)) {
+    return images[index] || 
+           images[0] || 
+           '/placeholder-property.jpg'
+  }
+  
+  if (typeof images === 'string') {
+    try {
+      const parsed = JSON.parse(images)
+      if (Array.isArray(parsed)) {
+        return parsed[index] || 
+               parsed[0] || 
+               '/placeholder-property.jpg'
+      }
+      return images
+    } catch {
+      return images
+    }
+  }
+  
+  return '/placeholder-property.jpg'
+}
+
 interface Property {
   id: number;
   listing_title: string;
@@ -138,7 +164,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
               >
                 <div className="absolute inset-0 z-0 overflow-hidden">
                   <img 
-                    src={currentMain.images?.[0] || currentMain.image as any} 
+                    src={getPropertyImage(currentMain.images)} 
                     className="w-full h-full object-cover transition-transform duration-10000 group-hover:scale-110" 
                     alt={currentMain.listing_title}
                   />
@@ -185,7 +211,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
           >
             <div className="absolute inset-0 z-0 overflow-hidden">
               <img 
-                src={displayProperties[secondaryIndex1].images?.[0] || displayProperties[secondaryIndex1].image as any} 
+                src={getPropertyImage(displayProperties[secondaryIndex1].images)} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                 alt={displayProperties[secondaryIndex1].listing_title}
               />
@@ -213,7 +239,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
           >
             <div className="absolute inset-0 z-0 overflow-hidden">
               <img 
-                src={displayProperties[secondaryIndex2].images?.[0] || displayProperties[secondaryIndex2].image as any} 
+                src={getPropertyImage(displayProperties[secondaryIndex2].images)} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                 alt={displayProperties[secondaryIndex2].listing_title}
               />
@@ -241,7 +267,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
           >
             <div className="absolute inset-0 z-0 overflow-hidden">
               <img 
-                src={displayProperties[secondaryIndex3].images?.[0] || displayProperties[secondaryIndex3].image as any} 
+                src={getPropertyImage(displayProperties[secondaryIndex3].images)} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                 alt={displayProperties[secondaryIndex3].listing_title}
               />

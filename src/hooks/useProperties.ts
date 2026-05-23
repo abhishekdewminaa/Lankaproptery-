@@ -141,6 +141,25 @@ export function useProperties() {
 
   useEffect(() => {
     fetchProperties();
+
+    const channel = supabase
+      .channel('properties_realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'properties'
+        },
+        () => {
+          fetchProperties();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return { properties, loading, error, refresh: fetchProperties };

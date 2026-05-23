@@ -26,6 +26,59 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { supabase } from '../supabaseClient';
+import { triggerNotification } from '../services/notificationService';
+
+const getPropertyImage = (images: any, index = 0) => {
+  if (!images) return '/placeholder-property.jpg'
+  
+  if (Array.isArray(images)) {
+    return images[index] || 
+           images[0] || 
+           '/placeholder-property.jpg'
+  }
+  
+  if (typeof images === 'string') {
+    try {
+      const parsed = JSON.parse(images)
+      if (Array.isArray(parsed)) {
+        return parsed[index] || 
+               parsed[0] || 
+               '/placeholder-property.jpg'
+      }
+      return images
+    } catch {
+      return images
+    }
+  }
+  
+  return '/placeholder-property.jpg'
+}
+
+const getPropertyImagesList = (images: any) => {
+  if (!images) return ['/placeholder-property.jpg'];
+  
+  if (Array.isArray(images)) {
+    return images.filter(Boolean).length > 0 
+      ? images.filter(Boolean) 
+      : ['/placeholder-property.jpg'];
+  }
+  
+  if (typeof images === 'string') {
+    try {
+      const parsed = JSON.parse(images);
+      if (Array.isArray(parsed)) {
+        return parsed.filter(Boolean).length > 0 
+          ? parsed.filter(Boolean) 
+          : ['/placeholder-property.jpg'];
+      }
+      return [images];
+    } catch {
+      return [images];
+    }
+  }
+  
+  return ['/placeholder-property.jpg'];
+};
 import { translateDescription } from '../services/geminiService';
 import { safeStr, safeReplace, formatPriceLong, getFirstImageSafe, USD_RATE, EUR_RATE } from '../utils/safeUtils';
 
@@ -158,6 +211,7 @@ export const PropertyDetail = ({
           .from('properties')
           .select('*')
           .eq('id', idToFetch)
+          .eq('status', 'active')
           .single();
 
         if (error) throw error;
@@ -165,8 +219,13 @@ export const PropertyDetail = ({
         
         setProperty(data);
 
-        // Increment views
-        await supabase.rpc('increment_views', { listing_id: idToFetch });
+        // Increment view count
+        await supabase
+          .from('properties')
+          .update({ 
+            views_count: (data.views_count || 0) + 1 
+          })
+          .eq('id', idToFetch);
 
         // Fetch similar properties
         if (data) {
@@ -213,13 +272,58 @@ export const PropertyDetail = ({
           property_id: property.id,
           agent_id: property.agent_id,
           client_name: formData.name,
+          full_name: formData.name,
           client_email: formData.email,
+          email: formData.email,
           client_phone: formData.phone,
+          phone: formData.phone,
+          inquiry_type: property.listing_title || 'Property Inquiry',
           message: formData.message,
           status: 'new'
         });
 
       if (error) throw error;
+
+      // Fetch or derive agent's details
+      let agentEmail = property.agent_id || 'admin@lankaproperty.lk';
+      let agentPhone = '+94 77 123 4567';
+      let agentWhatsappKey = '';
+      let notifyEmail = true;
+      let notifyWhatsapp = false;
+
+      if (property.agent_id) {
+        // Query agents table
+        const { data: agentData, error: agentError } = await supabase
+          .from('agents')
+          .select('*')
+          .or(`id.eq."${property.agent_id}",email.eq."${property.agent_id}"`)
+          .maybeSingle();
+
+        if (!agentError && agentData) {
+          agentEmail = agentData.email || agentEmail;
+          agentPhone = agentData.phone || agentPhone;
+          agentWhatsappKey = agentData.whatsapp_api_key || '';
+          notifyEmail = agentData.notify_email !== false; // default to true
+          notifyWhatsapp = agentData.notify_whatsapp === true;
+        }
+      }
+
+      // Trigger notification flow (Edge function + local Express fallback)
+      await triggerNotification('new_inquiry', {
+        property_title: property.listing_title,
+        property_id: property.id,
+        district: property.district || 'Colombo',
+        city: property.city || 'Colombo',
+        price_lkr: property.price_lkr || 'N/A',
+        agent_email: agentEmail,
+        agent_phone: agentPhone,
+        agent_whatsapp_key: agentWhatsappKey,
+        client_name: formData.name,
+        client_email: formData.email,
+        client_phone: formData.phone,
+        message: formData.message
+      });
+
       setInquirySuccess(true);
       setFormData({
         name: '',
@@ -278,9 +382,7 @@ export const PropertyDetail = ({
     );
   }
 
-  const images = property.images && property.images.length > 0 
-    ? property.images 
-    : ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80'];
+  const images = getPropertyImagesList(property.images);
 
   const breadcrumbs = [
     { label: 'Home', href: '/' },
@@ -720,7 +822,7 @@ export const PropertyDetail = ({
             >
               <div className="relative h-48 overflow-hidden">
                 <img 
-                  src={prop.images?.[0] || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80'} 
+                  src={getPropertyImage(prop.images)} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                   alt={prop.listing_title} 
                 />

@@ -14,6 +14,32 @@ import { DISTRICTS_BY_PROVINCE } from '../constants/districts';
 
 import { safeQuery } from '../utils/supabaseQuery';
 
+const getPropertyImage = (images: any, index = 0) => {
+  if (!images) return '/placeholder-property.jpg'
+  
+  if (Array.isArray(images)) {
+    return images[index] || 
+           images[0] || 
+           '/placeholder-property.jpg'
+  }
+  
+  if (typeof images === 'string') {
+    try {
+      const parsed = JSON.parse(images)
+      if (Array.isArray(parsed)) {
+        return parsed[index] || 
+               parsed[0] || 
+               '/placeholder-property.jpg'
+      }
+      return images
+    } catch {
+      return images
+    }
+  }
+  
+  return '/placeholder-property.jpg'
+}
+
 interface CategoryPageProps {
   category: string; 
   mode: 'buy' | 'rent';
@@ -74,7 +100,7 @@ const PropertyCard = React.memo(({ p, idx, onPropertyClick, favorites, toggleFav
       >
         <div className="relative h-64 overflow-hidden">
           <img 
-            src={p.images?.[0] || 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&q=80&w=600'} 
+            src={getPropertyImage(p.images)} 
             alt={p.listing_title || p.title}
             loading="lazy"
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"

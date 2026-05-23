@@ -11,6 +11,8 @@ import { Navbar } from "./components/home/Navbar";
 import { Feedback } from "./components/Feedback";
 import AdminPortal from './components/admin/AdminPortal';
 import FloatingActions from "./components/FloatingActions";
+import { triggerNotification } from "./services/notificationService";
+import { NotificationSettings } from "./components/NotificationSettings";
 
 const convertPrice = (priceStr: unknown) => {
   if (priceStr === null || priceStr === undefined || typeof priceStr !== 'string' || priceStr.toLowerCase().includes('contact')) return null;
@@ -109,6 +111,7 @@ import {
   Star,
   Lock,
   LogOut,
+  Bell,
   Youtube,
   PenTool,
   MessageSquare,
@@ -3217,7 +3220,16 @@ const AuthPage = ({ onBack, onLogin, initialMode = 'login', onForgotPassword, on
             agency: agency,
             created_at: new Date().toISOString()
          });
-         if (insertError) console.error("Agent insert error", insertError);
+         if (insertError) {
+           console.error("Agent insert error", insertError);
+         } else {
+           triggerNotification('new_agent', {
+             name: fullName,
+             email: email,
+             phone: phone,
+             agency: agency
+           }).catch(err => console.warn('Failed to dispatch welcome/registration alerts:', err));
+         }
       }
       
       if (onVerifyEmailMessage) {
@@ -8600,7 +8612,7 @@ const PromotionView = ({ onBack, onNavigateToAuth, onNavigateToPackages }: { onB
 );
 
 const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBack: () => void, onLogout: () => void, onNewAd: () => void }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'editProfile' | 'security'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'editProfile' | 'security' | 'notifications'>('dashboard');
 
   const [formData, setFormData] = useState({
     firstName: user?.email ? user.email.split('@')[0] : '',
@@ -8796,6 +8808,10 @@ const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBac
                 <span className="text-sm font-bold">Edit Profile</span>
                 <User size={16} className={activeTab === 'editProfile' ? 'text-white' : 'text-gray-500'} />
               </li>
+              <li onClick={() => setActiveTab('notifications')} className={`flex items-center justify-between p-3 rounded-xl cursor-pointer compact-transition ${activeTab === 'notifications' ? 'bg-white/10' : 'bg-white/5 hover:bg-white/10'}`}>
+                <span className="text-sm font-bold">Inquiries & Alerts</span>
+                <Bell size={16} className={activeTab === 'notifications' ? 'text-white' : 'text-gray-500'} />
+              </li>
               <li onClick={() => setActiveTab('security')} className={`flex items-center justify-between p-3 rounded-xl cursor-pointer compact-transition ${activeTab === 'security' ? 'bg-white/10' : 'bg-white/5 hover:bg-white/10'}`}>
                 <span className="text-sm font-bold">Security</span>
                 <Shield size={16} className={activeTab === 'security' ? 'text-white' : 'text-gray-500'} />
@@ -8864,6 +8880,10 @@ const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBac
                 </button>
               </div>
             </>
+          )}
+
+          {activeTab === 'notifications' && (
+            <NotificationSettings user={user} />
           )}
 
           {activeTab === 'editProfile' && (
@@ -8996,12 +9016,7 @@ function App() {
   const { properties: supabaseProperties, loading: listingsLoading, error: supabaseError, refresh: refreshProperties } = useProperties();
 
   const featuredProps = useMemo(() => {
-    return supabaseProperties.filter(p => 
-      p.is_featured === true || 
-      p.package_tier === 'Elite Pro' || 
-      p.package_tier === 'Premium Pro' || 
-      p.published_by === 'admin'
-    );
+    return supabaseProperties;
   }, [supabaseProperties]);
 
   const recentProps = useMemo(() => {
@@ -9370,6 +9385,7 @@ function App() {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         currentView={currentView.type}
+        user={user}
       />
 
       <AnimatePresence mode="wait">

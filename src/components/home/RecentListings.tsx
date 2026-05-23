@@ -2,6 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Bed, Bath, LandPlot, ArrowRight } from 'lucide-react';
 
+const getPropertyImage = (images: any, index = 0) => {
+  if (!images) return '/placeholder-property.jpg'
+  
+  if (Array.isArray(images)) {
+    return images[index] || 
+           images[0] || 
+           '/placeholder-property.jpg'
+  }
+  
+  if (typeof images === 'string') {
+    try {
+      const parsed = JSON.parse(images)
+      if (Array.isArray(parsed)) {
+        return parsed[index] || 
+               parsed[0] || 
+               '/placeholder-property.jpg'
+      }
+      return images
+    } catch {
+      return images
+    }
+  }
+  
+  return '/placeholder-property.jpg'
+}
+
 interface ListingProps {
   id: number;
   listing_title: string;
@@ -75,7 +101,7 @@ export const RecentListings: React.FC<RecentListingsProps> = ({ onNavigate, prop
                 >
                   <div className="relative h-56 overflow-hidden">
                     <img 
-                      src={listing.images?.[0] || listing.image} 
+                      src={getPropertyImage(listing.images)} 
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                       alt={listing.listing_title || listing.title}
                     />
