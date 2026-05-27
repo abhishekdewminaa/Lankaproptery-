@@ -1,30 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
-const getPropertyImage = (images: any, index = 0) => {
-  if (!images) return '/placeholder-property.jpg'
+const getPropertyThumbnail = (images: any) => {
+  if (!images) return null;
   
+  // Handle array
   if (Array.isArray(images)) {
-    return images[index] || 
-           images[0] || 
-           '/placeholder-property.jpg'
+    const first = images.find((img: any) => 
+      img && img !== '' && img !== null
+    );
+    return first || null;
   }
   
+  // Handle JSON string
   if (typeof images === 'string') {
-    try {
-      const parsed = JSON.parse(images)
-      if (Array.isArray(parsed)) {
-        return parsed[index] || 
-               parsed[0] || 
-               '/placeholder-property.jpg'
+    if (images.startsWith('[')) {
+      try {
+        const arr = JSON.parse(images);
+        return arr[0] || null;
+      } catch {
+        return null;
       }
-      return images
-    } catch {
-      return images
+    }
+    // Direct URL string
+    if (images.startsWith('http')) {
+      return images;
     }
   }
   
-  return '/placeholder-property.jpg'
+  return null;
 }
 
 import { 
@@ -315,12 +319,19 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
               className={`bg-white p-6 rounded-[32px] border border-admin-border shadow-sm hover:shadow-xl hover:shadow-black/5 transition-all group flex flex-col xl:flex-row gap-8 items-center ${property.status === 'paused' ? 'opacity-70' : ''}`}
             >
               {/* Thumbnail */}
-              <div className="w-full xl:w-[200px] h-[140px] rounded-2xl overflow-hidden shrink-0 relative bg-gray-100">
-                 <img 
-                   src={getPropertyImage(property.images)} 
-                   alt={property.listing_title} 
-                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                 />
+              <div className="w-full xl:w-[200px] h-[140px] rounded-2xl overflow-hidden shrink-0 relative bg-gray-100 flex items-center justify-center text-4xl">
+                 {getPropertyThumbnail(property.images) ? (
+                   <img 
+                     src={getPropertyThumbnail(property.images)} 
+                     alt={property.listing_title} 
+                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                     onError={(e) => {
+                       (e.target as HTMLElement).parentElement!.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:32px">🏠</div>';
+                     }}
+                   />
+                 ) : (
+                   <div>🏠</div>
+                 )}
                  <div className="absolute top-3 left-3 flex flex-col gap-2">
                     <span className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-lg ${
                       property.status === 'active' 

@@ -43,6 +43,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { 
   extractPropertyDetails, 
   translateDescription,
+  generateDescription,
   getMarketAnalysis 
 } from '../../services/geminiService';
 import { 
@@ -372,6 +373,14 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
     description: initialData?.property_description || '',
     status: initialData?.status || 'active',
     price_on_request: initialData?.price_on_request || false,
+    package: initialData?.package || 'Elite Pro',
+    is_featured: initialData?.is_featured ?? true,
+    is_trending: initialData?.is_trending ?? true,
+    allow_inquiries: initialData?.allow_inquiries ?? true,
+    phone_1: initialData?.phone_1 || '077 123 4567',
+    phone_2: initialData?.phone_2 || '',
+    map_link: initialData?.map_link || '',
+    admin_notes: initialData?.admin_notes || ''
   });
 
   const [images, setImages] = useState<{ id: string, order: number, url: string | null, file: File | null }[]>(
@@ -575,7 +584,14 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
   const photoCount = images.filter(img => img.url !== null).length;
 
   const saveProperty = useCallback(async (isAutoSave = false) => {
-    if (!isAutoSave) setIsSaving(true);
+    if (!isAutoSave) {
+      if (isSaving) return;
+      if (!formData.listing_title) return toast.error("Listing title is required");
+      if (!formData.price_lkr) return toast.error("Price is required");
+      if (!formData.district || !formData.city) return toast.error("Location (District and City) are required");
+      if (photoCount === 0) return toast.error("Please upload at least one image");
+      setIsSaving(true);
+    }
     
     try {
       const priceNum = parseFloat(formData.price_lkr.toString().replace(/[^0-9.]/g, '')) || 0;
@@ -595,9 +611,15 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
         rooms: parseInt(formData.rooms.toString()),
         bathrooms: parseInt(formData.bathrooms.toString()),
         property_description: formData.description,
-        status: 'active',
-        is_featured: true,
-        is_trending: false,
+        status: formData.status,
+        is_featured: formData.is_featured,
+        is_trending: formData.is_trending,
+        allow_inquiries: formData.allow_inquiries,
+        package: formData.package,
+        phone_1: formData.phone_1,
+        phone_2: formData.phone_2,
+        map_link: formData.map_link,
+        admin_notes: formData.admin_notes,
         published_by: 'admin',
         images: images.map(img => img.url).filter(url => url !== null),
         updated_at: new Date().toISOString()
@@ -608,6 +630,21 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
       if (initialData?.id) {
         result = await supabase.from('properties').update(payload).eq('id', initialData.id).select().single();
       } else {
+        if (!isAutoSave) {
+          const { data: existing } = await supabase
+            .from('properties')
+            .select('id')
+            .eq('listing_title', formData.listing_title)
+            .eq('district', formData.district)
+            .eq('price_lkr', priceNum)
+            .maybeSingle();
+
+          if (existing) {
+            toast.error('This property already exists!');
+            return;
+          }
+        }
+        
         result = await supabase.from('properties').insert([{ 
           ...payload, 
           agent_id: user?.email,
@@ -913,6 +950,74 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
               </div>
             </div>
 
+            {/* AI MARKET PRICE ANALYSIS */}
+            <AnimatePresence>
+              {(calculating || marketData) && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  <div className="md:col-span-2 bg-[#F8FAFC] border border-gray-100 rounded-[24px] p-6 lg:p-8 mt-4 overflow-hidden relative">
+                    <div className="flex items-center gap-2 mb-6">
+                      <Sparkles size={16} className="text-[#004F31]" />
+                      <h4 className="text-sm font-black text-[#004F31] uppercase tracking-widest">Market Price Analysis</h4>
+                    </div>
+
+                    {calculating ? (
+                      <div className="flex flex-col items-center justify-center py-8">
+                        <Loader2 className="animate-spin text-[#004F31] mb-4" size={32} />
+                        <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Analyzing market data...</p>
+                      </div>
+                    ) : marketData ? (
+                      <div className="flex flex-col lg:flex-row items-center gap-10">
+                        {/* Speedometer */}
+                        <div className="relative w-[280px] h-[160px] flex-shrink-0 flex items-end justify-center">
+                          <div className="absolute inset-x-0 bottom-0 top-0 flex items-start justify-center">
+                            <Speedometer position={marketData.gaugePosition} />
+                          </div>
+                          <div 
+                            className="bg-white px-6 py-2 rounded-2xl shadow-lg border border-gray-100 z-10 flex flex-col items-center gap-1 mb-2 transform -translate-y-2"
+                            style={{ borderTopWidth: 4, borderTopColor: verdictConfig[marketData.verdict as keyof typeof verdictConfig].color }}
+                          >
+                            <span className="text-2xl">{verdictConfig[marketData.verdict as keyof typeof verdictConfig].icon}</span>
+                            <span className="text-xs font-black uppercase tracking-widest" style={{ color: verdictConfig[marketData.verdict as keyof typeof verdictConfig].color }}>
+                              {verdictConfig[marketData.verdict as keyof typeof verdictConfig].text}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Analysis Grid */}
+                        <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                            <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Market Range ({formData.district})</h5>
+                            <p className="text-[#004F31] font-black text-lg">
+                              Rs. {(marketData.expectedMin / 1000000).toFixed(1)}M - {(marketData.expectedMax / 1000000).toFixed(1)}M
+                            </p>
+                          </div>
+                          
+                          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                            <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Median Average</h5>
+                            <p className="text-gray-700 font-bold text-lg">
+                              Rs. {(marketData.medianAvg / 1000000).toFixed(1)}M
+                            </p>
+                          </div>
+
+                          <div className="sm:col-span-2 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3">
+                            <Bot className="text-[#004F31] shrink-0 mt-1" size={18} />
+                            <div>
+                               <h5 className="text-[10px] font-black text-[#004F31] uppercase tracking-widest mb-1">AI Advice</h5>
+                               <p className="text-xs font-bold text-gray-600 leading-relaxed">"{verdictConfig[marketData.verdict as keyof typeof verdictConfig].advice}. {marketData.explanation}"</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <div className="space-y-4 pt-4">
               <div className="flex justify-between items-end">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Listing Title</label>
@@ -985,6 +1090,21 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
           <div className="flex justify-between items-end">
             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Description</label>
             <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  try {
+                    const prompt = `Write a professional real estate description for a ${formData.listing_type} ${formData.property_category}, located in ${formData.city}, ${formData.district}. Features: ${formData.rooms} rooms, ${formData.bathrooms} baths, ${formData.land_area} perches. Price: ${formData.price_lkr}. Mention it's a great opportunity. Keep it engaging.`;
+                    toast('✨ AI is writing...', { icon: '🤖' });
+                    const res = await generateDescription(prompt);
+                    if (res) setFormData({ ...formData, description: res });
+                  } catch (e) {
+                    toast.error('AI generation failed');
+                  }
+                }}
+                className="text-[9px] font-black text-brand-green uppercase hover:underline mr-4"
+              >
+                ✨ Generate AI Context
+              </button>
               <button 
                 onClick={async () => {
                   if (!formData.description) return;
@@ -1006,19 +1126,142 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
             placeholder="Property description..."
             className="w-full bg-[#F0F4F0] rounded-2xl p-6 text-sm font-medium min-h-[150px] outline-none transition-all resize-none"
           />
-          
-          <div className="pt-4 border-t border-gray-50 flex flex-wrap gap-4">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2 my-auto">Set Status:</label>
-            {['active', 'pending', 'paused'].map(stat => (
-              <button 
-                key={stat}
-                onClick={() => setFormData({...formData, status: stat})}
-                className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${formData.status === stat ? 'bg-[#004F31] text-white' : 'bg-[#F0F4F0] text-gray-400'}`}
-              >
-                {stat}
-              </button>
-            ))}
+        </motion.section>
+
+        {/* PROPERTY LOCATION (Map) */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-6"
+        >
+          <div className="flex items-center gap-3">
+             <MapPin className="text-[#004F31]" />
+             <h3 className="text-xl font-black text-[#004F31]">Property Location</h3>
           </div>
+          <div className="space-y-3">
+             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Google Maps Link or Lat/Lng</label>
+             <input 
+               type="text" 
+               value={formData.map_link} 
+               onChange={e => setFormData({...formData, map_link: e.target.value})} 
+               placeholder="Paste Google Maps URL here" 
+               className="w-full bg-[#F0F4F0] rounded-xl p-4 text-xs font-bold outline-none border border-transparent focus:border-[#004F31]" 
+             />
+          </div>
+        </motion.section>
+
+        {/* CONTACT SETTINGS */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-6"
+        >
+          <div className="flex items-center gap-3">
+             <Phone className="text-[#004F31]" />
+             <h3 className="text-xl font-black text-[#004F31]">Contact Information</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Phone 1 (Primary)</label>
+               <input 
+                 type="text" 
+                 value={formData.phone_1} 
+                 onChange={e => setFormData({...formData, phone_1: e.target.value})} 
+                 placeholder="077 123 4567" 
+                 className="w-full bg-[#F0F4F0] rounded-xl p-4 text-xs font-bold outline-none" 
+               />
+            </div>
+            <div className="space-y-3">
+               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Phone 2 (Optional)</label>
+               <input 
+                 type="text" 
+                 value={formData.phone_2} 
+                 onChange={e => setFormData({...formData, phone_2: e.target.value})} 
+                 placeholder="Optional" 
+                 className="w-full bg-[#F0F4F0] rounded-xl p-4 text-xs font-bold outline-none" 
+               />
+            </div>
+          </div>
+        </motion.section>
+
+        {/* LISTING SETTINGS */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-8"
+        >
+          <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
+             <Settings className="text-[#004F31]" />
+             <h3 className="text-xl font-black text-[#004F31]">Listing Settings</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="space-y-6">
+               <div>
+                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Status</label>
+                 <div className="flex bg-[#F0F4F0] p-1.5 rounded-xl">
+                   {['active', 'pending', 'paused'].map(stat => (
+                     <button 
+                       key={stat}
+                       onClick={() => setFormData({...formData, status: stat})}
+                       className={`flex-1 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${formData.status === stat ? 'bg-white text-[#004F31] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                     >
+                       {stat}
+                     </button>
+                   ))}
+                 </div>
+               </div>
+
+               <div>
+                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Package</label>
+                 <div className="flex bg-[#F0F4F0] p-1.5 rounded-xl overflow-x-auto no-scrollbar">
+                   {['Starter Free', 'Premium Pro', 'Elite Pro'].map(pkg => (
+                     <button 
+                       key={pkg}
+                       onClick={() => setFormData({...formData, package: pkg})}
+                       className={`flex-1 min-w-[120px] py-2.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${formData.package === pkg ? 'bg-[#004F31] text-white shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                     >
+                       {pkg}
+                     </button>
+                   ))}
+                 </div>
+               </div>
+            </div>
+
+            <div className="space-y-4 pt-2">
+               <label className="flex items-center gap-3 cursor-pointer group">
+                 <input type="checkbox" checked={formData.is_featured} onChange={() => setFormData({...formData, is_featured: !formData.is_featured})} className="w-5 h-5 rounded text-[#004F31]" />
+                 <span className="text-xs font-bold text-gray-700 group-hover:text-[#004F31]">Show on homepage featured</span>
+               </label>
+               <label className="flex items-center gap-3 cursor-pointer group">
+                 <input type="checkbox" checked={formData.is_trending} onChange={() => setFormData({...formData, is_trending: !formData.is_trending})} className="w-5 h-5 rounded text-[#004F31]" />
+                 <span className="text-xs font-bold text-gray-700 group-hover:text-[#004F31]">Mark as Trending</span>
+               </label>
+               <label className="flex items-center gap-3 cursor-pointer group">
+                 <input type="checkbox" checked={formData.allow_inquiries} onChange={() => setFormData({...formData, allow_inquiries: !formData.allow_inquiries})} className="w-5 h-5 rounded text-[#004F31]" />
+                 <span className="text-xs font-bold text-gray-700 group-hover:text-[#004F31]">Allow inquiries</span>
+               </label>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* ADMIN NOTES */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white p-8 sm:p-10 rounded-[24px] shadow-sm border border-admin-border space-y-4"
+        >
+          <div className="flex items-center gap-3">
+             <Info className="text-gray-400" />
+             <h3 className="text-xl font-black text-gray-700">Admin Notes</h3>
+          </div>
+          <p className="text-xs text-gray-400">Private notes only admin can see.</p>
+          <textarea 
+            value={formData.admin_notes}
+            onChange={e => setFormData({...formData, admin_notes: e.target.value})}
+            placeholder="Owner contact: John - 077 XXX XXXX&#10;Inspection available weekends only..."
+            className="w-full bg-[#FCFCFC] border border-gray-100 rounded-2xl p-6 text-sm outline-none transition-all resize-none min-h-[120px]"
+          />
         </motion.section>
 
         <motion.section 

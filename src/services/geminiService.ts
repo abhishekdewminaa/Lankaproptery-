@@ -61,6 +61,15 @@ export const translateDescription = async (text: string, targetLanguage: 'sinhal
   return response.text;
 };
 
+export const generateDescription = async (prompt: string) => {
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `${prompt}\n\nReturn ONLY the generated description without extra commentary.`,
+  });
+  
+  return response.text;
+};
+
 export const getSmartSearchFilters = async (query: string) => {
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",

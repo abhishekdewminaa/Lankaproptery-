@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { CheckCircle2, Share2, ArrowRight, ExternalLink, Globe } from 'lucide-react';
+import { CheckCircle2, Share2, ArrowRight, ExternalLink, Globe, MapPin, Bed, Bath } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import toast from 'react-hot-toast';
 
@@ -113,59 +113,89 @@ export default function AdminSuccess({ property, onBackToPortal }: AdminSuccessP
 
         {/* Sibling #4 (The REAL property card) */}
         <div className="w-full">
-          {/* div:nth-of-type(1) of Card Outer wrapper */}
-          <div className="bg-white p-6 rounded-[40px] border-2 border-admin-border shadow-xl hover:border-[#00FF87] transition-all group cursor-pointer relative duration-300">
+          <div className="bg-white rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-gray-100/50 mb-6 group cursor-pointer transition-all hover:shadow-[0_4px_30px_rgba(0,0,0,0.15)] focus-within::shadow-[0_4px_30px_rgba(0,0,0,0.15)] relative">
             
-            {/* Sibling divs for focus-mode CSS selector match */}
-            <div style={{ display: 'none' }} />
-            <div style={{ display: 'none' }} />
-            <div style={{ display: 'none' }} />
-            
-            {/* div:nth-of-type(4) of Main Visual Card layout */}
-            <div className="flex w-full items-center justify-between gap-6">
-              
-              {/* 1. Image segment (div:nth-of-type(1) of horizontal inner layout) */}
-              <div className="w-24 h-24 rounded-3xl bg-gray-100 overflow-hidden shrink-0 border border-admin-border">
-                <img 
-                  src={getPropertyImage(activeProperty?.images)} 
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-                  alt="Property" 
+            {/* MAIN IMAGE - Full width at top */}
+            <div className="w-full h-[220px] relative overflow-hidden bg-gray-100 z-0">
+              {!activeProperty ? (
+                // Skeleton while loading
+                <div className="w-full h-full bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-[shimmer_1.5s_infinite]" />
+              ) : getPropertyImage(activeProperty?.images) ? (
+                // Real uploaded image
+                <img
+                  src={getPropertyImage(activeProperty?.images)}
+                  alt={activeProperty?.listing_title}
+                  className="w-full h-full object-cover animate-fade-in group-hover:scale-105 transition-transform duration-700"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
                 />
+              ) : (
+                // Placeholder if no image
+                <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 gap-2">
+                  <span className="text-5xl">🏠</span>
+                  <span className="text-sm font-semibold">Property Image</span>
+                </div>
+              )}
+
+              {/* ACTIVE LISTING badge on image */}
+              <div className="absolute top-3 left-3 bg-[#004F31]/90 text-white px-3 py-1 rounded-full text-[11px] font-bold tracking-wider z-10">
+                ACTIVE LISTING
               </div>
 
-              {/* 2. Target holder (div:nth-of-type(2) of horizontal inner layout) containing a:nth-of-type(1) */}
-              <div className="order-last shrink-0">
-                <a 
-                  id="view-live-btn"
-                  href={`/property/${activeProperty?.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-3 bg-admin-bg text-admin-text-gray rounded-2xl group-hover:bg-[#00FF87] group-hover:text-[#0B0F19] transition-all duration-300 flex items-center justify-center active:scale-95 border border-[#00FF87]/10 hover:shadow-[0_0_20px_rgba(0,255,135,0.4)]"
-                  title="View on Website"
-                >
-                  <ExternalLink size={20} />
-                </a>
-              </div>
-
-              {/* 3. Text metadata segment (div:nth-of-type(3) of horizontal inner layout) */}
-              <div className="text-left flex-grow min-w-0">
-                <div className="text-[10px] font-black text-admin-secondary uppercase tracking-[0.2em] mb-1">Active Listing</div>
-                <h3 className="text-xl font-black text-admin-text-dark line-clamp-1 mb-1">
-                  {activeProperty?.listing_title || activeProperty?.title || 'Luxury Villa'}
-                </h3>
-                <p className="text-sm font-bold text-admin-text-gray">
-                  {activeProperty?.city && activeProperty?.district 
-                    ? `${activeProperty?.city}, ${activeProperty?.district}` 
-                    : (activeProperty?.district || activeProperty?.location || 'Colombo, Sri Lanka')}
-                </p>
-                {activeProperty?.price_lkr && (
-                  <p className="text-sm font-black text-admin-secondary mt-1">
-                    Rs. {Number(activeProperty.price_lkr).toLocaleString()}
-                  </p>
-                )}
-              </div>
-
+              {/* View on website button */}
+              <a
+                id="view-live-btn"
+                href={`/property/${activeProperty?.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute top-3 right-3 bg-white border-none rounded-lg p-1.5 cursor-pointer text-gray-700 hover:text-black hover:bg-gray-50 flex items-center justify-center shadow-sm z-10 active:scale-95 transition-transform"
+                title="View on Website"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ExternalLink size={20} />
+              </a>
             </div>
+
+            {/* Property details below image */}
+            <div className="p-5 text-left bg-white relative z-10">
+              
+              {/* Property title */}
+              <h3 className="m-0 mb-1.5 text-lg font-bold text-gray-900 truncate">
+                {activeProperty?.listing_title || activeProperty?.title || 'Property Listing'}
+              </h3>
+
+              {/* Location */}
+              <p className="m-0 mb-3 text-sm text-gray-500 flex items-center gap-1.5 truncate font-medium">
+                <MapPin size={14} className="shrink-0" />
+                {[activeProperty?.city, activeProperty?.district, 'Sri Lanka']
+                  .filter(Boolean)
+                  .join(', ')}
+              </p>
+
+              {/* Price + specs row */}
+              <div className="flex justify-between items-center mt-2 pt-3 border-t border-gray-50">
+                <span className="text-[#004F31] font-bold text-lg leading-none">
+                  {activeProperty?.price_lkr 
+                    ? `Rs. ${Number(activeProperty.price_lkr).toLocaleString()}`
+                    : 'Price on Request'}
+                </span>
+
+                <div className="flex gap-4 text-gray-500 text-sm font-semibold">
+                  {activeProperty?.rooms > 0 && (
+                    <span className="flex items-center gap-1.5 shrink-0">
+                      <Bed size={16} /> {activeProperty.rooms}
+                    </span>
+                  )}
+                  {activeProperty?.bathrooms > 0 && (
+                    <span className="flex items-center gap-1.5 shrink-0">
+                      <Bath size={16} /> {activeProperty.bathrooms}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            
           </div>
         </div>
 
