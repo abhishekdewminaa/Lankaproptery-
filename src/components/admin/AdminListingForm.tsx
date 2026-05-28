@@ -686,7 +686,7 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
     } finally {
       if (!isAutoSave) setIsSaving(false);
     }
-  }, [formData, initialData, user, onSuccess]);
+  }, [formData, initialData, user, onSuccess, images, isSaving]);
 
   useEffect(() => {
     const timer = setInterval(() => {
