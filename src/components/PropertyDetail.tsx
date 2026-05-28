@@ -80,6 +80,7 @@ const getPropertyImagesList = (images: any) => {
   return ['/placeholder-property.jpg'];
 };
 import { translateDescription } from '../services/geminiService';
+import LatestAdvertisements from './LatestAdvertisements';
 import { safeStr, safeReplace, formatPriceLong, getFirstImageSafe, USD_RATE, EUR_RATE } from '../utils/safeUtils';
 
 const convertPrice = (priceVal: any) => {
@@ -795,6 +796,12 @@ export const PropertyDetail = ({
                   </p>
                 </div>
               </div>
+
+              <LatestAdvertisements 
+                category={property.property_category}
+                limit={5} 
+                onPropertyClick={onPropertyClick}
+              />
             </div>
           </div>
         </div>

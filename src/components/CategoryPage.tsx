@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import LatestAdvertisements from './LatestAdvertisements';
 import { 
   Search, MapPin, ChevronDown, Filter, X, 
   CheckCircle, Star, Bed, Bath, Box, 
@@ -501,6 +502,13 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
                 </div>
               </div>
             </div>
+
+            <LatestAdvertisements 
+              category={category} 
+              limit={6} 
+              onPropertyClick={onPropertyClick}
+              onNavigate={onNavigate}
+            />
           </aside>
 
           {/* Right Content - Results */}

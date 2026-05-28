@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Hero } from './Hero';
 import { CategoryIcons } from './CategoryIcons';
 import { FeaturedProperties } from './FeaturedProperties';
+import LatestAdvertisements from '../LatestAdvertisements';
 import { Testimonials } from './Testimonials';
 import { RecentListings } from './RecentListings';
 import { PriceCalculator } from './PriceCalculator';
@@ -52,6 +53,10 @@ export const HomeRedesign: React.FC<HomeRedesignProps> = ({
           properties={featuredProperties} 
           onNavigate={onNavigate}
         />
+        
+        <div className="container mx-auto px-6 py-6 max-w-7xl">
+          <LatestAdvertisements limit={8} onNavigate={onNavigate} />
+        </div>
         
         <Testimonials />
         
