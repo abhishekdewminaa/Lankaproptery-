@@ -401,7 +401,20 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
     setCalculating(true);
     try {
       const result = await getMarketAnalysis(formData);
-      if (result) setMarketData(result);
+      if (result) {
+        const mapped = {
+          gaugePosition: result.gauge_position ?? result.gaugePosition ?? 50,
+          verdict: result.rating ?? result.verdict ?? 'fair',
+          expectedMin: result.market_min ?? result.expectedMin ?? 0,
+          expectedMax: result.market_max ?? result.expectedMax ?? 0,
+          medianAvg: result.market_avg ?? result.medianAvg ?? 0,
+          explanation: result.verdict ?? result.explanation ?? result.advice ?? ''
+        };
+        if (!['too_low', 'low', 'fair', 'high', 'too_high'].includes(mapped.verdict)) {
+          mapped.verdict = 'fair';
+        }
+        setMarketData(mapped);
+      }
     } catch (err) {
       console.error('Calculation failed:', err);
       toast.error('Market analysis failed');
@@ -978,11 +991,11 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
                           </div>
                           <div 
                             className="bg-white px-6 py-2 rounded-2xl shadow-lg border border-gray-100 z-10 flex flex-col items-center gap-1 mb-2 transform -translate-y-2"
-                            style={{ borderTopWidth: 4, borderTopColor: verdictConfig[marketData.verdict as keyof typeof verdictConfig].color }}
+                            style={{ borderTopWidth: 4, borderTopColor: (verdictConfig[marketData.verdict as keyof typeof verdictConfig] || verdictConfig.fair).color }}
                           >
-                            <span className="text-2xl">{verdictConfig[marketData.verdict as keyof typeof verdictConfig].icon}</span>
-                            <span className="text-xs font-black uppercase tracking-widest" style={{ color: verdictConfig[marketData.verdict as keyof typeof verdictConfig].color }}>
-                              {verdictConfig[marketData.verdict as keyof typeof verdictConfig].text}
+                            <span className="text-2xl">{(verdictConfig[marketData.verdict as keyof typeof verdictConfig] || verdictConfig.fair).icon}</span>
+                            <span className="text-xs font-black uppercase tracking-widest" style={{ color: (verdictConfig[marketData.verdict as keyof typeof verdictConfig] || verdictConfig.fair).color }}>
+                              {(verdictConfig[marketData.verdict as keyof typeof verdictConfig] || verdictConfig.fair).text}
                             </span>
                           </div>
                         </div>
@@ -1007,7 +1020,7 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
                             <Bot className="text-[#004F31] shrink-0 mt-1" size={18} />
                             <div>
                                <h5 className="text-[10px] font-black text-[#004F31] uppercase tracking-widest mb-1">AI Advice</h5>
-                               <p className="text-xs font-bold text-gray-600 leading-relaxed">"{verdictConfig[marketData.verdict as keyof typeof verdictConfig].advice}. {marketData.explanation}"</p>
+                               <p className="text-xs font-bold text-gray-600 leading-relaxed">"{(verdictConfig[marketData.verdict as keyof typeof verdictConfig] || verdictConfig.fair).advice}. {marketData.explanation}"</p>
                             </div>
                           </div>
                         </div>
