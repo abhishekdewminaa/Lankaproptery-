@@ -666,6 +666,53 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
 
       if (result.error) throw result.error;
 
+      // If it's a new property with images, they need to be uploaded to Supabase Storage
+      // because during creation they were kept locally as blob previews.
+      if (isNew && !isAutoSave && result.data) {
+        const insertedId = result.data.id;
+        const uploadedUrls: string[] = [];
+        
+        for (let i = 0; i < images.length; i++) {
+          const img = images[i];
+          if (img.file) {
+            const ext = img.file.name.split('.').pop() || 'jpg';
+            const path = `properties/${insertedId}/${Date.now()}_${i + 1}.${ext}`;
+            try {
+              const { error: uploadError } = await supabase.storage
+                .from('property-images')
+                .upload(path, img.file, { upsert: true });
+
+              if (!uploadError) {
+                const { data: urlData } = supabase.storage
+                  .from('property-images')
+                  .getPublicUrl(path);
+                
+                uploadedUrls.push(urlData.publicUrl);
+              } else {
+                console.warn(`Failed to upload slot ${i+1}:`, uploadError);
+              }
+            } catch (err) {
+              console.warn('Error uploading image file:', err);
+            }
+          } else if (img.url && !img.url.startsWith('blob:')) {
+            uploadedUrls.push(img.url);
+          }
+        }
+
+        if (uploadedUrls.length > 0) {
+          const updateResult = await supabase
+            .from('properties')
+            .update({ images: uploadedUrls })
+            .eq('id', insertedId)
+            .select()
+            .single();
+          
+          if (!updateResult.error && updateResult.data) {
+            result = updateResult;
+          }
+        }
+      }
+
       // Trigger notification for new published properties
       if (isNew && !isAutoSave) {
         triggerNotification('new_property', {
