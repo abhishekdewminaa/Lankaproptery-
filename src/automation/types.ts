@@ -1,6 +1,6 @@
 import { Edge, Node } from '@xyflow/react';
 
-export type NodeType = 'trigger' | 'action' | 'condition' | 'utility';
+export type NodeType = 'trigger' | 'action' | 'condition' | 'agent' | 'utility';
 
 export interface WorkflowNodeData extends Record<string, unknown> {
   type: NodeType;
@@ -9,6 +9,7 @@ export interface WorkflowNodeData extends Record<string, unknown> {
   icon: string;
   description: string;
   config: Record<string, any>;
+  subtype?: string;
 }
 
 export type AutomationsNode = Node<WorkflowNodeData>;
@@ -23,4 +24,10 @@ export interface Workflow {
   trigger_type?: string;
   last_run_at?: string;
   run_count?: number;
+  folder?: string;
+  tags?: string[];
+  version?: number;
+  total_runs?: number;
+  success_runs?: number;
+  failed_runs?: number;
 }

@@ -7,9 +7,10 @@ import { DISTRICTS_BY_PROVINCE } from '../../constants/districts';
 interface HeroProps {
   propertyCount: number;
   onSearch: (filters: any) => void;
+  onNavigate?: (view: any) => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch }) => {
+export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate }) => {
   const [activeTab, setActiveTab] = useState<'sale' | 'rent' | 'lease'>('sale');
   const [isAISearch, setIsAISearch] = useState(false);
   const [aiQuery, setAiQuery] = useState('');

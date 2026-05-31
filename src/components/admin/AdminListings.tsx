@@ -57,6 +57,7 @@ import { DISTRICTS_BY_PROVINCE } from '../../constants/districts';
 
 interface Property {
   id: string;
+  ref_no?: string;
   listing_title: string;
   price_lkr: number;
   usd_estimate: number;

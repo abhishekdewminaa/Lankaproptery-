@@ -469,7 +469,7 @@ export default function AdminAnalytics() {
                           <LabelList 
                             dataKey="searches" 
                             position="right" 
-                            formatter={(val: number, entry: any) => `${val.toLocaleString()} (${Math.round(entry.payload.percentage)}%)`}
+                            formatter={(val: number) => `${val.toLocaleString()}`}
                             style={{ fill: '#4B5563', fontSize: 12, fontWeight: 800 }}
                           />
                         </Bar>
@@ -499,18 +499,6 @@ export default function AdminAnalytics() {
                       <ResponsiveContainer width={260} height={260}>
                         <PieChart>
                           <Pie
-                              activeIndex={activeIndex}
-                              activeShape={(props: any) => (
-                                <Sector 
-                                  cx={props.cx} cy={props.cy} 
-                                  innerRadius={props.innerRadius} 
-                                  outerRadius={props.outerRadius + 8} 
-                                  startAngle={props.startAngle} 
-                                  endAngle={props.endAngle} 
-                                  fill={props.fill} 
-                                  cornerRadius={4}
-                                />
-                              )}
                               data={pieData}
                               innerRadius={70}
                               outerRadius={100}

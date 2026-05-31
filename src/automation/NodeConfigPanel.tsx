@@ -1,246 +1,201 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { ArrowLeft, Play, Copy, Trash2, Settings, List, Terminal, Activity } from 'lucide-react';
 import { AutomationsNode } from './types';
-import { X, Settings, TestTube, CheckCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
 
-export function NodeConfigPanel({ node, onClose, onUpdate }: { node: AutomationsNode | null, onClose: () => void, onUpdate: (id: string, conf: any) => void }) {
-  const [localConfig, setLocalConfig] = useState<any>({});
+export function NodeConfigPanel({ node, onClose, onUpdate, onDelete }: { node: AutomationsNode, onClose: () => void, onUpdate: (id: string, data: any) => void, onDelete: (id: string) => void }) {
+  const [tab, setTab] = useState<'settings' | 'input' | 'output' | 'logs'>('settings');
 
-  useEffect(() => {
-    if (node) {
-      setLocalConfig(node.data.config || {});
-    }
-  }, [node]);
-
-  const handleChange = (key: string, value: any) => {
-    const newConf = { ...localConfig, [key]: value };
-    setLocalConfig(newConf);
-    if (node) onUpdate(node.id, newConf);
-  };
-
-  if (!node) return null;
-
-  const { type, label, category, icon } = node.data;
-
-  const renderConfigFields = () => {
-    switch (label) {
-      case 'Scheduled Time (cron)':
-        return (
-          <>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Frequency</label>
-              <select value={localConfig.frequency || ''} onChange={e => handleChange('frequency', e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:border-[#1B5E20]">
-                <option value="">Select frequency...</option>
-                <option value="15min">Every 15 minutes</option>
-                <option value="hourly">Hourly</option>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="custom">Custom Cron</option>
-              </select>
-            </div>
-            {localConfig.frequency === 'custom' && (
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Cron Expression</label>
-                <input type="text" placeholder="0 9 * * *" value={localConfig.cron || ''} onChange={e => handleChange('cron', e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:border-[#1B5E20]" />
-              </div>
-            )}
-          </>
-        );
-      
-      case 'New Property Published':
-        return (
-          <>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Filter by District</label>
-              <select value={localConfig.district || ''} onChange={e => handleChange('district', e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:border-[#1B5E20]">
-                <option value="All">All Districts</option>
-                <option value="Colombo">Colombo</option>
-                <option value="Kandy">Kandy</option>
-                <option value="Galle">Galle</option>
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Property Type</label>
-              <select value={localConfig.propType || ''} onChange={e => handleChange('propType', e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:border-[#1B5E20]">
-                <option value="All">All Types</option>
-                <option value="House">House</option>
-                <option value="Land">Land</option>
-                <option value="Apartment">Apartment</option>
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Min Price (LKR)</label>
-              <input type="number" placeholder="0" value={localConfig.minPrice || ''} onChange={e => handleChange('minPrice', e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:border-[#1B5E20]" />
-            </div>
-          </>
-        );
-
-      case 'Post to Facebook':
-        return (
-          <>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Page/Profile URL</label>
-              <input type="text" placeholder="https://facebook.com/..." value={localConfig.pageUrl || ''} onChange={e => handleChange('pageUrl', e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:border-[#1B5E20]" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex justify-between">
-                <span>Caption Template</span>
-                <span className="text-gray-400">{'{{vars}} allowed'}</span>
-              </label>
-              <textarea rows={4} placeholder="Check out this new property: {{property.title}} for {{property.price_lkr}}!" value={localConfig.caption || ''} onChange={e => handleChange('caption', e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:border-[#1B5E20] resize-none" />
-            </div>
-            <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl text-[10px] text-blue-700 font-medium">
-               Note: Opens Facebook composer with pre-filled data. Cannot publish automatically without user approval.
-            </div>
-            <button className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-black uppercase tracking-widest rounded-xl transition-colors flex items-center justify-center gap-1.5 mt-2">
-               <TestTube size={14} /> Test This Action
-            </button>
-          </>
-        );
-        
-      case 'Generate AI Caption (Gemini)':
-        return (
-          <>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Platform</label>
-              <select value={localConfig.platform || ''} onChange={e => handleChange('platform', e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:border-[#1B5E20]">
-                <option value="Facebook">Facebook</option>
-                <option value="Instagram">Instagram</option>
-                <option value="Twitter">Twitter/X</option>
-                <option value="LinkedIn">LinkedIn</option>
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Tone</label>
-              <select value={localConfig.tone || ''} onChange={e => handleChange('tone', e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:border-[#1B5E20]">
-                <option value="Professional">Professional</option>
-                <option value="Casual">Casual</option>
-                <option value="Luxury">Luxury</option>
-                <option value="Urgent">Urgent / Exciting</option>
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Language</label>
-              <select value={localConfig.language || ''} onChange={e => handleChange('language', e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:border-[#1B5E20]">
-                <option value="English">English</option>
-                <option value="Sinhala">Sinhala</option>
-                <option value="Tamil">Tamil</option>
-              </select>
-            </div>
-            <label className="flex items-center gap-2 mt-2 cursor-pointer">
-              <input type="checkbox" checked={localConfig.hashtags || false} onChange={e => handleChange('hashtags', e.target.checked)} className="rounded border-gray-300 text-[#1B5E20] focus:ring-[#1B5E20]" />
-              <span className="text-xs font-bold text-gray-700">Include relevant hashtags</span>
-            </label>
-            <div className="space-y-1 mt-4">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Output Variable Name</label>
-              <input type="text" placeholder="ai_caption" value={localConfig.outputVar || ''} onChange={e => handleChange('outputVar', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-mono text-gray-700 outline-none focus:border-[#1B5E20]" />
-            </div>
-          </>
-        );
-
-      case 'Send Email':
-        return (
-          <>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">To Email</label>
-              <input type="text" placeholder="{{lead.email}}" value={localConfig.to_email || ''} onChange={e => handleChange('to_email', e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:border-[#1B5E20]" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Subject</label>
-              <input type="text" placeholder="New inquiry for {{property.ref_no}}" value={localConfig.subject || ''} onChange={e => handleChange('subject', e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:border-[#1B5E20]" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Body</label>
-              <textarea rows={4} placeholder="Hi {{lead.name}},\nThanks for your interest..." value={localConfig.body || ''} onChange={e => handleChange('body', e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:border-[#1B5E20] resize-none" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">EmailJS Service ID</label>
-              <input type="text" placeholder="service_..." value={localConfig.serviceId || ''} onChange={e => handleChange('serviceId', e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:border-[#1B5E20]" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">EmailJS Template ID</label>
-              <input type="text" placeholder="template_..." value={localConfig.templateId || ''} onChange={e => handleChange('templateId', e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:border-[#1B5E20]" />
-            </div>
-          </>
-        );
-
-      case 'If/Else':
-        return (
-          <>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Field</label>
-              <input type="text" placeholder="property.price_lkr" value={localConfig.field || ''} onChange={e => handleChange('field', e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-mono text-gray-700 outline-none focus:border-[#1B5E20]" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Operator</label>
-              <select value={localConfig.operator || ''} onChange={e => handleChange('operator', e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:border-[#1B5E20]">
-                <option value="equals">Equals</option>
-                <option value="contains">Contains</option>
-                <option value="gt">Greater Than (&gt;)</option>
-                <option value="lt">Less Than (&lt;)</option>
-                <option value="exists">Exists</option>
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Value</label>
-              <input type="text" placeholder="10000000" value={localConfig.value || ''} onChange={e => handleChange('value', e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:border-[#1B5E20]" />
-            </div>
-          </>
-        );
-
-      default:
-        return (
-          <div className="text-xs text-gray-400 font-medium italic">
-            Configuration fields for this node will appear here.
-          </div>
-        );
-    }
+  const updateConfig = (key: string, value: any) => {
+    onUpdate(node.id, {
+      ...node.data,
+      config: {
+        ...(node.data.config || {}),
+        [key]: value
+      }
+    });
   };
 
   return (
-    <AnimatePresence>
-      <motion.div 
-        initial={{ x: '100%', opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        exit={{ x: '100%', opacity: 0 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="w-[300px] h-full bg-[#fafafa] border-l border-gray-200 shadow-2xl absolute right-0 top-0 z-30 flex flex-col"
-      >
-        <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-white">
-           <div className="flex items-center gap-2 text-gray-800">
-             <Settings size={18} />
-             <h3 className="text-sm font-black uppercase tracking-widest">Configuration</h3>
-           </div>
-           <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-900 transition-colors">
-              <X size={16} />
-           </button>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto p-5 space-y-6">
-           <div>
-              <div className="flex justify-center mb-4">
-                 <div className="w-12 h-12 rounded-2xl bg-white shadow-sm border border-gray-200 flex items-center justify-center text-2xl">
-                   {icon}
-                 </div>
-              </div>
-              <h4 className="text-center text-base font-black text-gray-900 leading-tight mb-1">{label}</h4>
-              <div className="text-center">
-                 <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest ${
-                   category === 'trigger' ? 'bg-blue-100 text-blue-700' :
-                   category === 'action' ? 'bg-green-100 text-green-700' :
-                   category === 'condition' ? 'bg-amber-100 text-amber-700' :
-                   'bg-purple-100 text-purple-700'
-                 }`}>
-                   {category.toUpperCase()} NODE
-                 </span>
-              </div>
-           </div>
+    <div className="w-96 bg-[#1e293b] border-l border-gray-800 flex flex-col h-full flex-shrink-0 animate-in slide-in-from-right-8 duration-200">
+      <div className="p-4 border-b border-gray-800">
+         <div className="flex justify-between items-center mb-4">
+            <button onClick={onClose} className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors">
+               <ArrowLeft size={16} />
+            </button>
+            <div className="flex items-center gap-2">
+               <button className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 hidden">
+                  <Play size={12} fill="currentColor" /> Test Node
+               </button>
+               <button className="p-1.5 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors">
+                  <Copy size={16} />
+               </button>
+               <button onClick={() => onDelete(node.id)} className="p-1.5 hover:bg-red-500/20 rounded-lg text-gray-400 hover:text-red-400 transition-colors">
+                  <Trash2 size={16} />
+               </button>
+            </div>
+         </div>
+         <div className="flex items-center gap-3">
+            <div className="text-2xl">{node.data.icon}</div>
+            <div>
+               <div className="text-xs font-black text-gray-500 uppercase tracking-widest">{node.data.category}</div>
+               <div className="text-lg font-black text-white">{node.data.label}</div>
+            </div>
+         </div>
+      </div>
+      
+      <div className="flex border-b border-gray-800 text-xs font-black uppercase tracking-widest">
+         <button onClick={() => setTab('settings')} className={`flex-1 py-3 border-b-2 flex justify-center items-center gap-2 transition-colors ${tab === 'settings' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}><Settings size={14}/> Settings</button>
+         <button onClick={() => setTab('input')} className={`flex-1 py-3 border-b-2 flex justify-center items-center gap-2 transition-colors ${tab === 'input' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}><List size={14}/> Input</button>
+         <button onClick={() => setTab('output')} className={`flex-1 py-3 border-b-2 flex justify-center items-center gap-2 transition-colors ${tab === 'output' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}><Terminal size={14}/> Output</button>
+         <button onClick={() => setTab('logs')} className={`flex-1 py-3 border-b-2 flex justify-center items-center gap-2 transition-colors ${tab === 'logs' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}><Activity size={14}/> Logs</button>
+      </div>
 
-           <div className="space-y-4">
-              {renderConfigFields()}
+      <div className="flex-1 overflow-y-auto p-4">
+         {tab === 'settings' && (
+            <div className="space-y-4">
+              {node.data.subtype === 'scheduled' && (
+                <>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Frequency</label>
+                    <select className="w-full bg-[#0f172a] border border-gray-700 text-white rounded-xl px-4 py-2 text-sm">
+                      <option>Every 15 minutes</option>
+                      <option>Every hour</option>
+                      <option>Every day</option>
+                      <option>Every week</option>
+                      <option>Custom cron expression</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Timezone</label>
+                    <select className="w-full bg-[#0f172a] border border-gray-700 text-white rounded-xl px-4 py-2 text-sm">
+                      <option>Asia/Colombo</option>
+                      <option>UTC</option>
+                    </select>
+                  </div>
+                </>
+              )}
+
+              {node.data.subtype === 'generate_ai_caption' && (
+                <>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Platform</label>
+                    <select className="w-full bg-[#0f172a] border border-gray-700 text-white rounded-xl px-4 py-2 text-sm">
+                      <option>Facebook</option>
+                      <option>Instagram</option>
+                      <option>Twitter</option>
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Tone</label>
+                      <select className="w-full bg-[#0f172a] border border-gray-700 text-white rounded-xl px-4 py-2 text-sm">
+                        <option>Professional</option>
+                        <option>Friendly</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Language</label>
+                      <select className="w-full bg-[#0f172a] border border-gray-700 text-white rounded-xl px-4 py-2 text-sm">
+                        <option>English</option>
+                        <option>Sinhala</option>
+                        <option>Tamil</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="space-y-2 mt-4">
+                    <label className="flex items-center gap-2 text-sm text-white"><input type="checkbox" defaultChecked className="rounded border-gray-700 bg-[#0f172a]" /> Include hashtags</label>
+                    <label className="flex items-center gap-2 text-sm text-white"><input type="checkbox" defaultChecked className="rounded border-gray-700 bg-[#0f172a]" /> Include price</label>
+                    <label className="flex items-center gap-2 text-sm text-white"><input type="checkbox" defaultChecked className="rounded border-gray-700 bg-[#0f172a]" /> Include location</label>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Instructions</label>
+                    <textarea placeholder="e.g. Always mention sea view" className="w-full bg-[#0f172a] border border-gray-700 text-white rounded-xl px-4 py-2 text-sm h-24"></textarea>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Output Variable</label>
+                    <div className="w-full bg-[#0f172a] border border-gray-700 text-gray-400 font-mono rounded-xl px-4 py-2 text-sm">{'{'}{'{'}ai_caption{'}'}{'}'}</div>
+                  </div>
+                </>
+              )}
+
+              {node.data.subtype === 'if_else' && (
+                <>
+                  <div className="bg-[#0f172a] border border-gray-700 rounded-xl p-3 space-y-3">
+                    <input type="text" defaultValue="{{property.price_lkr}}" className="w-full bg-[#1e293b] border border-gray-600 text-white font-mono rounded-lg px-3 py-1.5 text-sm" />
+                    <select className="w-full bg-[#1e293b] border border-gray-600 text-white rounded-lg px-3 py-1.5 text-sm">
+                      <option>greater than</option>
+                      <option>less than</option>
+                      <option>equals</option>
+                      <option>contains</option>
+                    </select>
+                    <input type="text" defaultValue="10000000" className="w-full bg-[#1e293b] border border-gray-600 text-white font-mono rounded-lg px-3 py-1.5 text-sm" />
+                    <button className="w-full py-1.5 border border-dashed border-gray-600 text-gray-400 rounded-lg text-sm font-bold hover:text-white transition-colors">+ Add Condition</button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 pt-4">
+                    <div>
+                      <label className="block text-xs font-bold text-green-500 uppercase tracking-widest mb-1">True Path</label>
+                      <input type="text" defaultValue="Premium" className="w-full bg-[#0f172a] border border-gray-700 text-white rounded-lg px-3 py-1.5 text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-red-500 uppercase tracking-widest mb-1">False Path</label>
+                      <input type="text" defaultValue="Standard" className="w-full bg-[#0f172a] border border-gray-700 text-white rounded-lg px-3 py-1.5 text-sm" />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {node.data.subtype === 'delay' && (
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Wait Duration</label>
+                  <div className="flex gap-2">
+                    <input type="number" defaultValue={24} className="flex-1 bg-[#0f172a] border border-gray-700 text-white rounded-xl px-4 py-2 text-sm" />
+                    <select className="flex-[2] bg-[#0f172a] border border-gray-700 text-white rounded-xl px-4 py-2 text-sm">
+                      <option>Hours</option>
+                      <option>Minutes</option>
+                      <option>Days</option>
+                      <option>Weeks</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+              
+              {!['scheduled', 'generate_ai_caption', 'if_else', 'delay'].includes(node.data.subtype as string) && (
+                <div className="text-gray-500 text-sm text-center py-8">
+                  Settings for {node.data.label} (Not implemented in UI stub)
+                </div>
+              )}
+            </div>
+         )}
+         
+         {tab === 'output' && (
+           <div className="space-y-3">
+             <p className="text-sm text-gray-400">Copy these variables to use in subsequent nodes:</p>
+             {['{{property.id}}', '{{property.listing_title}}', '{{property.price_lkr}}', '{{ai_caption}}'].map(v => (
+               <div key={v} className="flex justify-between items-center bg-[#0f172a] border border-gray-700 p-3 rounded-lg group cursor-pointer hover:border-gray-500 transition-colors">
+                  <span className="font-mono text-xs text-blue-300">{v}</span>
+                  <button className="text-gray-500 group-hover:text-white"><Copy size={14}/></button>
+               </div>
+             ))}
            </div>
-        </div>
-      </motion.div>
-    </AnimatePresence>
+         )}
+
+         {tab === 'logs' && (
+           <div className="space-y-3">
+             <div className="p-3 bg-[#0f172a] border border-gray-800 rounded-lg flex justify-between items-center">
+                <span className="flex items-center gap-2 text-xs font-bold text-green-500"><span className="w-2 h-2 rounded-full bg-green-500"></span> Success</span>
+                <span className="text-xs text-gray-500">2 hrs ago • 0.3s</span>
+             </div>
+             <div className="p-3 bg-[#0f172a] border border-gray-800 rounded-lg flex justify-between items-center">
+                <span className="flex items-center gap-2 text-xs font-bold text-green-500"><span className="w-2 h-2 rounded-full bg-green-500"></span> Success</span>
+                <span className="text-xs text-gray-500">5 hrs ago • 0.2s</span>
+             </div>
+             <div className="p-3 bg-[#0f172a] border border-gray-800 rounded-lg flex justify-between items-center">
+                <span className="flex items-center gap-2 text-xs font-bold text-red-500"><span className="w-2 h-2 rounded-full bg-red-500"></span> Failed</span>
+                <span className="text-xs text-gray-500">Yesterday • Timeout</span>
+             </div>
+           </div>
+         )}
+      </div>
+    </div>
   );
 }
