@@ -63,16 +63,16 @@ export function NodeLibrary() {
   };
 
   return (
-    <div className="w-80 border-r border-gray-800 bg-[#1e293b] flex flex-col h-full flex-shrink-0">
-      <div className="p-4 border-b border-gray-800">
+    <div className="w-80 border-r border-gray-200 bg-white flex flex-col h-full flex-shrink-0">
+      <div className="p-4 border-b border-gray-200">
         <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input 
             type="text" 
             placeholder="Search nodes..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[#0f172a] border border-gray-700 text-white rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-blue-500" 
+            className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-blue-500 hover:border-gray-300 transition-colors" 
           />
         </div>
       </div>
@@ -86,15 +86,15 @@ export function NodeLibrary() {
               {category.nodes.filter(n => n.label.toLowerCase().includes(search.toLowerCase())).map(node => (
                 <div 
                   key={node.subtype} 
-                  className="bg-[#0f172a] hover:bg-gray-800 p-3 rounded-xl border border-gray-800 hover:border-gray-600 cursor-grab active:cursor-grabbing transition-colors flex items-center gap-3 group"
+                  className="bg-gray-50 hover:bg-gray-100 p-3 rounded-xl border border-gray-200 hover:border-gray-300 cursor-grab active:cursor-grabbing transition-colors flex items-center gap-3 group shadow-sm"
                   draggable
                   onDragStart={(e) => onDragStart(e, node, category.category)}
                   title={node.description}
                 >
                   <div className="text-xl">{node.icon}</div>
-                  <div className="min-w-0">
-                    <div className="text-sm font-bold text-gray-200 group-hover:text-white truncate">{node.label}</div>
-                    <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider truncate shrink-0">{node.description}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-bold text-gray-700 group-hover:text-gray-900 truncate transition-colors">{node.label}</div>
+                    <div className="text-[10px] text-gray-400 uppercase font-bold tracking-wider truncate shrink-0">{node.description}</div>
                   </div>
                 </div>
               ))}

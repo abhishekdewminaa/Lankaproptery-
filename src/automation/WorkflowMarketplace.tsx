@@ -19,19 +19,19 @@ export function WorkflowMarketplace({ onInstall }: { onInstall: () => void }) {
   ];
 
   return (
-    <div className="p-8 h-full overflow-y-auto bg-[#0f172a] text-white">
+    <div className="p-8 h-full overflow-y-auto bg-gray-50 text-gray-900">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12 pt-8">
-           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-600/20 text-blue-500 mb-6">
+           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-6">
               <PackageOpen size={32} />
            </div>
            <h2 className="text-4xl font-black mb-4">⚡ Workflow Templates</h2>
-           <p className="text-xl text-gray-400 font-medium">One-click install automation templates for LankaProperty.lk</p>
+           <p className="text-xl text-gray-500 font-medium">One-click install automation templates for LankaProperty.lk</p>
         </div>
 
         <div className="flex justify-center gap-4 mb-12 flex-wrap">
            {['All', 'Marketing', 'Leads', 'Social', 'Email', 'WhatsApp', 'AI', 'Reporting'].map(tag => (
-             <button key={tag} className={`px-6 py-2 rounded-full text-sm font-bold uppercase tracking-widest transition-colors ${tag === 'All' ? 'bg-white text-black' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'}`}>
+             <button key={tag} className={`px-6 py-2 rounded-full text-sm font-bold uppercase tracking-widest transition-colors ${tag === 'All' ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}>
                {tag}
              </button>
            ))}
@@ -39,16 +39,16 @@ export function WorkflowMarketplace({ onInstall }: { onInstall: () => void }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {templates.map(tpl => (
-             <div key={tpl.id} className="bg-[#1e293b] rounded-3xl p-6 border border-gray-800 hover:border-gray-700 transition-colors flex flex-col h-full relative group">
+             <div key={tpl.id} className="bg-white rounded-3xl p-6 border border-gray-200 hover:border-gray-300 transition-colors flex flex-col h-full relative group shadow-sm hover:shadow-md">
                 {tpl.pop && (
-                  <div className="absolute -top-3 -right-3 bg-red-500 text-white text-[10px] uppercase font-black tracking-widest px-3 py-1 rounded-full shadow-lg shadow-red-500/30">
+                  <div className="absolute -top-3 -right-3 bg-red-500 text-white text-[10px] uppercase font-black tracking-widest px-3 py-1 rounded-full shadow-md shadow-red-500/30">
                     🔥 Popular
                   </div>
                 )}
-                <h3 className="text-lg font-black leading-tight mb-4 pr-12">{tpl.title}</h3>
+                <h3 className="text-lg font-black leading-tight mb-4 pr-12 text-gray-900">{tpl.title}</h3>
                 
-                <div className="bg-[#0f172a] rounded-xl p-4 mb-6 flex-1 text-sm text-gray-400 font-mono leading-relaxed border border-gray-800">
-                   Nodes: <span className="text-blue-400">{tpl.nodes}</span>
+                <div className="bg-gray-50 rounded-xl p-4 mb-6 flex-1 text-sm text-gray-600 font-mono leading-relaxed border border-gray-200">
+                   Nodes: <span className="text-blue-600">{tpl.nodes}</span>
                 </div>
                 
                 <div className="flex items-center gap-2 mb-6">
@@ -63,8 +63,8 @@ export function WorkflowMarketplace({ onInstall }: { onInstall: () => void }) {
                 </div>
 
                 <div className="flex gap-3">
-                   <button className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 rounded-xl text-xs font-black uppercase tracking-widest transition-colors">Preview</button>
-                   <button onClick={() => { toast.success('Template installed'); onInstall(); }} className="flex-[2] py-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20">
+                   <button className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-black uppercase tracking-widest transition-colors border border-gray-200">Preview</button>
+                   <button onClick={() => { toast.success('Template installed'); onInstall(); }} className="flex-[2] py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-sm shadow-blue-500/20">
                      <Download size={14} /> Install in 1 Click
                    </button>
                 </div>

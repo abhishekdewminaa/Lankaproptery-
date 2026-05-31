@@ -4,29 +4,29 @@ import { WorkflowNodeData } from '../types';
 import { Settings, X } from 'lucide-react';
 
 export function CustomNode({ data, selected }: { data: WorkflowNodeData, selected: boolean }) {
-  let headerColor = 'bg-gray-800';
-  let titleColor = 'text-gray-400';
+  let headerColor = 'bg-gray-100';
+  let titleColor = 'text-gray-500';
   let dotColor = 'bg-gray-500';
   
   switch(data.category?.toLowerCase()) {
     case 'trigger':
-      headerColor = 'bg-blue-900/40 text-blue-400 border-blue-900/50';
-      titleColor = 'text-blue-400';
+      headerColor = 'bg-blue-50 text-blue-600 border-blue-100';
+      titleColor = 'text-blue-600';
       dotColor = 'bg-blue-500';
       break;
     case 'action':
-      headerColor = 'bg-green-900/40 text-green-400 border-green-900/50';
-      titleColor = 'text-green-400';
+      headerColor = 'bg-green-50 text-green-600 border-green-100';
+      titleColor = 'text-green-600';
       dotColor = 'bg-green-500';
       break;
     case 'condition':
-      headerColor = 'bg-yellow-900/40 text-yellow-500 border-yellow-900/50';
-      titleColor = 'text-yellow-500';
+      headerColor = 'bg-yellow-50 text-yellow-600 border-yellow-100';
+      titleColor = 'text-yellow-600';
       dotColor = 'bg-yellow-500';
       break;
     case 'agent':
-      headerColor = 'bg-purple-900/40 text-purple-400 border-purple-900/50';
-      titleColor = 'text-purple-400';
+      headerColor = 'bg-purple-50 text-purple-600 border-purple-100';
+      titleColor = 'text-purple-600';
       dotColor = 'bg-purple-500';
       break;
   }
@@ -35,21 +35,21 @@ export function CustomNode({ data, selected }: { data: WorkflowNodeData, selecte
   // 'idle', 'running', 'success', 'error', 'disabled'
   const status = data.status || 'idle';
   
-  let wrapperClass = 'border-gray-700 shadow-md';
-  if (selected) wrapperClass = 'border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]';
-  if (status === 'running') wrapperClass = 'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-pulse';
-  if (status === 'success') wrapperClass = 'border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.3)]';
-  if (status === 'error') wrapperClass = 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)] animate-bounce';
+  let wrapperClass = 'border-gray-200 shadow-sm';
+  if (selected) wrapperClass = 'border-blue-500 shadow-md';
+  if (status === 'running') wrapperClass = 'border-blue-500 shadow-md animate-pulse';
+  if (status === 'success') wrapperClass = 'border-green-500 shadow-sm';
+  if (status === 'error') wrapperClass = 'border-red-500 shadow-sm animate-bounce';
   
   const opacity = status === 'disabled' ? 'opacity-50' : 'opacity-100';
 
   return (
-    <div className={`w-[260px] bg-[#1e293b] rounded-xl border-2 ${wrapperClass} ${opacity} transition-all duration-200 overflow-hidden font-sans group`}>
+    <div className={`w-[260px] bg-white rounded-xl border-2 ${wrapperClass} ${opacity} transition-all duration-200 overflow-hidden font-sans group`}>
       {data.category?.toLowerCase() !== 'trigger' && (
         <Handle 
           type="target" 
           position={Position.Left} 
-          className="w-3 h-3 bg-gray-500 rounded-full border-2 border-[#1e293b] -ml-1.5" 
+          className="w-3 h-3 bg-gray-300 rounded-full border-2 border-white -ml-1.5" 
         />
       )}
 
@@ -62,41 +62,41 @@ export function CustomNode({ data, selected }: { data: WorkflowNodeData, selecte
            </span>
         </div>
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-           <button className="text-gray-400 hover:text-white"><Settings size={12} /></button>
-           <button className="text-gray-400 hover:text-red-400"><X size={12} /></button>
+           <button className="text-gray-500 hover:text-gray-900"><Settings size={12} /></button>
+           <button className="text-gray-500 hover:text-red-500"><X size={12} /></button>
         </div>
       </div>
 
       {/* Body */}
-      <div className={`p-3 bg-[#1e293b] flex flex-col gap-2 ${status === 'disabled' ? 'line-through text-gray-500' : 'text-gray-300'}`}>
+      <div className={`p-3 bg-white flex flex-col gap-2 ${status === 'disabled' ? 'line-through text-gray-400' : 'text-gray-600'}`}>
         <div className="flex items-center gap-2 mb-1">
            <span className="text-sm">{data.icon}</span>
-           <span className="text-sm font-bold text-white leading-tight">{data.label}</span>
+           <span className="text-sm font-bold text-gray-900 leading-tight">{data.label}</span>
         </div>
         
         {data.config && Object.keys(data.config).length > 0 ? (
-           <div className="pt-2 border-t border-gray-700 flex flex-col gap-1">
+           <div className="pt-2 border-t border-gray-100 flex flex-col gap-1">
              {Object.entries(data.config).slice(0, 3).map(([key, val]) => (
                 <div key={key} className="flex justify-between items-center text-[10px]">
-                   <span className="text-gray-500 font-bold uppercase tracking-wider truncate w-1/3">{key}</span>
-                   <span className="text-gray-300 font-medium truncate w-2/3 text-right">
+                   <span className="text-gray-400 font-bold uppercase tracking-wider truncate w-1/3">{key}</span>
+                   <span className="text-gray-600 font-medium truncate w-2/3 text-right">
                      {typeof val === 'string' ? val : '...'}
                    </span>
                 </div>
              ))}
            </div>
         ) : (
-           <div className="pt-2 border-t border-gray-700">
-             <div className="w-2/3 h-2 bg-gray-800 rounded-full mb-1"></div>
-             <div className="w-1/2 h-2 bg-gray-800 rounded-full"></div>
+           <div className="pt-2 border-t border-gray-100">
+             <div className="w-2/3 h-2 bg-gray-100 rounded-full mb-1"></div>
+             <div className="w-1/2 h-2 bg-gray-100 rounded-full"></div>
            </div>
         )}
       </div>
 
-      <div className="bg-[#0f172a] px-3 py-1.5 text-[10px] text-gray-500 font-mono border-t border-gray-700 flex items-center justify-between">
+      <div className="bg-gray-50 px-3 py-1.5 text-[10px] text-gray-500 font-mono border-t border-gray-200 flex items-center justify-between">
          <span>○ Output</span>
-         <span className="text-gray-600 block w-full h-px bg-gray-700 mx-2"></span>
-         <div className={`w-2 h-2 rounded-full border border-gray-500 ${dotColor.replace('bg-', 'border-')} bg-transparent`}></div>
+         <span className="text-gray-400 block w-full h-px bg-gray-200 mx-2"></span>
+         <div className={`w-2 h-2 rounded-full border border-gray-300 ${dotColor.replace('bg-', 'border-')} bg-transparent`}></div>
       </div>
 
       {data.category?.toLowerCase() === 'condition' ? (
@@ -106,14 +106,14 @@ export function CustomNode({ data, selected }: { data: WorkflowNodeData, selecte
              type="source" 
              position={Position.Right} 
              style={{ top: '65%' }}
-             className="w-3 h-3 bg-green-500 rounded-full border-2 border-[#1e293b] -mr-1.5" 
+             className="w-3 h-3 bg-green-500 rounded-full border-2 border-white -mr-1.5" 
            />
            <Handle 
              id="false"
              type="source" 
              position={Position.Right} 
              style={{ top: '85%' }}
-             className="w-3 h-3 bg-red-500 rounded-full border-2 border-[#1e293b] -mr-1.5" 
+             className="w-3 h-3 bg-red-500 rounded-full border-2 border-white -mr-1.5" 
            />
          </>
       ) : (
@@ -121,7 +121,7 @@ export function CustomNode({ data, selected }: { data: WorkflowNodeData, selecte
            type="source" 
            position={Position.Right} 
            style={{ top: 'auto', bottom: '11px' }}
-           className="w-3 h-3 bg-blue-500 rounded-full border-2 border-[#1e293b] -mr-1.5" 
+           className="w-3 h-3 bg-blue-500 rounded-full border-2 border-white -mr-1.5" 
          />
       )}
     </div>

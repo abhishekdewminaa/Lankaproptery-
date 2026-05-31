@@ -172,38 +172,38 @@ function FlowCanvas({ initialWorkflow, onBack }: { initialWorkflow: Workflow | n
   };
 
   return (
-    <div className="flex w-full h-full bg-[#0f172a] text-white overflow-hidden">
+    <div className="flex w-full h-full bg-gray-50 text-gray-900 overflow-hidden">
       <NodeLibrary />
 
       <div className="flex-1 flex flex-col relative" onDrop={onDrop} onDragOver={onDragOver}>
-        <div className="bg-[#1e293b] border-b border-gray-800 flex items-center justify-between px-4 py-3 z-20">
+        <div className="bg-white border-b border-gray-200 flex items-center justify-between px-4 py-3 z-20">
           <div className="flex items-center gap-4">
-             <button onClick={onBack} className="p-2 hover:bg-gray-800 rounded-lg transition-colors text-gray-400 hover:text-white">
+             <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500 hover:text-gray-900">
                 <X size={20} />
              </button>
              <input 
                type="text" 
                value={workflowName} 
                onChange={e => setWorkflowName(e.target.value)}
-               className="text-lg font-black text-white bg-transparent border-none focus:ring-0 w-64 px-2 py-1 rounded-md hover:bg-gray-800 transition-colors cursor-text"
+               className="text-lg font-black text-gray-900 bg-transparent border-none focus:ring-0 w-64 px-2 py-1 rounded-md hover:bg-gray-100 transition-colors cursor-text"
                placeholder="Workflow Name"
              />
-             <div className="h-6 w-px bg-gray-700 mx-2" />
+             <div className="h-6 w-px bg-gray-200 mx-2" />
              <label className="flex items-center gap-2 cursor-pointer">
-               <div className={`w-10 h-5 rounded-full p-0.5 transition-colors ${isActive ? 'bg-blue-600' : 'bg-gray-600'}`}>
+               <div className={`w-10 h-5 rounded-full p-0.5 transition-colors ${isActive ? 'bg-blue-600' : 'bg-gray-300'}`}>
                  <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isActive ? 'translate-x-5' : 'translate-x-0'}`} />
                </div>
-               <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">{isActive ? 'ACTIVE' : 'PAUSED'}</span>
+               <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{isActive ? 'ACTIVE' : 'PAUSED'}</span>
              </label>
           </div>
           <div className="flex items-center gap-3">
-             <button className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-gray-300 rounded-lg text-xs font-bold transition-colors hover:text-white">
+             <button className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold transition-colors hover:text-gray-900">
                 History <ChevronDown size={14}/>
              </button>
-             <button className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-gray-300 rounded-lg text-xs font-bold transition-colors hover:text-white">
+             <button className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold transition-colors hover:text-gray-900">
                 🐛 Debug
              </button>
-             <button onClick={handleSave} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-900/20 hover:bg-blue-700 transition-colors">
+             <button onClick={handleSave} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-sm shadow-blue-500/20 hover:bg-blue-700 transition-colors">
                <Save size={14} /> Save
              </button>
           </div>
@@ -224,11 +224,11 @@ function FlowCanvas({ initialWorkflow, onBack }: { initialWorkflow: Workflow | n
             fitView
             defaultEdgeOptions={{ animated: true, style: { strokeDasharray: 5, strokeWidth: 2, stroke: '#22c55e' } }}
           >
-            <Background color="rgba(255,255,255,0.05)" size={2} gap={20} />
-            <Controls className="bg-[#1e293b] border-gray-800 shadow-xl rounded-xl overflow-hidden fill-gray-400 top-4 left-4 absolute" />
+            <Background color="rgba(0,0,0,0.05)" size={2} gap={20} />
+            <Controls className="bg-white border-gray-200 shadow-xl rounded-xl overflow-hidden fill-gray-500 top-4 left-4 absolute" />
             <MiniMap 
-              className="bg-[#1e293b] rounded-xl border border-gray-800 overflow-hidden" 
-              maskColor="rgba(15, 23, 42, 0.8)" 
+              className="bg-white rounded-xl border border-gray-200 overflow-hidden" 
+              maskColor="rgba(249, 250, 251, 0.8)" 
               nodeColor="#3b82f6"
             />
           </ReactFlow>
@@ -237,7 +237,7 @@ function FlowCanvas({ initialWorkflow, onBack }: { initialWorkflow: Workflow | n
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50">
              <button 
                onClick={() => setShowLogView(!showLogView)}
-               className="bg-[#1e293b] border border-gray-700 text-white px-6 py-2 rounded-full shadow-2xl flex items-center gap-2 text-sm font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors"
+               className="bg-white border border-gray-300 text-gray-900 px-6 py-2 rounded-full shadow-lg flex items-center gap-2 text-sm font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors"
              >
                 <History size={16} className="text-blue-500" /> 
                 {showLogView ? 'Hide Execution Log' : 'Show Execution Log'}
@@ -246,18 +246,18 @@ function FlowCanvas({ initialWorkflow, onBack }: { initialWorkflow: Workflow | n
 
           {/* Execution Log Panel */}
           {showLogView && (
-            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 w-[600px] max-h-64 bg-[#0f172a] border border-gray-700 rounded-xl shadow-[0_0_40px_rgba(0,0,0,0.5)] z-40 overflow-hidden flex flex-col font-mono text-xs">
-              <div className="bg-[#1e293b] border-b border-gray-700 p-2 px-4 flex justify-between items-center text-gray-400 font-bold uppercase tracking-widest">
+            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 w-[600px] max-h-64 bg-gray-50 border border-gray-300 rounded-xl shadow-2xl z-40 overflow-hidden flex flex-col font-mono text-xs">
+              <div className="bg-white border-b border-gray-300 p-2 px-4 flex justify-between items-center text-gray-500 font-bold uppercase tracking-widest">
                  <span>▼ Execution Log</span>
-                 <button className="hover:text-white">Clear</button>
+                 <button className="hover:text-gray-900">Clear</button>
               </div>
-              <div className="p-4 overflow-y-auto space-y-2 text-gray-300">
+              <div className="p-4 overflow-y-auto space-y-2 text-gray-600">
                 <div className="flex gap-4"><span>10:23:01</span><span className="text-green-500">✅</span><span>Trigger fired: New Property</span></div>
                 <div className="flex gap-4"><span>10:23:02</span><span className="text-green-500">✅</span><span>Gemini caption generated</span></div>
                 <div className="flex gap-4"><span>10:23:02</span><span className="text-green-500">✅</span><span>Facebook post opened</span></div>
                 <div className="flex gap-4"><span>10:23:03</span><span className="text-yellow-500">⚠️</span><span>Instagram: caption copied</span></div>
                 <div className="flex gap-4"><span>10:23:03</span><span className="text-green-500">✅</span><span>Email sent to 24 subscribers</span></div>
-                <div className="mt-4 pt-4 border-t border-gray-800 text-gray-500">
+                <div className="mt-4 pt-4 border-t border-gray-200 text-gray-500">
                    Duration: 2.3s | Status: ✅ Success
                 </div>
               </div>
