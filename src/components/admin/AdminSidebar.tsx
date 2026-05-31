@@ -12,6 +12,7 @@ import {
   Sun,
   Moon,
   ChevronLeft,
+  Zap,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -48,6 +49,7 @@ export default function AdminSidebar({
     { id: "listings", label: "Properties", icon: <ClipboardList size={20} /> },
     { id: "enquiries", label: "Leads", icon: <MessageSquare size={20} /> },
     { id: "marketing", label: "Marketing", icon: <Megaphone size={20} /> },
+    { id: "automation", label: "Automation", icon: <Zap size={20} /> },
     { id: "analytics", label: "Analytics", icon: <BarChart3 size={20} /> },
     { id: "settings", label: "Settings", icon: <Settings size={20} /> },
   ];
@@ -239,6 +241,33 @@ export default function AdminSidebar({
             </div>
           )}
         </div>
+
+        {!isCollapsed && (
+          <div className="mb-4 p-3 bg-gray-50 dark:bg-[#1f2937] rounded-xl border border-gray-100 dark:border-gray-800">
+             <div className="flex items-center gap-1.5 mb-2">
+                <span className="text-yellow-500">⚡</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-800 dark:text-gray-200">Workflows Active</span>
+             </div>
+             <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-[10px] font-bold text-gray-500">
+                   <span>Quality Check:</span>
+                   <span className="text-green-600">✅ Ready</span>
+                </div>
+                <div className="flex items-center justify-between text-[10px] font-bold text-gray-500">
+                   <span>Lead Follow-up:</span>
+                   <span className="text-green-600">✅ Active</span>
+                </div>
+                <div className="flex items-center justify-between text-[10px] font-bold text-gray-500">
+                   <span>Price Alerts:</span>
+                   <span className="text-green-600">✅ Ready</span>
+                </div>
+                <div className="flex items-center justify-between text-[10px] font-bold text-gray-500">
+                   <span>Expiry Check:</span>
+                   <span className="text-blue-500">🔄 Running</span>
+                </div>
+             </div>
+          </div>
+        )}
 
         <div className="relative group/out">
           <button

@@ -5,6 +5,7 @@ import { safeQuery } from '../utils/supabaseQuery';
 
 export interface Property {
   id: number;
+  ref_no?: string;
   listing_title: string;
   city: string;
   price_lkr: string | number;
@@ -82,61 +83,89 @@ export function useProperties() {
     setLoading(true);
     setError(null);
 
-    const { data } = await safeQuery<Property>(() => 
-      supabase
-        .from('properties')
-        .select(`
-          id,
-          listing_title,
-          listing_type,
-          property_category,
-          district,
-          city,
-          price_lkr,
-          usd_estimate,
-          rooms,
-          bathrooms,
-          land_area,
-          floor_area,
-          images,
-          status,
-          agent_id,
-          property_description,
-          views_count,
-          leads_count,
-          created_at,
-          published_by,
-          package_tier,
-          is_featured,
-          is_trending
-        `)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(50),
-      DEMO_LISTINGS
-    );
+    const CACHE_KEY = "lk_properties_cache";
+    const cachedData = sessionStorage.getItem(CACHE_KEY);
+    
+    if (cachedData) {
+      try {
+        const { timestamp, data } = JSON.parse(cachedData);
+        // Expiration check (5 minutes = 300000 ms)
+        if (Date.now() - timestamp < 300000) {
+          setProperties(data);
+          setLoading(false);
+          // We can optionally refresh in the background (stale-while-revalidate),
+          // but we won't block the UI rendering. Let's do a background fetch.
+        }
+      } catch (e) {
+        console.error("Failed to parse cache", e);
+      }
+    }
 
-    const formattedData = data.map((item: any) => {
-      const price_val = item.price_lkr;
-      const price_formatted = price_val && !isNaN(Number(price_val)) 
-        ? `Rs. ${Number(price_val).toLocaleString()}` 
-        : 'Price on Request';
+    try {
+      const { data } = await safeQuery<Property>(() => 
+        supabase
+          .from('properties')
+          .select(`
+            id,
+            ref_no,
+            listing_title,
+            listing_type,
+            property_category,
+            district,
+            city,
+            price_lkr,
+            usd_estimate,
+            rooms,
+            bathrooms,
+            land_area,
+            floor_area,
+            images,
+            status,
+            agent_id,
+            property_description,
+            views_count,
+            leads_count,
+            created_at,
+            published_by,
+            package_tier,
+            is_featured,
+            is_trending
+          `)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .limit(50),
+        DEMO_LISTINGS
+      );
 
-      return {
-        ...item,
-        agentId: item.agent_id || item.agentId,
-        title: item.listing_title,
-        location: `${item.city}${item.district ? ', ' + item.district : ''}`,
-        price: price_formatted,
-        type: item.listing_type,
-        description: item.property_description || item.description,
-        propertyType: item.property_category,
-        listingType: item.listing_type
-      };
-    });
+      const formattedData = data.map((item: any) => {
+        const price_val = item.price_lkr;
+        const price_formatted = price_val && !isNaN(Number(price_val)) 
+          ? `Rs. ${Number(price_val).toLocaleString()}` 
+          : 'Price on Request';
 
-    setProperties(formattedData);
-    setLoading(false);
+        return {
+          ...item,
+          agentId: item.agent_id || item.agentId,
+          title: item.listing_title,
+          location: `${item.city}${item.district ? ', ' + item.district : ''}`,
+          price: price_formatted,
+          type: item.listing_type,
+          description: item.property_description || item.description,
+          propertyType: item.property_category,
+          listingType: item.listing_type
+        };
+      });
+
+      setProperties(formattedData);
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+        timestamp: Date.now(),
+        data: formattedData
+      }));
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {

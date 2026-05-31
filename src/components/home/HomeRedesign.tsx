@@ -45,6 +45,7 @@ export const HomeRedesign: React.FC<HomeRedesignProps> = ({
         <Hero 
           propertyCount={propertyCount} 
           onSearch={(filters) => onNavigate({ type: 'search_results', data: filters })} 
+          onNavigate={onNavigate}
         />
         
         <CategoryIcons onNavigate={onNavigate} />

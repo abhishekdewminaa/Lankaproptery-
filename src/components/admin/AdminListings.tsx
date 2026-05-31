@@ -156,8 +156,9 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
 
   const filteredListings = listings.filter(p => {
     const matchesSearch = !searchQuery || 
-      p.listing_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.listing_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.ref_no?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       String(p.id).toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesCategory = selectedCategory === 'All Assets' || 
@@ -351,7 +352,7 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
                     <span className="px-3 py-1 rounded-full bg-admin-bg border border-admin-border text-admin-text-gray text-[9px] font-black uppercase tracking-widest">
                        {property.property_category || 'Apartment'}
                     </span>
-                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">ID: #{String(property.id).split('-')[0].toUpperCase()}</span>
+                    <span className="text-[10px] text-[#00B67A] font-mono font-bold uppercase tracking-widest bg-[#00B67A]/10 px-2 py-0.5 rounded">ID: {property.ref_no || `LP${String(property.id).padStart(4, '0')}`}</span>
                  </div>
                  
                  <h3 className="text-xl font-black text-[#004F31] line-clamp-1 tracking-tight leading-tight">{property.listing_title}</h3>

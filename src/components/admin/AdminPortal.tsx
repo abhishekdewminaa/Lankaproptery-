@@ -8,8 +8,10 @@ import AdminListings from './AdminListings';
 import AdminListingForm from './AdminListingForm';
 import AdminSuccess from './AdminSuccess';
 import AdminAnalytics from './AdminAnalytics';
+import { AutomationBuilderPage } from '../../pages/AutomationBuilderPage';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
+import { runExpiryWorkflow, processWorkflowJobs } from '../../automation/workflows';
 
 interface AdminPortalProps {
   user: any;
@@ -75,6 +77,29 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
     window.scrollTo(0, 0);
   }, [activePage]);
 
+  // Setup Automated Workflows (Client-side polling)
+  useEffect(() => {
+    if (!isAuthorized) return;
+    
+    // Initial run
+    runExpiryWorkflow().catch(console.error);
+    processWorkflowJobs().catch(console.error);
+    
+    // Set up intervals
+    const jobsInterval = setInterval(() => {
+      processWorkflowJobs().catch(console.error);
+    }, 5 * 60 * 1000); // every 5 minutes
+    
+    const expiryInterval = setInterval(() => {
+      runExpiryWorkflow().catch(console.error);
+    }, 6 * 60 * 60 * 1000); // every 6 hours
+    
+    return () => {
+      clearInterval(jobsInterval);
+      clearInterval(expiryInterval);
+    };
+  }, [isAuthorized]);
+
   if (isCheckingAdmin) {
     return (
       <div className="min-h-screen bg-admin-bg flex items-center justify-center">
@@ -139,6 +164,7 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
           onBackToPortal={() => setActivePage('dashboard')} 
         />
       )}
+      {activePage === 'automation' && <AutomationBuilderPage />}
       {activePage === 'analytics' && <AdminAnalytics />}
     </AdminLayout>
   );

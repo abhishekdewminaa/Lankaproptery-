@@ -65,6 +65,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { supabase } from '../../supabaseClient';
 import { triggerNotification } from '../../services/notificationService';
+import { runPropertyQualityWorkflow, runPriceDropWorkflow } from '../../automation/workflows';
 import toast from 'react-hot-toast';
 import { DISTRICTS_BY_PROVINCE, SRI_LANKA_DISTRICTS as DISTRICTS } from '../../constants/districts';
 
@@ -721,6 +722,14 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
           category: payload.property_category,
           agent_email: user?.email || 'admin@lankaproperty.lk'
         }).catch(err => console.warn('Failed to dispatch publish notification:', err));
+        
+        // WORKFLOW 1: AI Quality Check for new properties
+        if (result.data) {
+           runPropertyQualityWorkflow(result.data).catch(console.error);
+        }
+      } else if (!isNew && !isAutoSave && initialData?.price_lkr && result.data) {
+        // WORKFLOW 3: Check for price drop
+        runPriceDropWorkflow(result.data, initialData.price_lkr, result.data.price_lkr).catch(console.error);
       }
 
       setLastSaved(new Date().toLocaleTimeString());

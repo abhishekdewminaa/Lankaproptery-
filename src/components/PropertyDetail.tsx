@@ -20,6 +20,7 @@ import {
   MessageCircle,
   Share2,
   Heart,
+  Copy,
   Printer
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -27,6 +28,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { supabase } from '../supabaseClient';
 import { triggerNotification } from '../services/notificationService';
+import { runLeadFollowUpWorkflow } from '../automation/workflows';
 
 const getPropertyImage = (images: any, index = 0) => {
   if (!images) return '/placeholder-property.jpg'
@@ -172,6 +174,7 @@ export const PropertyDetail = ({
   const [isTranslating, setIsTranslating] = useState(false);
   const [translatedDesc, setTranslatedDesc] = useState<string | null>(null);
   const [showOriginal, setShowOriginal] = useState(true);
+  const [copiedRef, setCopiedRef] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -227,6 +230,21 @@ export const PropertyDetail = ({
             views_count: (data.views_count || 0) + 1 
           })
           .eq('id', idToFetch);
+
+        // Record detailed analytics view
+        let sessionId = sessionStorage.getItem('lp_session_id');
+        if (!sessionId) {
+          sessionId = Math.random().toString(36).substring(2, 15);
+          sessionStorage.setItem('lp_session_id', sessionId);
+        }
+        await supabase
+          .from('property_views')
+          .insert([{
+            property_id: data.id,
+            district: data.district,
+            property_category: data.property_category,
+            session_id: sessionId
+          }]);
 
         // Fetch similar properties
         if (data) {
@@ -324,6 +342,14 @@ export const PropertyDetail = ({
         client_phone: formData.phone,
         message: formData.message
       });
+      
+      // WORKFLOW 2: Lead follow-up sequence
+      runLeadFollowUpWorkflow({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        message: formData.message
+      }, property).catch(console.error);
 
       setInquirySuccess(true);
       setFormData({
@@ -427,6 +453,24 @@ export const PropertyDetail = ({
         {/* Title Row */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
           <div>
+            {property.ref_no && (
+              <div className="mb-2 flex items-center gap-2">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-100 px-2 py-1 rounded">
+                  Ref No: <span className="font-mono text-gray-900">{property.ref_no}</span>
+                </span>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(property.ref_no);
+                    setCopiedRef(true);
+                    setTimeout(() => setCopiedRef(false), 2000);
+                  }}
+                  className="text-gray-400 hover:text-brand-green transition-colors flex items-center gap-1.5"
+                  title="Copy Reference Number"
+                >
+                  {copiedRef ? <span className="text-xs text-brand-green font-bold">✅ Copied!</span> : <Copy size={14} />}
+                </button>
+              </div>
+            )}
             <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-3 max-w-4xl leading-tight">
               {property.listing_title}
             </h1>

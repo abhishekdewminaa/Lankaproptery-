@@ -30,6 +30,47 @@
   --background: #F8FAF8;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box;
+}
+
+img {
+  loading: lazy;
+  decoding: async;
+}
+
+.page-enter {
+  animation: pageEnter 0.3s ease forwards;
+}
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
 @layer base {
   body {
     @apply font-sans text-slate-900 bg-[#F8FAF8] antialiased;
@@ -63,6 +104,10 @@
 
 .compact-transition {
   @apply transition-all duration-200 ease-in-out;
+}
+
+button, a, .admin-card, .property-card, .quick-import-card, input, select, textarea {
+  transition: all 0.2s ease;
 }
 
 @keyframes pulse {

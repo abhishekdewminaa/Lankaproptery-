@@ -9,7 +9,6 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Navbar } from "./components/home/Navbar";
 import { Feedback } from "./components/Feedback";
-import AdminPortal from './components/admin/AdminPortal';
 import FloatingActions from "./components/FloatingActions";
 import { triggerNotification } from "./services/notificationService";
 import { NotificationSettings } from "./components/NotificationSettings";
@@ -150,14 +149,43 @@ import LiveVisitorTracking from "./components/LiveVisitorTracking";
 import { HomeRedesign } from "./components/home/HomeRedesign";
 import { FeaturedView } from "./components/home/FeaturedView";
 import { VoiceCommandPanel } from './components/VoiceCommandPanel';
-import { CategoryPage } from "./components/CategoryPage";
-import { PropertyDetail } from "./components/PropertyDetail";
 import { AIChatbot } from "./components/AIChatbot";
 import { useProperties, Property } from "./hooks/useProperties";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { SkeletonList } from "./components/SkeletonCard";
 import { prefetchProperty } from "./lib/prefetch";
 import { safeStr, safeReplace, formatPriceLong, getFirstImageSafe, USD_RATE, EUR_RATE } from "./utils/safeUtils";
+
+const AdminPortal = React.lazy(() => import('./components/admin/AdminPortal'));
+const CategoryPage = React.lazy(() => import('./components/CategoryPage').then(module => ({ default: module.CategoryPage })));
+const PropertyDetail = React.lazy(() => import('./components/PropertyDetail').then(module => ({ default: module.PropertyDetail })));
+
+const TopProgressBar = ({ loading }: { loading: boolean }) => {
+  const [progress, setProgress] = useState(0);
+  
+  useEffect(() => {
+    if (loading) {
+      setProgress(0);
+      setTimeout(() => setProgress(30), 10);
+      setTimeout(() => setProgress(60), 200);
+      setTimeout(() => setProgress(85), 500);
+    } else {
+      setProgress(100);
+      setTimeout(() => setProgress(0), 300);
+    }
+  }, [loading]);
+
+  if (progress === 0 && !loading) return null;
+
+  return (
+    <div className="fixed top-0 left-0 right-0 h-[3px] z-[9999]" style={{ opacity: progress === 100 ? 0 : 1, transition: 'opacity 0.3s ease' }}>
+      <div 
+        className="h-full bg-[#CC2222]" 
+        style={{ width: `${Math.max(progress, 0)}%`, transition: 'width 0.2s ease-out' }} 
+      />
+    </div>
+  );
+};
 
 export const getDisplayViews = (property: any, isAdmin: boolean): string => {
   if (isAdmin) {
@@ -499,7 +527,7 @@ const propertyTypes = [
   '🏖️ Villa'
 ];
 
-const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry: () => void, properties?: any[], onSearch?: (results: any[]) => void }) => {
+const Hero = ({ onDirectInquiry, properties = [], onSearch, onNavigate }: { onDirectInquiry: () => void, properties?: any[], onSearch?: (results: any[]) => void, onNavigate?: (view: any) => void }) => {
   const [activeStatus, setActiveStatus] = useState<"Sale" | "Rent" | "Lease">("Sale");
   const [propertyType, setPropertyType] = useState("All Types");
   const [selectedDistrict, setSelectedDistrict] = useState("All");
@@ -573,6 +601,7 @@ const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry:
       const { data } = await safeQuery(() => {
         let query = supabase.from('properties').select(`
           id,
+          ref_no,
           listing_title,
           listing_type,
           property_category,
@@ -600,7 +629,11 @@ const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry:
           query = query.eq('district', selectedDistrict);
         }
         if (citySearch) {
-          query = query.ilike('city', `%${citySearch}%`);
+          if (/^LP\d{4,}$/i.test(citySearch.trim())) {
+            query = query.eq('ref_no', citySearch.trim().toUpperCase());
+          } else {
+            query = query.ilike('city', `%${citySearch}%`);
+          }
         }
         if (minPrice !== 'No Min') {
           query = query.gte('price_lkr', parseInt(String(minPrice || '0').replace(/[^0-9]/g, ''), 10));
@@ -616,7 +649,11 @@ const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry:
       });
       
       if (data && data.length > 0) {
-        if (onSearch) onSearch(data);
+        if (/^LP\d{4,}$/i.test(citySearch.trim()) && data.length === 1 && onNavigate) {
+          onNavigate({ type: 'detail', data: data[0] });
+        } else if (onSearch) {
+          onSearch(data);
+        }
       } else {
         // Fallback to local filtering if Supabase returns nothing or fails
         console.warn('Search returned no results from Supabase, using local filter fallback');
@@ -769,7 +806,7 @@ const Hero = ({ onDirectInquiry, properties = [], onSearch }: { onDirectInquiry:
                     onFocus={() => setShowSuggestions(true)}
                     onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                     onKeyDown={e => { if (e.key === 'Enter') { setShowSuggestions(false); handleSearch(); } }}
-                    placeholder="Search city, town or area..."
+                    placeholder="Search by Ref No (e.g. LP0012) or location..."
                     className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-3.5 text-sm text-gray-700 font-bold focus:ring-2 focus:border-transparent focus:ring-brand-green/20 outline-none compact-transition placeholder:font-medium placeholder:text-gray-400"
                   />
                   
@@ -994,16 +1031,33 @@ export const PropertyCard = ({
         </div>
       </div>
 
-      <div className="relative h-[220px] bg-gray-200 overflow-hidden">
+      <div className="relative aspect-video bg-[#e8f5e9] overflow-hidden">
         <img 
           src={getFirstImageSafe(property?.images || property?.image)} 
           alt={safeStr(property?.listing_title || property?.title)} 
           loading="lazy"
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+          decoding="async"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
         />
         
+        {property?.ref_no && (
+          <div 
+            className="absolute z-20 backdrop-blur-md rounded px-2 py-1 flex items-center gap-1"
+            style={{ 
+              top: '8px', 
+              left: '8px', 
+              background: 'rgba(0,0,0,0.55)', 
+              color: 'white', 
+              fontSize: '11px', 
+              fontFamily: 'monospace' 
+            }}
+          >
+            🏷 {property.ref_no}
+          </div>
+        )}
+
         {/* Top Left Status Badge */}
-        <div className="absolute top-3 left-12 z-20">
+        <div className="absolute top-3 left-24 z-20">
           <span className={`text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm ${houseType.toLowerCase().includes('rent') ? 'bg-primary' : 'bg-brand-red'}`}>
             For {houseType.replace('For ', '')}
           </span>
@@ -3653,6 +3707,7 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
   const [selectedTier, setSelectedTier] = useState<"FREE" | "PREMIUM PRO" | "ELITE PRO">(initialPackage);
   const [images, setImages] = useState<string[]>([]);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [publishedRefNo, setPublishedRefNo] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ current: number, total: number, filename: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -3738,12 +3793,19 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
         created_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('properties')
-        .insert([propertyData]);
+        .insert([propertyData])
+        .select('*');
 
       if (error) throw error;
       
+      if (data && data.length > 0 && data[0].ref_no) {
+        setPublishedRefNo(data[0].ref_no);
+      } else if (data && data.length > 0) {
+        setPublishedRefNo(`LP${String(data[0].id).padStart(4, '0')}`);
+      }
+
       onRefresh?.();
       setStep(5);
     } catch (error: any) {
@@ -4563,6 +4625,11 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
                 <div>
                   <h3 className="text-3xl font-black text-dark-navy">Congratulations!</h3>
                   <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mt-1">✅ Your ad is now LIVE on LankaProperty.lk!</p>
+                  {publishedRefNo && (
+                    <div className="mt-4 inline-block bg-brand-green/10 px-4 py-2 rounded-xl border border-brand-green/20">
+                      <p className="text-sm font-bold text-brand-green">Your Ref No is: <span className="font-mono text-lg">{publishedRefNo}</span></p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -4870,6 +4937,7 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
   );
   const [locationLink, setLocationLink] = useState(initialData?.google_maps_link || initialData?.locationLink || "");
   const [isPublishing, setIsPublishing] = useState(false);
+  const [publishedRefNo, setPublishedRefNo] = useState<string | null>(null);
   const [showAIModal, setShowAIModal] = useState(false);
   const [pastedText, setPastedText] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
@@ -5079,17 +5147,25 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
         created_at: initialData?.id ? undefined : new Date().toISOString(),
       };
 
-      const { error } = initialData?.id 
+      const { data, error } = initialData?.id 
         ? await supabase
           .from('properties')
           .update(listingData)
           .eq('id', initialData.id)
+          .select('*')
         : await supabase
           .from('properties')
-          .insert([listingData]);
+          .insert([listingData])
+          .select('*');
 
       if (error) throw error;
       
+      if (data && data.length > 0 && data[0].ref_no) {
+        setPublishedRefNo(data[0].ref_no);
+      } else if (data && data.length > 0) {
+        setPublishedRefNo(`LP${String(data[0].id).padStart(4, '0')}`);
+      }
+
       onRefresh?.();
       setStep(3);
     } catch (error: any) {
@@ -5541,9 +5617,14 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                     Professional Listing Live
                   </div>
                   <h3 className="text-4xl font-black text-dark-navy tracking-tight leading-tight">Congratulations!<br />Property Published Successfully</h3>
-                  <p className="text-sm font-medium text-gray-500 max-w-sm mx-auto leading-relaxed">
+                  <p className="text-sm font-medium text-gray-500 max-w-sm mx-auto leading-relaxed mt-2 mb-4">
                     As an authorized Manager, your listing is now active on our global network. No fees applied.
                   </p>
+                  {publishedRefNo && (
+                    <div className="mt-4 inline-block bg-brand-green/10 px-6 py-3 rounded-2xl border border-brand-green/20 mx-auto">
+                      <p className="text-sm font-bold text-brand-green">Your Ref No is: <span className="font-mono text-xl">{publishedRefNo}</span></p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -6078,6 +6159,7 @@ const AgentListingsView = ({ onBack, onEdit, onRefresh, user, onShowToast }: { o
           .from('properties')
           .select(`
             id,
+            ref_no,
             listing_title,
             listing_type,
             property_category,
@@ -9084,6 +9166,14 @@ function App() {
     setCurrentView({ type: 'search_results', data: result });
   };
   const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'featured' | 'contact' | 'about' | 'packages' | 'auth' | 'verify' | 'reset-password' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'secret_login' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings' | 'agent_only_listings' | 'featured_projects_admin' | 'search_results' | 'sell' | 'feedback', data?: any }>({ type: 'home' });
+
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  useEffect(() => {
+    setIsNavigating(true);
+    const timer = setTimeout(() => setIsNavigating(false), 300);
+    return () => clearTimeout(timer);
+  }, [currentView.type]);
   const [user, setUser] = useState<any | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [compareList, setCompareList] = useState<number[]>([]);
@@ -9369,6 +9459,7 @@ function App() {
         )}
       </AnimatePresence>
 
+      <TopProgressBar loading={isNavigating || listingsLoading} />
       <Navbar 
         onPostAd={() => {
           if (user) setCurrentView({ type: 'publish' });
@@ -9388,13 +9479,15 @@ function App() {
         user={user}
       />
 
+      <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center pt-20"><Loader2 className="w-8 h-8 text-brand-green animate-spin" /></div>}>
       <AnimatePresence mode="wait">
         {currentView.type === 'home' ? (
           <motion.div
             key="home-redesign"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3 }}
             className="flex-grow"
           >
             <HomeRedesign 
@@ -9418,19 +9511,20 @@ function App() {
         ) : (
           <motion.div 
             key="header-content-view"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3 }}
             className={`min-h-screen bg-slate-50 flex flex-col relative ${['packages', 'sell', 'secret_login', 'agent_access', 'agent_publish', 'agent_listings', 'agent_only_listings', 'featured_projects_admin', 'inquiries', 'wanted'].includes(currentView.type) ? '' : 'pt-20'}`}
           >
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentView.type}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.3 }}
-                className="flex-grow"
+                className="flex-grow page-enter"
               >
                 {currentView.type === 'featured' && (
                   <FeaturedView 
@@ -9695,6 +9789,7 @@ function App() {
           </motion.div>
         )}
       </AnimatePresence>
+      </React.Suspense>
 
 <AnimatePresence>
   {compareList.length > 0 && currentView.type !== 'compare' && (

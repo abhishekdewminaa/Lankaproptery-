@@ -389,6 +389,56 @@ export default function AdminDashboard({ user }: { user: any }) {
           </div>
         </div>
       </div>
+
+      {/* Expiry Widget */}
+      <div className="mt-8 bg-white p-6 rounded-[32px] border border-gray-200 shadow-sm">
+        <h3 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-2">
+          <span>⏰</span> Listing Expiry Status
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+           <div className="p-4 bg-green-50 rounded-2xl flex justify-between items-center border border-green-100">
+             <span className="text-green-700 font-black text-[10px] uppercase tracking-widest">Active listings</span>
+             <span className="text-green-900 font-black text-2xl">12</span>
+           </div>
+           <div className="p-4 bg-yellow-50 rounded-2xl flex justify-between items-center border border-yellow-100">
+             <span className="text-yellow-700 font-black text-[10px] uppercase tracking-widest">Expiring in 3 days</span>
+             <span className="text-yellow-900 font-black text-2xl">3</span>
+           </div>
+           <div className="p-4 bg-red-50 rounded-2xl flex justify-between items-center border border-red-100">
+             <span className="text-red-700 font-black text-[10px] uppercase tracking-widest">Expired today</span>
+             <span className="text-red-900 font-black text-2xl">1</span>
+           </div>
+           <div className="p-4 bg-gray-50 rounded-2xl flex justify-between items-center border border-gray-200">
+             <span className="text-gray-700 font-black text-[10px] uppercase tracking-widest">Total expired</span>
+             <span className="text-gray-900 font-black text-2xl">5</span>
+           </div>
+        </div>
+        <div>
+           <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Expiring Soon</h4>
+           <div className="divide-y divide-gray-100">
+             <div className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex-1">
+                   <h5 className="font-bold text-gray-900 text-sm">LP0012 — Luxury Villa</h5>
+                   <p className="text-yellow-600 font-bold text-xs mt-1">2 days left</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                   <button className="px-4 py-2 text-[10px] uppercase tracking-widest font-black bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors">Send Reminder</button>
+                   <button className="px-4 py-2 text-[10px] uppercase tracking-widest font-black bg-[#1B5E20]/10 hover:bg-[#1B5E20]/20 text-[#1B5E20] rounded-xl transition-colors">Renew</button>
+                </div>
+             </div>
+             <div className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex-1">
+                   <h5 className="font-bold text-gray-900 text-sm">LP0034 — Nugegoda House</h5>
+                   <p className="text-yellow-600 font-bold text-xs mt-1">3 days left</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                   <button className="px-4 py-2 text-[10px] uppercase tracking-widest font-black bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors">Send Reminder</button>
+                   <button className="px-4 py-2 text-[10px] uppercase tracking-widest font-black bg-[#1B5E20]/10 hover:bg-[#1B5E20]/20 text-[#1B5E20] rounded-xl transition-colors">Renew</button>
+                </div>
+             </div>
+           </div>
+        </div>
+      </div>
     </div>
   );
 }

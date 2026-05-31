@@ -1,0 +1,4 @@
+5596:                  <h3 className="text-4xl font-black text-dark-navy tracking-tight leading-tight">Congratulations!<br />Property Published Successfully</h3>
+5711:  const isAdminPosted = property.published_by === 'admin' || property.agentId === 'ADMIN';
+6164:          published_by: item.published_by,
+6392:          published_by: item.published_by,
