@@ -426,7 +426,12 @@ export const PropertyDetail = ({
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8FAF8] font-sans text-gray-900 pb-12">
+    <motion.div 
+      initial={{ opacity: 0, rotateX: 15, y: 40, scale: 0.95 }}
+      animate={{ opacity: 1, rotateX: 0, y: 0, scale: 1 }}
+      transition={{ type: "spring", bounce: 0.3, duration: 1 }}
+      className="min-h-screen bg-[#F8FAF8] font-sans text-gray-900 pb-12 [perspective:1200px] origin-top"
+    >
       {/* Top Section */}
       <div className="max-w-7xl mx-auto px-6 pt-8">
         {/* Breadcrumb */}
@@ -983,6 +988,6 @@ export const PropertyDetail = ({
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 };

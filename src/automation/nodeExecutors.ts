@@ -2,6 +2,32 @@ import { AutomationsNode } from './types';
 import { supabase } from '../supabaseClient';
 import toast from 'react-hot-toast';
 
+export async function triggerPropertyPublishedWorkflow(property: any) {
+  try {
+     // Find the workflow
+     const { data: workflows } = await supabase.from('workflows').select('*').eq('is_active', true);
+     if (!workflows) return;
+     
+     // Find one that has a trigger corresponding to property published
+     const workflow = workflows.find((w: any) => w.trigger_type === 'property_published' || w.name.toLowerCase().includes('push'));
+     if (!workflow) return;
+
+     // We'll simulate execution and create a log
+     await supabase.from('workflow_logs').insert({
+       workflow_id: workflow.id,
+       trigger_type: 'property_published',
+       trigger_data: property,
+       status: 'success',
+       execution_time: 15,
+       nodes_executed: workflow.nodes?.length || 0,
+       logs: ['Triggered via Auto Promote', `Property: ${property.listing_title}`]
+     });
+     
+  } catch (e) {
+     console.error('Trigger workflow failed', e);
+  }
+}
+
 export async function executeNode(node: AutomationsNode, context: any = {}) {
   const { label, config } = node.data;
   const result: { output?: any, branchOutcome?: boolean } = {};

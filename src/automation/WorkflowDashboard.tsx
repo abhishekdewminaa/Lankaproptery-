@@ -4,7 +4,7 @@ import { Workflow } from './types';
 import { supabase } from '../supabaseClient';
 import toast from 'react-hot-toast';
 
-export function WorkflowDashboard({ onNew, onEdit }: { onNew: () => void, onEdit: (wf: Workflow) => void }) {
+export function WorkflowDashboard({ onNew, onEdit, highlightId }: { onNew: () => void, onEdit: (wf: Workflow) => void, highlightId?: string | null }) {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -140,7 +140,7 @@ export function WorkflowDashboard({ onNew, onEdit }: { onNew: () => void, onEdit
                  <tr><td colSpan={4} className="py-12 text-center text-gray-500"><Loader2 className="mx-auto animate-spin mb-2"/> Loading workflows...</td></tr>
               ) : workflows.length > 0 ? (
                 workflows.map((wf) => (
-                  <tr key={wf.id} className="hover:bg-gray-50 transition-colors group">
+                  <tr key={wf.id} className={`hover:bg-gray-50 transition-colors group ${wf.id === highlightId ? 'highlight-row' : ''}`}>
                     <td className="px-6 py-4">
                       <div className="font-bold text-gray-900 text-base flex items-center gap-2">
                         {wf.name}

@@ -3,6 +3,8 @@ import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import { GoogleGenAI } from "@google/genai";
+import { createClient } from "@supabase/supabase-js";
 
 dotenv.config();
 
@@ -15,14 +17,65 @@ async function startServer() {
 
   app.use(express.json());
 
-  // API Route for Google AI (Future implementation placeholder)
-  app.post("/api/ai/connect", async (req, res) => {
+  // Supabase admin client for fetching properties
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  // Gemini Setup
+  const ai = new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY,
+    httpOptions: {
+      headers: {
+        'User-Agent': 'aistudio-build',
+      }
+    }
+  });
+
+  app.post("/api/ai/chat", async (req, res) => {
     try {
-      const { prompt } = req.body;
-      // Here we will eventually integrate @google/genai
-      res.json({ message: "Server-side AI endpoint ready. GitHub connection pending configuration." });
-    } catch (error) {
-      res.status(500).json({ error: (error as Error).message });
+      const { message, instructions } = req.body;
+
+      // 1. Fetch properties to build context
+      const { data: properties } = await supabase.from('properties').select('*').limit(10);
+      let propertyContext = "No properties found.";
+      if (properties && properties.length > 0) {
+         propertyContext = "Available Properties:\n" + properties.map((p: any) => 
+           `- ${p.title} in ${p.district}\n  Price: Rs ${p.price_lkr}\n  ID: ${p.id}\n  Description: ${p.description || ''}\n  Type: ${p.property_type}\n  Status: ${p.status}`
+         ).join('\n\n');
+      }
+
+      const systemInstruction = 
+        (instructions || "You are a helpful real estate assistant.") + "\n\n" +
+        "You must answer buyer queries strictly using the property data provided below. Do not invent properties.\n" +
+        "If you recommend a property, you MUST include its ID exactly like this: [PROPERTY: <id>]. Doing this will trigger a nice UI card for the user.\n\n" +
+        propertyContext;
+
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+
+      const chat = ai.chats.create({
+        model: "gemini-3.5-flash",
+        config: {
+          systemInstruction,
+        },
+      });
+
+      const responseStream = await chat.sendMessageStream({ message });
+      
+      for await (const chunk of responseStream) {
+        if (chunk.text) {
+          res.write(`data: ${JSON.stringify({ text: chunk.text })}\n\n`);
+        }
+      }
+
+      res.write("data: [DONE]\n\n");
+      res.end();
+    } catch (error: any) {
+      console.error("[AI Chat Error]", error);
+      res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
+      res.end();
     }
   });
 

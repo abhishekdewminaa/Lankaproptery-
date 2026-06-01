@@ -1,6 +1,12 @@
-import React, { useState } from 'react';
-import { Bot, MessageSquare, Play, Settings } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Bot, MessageSquare, Play, Settings, Loader2, Home, MapPin, Tag } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { supabase } from '../supabaseClient';
+
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
 export function AIAgentBuilder() {
   const [agents, setAgents] = useState([
@@ -8,6 +14,127 @@ export function AIAgentBuilder() {
   ]);
 
   const [isCreating, setIsCreating] = useState(false);
+  const [instructions, setInstructions] = useState("You are a helpful real estate assistant for LankaProperty.lk. Always respond in English. When asked about properties, search the database first...");
+  const [greeting, setGreeting] = useState("Hi! I'm your LankaProperty assistant. How can I help you find your perfect home today?");
+
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const [propertiesCache, setPropertiesCache] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (isCreating) {
+      setMessages([{ role: 'assistant', content: greeting }]);
+      supabase.from('properties').select('*').limit(20).then(({ data }) => {
+        if (data) setPropertiesCache(data);
+      });
+    }
+  }, [isCreating, greeting]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
+
+  const renderMessageContent = (content: string) => {
+    // Regex to match [PROPERTY: id]
+    const parts = content.split(/(\[PROPERTY:\s*[^\]]+\])/g);
+    
+    return parts.map((part, index) => {
+      const match = part.match(/\[PROPERTY:\s*([^\]]+)\]/);
+      if (match) {
+        const propId = parseInt(match[1], 10) || match[1];
+        const prop = propertiesCache.find((p: any) => p.id === propId || p.id === match[1]);
+        
+        if (prop) {
+          return (
+            <div key={index} className="my-3 bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex gap-3 text-left">
+              {prop.cover_image && (
+                <img src={prop.cover_image} alt={prop.title} className="w-16 h-16 rounded-lg object-cover" />
+              )}
+              {!prop.cover_image && (
+                <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400">
+                  <Home size={24} />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-gray-900 text-sm truncate">{prop.title}</div>
+                <div className="text-[10px] uppercase font-bold tracking-widest text-emerald-600 mt-0.5">Rs. {prop.price_lkr?.toLocaleString()}</div>
+                <div className="text-xs text-gray-500 flex items-center gap-1 mt-1 truncate">
+                   <MapPin size={10} /> {prop.city}, {prop.district}
+                </div>
+              </div>
+            </div>
+          );
+        } else {
+          return <span key={index} className="text-blue-600 font-medium">[Property {match[1]}]</span>;
+        }
+      }
+      return <span key={index}>{part}</span>;
+    });
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim()) return;
+
+    const userMessage = inputValue;
+    setInputValue('');
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setIsTyping(true);
+
+    try {
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userMessage,
+          instructions
+        })
+      });
+
+      if (!response.ok) throw new Error('API Error');
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      if (!reader) throw new Error('No reader');
+
+      setIsTyping(false);
+      setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.text) {
+                setMessages(prev => {
+                  const last = prev[prev.length - 1];
+                  const newMessages = [...prev];
+                  newMessages[newMessages.length - 1] = { ...last, content: last.content + data.text };
+                  return newMessages;
+                });
+              }
+            } catch (err) {
+              console.error('Error parsing SSE data', err);
+            }
+          }
+        }
+      }
+    } catch (error: any) {
+      toast.error("Failed to reach AI");
+      setIsTyping(false);
+    }
+  };
 
   return (
     <div className="p-8 h-full overflow-y-auto w-full bg-gray-50">
@@ -52,11 +179,20 @@ export function AIAgentBuilder() {
                 </div>
                 <div>
                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Instructions</label>
-                   <textarea className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2 h-24 text-sm" defaultValue="You are a helpful real estate assistant for LankaProperty.lk. Always respond in English. When asked about properties, search the database first..."></textarea>
+                   <textarea 
+                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2 h-24 text-sm focus:outline-none focus:border-blue-500" 
+                     value={instructions}
+                     onChange={(e) => setInstructions(e.target.value)}
+                   ></textarea>
                 </div>
                 <div>
                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Greeting message</label>
-                   <input type="text" className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2" defaultValue="Hi! I'm your LankaProperty assistant. How can I help you find your perfect home today?" />
+                   <input 
+                     type="text" 
+                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500" 
+                     value={greeting} 
+                     onChange={(e) => setGreeting(e.target.value)}
+                   />
                 </div>
                 <div className="flex gap-4 pt-4 border-t border-gray-200">
                    <button onClick={() => { toast.success('Agent saved'); setIsCreating(false); }} className="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-sm shadow-blue-500/20">Save Agent</button>
@@ -72,14 +208,39 @@ export function AIAgentBuilder() {
                    <div className="text-xs text-green-500">Online</div>
                 </div>
              </div>
-             <div className="flex-1 p-4 space-y-4">
-                <div className="flex gap-2">
-                   <div className="p-3 bg-gray-100 text-sm text-gray-800 rounded-2xl rounded-tl-sm max-w-[85%]">Hi! I'm your LankaProperty assistant. How can I help you find your perfect home today?</div>
-                </div>
+             <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+                {messages.map((m, i) => (
+                  <div key={i} className={`flex gap-2 ${m.role === 'user' ? 'justify-end' : ''}`}>
+                     <div className={`p-3 text-sm rounded-2xl max-w-[85%] whitespace-pre-wrap ${
+                       m.role === 'user' 
+                         ? 'bg-blue-600 text-white rounded-tr-sm' 
+                         : 'bg-gray-100 text-gray-800 rounded-tl-sm'
+                     }`}>
+                       {renderMessageContent(m.content)}
+                     </div>
+                  </div>
+                ))}
+                {isTyping && (
+                  <div className="flex gap-2">
+                     <div className="p-3 bg-gray-100 text-gray-400 rounded-2xl rounded-tl-sm flex gap-1 items-center h-10 px-4">
+                       <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                       <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                       <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                     </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
              </div>
-             <div className="p-4 border-t border-gray-200">
-                <input type="text" className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500" placeholder="Type a message..." />
-             </div>
+             <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200 flex gap-2">
+                <input 
+                  type="text" 
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  disabled={isTyping}
+                  className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500 disabled:opacity-50" 
+                  placeholder="Type a message..." 
+                />
+             </form>
           </div>
         </div>
       ) : (

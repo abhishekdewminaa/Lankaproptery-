@@ -1,8 +1,18 @@
-import React from 'react';
-import { PackageOpen, Download, Star } from 'lucide-react';
+import React, { useState } from 'react';
+import { PackageOpen, Download, Star, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export function WorkflowMarketplace({ onInstall }: { onInstall: () => void }) {
+export function WorkflowMarketplace({ onInstall }: { onInstall: (template: any) => void }) {
+  const [installingId, setInstallingId] = useState<number | null>(null);
+  const [installedId, setInstalledId] = useState<number | null>(null);
+
+  const handleInstallClick = async (template: any) => {
+    setInstallingId(template.id);
+    await onInstall(template);
+    setInstalledId(template.id);
+    setInstallingId(null);
+  };
+
   const templates = [
     { id: 1, title: 'New Listing → Full Social Media Push', pop: true, nodes: 'Trigger → AI Caption → Facebook → Instagram → Twitter → Email', desc: '1 Click Install', used: 245 },
     { id: 2, title: 'Lead → WhatsApp + Email Follow-Up', pop: false, nodes: 'Trigger → WhatsApp → Wait → Email', desc: 'Convert more leads', used: 180 },
@@ -64,8 +74,22 @@ export function WorkflowMarketplace({ onInstall }: { onInstall: () => void }) {
 
                 <div className="flex gap-3">
                    <button className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-black uppercase tracking-widest transition-colors border border-gray-200">Preview</button>
-                   <button onClick={() => { toast.success('Template installed'); onInstall(); }} className="flex-[2] py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-sm shadow-blue-500/20">
-                     <Download size={14} /> Install in 1 Click
+                   <button 
+                     onClick={() => handleInstallClick(tpl)} 
+                     disabled={installingId === tpl.id || installedId === tpl.id}
+                     className={`flex-[2] py-3 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-sm ${
+                       installedId === tpl.id 
+                         ? 'bg-green-500 hover:bg-green-600 shadow-green-500/20'
+                         : 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/20'
+                     } disabled:opacity-80`}
+                   >
+                     {installedId === tpl.id ? (
+                       <><CheckCircle2 size={14} /> Installed</>
+                     ) : installingId === tpl.id ? (
+                       <><Download size={14} className="animate-bounce" /> Installing...</>
+                     ) : (
+                       <><Download size={14} /> Install in 1 Click</>
+                     )}
                    </button>
                 </div>
              </div>

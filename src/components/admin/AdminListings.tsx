@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import AutoPromoteModal from '../AutoPromoteModal';
 
 const getPropertyThumbnail = (images: any) => {
   if (!images) return null;
@@ -88,6 +89,8 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
   // Modal States
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean, property: Property | null }>({ isOpen: false, property: null });
   const [statusModal, setStatusModal] = useState<{ isOpen: boolean, property: Property | null }>({ isOpen: false, property: null });
+  const [promoteModal, setPromoteModal] = useState<{ isOpen: boolean, property: Property | null }>({ isOpen: false, property: null });
+  const [promotedData, setPromotedData] = useState<Record<string, { time: string, platforms: string[] }>>({});
 
   const fetchListings = async () => {
     try {
@@ -314,11 +317,14 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
              <p className="text-admin-text-gray font-black text-sm uppercase tracking-widest">Syncing inventory...</p>
           </div>
         ) : filteredListings.length > 0 ? (
-          filteredListings.map((property) => (
+          filteredListings.map((property, idx) => (
             <motion.div
               layout
+              initial={{ opacity: 0, rotateX: 10, y: 20 }}
+              animate={{ opacity: 1, rotateX: 0, y: 0 }}
+              transition={{ delay: idx * 0.05, type: 'spring' }}
               key={property.id}
-              className={`bg-white p-6 rounded-[32px] border border-admin-border shadow-sm hover:shadow-xl hover:shadow-black/5 transition-all group flex flex-col xl:flex-row gap-8 items-center ${property.status === 'paused' ? 'opacity-70' : ''}`}
+              className={`bg-white p-6 rounded-[32px] border border-admin-border shadow-sm hover:shadow-xl hover:shadow-black/5 transition-all group flex flex-col xl:flex-row gap-8 items-center [perspective:1000px] ${property.status === 'paused' ? 'opacity-70' : ''}`}
             >
               {/* Thumbnail */}
               <div className="w-full xl:w-[200px] h-[140px] rounded-2xl overflow-hidden shrink-0 relative bg-gray-100 flex items-center justify-center text-4xl">
@@ -361,6 +367,15 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[11px] font-bold text-gray-400">
                     <span className="flex items-center gap-1.5"><MapPin size={14} className="text-[#004F31]" /> {property.city}, {property.district}</span>
                     <span className="flex items-center gap-1.5"><Tag size={14} className="text-[#004F31]" /> {property.listing_type}</span>
+                    
+                    {promotedData[property.id] && (
+                       <div className="flex items-center gap-1.5 ml-auto md:ml-0 group border border-gray-200 rounded-full px-2 py-0.5 bg-gray-50" title={`Last promoted: Today ${promotedData[property.id].time}`}>
+                          <span className="text-[10px] uppercase font-black tracking-widest text-[#004F31] mr-1">Promoted</span>
+                          {promotedData[property.id].platforms.includes('fb') && <span className="text-blue-600">📘</span>}
+                          {promotedData[property.id].platforms.includes('ig') && <span className="text-pink-600">📸</span>}
+                          {promotedData[property.id].platforms.includes('tw') && <span className="text-blue-400">🐦</span>}
+                       </div>
+                    )}
                  </div>
               </div>
 
@@ -417,6 +432,26 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
                     >
                       <Trash2 size={20} />
                     </button>
+
+                    {/* Auto Promote Button Component */}
+                    <div className="relative group/promote [perspective:1000px]">
+                      <button 
+                        onClick={() => setPromoteModal({ isOpen: true, property })}
+                        className="w-12 h-12 bg-gradient-to-br from-[#7C3AED] to-[#EC4899] text-white rounded-2xl flex items-center justify-center hover:scale-105 transition-all shadow-lg shadow-[#7C3AED]/30 active:scale-95 relative [transform-style:preserve-3d] duration-500 hover:shadow-2xl social-btn"
+                        title="Auto Promote to Social Media"
+                      >
+                        <div className="absolute inset-0 rounded-2xl border-2 border-[#7C3AED] group-hover/promote:animate-[ping_1.5s_cubic-bezier(0,0,0.2,1)_infinite] opacity-0 group-hover/promote:opacity-30 transition-transform duration-700 group-hover/promote:[transform:rotateX(180deg)_rotateY(180deg)_scale(1.2)]" />
+                        <Zap size={20} fill="currentColor" className="relative z-10 transition-transform duration-700 group-hover/promote:[transform:rotateY(360deg)_scale(1.1)_translateZ(20px)]" />
+                      </button>
+                      
+                      <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl shadow-black/10 border border-gray-100 opacity-0 invisible group-hover/promote:opacity-100 group-hover/promote:visible transition-all z-50 overflow-hidden flex flex-col py-2">
+                         <div className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">Quick Actions</div>
+                         <button onClick={() => setPromoteModal({ isOpen: true, property })} className="px-4 py-2 text-left text-sm font-bold text-gray-900 hover:bg-purple-50 hover:text-purple-600 flex items-center gap-2 transition-colors"><Zap size={14}/> Auto Promote (Full)</button>
+                         <button onClick={() => setPromoteModal({ isOpen: true, property })} className="px-4 py-2 text-left text-sm font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2 transition-colors">📘 Quick → Facebook</button>
+                         <button onClick={() => setPromoteModal({ isOpen: true, property })} className="px-4 py-2 text-left text-sm font-bold text-gray-900 hover:bg-pink-50 hover:text-pink-600 flex items-center gap-2 transition-colors">📸 Quick → Instagram</button>
+                         <button onClick={() => setPromoteModal({ isOpen: true, property })} className="px-4 py-2 text-left text-sm font-bold text-gray-900 hover:bg-gray-100 flex items-center gap-2 transition-colors">🐦 Quick → Twitter</button>
+                      </div>
+                    </div>
 
                     <a 
                       href={`/property/${property.id}`}
@@ -586,6 +621,27 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {promoteModal.isOpen && (
+          <AutoPromoteModal
+            isOpen={promoteModal.isOpen}
+            onClose={() => setPromoteModal({ isOpen: false, property: null })}
+            property={promoteModal.property as any}
+            onPromoted={(platforms) => {
+               if (promoteModal.property) {
+                 setPromotedData(prev => ({
+                   ...prev,
+                   [promoteModal.property!.id]: {
+                     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                     platforms
+                   }
+                 }));
+               }
+            }}
+          />
         )}
       </AnimatePresence>
     </div>

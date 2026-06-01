@@ -5,10 +5,47 @@ import { WorkflowCanvas } from '../automation/WorkflowCanvas';
 import { WorkflowMarketplace } from '../automation/WorkflowMarketplace';
 import { AIAgentBuilder } from '../automation/AIAgentBuilder';
 import { Workflow } from '../automation/types';
+import toast from 'react-hot-toast';
+import { supabase } from '../supabaseClient';
 
 export function AutomationPage() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'canvas' | 'marketplace' | 'agents'>('dashboard');
   const [currentWorkflow, setCurrentWorkflow] = useState<Workflow | null>(null);
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+
+  const handleTemplateInstall = async (template: any) => {
+    try {
+      // Mock nodes for a template based on its 'nodes' text description
+      const mockNodes = [
+        { id: `node-trigger-${Date.now()}`, type: 'customNode', position: { x: 100, y: 100 }, data: { type: 'trigger', subtype: 'scheduled', label: 'Template Trigger', config: {} } },
+        { id: `node-action-${Date.now()}`, type: 'customNode', position: { x: 400, y: 100 }, data: { type: 'action', subtype: 'webhook', label: 'Template Action', config: {} } }
+      ];
+      const mockEdges = [
+        { id: `edge-${Date.now()}`, source: mockNodes[0].id, target: mockNodes[1].id, animated: true, style: { stroke: '#22c55e', strokeWidth: 2 } }
+      ];
+
+      const { data, error } = await supabase.from('workflows').insert([{
+        name: `${template.title} - Copy`,
+        nodes: mockNodes,
+        edges: mockEdges,
+        is_active: false,
+        trigger_type: 'template'
+      }]).select().single();
+
+      if (error) throw error;
+      
+      toast.success('✅ Template installed! Go to Workflows to activate it.');
+      
+      setTimeout(() => {
+        setHighlightId(data.id);
+        setActiveTab('dashboard');
+        setTimeout(() => setHighlightId(null), 3000);
+      }, 1500);
+      
+    } catch (e: any) {
+      toast.error('Error installing template: ' + (e.message || 'Unknown error'));
+    }
+  };
 
   const handleEdit = (wf: Workflow) => {
     setCurrentWorkflow(wf);
@@ -62,9 +99,9 @@ export function AutomationPage() {
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden relative">
-        {activeTab === 'dashboard' && <WorkflowDashboard onNew={handleNew} onEdit={handleEdit} />}
+        {activeTab === 'dashboard' && <WorkflowDashboard onNew={handleNew} onEdit={handleEdit} highlightId={highlightId} />}
         {activeTab === 'canvas' && <WorkflowCanvas initialWorkflow={currentWorkflow} onBack={handleBack} />}
-        {activeTab === 'marketplace' && <WorkflowMarketplace onInstall={handleNew} />}
+        {activeTab === 'marketplace' && <WorkflowMarketplace onInstall={handleTemplateInstall} />}
         {activeTab === 'agents' && <AIAgentBuilder />}
       </div>
     </div>
