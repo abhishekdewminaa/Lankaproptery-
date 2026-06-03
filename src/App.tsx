@@ -4921,10 +4921,16 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
   const [propertyType, setPropertyType] = useState(initialData?.property_category || initialData?.propertyType || "Apartment");
   const [listingType, setListingType] = useState(initialData?.listing_type || initialData?.listingType || "For Sale");
   const [landArea, setLandArea] = useState(initialData?.land_area || initialData?.landArea || "");
+  const [landUnit, setLandUnit] = useState(initialData?.land_unit || "Perch");
   const [floorArea, setFloorArea] = useState(initialData?.floor_area || initialData?.floorArea || "");
-  const [floors, setFloors] = useState(initialData?.floors?.toString() || "0");
-  const [rooms, setRooms] = useState(initialData?.rooms?.toString() || "0");
-  const [bathrooms, setBathrooms] = useState(initialData?.bathrooms?.toString() || "0");
+  const [floors, setFloors] = useState(initialData?.floors?.toString() || "");
+  const [bedrooms, setBedrooms] = useState(initialData?.bedrooms?.toString() || initialData?.rooms?.toString() || "");
+  const [bathrooms, setBathrooms] = useState(initialData?.bathrooms?.toString() || "");
+  const [hasGarden, setHasGarden] = useState(initialData?.has_garden ?? false);
+  const [parkingSpaces, setParkingSpaces] = useState(initialData?.parking_spaces?.toString() || "");
+  const [hasPool, setHasPool] = useState(initialData?.has_pool ?? false);
+  const [yearBuilt, setYearBuilt] = useState(initialData?.year_built?.toString() || "");
+  const [furnishingStatus, setFurnishingStatus] = useState(initialData?.furnishing_status || "Unfurnished");
   const [description, setDescription] = useState(initialData?.property_description || initialData?.description || "");
   const [additionalInfo, setAdditionalInfo] = useState(initialData?.additional_info || initialData?.additionalInfo || "");
   const [isNegotiable, setIsNegotiable] = useState(initialData?.is_negotiable ?? initialData?.isNegotiable ?? false);
@@ -4949,6 +4955,7 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
   const [pastedText, setPastedText] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [openSection, setOpenSection] = useState('Basic Information');
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -5065,6 +5072,13 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
               additionalInfo: { type: Type.STRING },
               locationLink: { type: Type.STRING },
               price: { type: Type.STRING },
+              landUnit: { type: Type.STRING },
+              bedrooms: { type: Type.STRING },
+              hasGarden: { type: Type.BOOLEAN },
+              parkingSpaces: { type: Type.STRING },
+              hasPool: { type: Type.BOOLEAN },
+              yearBuilt: { type: Type.STRING },
+              furnishingStatus: { type: Type.STRING },
               contacts: {
                 type: Type.ARRAY,
                 items: {
@@ -5097,6 +5111,13 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
       if (data.additionalInfo) setAdditionalInfo(data.additionalInfo);
       if (data.locationLink) setLocationLink(data.locationLink);
       if (data.price) setPrice(data.price);
+      if (data.landUnit) setLandUnit(data.landUnit);
+      if (data.bedrooms) setBedrooms(data.bedrooms);
+      if (data.hasGarden !== undefined) setHasGarden(data.hasGarden);
+      if (data.parkingSpaces) setParkingSpaces(data.parkingSpaces);
+      if (data.hasPool !== undefined) setHasPool(data.hasPool);
+      if (data.yearBuilt) setYearBuilt(data.yearBuilt);
+      if (data.furnishingStatus) setFurnishingStatus(data.furnishingStatus);
       if (data.contacts && Array.isArray(data.contacts)) {
         setContacts(data.contacts.slice(0, 3));
       }
@@ -5145,10 +5166,22 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
         property_category: propertyType,
         listing_type: listingType,
         land_area: landArea,
+        land_unit: landUnit,
         floor_area: floorArea,
-        rooms: toNumber(rooms),
+        floors: toNumber(floors),
+        bedrooms: toNumber(bedrooms),
+        rooms: toNumber(bedrooms),
         bathrooms: toNumber(bathrooms),
+        has_garden: hasGarden,
+        parking_spaces: toNumber(parkingSpaces),
+        has_pool: hasPool,
+        year_built: toNumber(yearBuilt),
+        furnishing_status: furnishingStatus,
         property_description: description,
+        additional_info: additionalInfo,
+        google_maps_link: locationLink,
+        agent_mobile: mobile,
+        agent_landline: landline,
         is_negotiable: isNegotiable,
         images: images.map(img => img.url).filter((url): url is string => url !== null && typeof url === 'string'),
         agent_id: 'ADMIN',
@@ -5235,11 +5268,32 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
             </div>
           </div>
 
-        <div className="p-10 space-y-12">
-          {step === 1 && (
-            <div className="space-y-12">
-              {/* Core Details */}
-              <div className="space-y-6">
+        <div className="p-10 bg-gray-50">
+          {(step === 1 || step === 2) && (
+            <div className="space-y-4">
+              <div className="bg-white rounded-2xl border-l-4 border-l-brand-green shadow-sm overflow-hidden mb-4">
+                <button 
+                  type="button"
+                  onClick={() => setOpenSection(openSection === 'Basic Information' ? '' : 'Basic Information')}
+                  className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="p-2 bg-brand-green/10 rounded-xl text-brand-green">
+                      <Briefcase size={20} />
+                    </div>
+                    <h3 className="text-lg font-black text-dark-navy">Basic Information</h3>
+                  </div>
+                  <ChevronDown className={`transition-transform duration-300 text-gray-400 ${openSection === 'Basic Information' ? 'rotate-180' : ''}`} size={20} />
+                </button>
+                <AnimatePresence>
+                  {openSection === 'Basic Information' && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="p-6 pt-0 border-t border-gray-100 mt-2 space-y-6">
                 <h3 className="text-2xl font-black text-dark-navy tracking-tight">Core Details</h3>
                 
                 <div className="space-y-6">
@@ -5282,46 +5336,71 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                   </div>
                 </div>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
-              {/* Property Specifications */}
-              <div className="space-y-6">
-                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Property Specifications</h3>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  <div className="space-y-1.5">
+      <div className="bg-white rounded-2xl border-l-4 border-l-brand-green shadow-sm overflow-hidden mb-4">
+        <button 
+          type="button"
+          onClick={() => setOpenSection(openSection === 'Property Details' ? '' : 'Property Details')}
+          className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-brand-green/10 rounded-xl text-brand-green">
+              <HomeIcon size={20} />
+            </div>
+            <h3 className="text-lg font-black text-dark-navy">Property Details</h3>
+          </div>
+          <ChevronDown className={`transition-transform duration-300 text-gray-400 ${openSection === 'Property Details' ? 'rotate-180' : ''}`} size={20} />
+        </button>
+        <AnimatePresence>
+          {openSection === 'Property Details' && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-6 pt-0 border-t border-gray-100 mt-2">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  <div className="space-y-1.5 col-span-2 md:col-span-1">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Land Area</label>
-                    <input 
-                      type="text" 
-                      value={landArea}
-                      onChange={(e) => setLandArea(e.target.value)}
-                      placeholder="e.g., 10 Pe" 
-                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" 
-                    />
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={landArea}
+                        onChange={(e) => setLandArea(e.target.value)}
+                        placeholder="e.g., 10" 
+                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" 
+                      />
+                      <select 
+                        value={landUnit}
+                        onChange={(e) => setLandUnit(e.target.value)}
+                        className="w-24 bg-gray-50 border border-gray-100 rounded-2xl px-3 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition"
+                      >
+                        <option>Perch</option>
+                        <option>Acres</option>
+                      </select>
+                    </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Floor Area</label>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Floor Area (Sq. Ft)</label>
                     <input 
                       type="text" 
                       value={floorArea}
                       onChange={(e) => setFloorArea(e.target.value)}
-                      placeholder="Sq. Ft" 
+                      placeholder="e.g., 2500" 
                       className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" 
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Floors</label>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Bedrooms</label>
                     <input 
                       type="number" 
-                      value={floors}
-                      onChange={(e) => setFloors(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none text-center" 
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Rooms</label>
-                    <input 
-                      type="number" 
-                      value={rooms}
-                      onChange={(e) => setRooms(e.target.value)}
+                      value={bedrooms}
+                      onChange={(e) => setBedrooms(e.target.value)}
                       className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none text-center" 
                     />
                   </div>
@@ -5334,13 +5413,96 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                       className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none text-center" 
                     />
                   </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Floors</label>
+                    <input 
+                      type="number" 
+                      value={floors}
+                      onChange={(e) => setFloors(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none text-center" 
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Parking Spaces</label>
+                    <input 
+                      type="number" 
+                      value={parkingSpaces}
+                      onChange={(e) => setParkingSpaces(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none text-center" 
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Year Built</label>
+                    <input 
+                      type="number" 
+                      value={yearBuilt}
+                      onChange={(e) => setYearBuilt(e.target.value)}
+                      placeholder="e.g., 2015"
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none text-center" 
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Furnishing</label>
+                    <select 
+                      value={furnishingStatus}
+                      onChange={(e) => setFurnishingStatus(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition"
+                    >
+                      <option>Unfurnished</option>
+                      <option>Semi-Furnished</option>
+                      <option>Fully-Furnished</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1 block">Garden</label>
+                    <button
+                      type="button"
+                      onClick={() => setHasGarden(!hasGarden)}
+                      className={`w-full py-4 rounded-2xl text-sm font-bold border transition-colors ${hasGarden ? 'bg-brand-green/10 border-brand-green text-brand-green' : 'bg-gray-50 border-gray-100 text-gray-500'}`}
+                    >
+                      {hasGarden ? 'Yes' : 'No'}
+                    </button>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1 block">Swimming Pool</label>
+                    <button
+                      type="button"
+                      onClick={() => setHasPool(!hasPool)}
+                      className={`w-full py-4 rounded-2xl text-sm font-bold border transition-colors ${hasPool ? 'bg-brand-green/10 border-brand-green text-brand-green' : 'bg-gray-50 border-gray-100 text-gray-500'}`}
+                    >
+                      {hasPool ? 'Yes' : 'No'}
+                    </button>
+                  </div>
                 </div>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
-              {/* Descriptions */}
-              <div className="space-y-6">
-                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Property Narration</h3>
-                <div className="space-y-6">
+      <div className="bg-white rounded-2xl border-l-4 border-l-brand-green shadow-sm overflow-hidden mb-4">
+        <button 
+          type="button"
+          onClick={() => setOpenSection(openSection === 'Description' ? '' : 'Description')}
+          className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-brand-green/10 rounded-xl text-brand-green">
+              <FileText size={20} />
+            </div>
+            <h3 className="text-lg font-black text-dark-navy">Property Description</h3>
+          </div>
+          <ChevronDown className={`transition-transform duration-300 text-gray-400 ${openSection === 'Description' ? 'rotate-180' : ''}`} size={20} />
+        </button>
+        <AnimatePresence>
+          {openSection === 'Description' && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-6 pt-0 border-t border-gray-100 mt-2 space-y-6">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Property Description</label>
                     <textarea 
@@ -5360,29 +5522,105 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                     />
                   </div>
                 </div>
-              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
-              {/* Google Location Link */}
-              <div className="space-y-6">
-                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Google Maps Location</h3>
-                <div className="relative group">
-                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-brand-green transition-colors">
-                    <MapPin size={18} />
+      <div className="bg-white rounded-2xl border-l-4 border-l-brand-green shadow-sm overflow-hidden mb-4">
+        <button 
+          type="button"
+          onClick={() => setOpenSection(openSection === 'Location' ? '' : 'Location')}
+          className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-brand-green/10 rounded-xl text-brand-green">
+              <MapPin size={20} />
+            </div>
+            <h3 className="text-lg font-black text-dark-navy">Location</h3>
+          </div>
+          <ChevronDown className={`transition-transform duration-300 text-gray-400 ${openSection === 'Location' ? 'rotate-180' : ''}`} size={20} />
+        </button>
+        <AnimatePresence>
+          {openSection === 'Location' && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-6 pt-0 border-t border-gray-100 mt-2 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1.5 text-left">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">District</label>
+                    <select 
+                      value={district}
+                      onChange={(e) => setDistrict(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_1.25rem_center] bg-no-repeat"
+                    >
+                      {["Colombo", "Kandy", "Galle", "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Gampaha", "Hambantota", "Jaffna", "Kalutara", "Kegalle", "Kilinochchi", "Kurunegala", "Mannar", "Matale", "Matara", "Moneragala", "Mullaitivu", "Nuwara Eliya", "Polonnaruwa", "Puttalam", "Ratnapura", "Trincomalee", "Vavuniya"].map(d => (
+                        <option key={d}>{d}</option>
+                      ))}
+                    </select>
                   </div>
-                  <input 
-                    type="url"
-                    value={locationLink || ""}
-                    onChange={(e) => setLocationLink(e.target.value)}
-                    placeholder="Paste Google Maps location link here..."
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl pl-12 pr-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition"
-                  />
+                  <div className="space-y-1.5 text-left">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">City / Suburb</label>
+                    <input 
+                      type="text" 
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="e.g., Kadawatha" 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" 
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Google Maps Location</label>
+                  <div className="relative group">
+                    <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-brand-green transition-colors">
+                      <MapPin size={18} />
+                    </div>
+                    <input 
+                      type="url"
+                      value={locationLink || ""}
+                      onChange={(e) => setLocationLink(e.target.value)}
+                      placeholder="Paste Google Maps location link here..."
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl pl-12 pr-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition"
+                    />
+                  </div>
                 </div>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
-              {/* Contact Information */}
-              <div className="space-y-6">
+      <div className="bg-white rounded-2xl border-l-4 border-l-brand-green shadow-sm overflow-hidden mb-4">
+        <button 
+          type="button"
+          onClick={() => setOpenSection(openSection === 'Contact' ? '' : 'Contact')}
+          className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-brand-green/10 rounded-xl text-brand-green">
+              <Phone size={20} />
+            </div>
+            <h3 className="text-lg font-black text-dark-navy">Contact Information</h3>
+          </div>
+          <ChevronDown className={`transition-transform duration-300 text-gray-400 ${openSection === 'Contact' ? 'rotate-180' : ''}`} size={20} />
+        </button>
+        <AnimatePresence>
+          {openSection === 'Contact' && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-6 pt-0 border-t border-gray-100 mt-2 space-y-6">
                 <div className="flex justify-between items-center pr-1">
-                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Contact Information</h3>
+                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Phone Numbers</h3>
                   <p className="text-[9px] font-bold text-gray-300">Max 3 Numbers</p>
                 </div>
                 <div className="space-y-4">
@@ -5445,11 +5683,36 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                   )}
                 </div>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
-              {/* Pricing & Location */}
-              <div className="space-y-6">
+      <div className="bg-white rounded-2xl border-l-4 border-l-brand-green shadow-sm overflow-hidden mb-4">
+        <button 
+          type="button"
+          onClick={() => setOpenSection(openSection === 'Settings' ? '' : 'Settings')}
+          className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-brand-green/10 rounded-xl text-brand-green">
+              <Settings size={20} />
+            </div>
+            <h3 className="text-lg font-black text-dark-navy">Settings & Pricing</h3>
+          </div>
+          <ChevronDown className={`transition-transform duration-300 text-gray-400 ${openSection === 'Settings' ? 'rotate-180' : ''}`} size={20} />
+        </button>
+        <AnimatePresence>
+          {openSection === 'Settings' && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-6 pt-0 border-t border-gray-100 mt-2 space-y-6">
                 <div className="flex justify-between items-center pr-1">
-                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Pricing & Location</h3>
+                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Pricing</h3>
                   <button 
                     onClick={() => setIsNegotiable(!isNegotiable)}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest compact-transition border ${
@@ -5459,31 +5722,6 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                     <div className={`w-1.5 h-1.5 rounded-full ${isNegotiable ? 'bg-brand-green' : 'bg-gray-300'}`} />
                     Negotiable
                   </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-1.5 text-left">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">District</label>
-                    <select 
-                      value={district}
-                      onChange={(e) => setDistrict(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_1.25rem_center] bg-no-repeat"
-                    >
-                      {["Colombo", "Kandy", "Galle", "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Gampaha", "Hambantota", "Jaffna", "Kalutara", "Kegalle", "Kilinochchi", "Kurunegala", "Mannar", "Matale", "Matara", "Moneragala", "Mullaitivu", "Nuwara Eliya", "Polonnaruwa", "Puttalam", "Ratnapura", "Trincomalee", "Vavuniya"].map(d => (
-                        <option key={d}>{d}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-1.5 text-left">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">City / Suburb</label>
-                    <input 
-                      type="text" 
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder="e.g., Kadawatha" 
-                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" 
-                    />
-                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -5522,16 +5760,38 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
-          {step === 2 && (
-            <div className="space-y-8 animate-in fade-in duration-500">
-              <div className="space-y-4">
-                <div className="flex justify-between items-end">
+        </AnimatePresence>
+      </div>
+
+      <div className="bg-white rounded-2xl border-l-4 border-l-brand-green shadow-sm overflow-hidden mb-4">
+        <button 
+          type="button"
+          onClick={() => setOpenSection(openSection === 'Photos' ? '' : 'Photos')}
+          className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-brand-green/10 rounded-xl text-brand-green">
+              <Camera size={20} />
+            </div>
+            <h3 className="text-lg font-black text-dark-navy">Photos</h3>
+          </div>
+          <ChevronDown className={`transition-transform duration-300 text-gray-400 ${openSection === 'Photos' ? 'rotate-180' : ''}`} size={20} />
+        </button>
+        <AnimatePresence>
+          {openSection === 'Photos' && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-6 pt-0 border-t border-gray-100 mt-2">
+                <div className="flex justify-between items-end mb-6">
                   <div>
-                    <h3 className="text-2xl font-black text-dark-navy tracking-tight">Property Images</h3>
-                    <p className="text-sm font-medium text-gray-500 mt-1">
-                      Drag to reorder. First image = main photo. Maximum 12 photos.
+                    <p className="text-sm font-medium text-gray-500">
+                      Upload high-quality landscape photos (max 12).
                     </p>
                   </div>
                   <div className="text-right">
@@ -5547,70 +5807,53 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <DndContext 
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-              >
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <SortableContext 
-                    items={images.map(img => img.id)}
-                    strategy={rectSortingStrategy}
-                  >
-                    {images.map((slot, index) => (
-                      <SortablePhotoSlot 
-                        key={slot.id} 
-                        slot={slot} 
-                        index={index}
-                        onUpload={handleUpload}
-                        onRemove={handleRemove} 
-                      />
+                <div className="border-2 border-dashed border-brand-green/30 rounded-3xl p-10 text-center hover:bg-brand-green/5 transition-all cursor-pointer relative group bg-white">
+                  <input type="file" multiple accept="image/*" onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    files.forEach((file) => {
+                      const emptyIndex = images.findIndex(img => img.url === null);
+                      if (emptyIndex !== -1) handleUpload(file, emptyIndex);
+                    });
+                  }} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                  <Camera size={48} className="mx-auto text-brand-green mb-4 group-hover:scale-110 group-hover:rotate-6 transition-transform" />
+                  <p className="font-bold text-dark-navy text-lg">Click or Drag & Drop Photos Here</p>
+                  <p className="text-sm text-gray-500 mt-2 font-medium">Maximum 12 photos (JPG, PNG, WEBP)</p>
+                </div>
+
+                {photoCount > 0 && (
+                  <div className="flex gap-4 overflow-x-auto mt-6 pb-4 scrollbar-hide">
+                    {images.filter(img => img.url).map((img, idx) => (
+                      <div key={idx} className="w-28 h-28 rounded-2xl overflow-hidden shrink-0 relative group border border-gray-100 shadow-sm">
+                        <img 
+                          onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
+                          src={img.url!} 
+                          className="w-full h-full object-cover" 
+                          alt="Uploaded property"
+                        />
+                        <button 
+                          type="button"
+                          onClick={() => handleRemove(images.findIndex(i => i.id === img.id))} 
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 hover:scale-110"
+                        >
+                          <X size={14} />
+                        </button>
+                        {idx === 0 && (
+                          <div className="absolute bottom-2 left-2 right-2 text-center bg-gray-900/80 backdrop-blur-sm text-white text-[9px] font-black uppercase tracking-widest py-1 rounded-full">
+                            Main
+                          </div>
+                        )}
+                      </div>
                     ))}
-                  </SortableContext>
-                </div>
-
-                <DragOverlay adjustScale={true}>
-                  {activeId ? (
-                    <div className="w-full h-full aspect-[4/3] rounded-xl overflow-hidden border-2 border-brand-green shadow-2xl scale-105 z-[1000]">
-                      <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
-                        src={images.find(img => img.id === activeId)?.url || ''} 
-                        className="w-full h-full object-cover" 
-                        alt="Dragging"
-                      />
-                    </div>
-                  ) : null}
-                </DragOverlay>
-              </DndContext>
-
-              {/* Upload Tips */}
-              <div className="bg-gray-50 rounded-[32px] p-8 border border-gray-100 mt-12">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-10 h-10 bg-brand-green text-white rounded-xl flex items-center justify-center">
-                    <Info size={20} />
                   </div>
-                  <h4 className="text-lg font-black text-dark-navy tracking-tight">Upload Tips</h4>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
-                  {[
-                    "First photo becomes the main listing image",
-                    "Drag photos to change their order",
-                    "High-quality landscape photos (1920x1080px)",
-                    "Files are automatically named 1-12",
-                    "Maximum file size: 5MB per photo",
-                    "Supported: JPG, PNG, WEBP"
-                  ].map((tip, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <div className="mt-1.5 w-1 h-1 bg-brand-green rounded-full flex-shrink-0" />
-                      <p className="text-sm font-medium text-gray-500">{tip}</p>
-                    </div>
-                  ))}
-                </div>
+                )}
               </div>
-            </div>
+            </motion.div>
           )}
+        </AnimatePresence>
+      </div>
+     </div>
+    )}
 
           {step === 3 && (
             <div className="space-y-12 py-10 animate-in fade-in zoom-in duration-700">
@@ -5641,25 +5884,15 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
           )}
 
           <div className="flex justify-between pt-6">
-            {step < 3 && (
-              <button 
-                onClick={() => setStep(s => Math.max(1, s - 1))}
-                className={`px-8 py-4 text-dark-navy font-bold hover:bg-gray-50 rounded-2xl compact-transition ${step === 1 ? 'opacity-0 pointer-events-none' : ''}`}
-              >
-                Back
-              </button>
-            )}
             <button 
               onClick={() => {
-                if (step === 1) {
-                  setStep(2);
-                } else if (step === 2) {
+                if (step === 1 || step === 2) {
                   handlePublish();
                 } else {
                   onBack();
                 }
               }}
-              disabled={isSubmitting || (step === 2 && images.length === 0)}
+              disabled={isSubmitting}
               className="ml-auto px-10 py-5 bg-brand-green text-white font-black text-lg rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
@@ -5668,7 +5901,7 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                   {initialData ? 'Updating Listing...' : 'Publishing...'}
                 </>
               ) : (
-                step === 3 ? 'Back to Portal' : (initialData ? 'Update Now' : 'Continue to Publish')
+                step === 3 ? 'Back to Portal' : (initialData ? 'Update Now' : 'Publish Property')
               )}
             </button>
           </div>
@@ -9821,19 +10054,7 @@ function App() {
 </AnimatePresence>
 
       {!['secret_login', 'agent_access', 'agent_publish', 'agent_listings', 'agent_only_listings', 'featured_projects_admin', 'inquiries'].includes(currentView.type) && (
-        <Footer 
-          onNavigateHome={navigateHome} 
-          onShowContact={() => setCurrentView({ type: 'contact' })} 
-          onShowAbout={() => setCurrentView({ type: 'about' })} 
-          onShowPackages={() => setCurrentView({ type: 'packages' })} 
-          onShowPromotion={() => setCurrentView({ type: 'promotion' })}
-          onShowWanted={() => setCurrentView({ type: 'wanted' })}
-          onShowSecretLogin={() => {
-            window.history.pushState({}, '', '/admin-lk2026');
-            setCurrentView({ type: 'secret_login' });
-            window.scrollTo({ top: 0, behavior: 'instant' });
-          }}
-        />
+        <></>
       )}
 
       <MortgageCalculatorModal 

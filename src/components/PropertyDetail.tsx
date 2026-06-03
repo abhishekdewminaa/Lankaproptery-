@@ -21,7 +21,12 @@ import {
   Share2,
   Heart,
   Copy,
-  Printer
+  Printer,
+  Tag,
+  Home,
+  Layers,
+  Lock,
+  Maximize2
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -457,25 +462,36 @@ export const PropertyDetail = ({
 
         {/* Title Row */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
-          <div>
-            {property.ref_no && (
-              <div className="mb-2 flex items-center gap-2">
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-100 px-2 py-1 rounded">
-                  Ref No: <span className="font-mono text-gray-900">{property.ref_no}</span>
+          <div className="flex-1">
+            <div className="flex flex-wrap items-center gap-3 mb-3">
+              {property.ref_no && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-100 px-2 py-1 rounded">
+                    Ref No: <span className="font-mono text-gray-900">{property.ref_no}</span>
+                  </span>
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(property.ref_no);
+                      setCopiedRef(true);
+                      setTimeout(() => setCopiedRef(false), 2000);
+                    }}
+                    className="text-gray-400 hover:text-brand-green transition-colors flex items-center gap-1.5"
+                    title="Copy Reference Number"
+                  >
+                    {copiedRef ? <span className="text-xs text-brand-green font-bold">✅ Copied!</span> : <Copy size={14} />}
+                  </button>
+                </div>
+              )}
+              {property.status === 'active' ? (
+                <span className="flex items-center gap-1.5 text-xs font-bold text-brand-green bg-brand-green/10 px-2 py-1 rounded">
+                  <span className="w-1.5 h-1.5 bg-brand-green rounded-full animate-pulse" /> Active Listing
                 </span>
-                <button 
-                  onClick={() => {
-                    navigator.clipboard.writeText(property.ref_no);
-                    setCopiedRef(true);
-                    setTimeout(() => setCopiedRef(false), 2000);
-                  }}
-                  className="text-gray-400 hover:text-brand-green transition-colors flex items-center gap-1.5"
-                  title="Copy Reference Number"
-                >
-                  {copiedRef ? <span className="text-xs text-brand-green font-bold">✅ Copied!</span> : <Copy size={14} />}
-                </button>
-              </div>
-            )}
+              ) : (
+                <span className="flex items-center gap-1.5 text-xs font-bold text-yellow-600 bg-yellow-50 px-2 py-1 rounded">
+                  <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full" /> Pending
+                </span>
+              )}
+            </div>
             <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-3 max-w-4xl leading-tight">
               {property.listing_title}
             </h1>
@@ -485,7 +501,25 @@ export const PropertyDetail = ({
             </div>
           </div>
 
-          <div className="lg:text-right">
+          <div className="lg:text-right flex flex-col lg:items-end">
+            <div className="flex items-center gap-3 mb-4 lg:mb-2">
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  alert('Link copied to clipboard!');
+                }}
+                className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-gray-900 bg-white border border-gray-200 px-3 py-1.5 rounded-lg transition-colors shadow-sm"
+              >
+                <Share2 size={16} /> Share
+              </button>
+              <button 
+                onClick={() => toggleFavorite(property.id)}
+                className={`flex items-center gap-2 text-sm font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm border ${favorites?.has(property.id) ? 'bg-red-50 text-red-500 border-red-100' : 'bg-white text-gray-500 hover:text-gray-900 border-gray-200'}`}
+              >
+                <Heart size={16} fill={favorites?.has(property.id) ? 'currentColor' : 'none'} /> 
+                {favorites?.has(property.id) ? 'Saved' : 'Save'}
+              </button>
+            </div>
             <div className="flex items-start lg:justify-end gap-1 mb-1">
               <span className="text-xs font-bold text-[#004F31] mt-2">LKR</span>
               <span className="text-4xl font-bold text-[#004F31]">
@@ -562,66 +596,50 @@ export const PropertyDetail = ({
         </div>
 
         {/* Property Specs Bar */}
-        <motion.div
-          ref={specsRef}
-          initial={{ opacity: 0, y: 30 }}
-          animate={specsVisible ? { opacity: 1, y: 0 } : {}}
-          className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 flex flex-wrap justify-between gap-8 mb-12"
-        >
-          <div className="flex items-center gap-4 flex-1 min-w-[200px]">
-            <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-[#004F31] group hover:bg-[#004F31]/10 transition-colors">
-              <Bed size={24} />
-            </div>
-            <div>
-              <p className="text-xl font-bold leading-none mb-1">
-                {specsVisible ? <CountUp end={parseInt(property.rooms) || 0} /> : 0} Bedrooms
-              </p>
-              <p className="text-xs text-gray-500 font-medium">Large suites</p>
-            </div>
-          </div>
+        {(() => {
+          const stats = [];
+          const beds = property.bedrooms || property.rooms;
+          if (beds) stats.push({ icon: <Bed size={28} className="text-gray-500" />, value: beds, label: 'Beds' });
+          if (property.bathrooms) stats.push({ icon: <Bath size={28} className="text-gray-500" />, value: property.bathrooms, label: 'Baths' });
+          if (property.land_area) stats.push({ icon: <Maximize size={28} className="text-gray-500" />, value: `${property.land_area}${property.land_unit === 'Acres' ? 'A' : 'P'}`, label: 'Land' });
+          if (property.floor_area) stats.push({ icon: <Home size={28} className="text-gray-500" />, value: property.floor_area, label: 'sq ft' });
+          if (property.floors) stats.push({ icon: <Layers size={28} className="text-gray-500" />, value: property.floors, label: 'Floors' });
+          if (property.listing_type) stats.push({ icon: <Tag size={28} className="text-gray-500" />, value: property.listing_type.toUpperCase(), label: 'TYPE', isBadge: true });
 
-          <div className="w-px bg-gray-100 hidden md:block" />
-
-          <div className="flex items-center gap-4 flex-1 min-w-[200px]">
-            <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-[#004F31] group hover:bg-[#004F31]/10 transition-colors">
-              <Bath size={24} />
-            </div>
-            <div>
-              <p className="text-xl font-bold leading-none mb-1">
-                {specsVisible ? <CountUp end={parseInt(property.bathrooms) || 0} /> : 0} Bathrooms
-              </p>
-              <p className="text-xs text-gray-500 font-medium">Modern fittings</p>
-            </div>
-          </div>
-
-          <div className="w-px bg-gray-100 hidden lg:block" />
-
-          <div className="flex items-center gap-4 flex-1 min-w-[200px]">
-            <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-[#004F31] group hover:bg-[#004F31]/10 transition-colors">
-              <Maximize size={24} />
-            </div>
-            <div>
-              <p className="text-xl font-bold leading-none mb-1">
-                {specsVisible ? <CountUp end={parseInt(property.floor_area) || 4500} /> : 0} Sqft
-              </p>
-              <p className="text-xs text-gray-500 font-medium">Built area</p>
-            </div>
-          </div>
-
-          <div className="w-px bg-gray-100 hidden xl:block" />
-
-          <div className="flex items-center gap-4 flex-1 min-w-[200px]">
-            <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-[#004F31] group hover:bg-[#004F31]/10 transition-colors">
-              <LandPlot size={24} />
-            </div>
-            <div>
-              <p className="text-xl font-bold leading-none mb-1">
-                {specsVisible ? <CountUp end={parseInt(property.land_area) || 15} /> : 0} Perches
-              </p>
-              <p className="text-xs text-gray-500 font-medium">Land size</p>
-            </div>
-          </div>
-        </motion.div>
+          return (
+            <motion.div
+              ref={specsRef}
+              initial={{ opacity: 0, y: 30 }}
+              animate={specsVisible ? { opacity: 1, y: 0 } : {}}
+              className="bg-white mb-12 flex flex-wrap justify-around items-center py-5 px-8 relative z-10"
+              style={{
+                boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+                borderRadius: '16px'
+              }}
+            >
+              {stats.map((stat, i) => (
+                <React.Fragment key={i}>
+                  <div className="flex flex-col items-center gap-[6px] py-3 px-5 rounded-xl hover:bg-[#f0fdf4] transition-colors duration-200">
+                    {stat.icon}
+                    {stat.isBadge ? (
+                      <span className="bg-brand-green/10 text-brand-green font-bold text-[10px] sm:text-xs uppercase tracking-wider px-3 py-1 rounded-full mt-1 whitespace-nowrap text-center">
+                        {stat.value}
+                      </span>
+                    ) : (
+                      <div className="text-[22px] font-bold text-[#1a1a1a] leading-none text-center">
+                        {stat.value}
+                      </div>
+                    )}
+                    <div className="text-[11px] text-[#6b7280] uppercase tracking-[0.5px]">
+                      {stat.label}
+                    </div>
+                  </div>
+                  {i < stats.length - 1 && <div className="hidden sm:block w-px h-10 bg-[#f0f0f0]" />}
+                </React.Fragment>
+              ))}
+            </motion.div>
+          );
+        })()}
 
         {/* Main Content (Two column) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
@@ -731,7 +749,11 @@ export const PropertyDetail = ({
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl"
+                className="bg-white rounded-3xl p-8 shadow-xl relative"
+                style={{
+                  border: '2px solid transparent',
+                  background: 'linear-gradient(white, white) padding-box, linear-gradient(135deg, #10B981, #059669) border-box'
+                }}
               >
                 {/* Agent Header */}
                 <div className="flex items-center gap-4 mb-8">
@@ -743,7 +765,12 @@ export const PropertyDetail = ({
                     />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold leading-none mb-1">Pradeep Jayawardene</h3>
+                    <h3 className="text-lg font-bold leading-none mb-1 flex items-center gap-1.5">
+                      {property.agent_name || 'Pradeep Jayawardene'} 
+                    </h3>
+                    <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full mb-1">
+                      <Check size={10} /> Verified Agent
+                    </span>
                     <p className="text-xs text-[#004F31] font-bold">Platinum Member • Premier Realty</p>
                     <div className="flex items-center gap-0.5 mt-1">
                       {[1, 2, 3, 4].map(i => <Star key={i} size={12} fill="#F5A623" className="text-[#F5A623]" />)}
@@ -819,29 +846,38 @@ export const PropertyDetail = ({
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         disabled={isSubmitting}
-                        className="w-full bg-[#004F31] text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-[#004F31]/20 active:shadow-none transition-shadow"
+                        className="w-full bg-[#004F31] text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-[#004F31]/20 hover:animate-pulse transition-all"
                       >
                         {isSubmitting ? <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }} className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full" /> : 'Request Property Visit'}
                       </motion.button>
-                      <button 
-                        type="button"
-                        className="w-full border-2 border-[#004F31] text-[#004F31] py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#004F31] hover:text-white transition-all group"
-                      >
-                        <Phone size={18} className="group-hover:rotate-12 transition-transform" /> Call Agent
-                      </button>
+                      <div className="flex gap-2">
+                        <button 
+                          type="button"
+                          className="flex-1 border-2 border-[#004F31] text-[#004F31] py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#004F31] hover:text-white transition-all group px-2"
+                        >
+                          <Phone size={18} className="group-hover:rotate-12 transition-transform" /> Call
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => window.open(`https://wa.me/94770000000`, '_blank')}
+                          className="flex-1 border-2 border-[#25D366] text-[#25D366] py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#25D366] hover:text-white transition-all group px-2"
+                        >
+                          <MessageCircle size={18} className="group-hover:scale-110 transition-transform" /> WhatsApp
+                        </button>
+                      </div>
                     </div>
                   )}
                 </form>
               </motion.div>
 
               <div className="bg-[#E7F2FF] p-6 rounded-2xl flex gap-4 items-start border border-blue-100/50">
-                <div className="p-2 bg-white rounded-lg text-blue-600 shadow-sm">
-                  <ShieldCheck size={20} />
+                <div className="p-2 bg-white rounded-lg text-blue-600 shadow-sm flex-shrink-0">
+                  <Lock size={20} />
                 </div>
                 <div>
                   <p className="text-[11px] leading-relaxed text-blue-900/70 font-medium">
                     <span className="font-bold text-blue-900 block mb-0.5">Safety Tip</span>
-                    Never send money in advance for inspection. Report any suspicious listings to our trust & safety team.
+                    Always visit properties with a trusted person. Never send money in advance for inspection.
                   </p>
                 </div>
               </div>
@@ -890,36 +926,21 @@ export const PropertyDetail = ({
                 <p className="text-[#004F31] font-bold text-lg mb-1">
                   LKR {prop.price_lkr?.toLocaleString() || prop.price?.toLocaleString()}
                 </p>
-                <h3 className="text-gray-900 font-bold line-clamp-1 mb-4 group-hover:text-[#004F31] transition-colors">
+                <h3 className="text-gray-900 font-bold line-clamp-1 mb-2 group-hover:text-[#004F31] transition-colors">
                   {prop.listing_title}
                 </h3>
-                <div className="flex items-center justify-between text-gray-500">
-                  <div className="flex items-center gap-4 text-xs font-bold">
-                    <span className="flex items-center gap-1.5"><Bed size={14} className="text-[#004F31]" /> {prop.rooms || 0}</span>
-                    <span className="flex items-center gap-1.5"><Bath size={14} className="text-[#004F31]" /> {prop.bathrooms || 0}</span>
-                    <span className="flex items-center gap-1.5"><Maximize size={14} className="text-[#004F31]" /> {prop.floor_area?.toLocaleString() || 3200}</span>
-                  </div>
+                <div className="flex items-center gap-2 text-xs font-medium text-gray-500 mb-4">
+                  {(prop.bedrooms || prop.rooms) && <span className="flex items-center gap-1"><Bed size={14} className="text-gray-500" /> {prop.bedrooms || prop.rooms}</span>}
+                  {(prop.bedrooms || prop.rooms) && prop.bathrooms && <span className="text-gray-300">•</span>}
+                  {prop.bathrooms && <span className="flex items-center gap-1"><Bath size={14} className="text-gray-500" /> {prop.bathrooms}</span>}
+                  {prop.bathrooms && prop.land_area && <span className="text-gray-300">•</span>}
+                  {prop.land_area && <span className="flex items-center gap-1"><Maximize2 size={14} className="text-gray-500" /> {prop.land_area}{prop.land_unit === 'Acres' ? 'A' : 'P'}</span>}
                 </div>
               </div>
             </motion.div>
           ))}
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="mt-20 pt-12 pb-8 bg-gradient-to-br from-[#004F31] to-[#002618] text-center rounded-t-[40px]">
-        <h2 className="text-xl font-bold text-white mb-6">LankaProperty</h2>
-        <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 mb-8 text-sm font-medium text-gray-300">
-          <a href="#" className="hover:text-white transition-colors">About Us</a>
-          <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-          <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-          <a href="#" className="hover:text-white transition-colors">Help Center</a>
-          <a href="#" className="hover:text-white transition-colors">Contact</a>
-        </div>
-        <p className="text-xs text-gray-400">
-          © 2024 LankaProperty.lk - Sri Lanka's Most Trusted Real Estate Marketplace
-        </p>
-      </footer>
 
       {/* Lightbox */}
       <AnimatePresence>
@@ -928,16 +949,24 @@ export const PropertyDetail = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[1000] bg-black flex flex-col"
+            className="fixed inset-0 z-[1000] flex flex-col"
+            style={{ backgroundColor: 'rgba(0,0,0,0.92)' }}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setLightboxOpen(false);
+              if (e.key === 'ArrowRight') setActiveImageIndex(i => (i + 1) % images.length);
+              if (e.key === 'ArrowLeft') setActiveImageIndex(i => (i - 1 + images.length) % images.length);
+            }}
+            tabIndex={0}
+            ref={(el) => el?.focus()}
           >
             {/* Header */}
-            <div className="p-6 flex justify-between items-center text-white z-10">
-              <span className="text-sm font-bold">{activeImageIndex + 1} / {images.length}</span>
+            <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center text-white z-20">
+              <span className="text-lg font-bold tracking-widest">{activeImageIndex + 1} / {images.length}</span>
               <button 
                 onClick={() => setLightboxOpen(false)}
-                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                className="p-3 hover:bg-white/10 rounded-full transition-colors"
               >
-                <X size={24} />
+                <X size={32} />
               </button>
             </div>
 
@@ -945,10 +974,10 @@ export const PropertyDetail = ({
             <div className="flex-1 relative flex items-center justify-center p-6 sm:p-12 overflow-hidden">
               <button 
                 onClick={() => setActiveImageIndex(i => (i - 1 + images.length) % images.length)}
-                className="absolute left-6 z-10 p-3 bg-white/5 hover:bg-white/10 text-white rounded-full transition-colors"
+                className="absolute left-6 z-20 p-4 bg-white hover:bg-gray-100 text-[#1a1a1a] rounded-full transition-all shadow-xl"
                 title="Previous Image"
               >
-                <ChevronLeft size={32} />
+                <ChevronLeft size={36} />
               </button>
               
               <AnimatePresence mode="wait">
@@ -959,22 +988,23 @@ export const PropertyDetail = ({
                   exit={{ opacity: 0, scale: 1.05 }}
                   transition={{ duration: 0.3 }}
                   src={images[activeImageIndex]} 
-                  className="max-h-full max-w-full object-contain shadow-2xl" 
+                  className="max-h-full max-w-full object-contain shadow-2xl rounded-lg" 
                   alt="Full view" 
+                  onClick={(e) => e.stopPropagation()}
                 />
               </AnimatePresence>
 
               <button 
                 onClick={() => setActiveImageIndex(i => (i + 1) % images.length)}
-                className="absolute right-6 z-10 p-3 bg-white/5 hover:bg-white/10 text-white rounded-full transition-colors"
+                className="absolute right-6 z-20 p-4 bg-white hover:bg-gray-100 text-[#1a1a1a] rounded-full transition-all shadow-xl"
                 title="Next Image"
               >
-                <ChevronRight size={32} />
+                <ChevronRight size={36} />
               </button>
             </div>
 
             {/* Thumbnails */}
-            <div className="p-6 bg-black/40 backdrop-blur-sm overflow-x-auto flex gap-4 scrollbar-hide">
+            <div className="p-6 overflow-x-auto flex gap-4 scrollbar-hide absolute bottom-0 left-0 right-0">
               {images.map((img, idx) => (
                 <button
                   key={idx}
