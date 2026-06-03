@@ -702,7 +702,7 @@ const Hero = ({ onDirectInquiry, properties = [], onSearch, onNavigate }: { onDi
   return (
     <section className="relative min-h-[650px] py-16 flex items-center overflow-hidden">
       <div className="absolute inset-0 z-0">
-        <img 
+        <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
           src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=2000" 
           className="w-full h-full object-cover"
           alt="Modern Home"
@@ -1032,7 +1032,7 @@ export const PropertyCard = ({
       </div>
 
       <div className="relative aspect-video bg-[#e8f5e9] overflow-hidden">
-        <img 
+        <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
           src={getFirstImageSafe(property?.images || property?.image)} 
           alt={safeStr(property?.listing_title || property?.title)} 
           loading="lazy"
@@ -1229,7 +1229,7 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
                   objectFit: 'contain'
                 }}
                 onError={(e: any) => {
-                  e.currentTarget.style.display = 'none';
+                 e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80';
                 }}
               />
             </a>
@@ -1514,7 +1514,7 @@ const ContactUs = ({ onBack, onAgentClick, initialData }: { onBack: () => void, 
               <div className="relative z-10">
                 <div className="flex items-center gap-4 mb-6 pb-6 border-b border-white/20">
                   <div className="w-16 h-16 rounded-full border-2 border-white/50 overflow-hidden bg-white/10 shrink-0">
-                    <img 
+                    <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
                       src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200" 
                       className="w-full h-full object-cover" 
                       alt="Lalith Ratnatunga"
@@ -1643,7 +1643,7 @@ const ContactUs = ({ onBack, onAgentClick, initialData }: { onBack: () => void, 
                 onClick={() => onAgentClick?.(agent)}
               >
                 <div className="relative mb-4 overflow-hidden rounded-3xl aspect-[4/5] shadow-lg">
-                  <img src={agent.img} alt={agent.name} className="w-full h-full object-cover group-hover:scale-110 compact-transition" />
+                  <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={agent.img} alt={agent.name} className="w-full h-full object-cover group-hover:scale-110 compact-transition" />
                   <div className="absolute inset-0 bg-gradient-to-t from-dark-navy/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 compact-transition flex flex-col justify-end p-6">
                     <div className="flex gap-3 justify-center">
                       <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-brand-green compact-transition cursor-pointer"><Linkedin size={16} /></div>
@@ -1912,7 +1912,7 @@ const FeaturedProjectsSection = () => {
             <div className="absolute bottom-6 right-6 lg:bottom-10 lg:right-10 bg-dark-navy/90 backdrop-blur-md border border-white/10 p-6 rounded-[16px] max-w-sm z-20 text-right text-white shadow-xl">
               <div className="flex justify-end items-center gap-3 mb-2">
                 {currentProject.developer_logo && (
-                  <img src={currentProject.developer_logo} className="h-8 w-8 object-contain bg-white rounded-md p-1" />
+                  <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={currentProject.developer_logo} className="h-8 w-8 object-contain bg-white rounded-md p-1" />
                 )}
                 <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">{currentProject.developer_name}</span>
               </div>
@@ -1957,7 +1957,7 @@ const FeaturedProjectsSection = () => {
                   onClick={() => { interact(); setActiveIndex(idx); }}
                 >
                   <div className="h-[120px] bg-gray-200 w-full relative">
-                    <img src={proj.main_image} className="w-full h-full object-cover" />
+                    <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={proj.main_image} className="w-full h-full object-cover" />
                     <div className={`absolute inset-0 bg-black transition-opacity ${idx === activeIndex ? 'opacity-0' : 'opacity-[0.7]'}`} />
                   </div>
                   <div className="p-2 bg-white text-center border-t border-gray-100">
@@ -2533,8 +2533,8 @@ const PropertyValuationSection = () => {
                       className="bg-white rounded-3xl overflow-hidden shadow-xl group border border-gray-100"
                     >
                       <div className="relative h-48 overflow-hidden">
-                        <img 
-                          src={prop.images?.[0] || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80'} 
+                        <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
+                          src={getFirstImageSafe(prop.images)} 
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                         />
                         <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl">
@@ -2596,7 +2596,7 @@ const TestimonialsSection = () => (
             <p className="text-gray-600 dark:text-gray-300 italic mb-8 leading-relaxed">"{testimonial.text}"</p>
             
             <div className="flex items-center gap-4">
-              <img src={testimonial.avatar} alt={testimonial.name} className="w-12 h-12 rounded-full ring-2 ring-brand-green/10" />
+              <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={testimonial.avatar} alt={testimonial.name} className="w-12 h-12 rounded-full ring-2 ring-brand-green/10" />
               <div>
                 <div className="font-bold text-dark-navy leading-tight">{testimonial.name}</div>
                 <div className="text-xs text-gray-400 font-bold uppercase tracking-widest">{testimonial.role}</div>
@@ -2752,7 +2752,7 @@ const ComparisonBar = ({
                 className="relative group shrink-0"
               >
                 <div className="w-14 h-14 rounded-xl overflow-hidden border-2 border-brand-green/30 bg-gray-800">
-                  <img src={p.image} className="w-full h-full object-cover" alt="" />
+                  <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={p.image} className="w-full h-full object-cover" alt="" />
                 </div>
                 <button 
                   onClick={() => onRemove(p.id)}
@@ -2843,7 +2843,7 @@ const ComparisonView = ({
 
             <div className="space-y-4">
               <div className="h-40 rounded-2xl overflow-hidden relative">
-                <img src={p.image} alt={p.title} className="w-full h-full object-cover" />
+                <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={p.image} alt={p.title} className="w-full h-full object-cover" />
                 <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
                   <div className="text-white font-bold text-sm line-clamp-1">{p.title}</div>
                 </div>
@@ -3114,7 +3114,7 @@ const AboutUs = ({ onBack, onNavigate }: { onBack: () => void, onNavigate?: (vie
         {/* Story Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="relative aspect-square rounded-3xl overflow-hidden shadow-2xl">
-            <img 
+            <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
               src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=1000" 
               className="w-full h-full object-cover" 
               alt="Our Story" 
@@ -3495,7 +3495,7 @@ const AuthPage = ({ onBack, onLogin, initialMode = 'login', onForgotPassword, on
 
               <div className="grid grid-cols-2 gap-4">
                 <button type="button" onClick={() => handleOAuth('google')} disabled={loading} className="flex items-center justify-center gap-2 border border-gray-100 rounded-2xl py-3 hover:bg-gray-50 compact-transition disabled:opacity-50">
-                  <img src="https://www.iconpacks.net/icons/2/free-google-logo-icon-2422-thumb.png" className="h-5" alt="Google" />
+                  <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src="https://www.iconpacks.net/icons/2/free-google-logo-icon-2422-thumb.png" className="h-5" alt="Google" />
                   <span className="text-sm font-bold text-gray-600">Google</span>
                 </button>
                 <button type="button" onClick={() => handleOAuth('facebook')} disabled={loading} className="flex items-center justify-center gap-2 border border-gray-100 rounded-2xl py-3 hover:bg-gray-50 compact-transition disabled:opacity-50">
@@ -3707,6 +3707,7 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
   const [selectedTier, setSelectedTier] = useState<"FREE" | "PREMIUM PRO" | "ELITE PRO">(initialPackage);
   const [images, setImages] = useState<string[]>([]);
   const [isPublishing, setIsPublishing] = useState(false);
+  const submitLock = useRef(false);
   const [publishedRefNo, setPublishedRefNo] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ current: number, total: number, filename: string } | null>(null);
@@ -3757,6 +3758,8 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
   };
 
   const handlePublish = async () => {
+    if (submitLock.current || isPublishing) return;
+    submitLock.current = true;
     setIsPublishing(true);
     try {
       if (!supabase) throw new Error("Supabase client is not initialized.");
@@ -3815,6 +3818,7 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
       setStep(5);
     } finally {
       setIsPublishing(false);
+      submitLock.current = false;
     }
   };
 
@@ -3902,23 +3906,25 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
 
   const uploadSingleImage = async (file: File, index: number) => {
     // Create unique filename preserving order
-    const ext = file.name.split('.').pop();
-    const fileName = `properties/${Date.now()}_${
-      String(index).padStart(2, '0')
-    }.${ext}`;
+    const fileExt = file.name.split('.').pop();
+    const filePath = `properties/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
     const { error } = await supabase.storage
       .from('property-images') // As per user request
-      .upload(fileName, file, {
+      .upload(filePath, file, {
         cacheControl: '3600',
         upsert: false
       });
 
-    if (error) throw error;
+    if (error) {
+      console.warn("Supabase upload failed, falling back to object URL:", error.message);
+      toast.error(`Upload to cloud failed (${error.message}). Using local temporary preview.`, { icon: '⚠️', duration: 4000 });
+      return URL.createObjectURL(file);
+    }
 
     const { data: urlData } = supabase.storage
       .from('property-images')
-      .getPublicUrl(fileName);
+      .getPublicUrl(filePath);
 
     return urlData.publicUrl;
   };
@@ -4608,9 +4614,9 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
                 <h4 className="text-lg font-bold text-dark-navy mb-2">PayHere Secure Checkout</h4>
                 <p className="text-sm text-gray-500 mb-6">You will be redirected to the secure PayHere payment gateway to complete your payment of <b>Rs. {total.toLocaleString()}</b>.</p>
                 <div className="flex gap-4 justify-center items-center opacity-60">
-                   <img src="https://img.icons8.com/color/48/visa.png" alt="Visa" className="h-8 object-contain" />
-                   <img src="https://img.icons8.com/color/48/mastercard.png" alt="Mastercard" className="h-8 object-contain" />
-                   <img src="https://img.icons8.com/color/48/amex.png" alt="Amex" className="h-8 object-contain" />
+                   <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src="https://img.icons8.com/color/48/visa.png" alt="Visa" className="h-8 object-contain" />
+                   <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src="https://img.icons8.com/color/48/mastercard.png" alt="Mastercard" className="h-8 object-contain" />
+                   <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src="https://img.icons8.com/color/48/amex.png" alt="Amex" className="h-8 object-contain" />
                 </div>
               </div>
             </div>
@@ -4637,7 +4643,7 @@ const PublishListingView = ({ onBack, user, onRefresh, initialPackage = 'FREE' }
                 <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] text-center">Listing Appearance Preview</h4>
                 <div className="bg-white border-2 border-gray-100 rounded-[40px] overflow-hidden shadow-2xl shadow-gray-200/50">
                   <div className="relative h-64">
-                    <img 
+                    <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
                       src={images[0] || "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800"} 
                       className="w-full h-full object-cover"
                       alt="Property"
@@ -4863,7 +4869,7 @@ const SortablePhotoSlot: React.FC<SortablePhotoSlotProps> = ({
 
       {slot.url ? (
         <>
-          <img src={slot.url} alt={`Photo ${index + 1}`} className="w-full h-full object-cover select-none" />
+          <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={slot.url} alt={`Photo ${index + 1}`} className="w-full h-full object-cover select-none" />
           
           {/* Draggable Area & Overlay */}
           <div 
@@ -4936,7 +4942,8 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
     }))
   );
   const [locationLink, setLocationLink] = useState(initialData?.google_maps_link || initialData?.locationLink || "");
-  const [isPublishing, setIsPublishing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitLock = useRef(false);
   const [publishedRefNo, setPublishedRefNo] = useState<string | null>(null);
   const [showAIModal, setShowAIModal] = useState(false);
   const [pastedText, setPastedText] = useState("");
@@ -4980,33 +4987,33 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
 
   const handleUpload = async (file: File, slotIndex: number) => {
     const position = slotIndex + 1;
-    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const newName = `${position}.${ext}`;
     
-    // Create renamed file
-    const renamedFile = new File([file], newName, { type: file.type });
-    
-    // Show preview
+    // Optimistic UI update
     const previewUrl = URL.createObjectURL(file);
-    
     setImages(prev => prev.map((img, idx) => 
-      idx === slotIndex ? { ...img, url: previewUrl, file: renamedFile } : img
+      idx === slotIndex ? { ...img, url: previewUrl, file: file } : img
     ));
 
-    // Upload to Supabase if editing
-    if (initialData?.id && supabase) {
-      const path = `properties/${initialData.id}/${newName}`;
-      try {
-        await supabase.storage
-          .from('property-images')
-          .upload(path, renamedFile, { upsert: true });
-        toast.success(`Photo ${position} uploaded`);
-      } catch (error) {
-        console.error("Upload error:", error);
-        toast.error("Failed to upload to storage");
-      }
-    } else {
-      toast.success(`Photo added to slot ${position}`);
+    try {
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const filePath = Date.now() + '-' + Math.random().toString(36).substring(2) + '.' + fileExt;
+      
+      const { error } = await supabase.storage
+        .from('property-images')
+        .upload(filePath, file);
+        
+      if (error) throw error;
+
+      const { data } = supabase.storage.from('property-images').getPublicUrl(filePath);
+
+      setImages(prev => prev.map((img, idx) => 
+        idx === slotIndex ? { ...img, url: data.publicUrl, file: file } : img
+      ));
+      
+      toast.success(`Photo uploaded to slot ${position}`);
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload image to remote storage, using local preview.");
     }
   };
 
@@ -5114,7 +5121,9 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
   };
 
   const handlePublish = async () => {
-    setIsPublishing(true);
+    if (submitLock.current || isSubmitting) return;
+    submitLock.current = true;
+    setIsSubmitting(true);
     try {
       if (!supabase) {
         throw new Error("Supabase client is not initialized.");
@@ -5141,7 +5150,7 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
         bathrooms: toNumber(bathrooms),
         property_description: description,
         is_negotiable: isNegotiable,
-        images: images.map(img => img.url).filter(url => url !== null) as string[],
+        images: images.map(img => img.url).filter((url): url is string => url !== null && typeof url === 'string'),
         agent_id: 'ADMIN',
         status: 'active',
         created_at: initialData?.id ? undefined : new Date().toISOString(),
@@ -5173,7 +5182,8 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
       console.error("Error publishing listing Message:", error.message);
       alert(`Failed to publish property: ${error.message}. Please check if your database 'properties' table is ready.`);
     } finally {
-      setIsPublishing(false);
+      setIsSubmitting(false);
+      submitLock.current = false;
     }
   };
 
@@ -5565,7 +5575,7 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                 <DragOverlay adjustScale={true}>
                   {activeId ? (
                     <div className="w-full h-full aspect-[4/3] rounded-xl overflow-hidden border-2 border-brand-green shadow-2xl scale-105 z-[1000]">
-                      <img 
+                      <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
                         src={images.find(img => img.id === activeId)?.url || ''} 
                         className="w-full h-full object-cover" 
                         alt="Dragging"
@@ -5649,13 +5659,13 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                   onBack();
                 }
               }}
-              disabled={isPublishing || (step === 2 && images.length === 0)}
+              disabled={isSubmitting || (step === 2 && images.length === 0)}
               className="ml-auto px-10 py-5 bg-brand-green text-white font-black text-lg rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isPublishing ? (
+              {isSubmitting ? (
                 <>
                   <div className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin" />
-                  {initialData ? 'Updating Listing...' : 'Publishing Listing...'}
+                  {initialData ? 'Updating Listing...' : 'Publishing...'}
                 </>
               ) : (
                 step === 3 ? 'Back to Portal' : (initialData ? 'Update Now' : 'Continue to Publish')
@@ -5754,7 +5764,7 @@ const PropertyAdminCard = ({ property, onEdit, setDeleteConfirmId, updatingId, t
   return (
     <div className={`bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col sm:flex-row gap-6 group hover:border-brand-green compact-transition ${property.status === 'paused' ? 'opacity-60 grayscale-[0.5]' : ''}`}>
       <div className="w-full sm:w-48 h-32 rounded-2xl overflow-hidden shrink-0 relative">
-        <img src={property.image} className="w-full h-full object-cover group-hover:scale-110 compact-transition" />
+        <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={property.image} className="w-full h-full object-cover group-hover:scale-110 compact-transition" />
         {property.status === 'paused' && (
           <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center">
             <span className="bg-gray-900/80 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Paused</span>
@@ -6112,7 +6122,7 @@ const AdminEditPropertyModal = ({ propertyId, onClose, onRefresh, onShowToast }:
             <div className="flex gap-2 overflow-x-auto pb-4">
                {formData.images?.map((img: string, i: number) => (
                  <div key={i} className="w-24 h-24 shrink-0 rounded-xl overflow-hidden border border-gray-200">
-                    <img src={img} className="w-full h-full object-cover" />
+                    <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={img} className="w-full h-full object-cover" />
                  </div>
                ))}
                {!formData.images?.length && <p className="text-sm text-gray-400">No images uploaded</p>}
@@ -6187,7 +6197,7 @@ const AgentListingsView = ({ onBack, onEdit, onRefresh, user, onShowToast }: { o
           agentId: item.agent_id,
           location: item.location || `${item.city || item.city_suburb}${item.district ? ', ' + item.district : ''}`,
           type: item.listing_type === 'Rent' || item.listing_type === 'For Rent' ? 'Rent' : 'Sale',
-          image: (item.images && item.images.length > 0) ? item.images[0] : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800',
+          image: getFirstImageSafe(item.images),
           price: item.price_lkr || item.price || 'Price on Request',
           status: item.status || 'active',
           published_by: item.published_by,
@@ -6415,7 +6425,7 @@ const AgentOnlyListingsView = ({ onBack, onRefresh, onShowToast }: { onBack: () 
           agentId: item.agent_id,
           location: item.location || `${item.city || item.city_suburb}${item.district ? ', ' + item.district : ''}`,
           type: item.listing_type === 'Rent' || item.listing_type === 'For Rent' ? 'Rent' : 'Sale',
-          image: (item.images && item.images.length > 0) ? item.images[0] : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800',
+          image: getFirstImageSafe(item.images),
           price: item.price_lkr || item.price || 'Price on Request',
           status: item.status || 'active',
           published_by: item.published_by,
@@ -6609,14 +6619,16 @@ const AdminFeaturedProjectsView = ({ onBack, onShowToast }: { onBack: () => void
     try {
       const newUrls = await Promise.all(files.map(async (file: File) => {
         const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
-        const filePath = fileName;
+        const filePath = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
 
         const { error: uploadError } = await supabase.storage
           .from('featured-projects')
           .upload(filePath, file);
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.warn("Supabase upload failed, falling back to object URL:", uploadError.message);
+          return URL.createObjectURL(file);
+        }
 
         const { data } = supabase.storage
           .from('featured-projects')
@@ -6674,7 +6686,12 @@ const AdminFeaturedProjectsView = ({ onBack, onShowToast }: { onBack: () => void
           upsert: false
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.warn("Supabase upload failed, falling back to object URL:", uploadError.message);
+        setFormData(prev => ({ ...prev, [field]: URL.createObjectURL(file) }));
+        onShowToast("Image uploaded (temporary local preview used)", "success");
+        return;
+      }
 
       const { data } = supabase.storage
         .from('featured-projects')
@@ -6784,7 +6801,7 @@ const AdminFeaturedProjectsView = ({ onBack, onShowToast }: { onBack: () => void
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Main Image (Required)</label>
                   <div className="flex gap-4 items-center">
-                    {formData.main_image && <img src={formData.main_image} className="w-32 h-20 object-cover rounded-xl shadow-sm border border-gray-200" />}
+                    {formData.main_image && <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={formData.main_image} className="w-32 h-20 object-cover rounded-xl shadow-sm border border-gray-200" />}
                     <label className="flex-1 border-2 border-dashed border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-xl px-4 py-8 text-center cursor-pointer transition-colors">
                       <span className="text-sm font-bold text-brand-green">Upload Main Image</span>
                       <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'main_image')} />
@@ -6799,7 +6816,7 @@ const AdminFeaturedProjectsView = ({ onBack, onShowToast }: { onBack: () => void
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
                       {formData.images.map((img, idx) => (
                         <div key={idx} className="relative group rounded-xl overflow-hidden shadow-sm border border-gray-200 h-24">
-                          <img src={img} className="w-full h-full object-cover" />
+                          <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={img} className="w-full h-full object-cover" />
                           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                             {idx > 0 && (
                               <button type="button" onClick={() => moveGalleryImage(idx, 'up')} className="p-1 bg-white rounded-full text-gray-700 hover:text-brand-green">
@@ -6842,7 +6859,7 @@ const AdminFeaturedProjectsView = ({ onBack, onShowToast }: { onBack: () => void
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Developer Logo</label>
                     <div className="flex gap-4 items-center">
-                      {formData.developer_logo && <img src={formData.developer_logo} className="w-12 h-12 object-contain bg-gray-50 border border-gray-200 rounded-xl p-1" />}
+                      {formData.developer_logo && <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={formData.developer_logo} className="w-12 h-12 object-contain bg-gray-50 border border-gray-200 rounded-xl p-1" />}
                       <label className="flex-1 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-center cursor-pointer transition-colors text-sm font-bold text-gray-600">
                         Upload Logo
                         <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'developer_logo')} />
@@ -6959,14 +6976,14 @@ const AdminFeaturedProjectsView = ({ onBack, onShowToast }: { onBack: () => void
           {projects.map((proj, idx) => (
             <div key={proj.id} className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 overflow-hidden flex flex-col">
               <div className="h-[180px] relative">
-                <img src={proj.main_image} className="w-full h-full object-cover" />
+                <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={proj.main_image} className="w-full h-full object-cover" />
                 <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded-md shadow-sm flex items-center gap-2">
                   <span className={`h-2 w-2 rounded-full ${proj.is_active ? 'bg-brand-green' : 'bg-brand-red'}`} />
                   <span className="text-[10px] font-black text-gray-700 uppercase tracking-wider">{proj.is_active ? 'ACTIVE' : 'INACTIVE'}</span>
                 </div>
                 {proj.developer_logo && (
                   <div className="absolute bottom-3 left-3 bg-white p-1 rounded-md shadow-sm">
-                    <img src={proj.developer_logo} className="w-8 h-8 object-contain" />
+                    <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={proj.developer_logo} className="w-8 h-8 object-contain" />
                   </div>
                 )}
               </div>
@@ -7460,7 +7477,7 @@ const SellView = ({ onPostAd, onNavigate }: { onPostAd: () => void, onNavigate: 
       {/* Hero */}
       <section className="relative h-[500px] flex items-center overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img 
+          <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
             src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=2000" 
             alt="Sell Background" 
             className="w-full h-full object-cover"
@@ -7677,7 +7694,7 @@ const SecretLoginView = ({ onBack, onSuccess }: { onBack: () => void, onSuccess:
 
         {/* Abstract Background Overlay */}
         <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
-          <img 
+          <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
             src="https://images.unsplash.com/photo-1626178793926-22b28830aa30?auto=format&fit=crop&q=80&w=1200" 
             className="w-full h-full object-cover mix-blend-overlay"
             alt=""
@@ -8248,7 +8265,7 @@ const AgentAccessView = ({ onBack, user, onNewProperty, onShowInquiries, onShowL
                   <div className="flex flex-col md:flex-row items-center gap-8 p-6 bg-gray-50 rounded-[32px] border border-gray-100">
                     <div className="w-32 h-32 bg-brand-green/10 text-brand-green rounded-[40px] flex items-center justify-center text-5xl font-black overflow-hidden relative shadow-inner border border-brand-green/20">
                       {avatarUrl ? (
-                        <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                        <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                       ) : (
                         user?.email?.charAt(0).toUpperCase() || 'A'
                       )}
@@ -8417,7 +8434,7 @@ const AgentsView = ({ onAgentClick, onBack }: { onAgentClick: (agent: any) => vo
             onClick={() => onAgentClick(agent)}
           >
             <div className="relative mb-6 overflow-hidden rounded-[32px] aspect-[4/5] shadow-2xl border border-gray-100">
-              <img src={agent.img} alt={agent.name} className="w-full h-full object-cover group-hover:scale-110 compact-transition" />
+              <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={agent.img} alt={agent.name} className="w-full h-full object-cover group-hover:scale-110 compact-transition" />
               <div className="absolute inset-0 bg-gradient-to-t from-dark-navy/90 via-dark-navy/20 to-transparent opacity-0 group-hover:opacity-100 compact-transition flex flex-col justify-end p-8">
                 <p className="text-white font-medium text-sm leading-relaxed mb-6 line-clamp-3">
                   {agent.bio}
@@ -8494,7 +8511,7 @@ const AgentProfileView = ({
         <div className="space-y-8">
           <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
             <div className="aspect-[4/5] relative">
-              <img src={agent.img} className="w-full h-full object-cover" alt={agent.name} />
+              <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={agent.img} className="w-full h-full object-cover" alt={agent.name} />
               <div className="absolute inset-0 bg-gradient-to-t from-dark-navy/80 via-transparent to-transparent" />
               <div className="absolute bottom-6 left-6 right-6">
                 <div className="px-3 py-1 bg-brand-green inline-block text-[10px] font-black text-white rounded-full uppercase tracking-widest mb-2">
@@ -8930,7 +8947,7 @@ const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBac
                 {FEATURED_PROPERTIES.slice(0, 2).map((property) => (
                   <div key={property.id} className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex gap-6 group hover:border-brand-green compact-transition">
                     <div className="w-40 h-28 rounded-2xl overflow-hidden shrink-0">
-                      <img src={property.image} className="w-full h-full object-cover group-hover:scale-105 compact-transition" />
+                      <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={property.image} className="w-full h-full object-cover group-hover:scale-105 compact-transition" />
                     </div>
                     <div className="flex-1 flex flex-col justify-between py-1">
                       <div>
@@ -8981,7 +8998,7 @@ const UserProfileView = ({ user, onBack, onLogout, onNewAd }: { user: any, onBac
                 <div className="flex items-center gap-6">
                   <div className="w-20 h-20 bg-brand-green/10 text-brand-green rounded-3xl flex items-center justify-center text-3xl font-black overflow-hidden relative">
                       {avatarUrl ? (
-                        <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                        <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                       ) : (
                         user?.email?.charAt(0).toUpperCase() || 'A'
                       )}

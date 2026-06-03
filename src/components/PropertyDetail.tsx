@@ -518,7 +518,7 @@ export const PropertyDetail = ({
             className="relative rounded-2xl overflow-hidden cursor-zoom-in group"
             onClick={() => { setLightboxOpen(true); setActiveImageIndex(0); }}
           >
-            <img 
+            <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
               src={images[0]} 
               className="w-full h-full object-cover group-hover:brightness-105 transition-all duration-300" 
               alt="Main hero" 
@@ -540,7 +540,7 @@ export const PropertyDetail = ({
               >
                 {images[idx] ? (
                   <>
-                    <img 
+                    <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
                       src={images[idx]} 
                       className="w-full h-full object-cover group-hover:brightness-105 transition-all duration-300" 
                       alt={`Gallery ${idx}`} 
@@ -736,7 +736,7 @@ export const PropertyDetail = ({
                 {/* Agent Header */}
                 <div className="flex items-center gap-4 mb-8">
                   <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-100 shadow-inner">
-                    <img 
+                    <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
                       src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200" 
                       className="w-full h-full object-cover" 
                       alt="Agent" 
@@ -877,7 +877,7 @@ export const PropertyDetail = ({
               className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:-translate-y-1.5 transition-all duration-300"
             >
               <div className="relative h-48 overflow-hidden">
-                <img 
+                <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
                   src={getPropertyImage(prop.images)} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                   alt={prop.listing_title} 
@@ -981,7 +981,7 @@ export const PropertyDetail = ({
                   onClick={() => setActiveImageIndex(idx)}
                   className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${idx === activeImageIndex ? 'border-[#004F31] scale-105' : 'border-transparent opacity-50 hover:opacity-100'}`}
                 >
-                  <img src={img} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />
+                  <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={img} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />
                 </button>
               ))}
             </div>

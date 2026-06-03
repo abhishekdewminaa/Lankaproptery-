@@ -213,7 +213,7 @@ const SortablePhotoSlot: React.FC<SortablePhotoSlotProps> = ({
 
       {slot.url ? (
         <>
-          <img src={slot.url} alt={`Photo ${index + 1}`} className="w-full h-full object-cover select-none" />
+          <img src={slot.url} alt={`Photo ${index + 1}`} className="w-full h-full object-cover select-none" onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} />
           
           {/* Hover Overlay */}
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-grab active:cursor-grabbing photo-overlay z-10">
@@ -262,6 +262,7 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
   const [uploadProgress, setUploadProgress] = useState<{ current: number, total: number } | null>(null);
   const [isUploadingMultiple, setIsUploadingMultiple] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const submitLock = useRef(false);
 
   // AI Import State
   const [pastedText, setPastedText] = useState('');
@@ -599,11 +600,12 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
 
   const saveProperty = useCallback(async (isAutoSave = false) => {
     if (!isAutoSave) {
-      if (isSaving) return;
+      if (submitLock.current || isSaving) return;
       if (!formData.listing_title) return toast.error("Listing title is required");
       if (!formData.price_lkr) return toast.error("Price is required");
       if (!formData.district || !formData.city) return toast.error("Location (District and City) are required");
       if (photoCount === 0) return toast.error("Please upload at least one image");
+      submitLock.current = true;
       setIsSaving(true);
     }
     
@@ -740,18 +742,12 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
     } catch (error: any) {
       if (!isAutoSave) toast.error('Failed to save: ' + error.message);
     } finally {
-      if (!isAutoSave) setIsSaving(false);
+      if (!isAutoSave) {
+        setIsSaving(false);
+        submitLock.current = false;
+      }
     }
   }, [formData, initialData, user, onSuccess, images, isSaving]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      if (formData.listing_title) {
-        saveProperty(true);
-      }
-    }, 30000);
-    return () => clearInterval(timer);
-  }, [saveProperty, formData.listing_title]);
 
   const priceNum = parseFloat(formData.price_lkr.toString().replace(/[^0-9.]/g, '')) || 0;
 

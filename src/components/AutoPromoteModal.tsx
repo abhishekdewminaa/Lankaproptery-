@@ -344,7 +344,7 @@ Generate marketing content. Return JSON strictly in this format:
                   <div className="w-80 shrink-0">
                      <div className="w-full aspect-square rounded-3xl bg-gray-100 overflow-hidden shadow-2xl rotate-3 scale-105 border-8 border-white">
                         {property?.images && property.images.length > 0 ? (
-                           <img src={Array.isArray(property.images) ? property.images[0] : property.images} className="w-full h-full object-cover" />
+                           <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={Array.isArray(property.images) ? property.images[0] : property.images} className="w-full h-full object-cover" />
                         ) : (
                            <div className="w-full h-full flex items-center justify-center text-4xl">🏠</div>
                         )}
@@ -474,7 +474,7 @@ Generate marketing content. Return JSON strictly in this format:
                            <div className="text-sm text-gray-800 whitespace-pre-wrap mb-4">{editedContent.facebook.caption}</div>
                            <div className="w-full aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
                              {(property?.images?.[0] || typeof property?.images === 'string') ? (
-                                <img src={Array.isArray(property?.images) ? property?.images[0] : property?.images} className="w-full h-full object-cover" />
+                                <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={Array.isArray(property?.images) ? property?.images[0] : property?.images} className="w-full h-full object-cover" />
                              ) : (
                                 <div className="w-full h-full flex items-center justify-center text-3xl">🏠</div>
                              )}
@@ -499,7 +499,7 @@ Generate marketing content. Return JSON strictly in this format:
                            </div>
                            <div className="w-full aspect-square bg-gray-100 border-b border-gray-100">
                              {(property?.images?.[0] || typeof property?.images === 'string') ? (
-                                <img src={Array.isArray(property?.images) ? property?.images[0] : property?.images} className="w-full h-full object-cover" />
+                                <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={Array.isArray(property?.images) ? property?.images[0] : property?.images} className="w-full h-full object-cover" />
                              ) : (
                                 <div className="w-full h-full flex items-center justify-center text-3xl">🏠</div>
                              )}
@@ -531,7 +531,7 @@ Generate marketing content. Return JSON strictly in this format:
                                  <div className="text-sm text-gray-900 whitespace-pre-wrap mt-1">{editedContent.twitter.caption}</div>
                                  <div className="w-full mt-3 rounded-2xl overflow-hidden border border-gray-200">
                                    {(property?.images?.[0] || typeof property?.images === 'string') ? (
-                                      <img src={Array.isArray(property?.images) ? property?.images[0] : property?.images} className="w-full aspect-video object-cover" />
+                                      <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={Array.isArray(property?.images) ? property?.images[0] : property?.images} className="w-full aspect-video object-cover" />
                                    ) : (
                                       <div className="w-full aspect-video bg-gray-100 flex items-center justify-center text-3xl">🏠</div>
                                    )}

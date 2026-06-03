@@ -100,7 +100,7 @@ const PropertyCard = React.memo(({ p, idx, onPropertyClick, favorites, toggleFav
         className="bg-white rounded-[32px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer"
       >
         <div className="relative h-64 overflow-hidden">
-          <img 
+          <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
             src={getPropertyImage(p.images)} 
             alt={p.listing_title || p.title}
             loading="lazy"
@@ -323,7 +323,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
       {/* Category Hero Section */}
       <section className="relative h-[300px] w-full flex flex-col justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img 
+          <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
             src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200" 
             alt={category} 
             className="w-full h-full object-cover"

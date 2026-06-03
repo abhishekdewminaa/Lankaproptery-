@@ -146,7 +146,7 @@ export const FeaturedView: React.FC<FeaturedViewProps> = ({ onBack, onNavigate }
                 className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all cursor-pointer border border-gray-100/50"
               >
                 <div className="relative h-56 overflow-hidden">
-                  <img src={p.images?.[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={p.listing_title} />
+                  <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={p.images?.[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={p.listing_title} />
                   <div className="absolute top-4 left-4 flex flex-col gap-2">
                     <span className="bg-brand-green text-white text-[10px] font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg">
                       <Sparkles size={12} /> FEATURED

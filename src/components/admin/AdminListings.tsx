@@ -333,9 +333,7 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
                      src={getPropertyThumbnail(property.images)} 
                      alt={property.listing_title} 
                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                     onError={(e) => {
-                       (e.target as HTMLElement).parentElement!.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:32px">🏠</div>';
-                     }}
+                     onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }}
                    />
                  ) : (
                    <div>🏠</div>

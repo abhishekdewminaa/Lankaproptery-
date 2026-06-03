@@ -2,7 +2,7 @@
 // while providing necessary objects to libraries that expect them.
 const globalObj = typeof globalThis !== 'undefined' ? globalThis : (typeof window !== 'undefined' ? window : {});
 
-export const fetch = globalObj.fetch;
+export const fetch = globalObj.fetch ? globalObj.fetch.bind(globalObj) : undefined;
 export const FormData = globalObj.FormData;
 export const Request = globalObj.Request;
 export const Response = globalObj.Response;

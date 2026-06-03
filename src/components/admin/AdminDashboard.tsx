@@ -325,7 +325,7 @@ export default function AdminDashboard({ user }: { user: any }) {
                 className="bg-white p-4 rounded-[32px] border border-admin-border shadow-sm flex gap-4 items-center group cursor-pointer"
               >
                 <div className="w-24 h-24 rounded-2xl bg-gray-100 overflow-hidden shrink-0">
-                  <img 
+                  <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
                     src={listing.images?.[0] || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80'} 
                     alt={listing.title} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"

@@ -100,7 +100,7 @@ export const RecentListings: React.FC<RecentListingsProps> = ({ onNavigate, prop
                   className="group bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100/50 cursor-pointer h-full"
                 >
                   <div className="relative h-56 overflow-hidden">
-                    <img 
+                    <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
                       src={getPropertyImage(listing.images)} 
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                       alt={listing.listing_title || listing.title}

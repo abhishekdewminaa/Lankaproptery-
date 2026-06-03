@@ -163,7 +163,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
                 className="absolute inset-0 group rounded-3xl overflow-hidden shadow-2xl cursor-pointer"
               >
                 <div className="absolute inset-0 z-0 overflow-hidden">
-                  <img 
+                  <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
                     src={getPropertyImage(currentMain.images)} 
                     className="w-full h-full object-cover transition-transform duration-10000 group-hover:scale-110" 
                     alt={currentMain.listing_title}
@@ -210,7 +210,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
             className="md:col-span-2 relative group rounded-3xl overflow-hidden shadow-xl cursor-pointer"
           >
             <div className="absolute inset-0 z-0 overflow-hidden">
-              <img 
+              <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
                 src={getPropertyImage(displayProperties[secondaryIndex1].images)} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                 alt={displayProperties[secondaryIndex1].listing_title}
@@ -238,7 +238,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
             className="relative group rounded-3xl overflow-hidden shadow-lg cursor-pointer"
           >
             <div className="absolute inset-0 z-0 overflow-hidden">
-              <img 
+              <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
                 src={getPropertyImage(displayProperties[secondaryIndex2].images)} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                 alt={displayProperties[secondaryIndex2].listing_title}
@@ -266,7 +266,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
             className="relative group rounded-3xl overflow-hidden shadow-lg cursor-pointer"
           >
             <div className="absolute inset-0 z-0 overflow-hidden">
-              <img 
+              <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
                 src={getPropertyImage(displayProperties[secondaryIndex3].images)} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                 alt={displayProperties[secondaryIndex3].listing_title}

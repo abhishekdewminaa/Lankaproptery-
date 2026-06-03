@@ -4,6 +4,16 @@
     <script>
     /* SUPPRESSION - MUST BE FIRST */
     ;(function(){
+      try {
+        var nativeFetch = window.fetch;
+        if (nativeFetch) {
+          Object.defineProperty(window, 'fetch', {
+            get: function() { return nativeFetch; },
+            set: function() { },
+            configurable: true
+          });
+        }
+      } catch(e) {}
       var _warn = console.warn
       console.warn = function() {
         var msg = Array.from(arguments).join(' ')
@@ -39,7 +49,10 @@
       }
       window.addEventListener(
         'unhandledrejection',
-        function(e) { e.preventDefault() }, 
+        function(e) {
+          if (e.reason && typeof e.reason === 'string' && e.reason.indexOf('WebSocket') > -1) { e.preventDefault(); return }
+          if (e.reason && e.reason.message && e.reason.message.indexOf('WebSocket') > -1) { e.preventDefault(); return }
+        }, 
         true
       )
     })()
