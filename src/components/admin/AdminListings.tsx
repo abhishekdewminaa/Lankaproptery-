@@ -453,14 +453,39 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
                       </div>
                     </div>
 
-                    <a 
-                      href={`/property/${property.id}`}
-                      target="_blank"
-                      className="w-12 h-12 bg-admin-text-dark text-[#00FF87] border border-[#00FF87]/30 rounded-2xl flex items-center justify-center hover:bg-[#00FF87] hover:text-[#0B0F19] hover:shadow-[0_0_20px_rgba(0,255,135,0.45)] transition-all shadow-xl active:scale-95 duration-300 group/link"
-                      title="View Details"
-                    >
-                      <ExternalLink size={20} className="transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 duration-300" />
-                    </a>
+                    <div className="relative group/share [perspective:1000px]">
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const url = `${window.location.origin}/property/${property.id}`;
+                          navigator.clipboard.writeText(url);
+                          toast.success('Public URL copied to clipboard!');
+                          
+                          // Navigate seamlessly within the SPA
+                          window.history.pushState({}, '', `/property/${property.id}`);
+                          window.dispatchEvent(new PopStateEvent('popstate'));
+                        }}
+                        className="w-12 h-12 bg-admin-text-dark text-[#00FF87] border border-[#00FF87]/30 rounded-2xl flex items-center justify-center hover:bg-[#00FF87] hover:text-[#0B0F19] hover:shadow-[0_0_20px_rgba(0,255,135,0.45)] transition-all shadow-xl active:scale-95 duration-300 group/link"
+                        title="View Details & Share"
+                      >
+                        <ExternalLink size={20} className="transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 duration-300" />
+                      </button>
+                      
+                      <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl shadow-black/10 border border-gray-100 opacity-0 invisible group-hover/share:opacity-100 group-hover/share:visible transition-all z-50 overflow-hidden flex flex-col py-2">
+                         <div className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">Share Link</div>
+                         <button onClick={() => {
+                            const url = `${window.location.origin}/property/${property.id}`;
+                            navigator.clipboard.writeText(url);
+                            toast.success('Link copied!');
+                         }} className="px-4 py-2 text-left text-sm font-bold text-gray-900 hover:bg-gray-100 transition-colors flex items-center gap-2">🔗 Copy URL</button>
+                         <button onClick={(e) => {
+                            e.preventDefault();
+                            window.history.pushState({}, '', `/property/${property.id}`);
+                            window.dispatchEvent(new PopStateEvent('popstate'));
+                         }} className="px-4 py-2 text-left text-sm font-bold text-gray-900 hover:bg-[#00FF87]/20 hover:text-[#004f31] transition-colors flex items-center gap-2">👀 View Page</button>
+                         <a href={`https://wa.me/?text=${encodeURIComponent(`Check out this property: ${window.location.origin}/property/${property.id}`)}`} target="_blank" rel="noreferrer" className="px-4 py-2 text-left text-sm font-bold text-gray-900 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">💬 WhatsApp</a>
+                      </div>
+                    </div>
                  </div>
               </div>
             </motion.div>

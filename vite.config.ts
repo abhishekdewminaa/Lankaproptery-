@@ -13,12 +13,13 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || ""),
     },
     resolve: {
-      alias: {
-        '@': path.resolve(__dirname, '.'),
-        'node-fetch': path.resolve(__dirname, 'src/empty.js'),
-        'cross-fetch': path.resolve(__dirname, 'src/empty.js'),
-        'whatwg-fetch': path.resolve(__dirname, 'src/empty.js'),
-      },
+      alias: [
+        { find: /^node-fetch$/, replacement: path.resolve(__dirname, 'src/empty.js') },
+        { find: /^cross-fetch$/, replacement: path.resolve(__dirname, 'src/empty.js') },
+        { find: /^cross-fetch\/.*$/, replacement: path.resolve(__dirname, 'src/empty.js') },
+        { find: /^whatwg-fetch$/, replacement: path.resolve(__dirname, 'src/empty.js') },
+        { find: '@', replacement: path.resolve(__dirname, '.') }
+      ],
     },
     server: {
       hmr: {

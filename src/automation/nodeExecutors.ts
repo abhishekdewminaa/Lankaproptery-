@@ -53,8 +53,11 @@ export async function executeNode(node: AutomationsNode, context: any = {}) {
       for (const key in context) {
         processedCaption = processedCaption.replace(`{{${key}}}`, context[key]);
       }
-      result.output = { facebook_post: processedCaption };
-      toast.success('Simulated FB post generated');
+      
+      const { postToSocial } = await import('./socialPoster');
+      const automated = await postToSocial('facebook', { caption: processedCaption });
+      
+      result.output = { facebook_post: processedCaption, automated };
       break;
 
     case 'Generate AI Caption (Gemini)':

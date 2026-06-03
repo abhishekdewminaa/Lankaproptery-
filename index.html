@@ -51,18 +51,6 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Prevent fetch overwrite errors
-      (function() {
-        try {
-          const nativeFetch = window.fetch.bind(window);
-          Object.defineProperty(window, 'fetch', {
-            get: () => nativeFetch,
-            set: () => {},
-            configurable: false
-          });
-        } catch(e) {}
-      })();
-
       // Fix for "undefined" is not valid JSON
       try {
         for (let i = 0; i < localStorage.length; i++) {

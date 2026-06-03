@@ -137,7 +137,7 @@ export function AIAgentBuilder() {
   };
 
   return (
-    <div className="p-8 h-full overflow-y-auto w-full bg-gray-50">
+    <div className="p-8 h-full overflow-y-auto w-full bg-white">
       {isCreating ? (
         <div className="max-w-4xl mx-auto flex gap-6">
           <div className="flex-1 bg-white rounded-2xl p-6 border border-gray-200">

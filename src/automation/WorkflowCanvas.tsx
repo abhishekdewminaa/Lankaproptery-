@@ -172,7 +172,7 @@ function FlowCanvas({ initialWorkflow, onBack }: { initialWorkflow: Workflow | n
   };
 
   return (
-    <div className="flex w-full h-full bg-gray-50 text-gray-900 overflow-hidden">
+    <div className="flex w-full h-full bg-white text-gray-900 overflow-hidden">
       <NodeLibrary />
 
       <div className="flex-1 flex flex-col relative" onDrop={onDrop} onDragOver={onDragOver}>
@@ -190,7 +190,7 @@ function FlowCanvas({ initialWorkflow, onBack }: { initialWorkflow: Workflow | n
              />
              <div className="h-6 w-px bg-gray-200 mx-2" />
              <label className="flex items-center gap-2 cursor-pointer">
-               <div className={`w-10 h-5 rounded-full p-0.5 transition-colors ${isActive ? 'bg-blue-600' : 'bg-gray-300'}`}>
+               <div className={`w-10 h-5 rounded-full p-0.5 transition-colors ${isActive ? 'bg-[#1B5E20]' : 'bg-gray-300'}`}>
                  <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isActive ? 'translate-x-5' : 'translate-x-0'}`} />
                </div>
                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{isActive ? 'ACTIVE' : 'PAUSED'}</span>
@@ -203,7 +203,7 @@ function FlowCanvas({ initialWorkflow, onBack }: { initialWorkflow: Workflow | n
              <button className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold transition-colors hover:text-gray-900">
                 🐛 Debug
              </button>
-             <button onClick={handleSave} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-sm shadow-blue-500/20 hover:bg-blue-700 transition-colors">
+             <button onClick={handleSave} className="flex items-center gap-1.5 px-4 py-2 bg-[#1B5E20] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-sm shadow-[#1B5E20]/20 hover:bg-[#154618] transition-colors">
                <Save size={14} /> Save
              </button>
           </div>
@@ -239,7 +239,7 @@ function FlowCanvas({ initialWorkflow, onBack }: { initialWorkflow: Workflow | n
                onClick={() => setShowLogView(!showLogView)}
                className="bg-white border border-gray-300 text-gray-900 px-6 py-2 rounded-full shadow-lg flex items-center gap-2 text-sm font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors"
              >
-                <History size={16} className="text-blue-500" /> 
+                <History size={16} className="text-[#1B5E20]" /> 
                 {showLogView ? 'Hide Execution Log' : 'Show Execution Log'}
              </button>
           </div>

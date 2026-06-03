@@ -29,7 +29,7 @@ export function WorkflowMarketplace({ onInstall }: { onInstall: (template: any) 
   ];
 
   return (
-    <div className="p-8 h-full overflow-y-auto bg-gray-50 text-gray-900">
+    <div className="p-8 h-full overflow-y-auto bg-white text-gray-900">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12 pt-8">
            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-6">

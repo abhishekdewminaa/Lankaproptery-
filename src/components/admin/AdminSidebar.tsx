@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import {
   BarChart3,
   ClipboardList,
@@ -12,7 +12,10 @@ import {
   Sun,
   Moon,
   ChevronLeft,
+  ChevronDown,
+  ChevronUp,
   Zap,
+  Flame,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -35,28 +38,36 @@ export default function AdminSidebar({
   const [isCollapsed, setIsCollapsed] = useState(() => {
     return localStorage.getItem("admin-sidebar-collapsed") === "true";
   });
+  
+  const [workflowsCollapsed, setWorkflowsCollapsed] = useState(() => {
+    return localStorage.getItem("workflows_widget") === "collapsed";
+  });
 
   useEffect(() => {
     localStorage.setItem("admin-sidebar-collapsed", String(isCollapsed));
   }, [isCollapsed]);
 
+  useEffect(() => {
+    localStorage.setItem("workflows_widget", workflowsCollapsed ? "collapsed" : "expanded");
+  }, [workflowsCollapsed]);
+
   const menuItems = [
     {
       id: "dashboard",
       label: "Dashboard",
-      icon: <LayoutDashboard size={20} />,
+      icon: <LayoutDashboard size={16} />,
     },
-    { id: "listings", label: "Properties", icon: <ClipboardList size={20} /> },
-    { id: "enquiries", label: "Leads", icon: <MessageSquare size={20} /> },
-    { id: "marketing", label: "Marketing", icon: <Megaphone size={20} /> },
-    { id: "automation", label: "Automation", icon: <Zap size={20} /> },
-    { id: "analytics", label: "Analytics", icon: <BarChart3 size={20} /> },
-    { id: "settings", label: "Settings", icon: <Settings size={20} /> },
+    { id: "listings", label: "Properties", icon: <ClipboardList size={16} /> },
+    { id: "enquiries", label: "Leads", icon: <MessageSquare size={16} /> },
+    { id: "marketing", label: "Marketing", icon: <Megaphone size={16} /> },
+    { id: "analytics", label: "Analytics", icon: <BarChart3 size={16} /> },
+    { id: "automation", label: "Automation", icon: <Zap size={16} />, isNew: true },
+    { id: "settings", label: "Settings", icon: <Settings size={16} /> },
   ];
 
   return (
     <aside
-      className={`relative flex flex-col border-r h-screen sticky top-0 z-[50] hidden lg:flex ${adminDarkMode ? "bg-[#13131F] border-[#1F2937]" : "bg-white border-admin-border"}`}
+      className={`admin-sidebar relative border-r sticky top-0 z-[50] hidden lg:flex ${adminDarkMode ? "bg-[#13131F] border-[#1F2937]" : "bg-white border-admin-border"}`}
       style={{
         width: isCollapsed ? "64px" : "240px",
         transition: "width 0.3s ease",
@@ -65,7 +76,7 @@ export default function AdminSidebar({
       {/* Toggle Button */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-8 w-6 h-6 bg-[#1B5E20] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-green-800 transition-colors z-10"
+        className="absolute -right-3 top-6 w-6 h-6 bg-[#1B5E20] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-green-800 transition-colors z-10"
       >
         <ChevronLeft
           size={14}
@@ -74,11 +85,11 @@ export default function AdminSidebar({
         />
       </button>
 
-      {/* Top Header */}
-      <div className={`p-4 ${isCollapsed ? "items-center" : "p-6 pb-4"}`}>
+      {/* Top Header - Zone 0 */}
+      <div className={`flex-shrink-0 ${isCollapsed ? "items-center pt-2" : "pt-2 px-4 pb-2"}`}>
         {!isCollapsed ? (
-          <div className="mb-6 whitespace-nowrap overflow-hidden opacity-100 transition-opacity duration-300">
-            <h1 className="text-xl font-black text-[#1B5E20] leading-none">
+          <div className="mb-2 whitespace-nowrap overflow-hidden transition-opacity duration-300">
+            <h1 className="text-[16px] font-black text-[#1B5E20] leading-none">
               LankaProperty
             </h1>
             <p className="text-[9px] uppercase tracking-widest text-admin-text-gray font-bold mt-1">
@@ -86,7 +97,7 @@ export default function AdminSidebar({
             </p>
           </div>
         ) : (
-          <div className="mb-4 flex justify-center opacity-100 transition-opacity duration-300">
+          <div className="mb-2 flex justify-center opacity-100 transition-opacity duration-300">
             <div className="w-8 h-8 bg-[#1B5E20]/10 rounded flex items-center justify-center">
               <span className="text-[#1B5E20] font-black text-sm">LP</span>
             </div>
@@ -95,10 +106,10 @@ export default function AdminSidebar({
 
         {/* User Profile */}
         <div
-          className={`flex flex-col items-center py-4 border-y ${adminDarkMode ? "border-[#1F2937]" : "border-admin-border/50"} transition-all`}
+          className={`flex items-center gap-3 py-2 transition-all`}
         >
           <div
-            className={`${isCollapsed ? "w-10 h-10 p-0.5" : "w-16 h-16 p-1"} rounded-full bg-admin-bg border-2 border-[#1B5E20]/20 mb-2 flex items-center justify-center overflow-hidden transition-all duration-300`}
+            className={`${isCollapsed ? "w-8 h-8 mx-auto" : "sidebar-avatar aspect-square"} rounded-full bg-admin-bg border border-[#1B5E20]/20 flex-shrink-0 flex items-center justify-center overflow-hidden transition-all duration-300`}
           >
             {user?.avatar_url ? (
               <img
@@ -107,29 +118,29 @@ export default function AdminSidebar({
                 className="w-full h-full object-cover rounded-full"
               />
             ) : (
-              <div className="w-full h-full bg-[#1B5E20] text-white flex items-center justify-center font-black rounded-full text-lg">
+              <div className="w-full h-full bg-[#1B5E20] text-white flex items-center justify-center font-black rounded-full text-[12px]">
                 {user?.email?.[0].toUpperCase()}
               </div>
             )}
           </div>
           {!isCollapsed && (
-            <div className="text-center overflow-hidden whitespace-nowrap opacity-100 transition-opacity duration-300">
+            <div className="overflow-hidden whitespace-nowrap transition-opacity duration-300">
               <h3
-                className={`text-sm font-black ${adminDarkMode ? "text-white" : "text-admin-text-dark"}`}
+                className={`sidebar-username ${adminDarkMode ? "text-white" : "text-admin-text-dark"}`}
               >
                 {user?.email?.split("@")[0]}
               </h3>
-              <p className="text-[10px] font-bold text-admin-text-gray uppercase tracking-widest mt-0.5">
-                Administrator
+              <p className="sidebar-role text-admin-text-gray font-bold">
+                ADMINISTRATOR
               </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Navigation */}
+      {/* Navigation - Zone 1 */}
       <nav
-        className={`flex-grow py-2 space-y-1 ${isCollapsed ? "px-2" : "px-4"} overflow-y-auto overflow-x-hidden`}
+        className={`sidebar-nav ${isCollapsed ? "px-2" : "px-4"}`}
       >
         {menuItems.map((item) => {
           const isActive = activePage === item.id;
@@ -137,18 +148,18 @@ export default function AdminSidebar({
             <div key={item.id} className="relative group/nav">
               <button
                 onClick={() => onNavigate(item.id)}
-                className={`w-full flex items-center gap-3 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${
-                  isCollapsed ? "justify-center px-0" : "px-4"
+                className={`sidebar-nav-item w-full transition-all duration-300 ${
+                  isCollapsed ? "justify-center px-0" : "px-[10px]"
                 } ${
                   isActive
-                    ? "bg-[#1B5E20]/10 text-[#1B5E20] shadow-[inset_2px_0_10px_rgba(27,94,32,0.1)]"
-                    : `text-admin-text-gray hover:bg-[#1B5E20]/5 hover:translate-x-1 hover:text-[#1B5E20]`
+                    ? "bg-[#1B5E20]/10 text-[#1B5E20] shadow-[inset_2px_0_10px_rgba(27,94,32,0.1)] font-bold"
+                    : `text-admin-text-gray hover:bg-[#1B5E20]/5 hover:translate-x-1 hover:text-[#1B5E20] font-medium`
                 }`}
               >
                 {isActive && (
                   <motion.div
                     layoutId="sidebar-active"
-                    className="absolute left-0 top-1 bottom-1 w-[3px] bg-[#1B5E20] rounded-r-full"
+                    className="absolute left-0 top-[2px] bottom-[2px] w-[3px] bg-[#1B5E20] rounded-r-full"
                   />
                 )}
                 <span
@@ -158,19 +169,25 @@ export default function AdminSidebar({
                 </span>
 
                 <span
-                  className={`whitespace-nowrap transition-all duration-300 ${
+                  className={`transition-all duration-300 ${
                     isCollapsed
                       ? "w-0 opacity-0 hidden"
-                      : "w-auto opacity-100 block"
+                      : "w-auto opacity-100 flex items-center gap-2"
                   }`}
                 >
                   {item.label}
+                  {item.isNew && (
+                    <span className="flex items-center gap-0.5 bg-red-100 text-red-600 border border-red-200 text-[8px] uppercase tracking-widest font-black px-1.5 py-0.5 rounded-full shadow-sm ml-1">
+                      <Flame size={10} className="text-orange-500 animate-pulse" />
+                      NEW
+                    </span>
+                  )}
                 </span>
               </button>
 
               {/* Tooltip for collapsed state */}
               {isCollapsed && (
-                <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#1B5E20] text-white text-xs font-bold rounded-lg opacity-0 invisible group-hover/nav:opacity-100 group-hover/nav:visible transition-all whitespace-nowrap z-[60] shadow-lg">
+                <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#1B5E20] text-white text-[11px] font-bold rounded-lg opacity-0 invisible group-hover/nav:opacity-100 group-hover/nav:visible transition-all whitespace-nowrap z-[60] shadow-lg">
                   {item.label}
                   <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#1B5E20] rotate-45" />
                 </div>
@@ -180,38 +197,38 @@ export default function AdminSidebar({
         })}
       </nav>
 
-      {/* Bottom Section */}
-      <div className={`p-4 space-y-4 ${isCollapsed ? "px-2" : "p-4"}`}>
+      {/* Bottom Section - Zone 2 */}
+      <div className={`sidebar-bottom flex flex-col gap-[6px] ${isCollapsed ? "px-2" : "px-3"}`}>
         <div className="relative group/post">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => onNavigate("publish")}
-            className={`w-full bg-[#1B5E20] text-white rounded-xl font-black text-sm uppercase tracking-widest flex items-center justify-center shadow-lg shadow-[#1B5E20]/20 hover:bg-green-800 transition-all ${
-              isCollapsed ? "py-3" : "py-3 gap-2"
+            className={`w-full bg-[#1B5E20] text-white rounded-lg font-black uppercase tracking-widest flex items-center justify-center shadow-md shadow-[#1B5E20]/20 hover:bg-green-800 transition-all ${
+              isCollapsed ? "h-[36px]" : "h-[40px] text-[12px] gap-2"
             }`}
           >
-            <Plus size={18} />
+            <Plus size={16} />
             {!isCollapsed && (
-              <span className="whitespace-nowrap opacity-100 transition-opacity duration-300">
+              <span className="whitespace-nowrap transition-opacity duration-300">
                 Post Property
               </span>
             )}
           </motion.button>
 
           {isCollapsed && (
-            <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#1B5E20] text-white text-xs font-bold rounded-lg opacity-0 invisible group-hover/post:opacity-100 group-hover/post:visible transition-all whitespace-nowrap z-[60] shadow-lg">
+            <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#1B5E20] text-white text-[11px] font-bold rounded-lg opacity-0 invisible group-hover/post:opacity-100 group-hover/post:visible transition-all whitespace-nowrap z-[60] shadow-lg">
               Post Property
               <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#1B5E20] rotate-45" />
             </div>
           )}
         </div>
 
-        <div className="relative group/mode">
+        <div className="relative group/mode mt-[4px]">
           <button
             onClick={toggleAdminDark}
-            className={`w-full flex items-center py-3 rounded-xl font-bold text-sm transition-all border ${
-              isCollapsed ? "justify-center px-0" : "px-4 gap-3"
+            className={`w-full h-[36px] flex items-center rounded-lg font-bold transition-all border ${
+              isCollapsed ? "justify-center px-0" : "px-3 gap-2 text-[12px]"
             } ${
               adminDarkMode
                 ? "bg-[#374151] text-[#F9FAFB] border-[#4B5563] hover:bg-[#4B5563]"
@@ -220,22 +237,23 @@ export default function AdminSidebar({
           >
             {adminDarkMode ? (
               <>
-                <Sun size={18} className="text-yellow-400" />
+                <Sun size={14} className="text-yellow-400" />
                 {!isCollapsed && (
                   <span className="whitespace-nowrap">Light Mode</span>
                 )}
               </>
             ) : (
               <>
-                <Moon size={18} className="text-blue-500" />
+                <Moon size={14} className="text-blue-500" />
                 {!isCollapsed && (
                   <span className="whitespace-nowrap">Dark Mode</span>
                 )}
               </>
             )}
           </button>
+          
           {isCollapsed && (
-            <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#1B5E20] text-white text-xs font-bold rounded-lg opacity-0 invisible group-hover/mode:opacity-100 group-hover/mode:visible transition-all whitespace-nowrap z-[60] shadow-lg">
+            <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#1B5E20] text-white text-[11px] font-bold rounded-lg opacity-0 invisible group-hover/mode:opacity-100 group-hover/mode:visible transition-all whitespace-nowrap z-[60] shadow-lg">
               {adminDarkMode ? "Light Mode" : "Dark Mode"}
               <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#1B5E20] rotate-45" />
             </div>
@@ -243,41 +261,58 @@ export default function AdminSidebar({
         </div>
 
         {!isCollapsed && (
-          <div className="mb-4 p-3 bg-gray-50 dark:bg-[#1f2937] rounded-xl border border-gray-100 dark:border-gray-800">
-             <div className="flex items-center gap-1.5 mb-2">
-                <span className="text-yellow-500">⚡</span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-gray-800 dark:text-gray-200">Workflows Active</span>
-             </div>
-             <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-[10px] font-bold text-gray-500">
-                   <span>Quality Check:</span>
-                   <span className="text-green-600">✅ Ready</span>
+          <div className="p-2 mt-[2px] bg-gray-50 dark:bg-[#1f2937] rounded-lg border border-gray-100 dark:border-gray-800">
+             <button 
+                onClick={() => setWorkflowsCollapsed(!workflowsCollapsed)}
+                className="w-full flex items-center justify-between outline-none"
+             >
+                <div className="flex items-center gap-1.5">
+                   <span className="text-yellow-500 text-[10px]">⚡</span>
+                   <span className="text-[10px] font-black uppercase tracking-widest text-gray-800 dark:text-gray-200">Workflows Active</span>
                 </div>
-                <div className="flex items-center justify-between text-[10px] font-bold text-gray-500">
-                   <span>Lead Follow-up:</span>
-                   <span className="text-green-600">✅ Active</span>
-                </div>
-                <div className="flex items-center justify-between text-[10px] font-bold text-gray-500">
-                   <span>Price Alerts:</span>
-                   <span className="text-green-600">✅ Ready</span>
-                </div>
-                <div className="flex items-center justify-between text-[10px] font-bold text-gray-500">
-                   <span>Expiry Check:</span>
-                   <span className="text-blue-500">🔄 Running</span>
-                </div>
-             </div>
+                {workflowsCollapsed ? <ChevronDown size={14} className="text-gray-400"/> : <ChevronUp size={14} className="text-gray-400"/>}
+             </button>
+             
+             <AnimatePresence>
+                {!workflowsCollapsed && (
+                   <motion.div 
+                      className="space-y-1 mt-2 overflow-hidden"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                   >
+                      <div className="flex items-center justify-between text-[10px] h-[16px] font-bold text-gray-500">
+                         <span>Quality Check:</span>
+                         <span className="text-green-600">✅ Ready</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] h-[16px] font-bold text-gray-500">
+                         <span>Lead Follow-up:</span>
+                         <span className="text-green-600">✅ Active</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] h-[16px] font-bold text-gray-500">
+                         <span>Price Alerts:</span>
+                         <span className="text-green-600">✅ Ready</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] h-[16px] font-bold text-gray-500">
+                         <span>Expiry Check:</span>
+                         <span className="text-blue-500">🔄 Running</span>
+                      </div>
+                   </motion.div>
+                )}
+             </AnimatePresence>
           </div>
         )}
 
-        <div className="relative group/out">
+        <div className="relative group/out mt-[2px]">
           <button
             onClick={onLogout}
-            className={`w-full flex items-center py-3 text-admin-text-gray hover:text-red-600 font-bold text-sm transition-colors ${
-              isCollapsed ? "justify-center px-0" : "gap-3 px-4"
+            className={`w-full h-[32px] flex items-center text-admin-text-gray hover:text-red-600 font-bold transition-colors ${
+              isCollapsed ? "justify-center px-0" : "gap-2 px-3 text-[12px]"
             }`}
           >
             <LogOut
-              size={18}
+              size={16}
               className="text-gray-400 group-hover/out:text-red-600 transition-colors"
             />
             {!isCollapsed && (
@@ -285,20 +320,16 @@ export default function AdminSidebar({
             )}
           </button>
           {isCollapsed && (
-            <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg opacity-0 invisible group-hover/out:opacity-100 group-hover/out:visible transition-all whitespace-nowrap z-[60] shadow-lg">
+            <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-red-600 text-white text-[11px] font-bold rounded-lg opacity-0 invisible group-hover/out:opacity-100 group-hover/out:visible transition-all whitespace-nowrap z-[60] shadow-lg">
               Sign Out
               <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-red-600 rotate-45" />
             </div>
           )}
         </div>
-
+        
         {!isCollapsed && (
-          <div className="pt-4 border-t border-admin-border flex justify-center opacity-100 transition-opacity duration-300">
-            <img
-              src="https://qsqqolvsndvkwegvcfqv.supabase.co/storage/v1/object/sign/assets/Website%20logo%20.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MWNhMTU1MC03OGYzLTQwZGMtYTYzYi02NzVmZTRiYjM2NWMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhc3NldHMvV2Vic2l0ZSBsb2dvIC5wbmciLCJpYXQiOjE3NzgzMDk4MjksImV4cCI6MTkzNTk4OTgyOX0.LqwS9LCGK4UH1oL4YQHkiJdrNNgYGh-8CZtZBgrTO-s"
-              alt="Logo"
-              className="h-8 opacity-50 grayscale hover:grayscale-0 transition-all cursor-pointer"
-            />
+          <div className="pt-2 flex justify-center opacity-100 transition-opacity duration-300">
+             {/* Removed logo taking up space */}
           </div>
         )}
       </div>

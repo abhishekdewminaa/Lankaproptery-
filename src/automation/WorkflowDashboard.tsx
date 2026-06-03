@@ -57,11 +57,11 @@ export function WorkflowDashboard({ onNew, onEdit, highlightId }: { onNew: () =>
   };
 
   return (
-    <div className="flex-1 overflow-y-auto bg-gray-50 p-6 lg:p-8 flex gap-8">
+    <div className="flex-1 overflow-y-auto bg-white p-6 lg:p-8 flex gap-8">
       {/* Sidebar - Folders */}
       <div className="w-64 flex-shrink-0 flex flex-col gap-2">
         <h3 className="text-gray-500 font-bold text-xs uppercase tracking-widest px-3 mb-2">Folders</h3>
-        <button className="flex items-center gap-3 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium w-full">
+        <button className="flex items-center gap-3 px-3 py-2 bg-[#1B5E20]/10 text-[#1B5E20] rounded-lg text-sm font-medium w-full">
           <Folder size={16} /> All Workflows ({workflows.length})
         </button>
         <button className="flex items-center gap-3 px-3 py-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 rounded-lg text-sm font-medium w-full transition-colors">
@@ -85,7 +85,7 @@ export function WorkflowDashboard({ onNew, onEdit, highlightId }: { onNew: () =>
         {/* Top Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-2xl p-5 border border-gray-200">
-            <div className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-1 flex items-center gap-2"><Zap size={14} className="text-blue-500"/> Active</div>
+            <div className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-1 flex items-center gap-2"><Zap size={14} className="text-[#1B5E20]"/> Active</div>
             <div className="text-3xl font-black text-gray-900">{stats.active}</div>
             <div className="text-gray-500 text-xs mt-1">workflows</div>
           </div>
@@ -111,15 +111,15 @@ export function WorkflowDashboard({ onNew, onEdit, highlightId }: { onNew: () =>
           <div className="flex items-center gap-4 flex-1 max-w-lg">
              <div className="relative flex-1">
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-                <input type="text" placeholder="Search workflows..." className="w-full bg-white border border-gray-300 text-gray-900 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-blue-500" />
+                <input type="text" placeholder="Search workflows..." className="w-full bg-white border border-gray-300 text-gray-900 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-[#1B5E20]" />
              </div>
-             <select className="bg-white border border-gray-300 text-gray-900 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
+             <select className="bg-white border border-gray-300 text-gray-900 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1B5E20]">
                <option>All Status</option>
                <option>Active</option>
                <option>Paused</option>
              </select>
           </div>
-          <button onClick={onNew} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors shadow-sm shadow-blue-500/20">
+          <button onClick={onNew} className="flex items-center gap-2 px-5 py-2.5 bg-[#1B5E20] text-white rounded-xl font-bold text-sm hover:bg-[#154618] transition-colors shadow-sm shadow-[#1B5E20]/20">
             <Plus size={16} /> New Workflow
           </button>
         </div>

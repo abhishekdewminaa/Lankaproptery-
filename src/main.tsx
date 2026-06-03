@@ -9,9 +9,22 @@ import './index.css';
 try {
   const nativeFetch = window.fetch;
   if (nativeFetch) {
-    // If someone tries to re-define fetch, we want to catch it or ignore it
-    // Note: We can't actually change a read-only property, but we can prevent some scripts from blowing up
-    // by ensuring globalThis has it and maybe any local variables that look for it.
+    const desc = Object.getOwnPropertyDescriptor(window, 'fetch');
+    if (desc && desc.configurable && !desc.set) {
+      Object.defineProperty(window, 'fetch', {
+        get: () => nativeFetch,
+        set: (val) => { console.warn("Prevented window.fetch override"); },
+        configurable: true
+      });
+    }
+    const globalDesc = Object.getOwnPropertyDescriptor(globalThis, 'fetch');
+    if (globalDesc && globalDesc.configurable && !globalDesc.set) {
+      Object.defineProperty(globalThis, 'fetch', {
+        get: () => nativeFetch,
+        set: (val) => { console.warn("Prevented globalThis.fetch override"); },
+        configurable: true
+      });
+    }
   }
 } catch (e) {
   // Suppress fetch guard initialization warning

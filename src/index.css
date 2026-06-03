@@ -474,3 +474,53 @@ button, a, .admin-card, .property-card, .quick-import-card, input, select, texta
   100% { box-shadow: 0 0 0 0 rgba(124,58,237,0); }
 }
 .social-btn { animation: socialPulse 2s infinite; }
+
+.admin-sidebar {
+  height: 100vh;
+  overflow: hidden;
+  display: flex !important;
+  flex-direction: column;
+  padding: 12px 0 0 0;
+}
+
+.sidebar-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.sidebar-nav-item {
+  height: 36px;
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sidebar-bottom {
+  flex-shrink: 0;
+  padding: 8px 12px;
+}
+
+.sidebar-avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 14px;
+}
+
+.sidebar-username {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sidebar-role {
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
