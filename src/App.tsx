@@ -1213,128 +1213,217 @@ const Sidebar = ({ onOpenCalculator, onShowPackages }: { onOpenCalculator: () =>
   </aside>
 );
 
-const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, onShowPromotion, onShowWanted, onShowSecretLogin }: { onNavigateHome: () => void, onShowContact: () => void, onShowAbout: () => void, onShowPackages: () => void, onShowPromotion: () => void, onShowWanted: () => void, onShowSecretLogin: () => void }) => (
-  <footer className="bg-gradient-to-br from-[#004F31] to-[#002618] text-gray-300 pt-20 pb-10">
-    <div className="container mx-auto px-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-        <div className="space-y-8">
-          <div className="flex items-center cursor-pointer" onClick={(e) => { e.preventDefault(); onNavigateHome(); }}>
-            <a href="/" onClick={(e) => e.preventDefault()}>
-              <img 
-                src="https://qsqqolvsndvkwegvcfqv.supabase.co/storage/v1/object/sign/assets/Website%20logo%20.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MWNhMTU1MC03OGYzLTQwZGMtYTYzYi02NzVmZTRiYjM2NWMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhc3NldHMvV2Vic2l0ZSBsb2dvIC5wbmciLCJpYXQiOjE3NzgzMDk4MjksImV4cCI6MTkzNTk4OTgyOX0.LqwS9LCGK4UH1oL4YQHkiJdrNNgYGh-8CZtZBgrTO-s"
-                alt="LankaProperty.lk"
-                className="h-[65px] sm:h-[80px] dark:bg-white dark:px-[10px] dark:py-[4px] dark:rounded-[8px]"
-                style={{ 
-                  width: 'auto',
-                  objectFit: 'contain'
-                }}
-                onError={(e: any) => {
-                 e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80';
-                }}
-              />
-            </a>
+const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, onShowPromotion, onShowWanted, onShowSecretLogin }: { onNavigateHome: () => void, onShowContact: () => void, onShowAbout: () => void, onShowPackages: () => void, onShowPromotion: () => void, onShowWanted: () => void, onShowSecretLogin: () => void }) => {
+  const [subscribed, setSubscribed] = useState(false);
+
+  return (
+    <footer className="bg-[linear-gradient(135deg,#0a2010_0%,#0d2d18_50%,#0a1f0e_100%)] border-t border-[#10B981]/30 text-white/65 font-sans overflow-hidden">
+      
+      {/* Newsletter Subscribe Bar */}
+      <div className="border-b border-white/10 px-5 md:px-[80px] py-12 md:py-16 bg-white/[0.02]">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 bg-white/5 p-8 md:p-12 rounded-[24px] border border-white/5 shadow-2xl">
+          <div className="space-y-2">
+            <h3 className="text-white font-bold text-xl md:text-2xl flex items-center gap-2">
+              <span className="text-2xl">📧</span> Stay updated with the latest properties!
+            </h3>
+            <p className="text-white/65 font-medium ml-1">Get new listings straight to your inbox</p>
           </div>
-          <p className="text-lg font-medium text-gray-400 leading-relaxed max-w-sm">
-            Sri Lanka's premier real estate marketplace. Connecting buyers, sellers, and renters with the most trusted properties and agents across the island.
-          </p>
-          <div className="flex gap-4">
-            {[
-              { icon: Facebook, url: "https://facebook.com" },
-              { icon: Twitter, url: "https://twitter.com" },
-              { icon: Instagram, url: "https://www.instagram.com/lankapropertylk/" },
-              { icon: Linkedin, url: "https://linkedin.com" },
-              { icon: Youtube, url: "https://youtube.com" }
-            ].map((item, i) => {
-              const Icon = item.icon;
-              return (
-                <motion.a 
-                  key={i} 
-                  href={item.url} 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  whileHover={{ 
-                    y: -5,
-                    backgroundColor: "rgba(255,255,255,0.1)",
-                    borderColor: "rgba(255,255,255,0.3)"
-                  }}
-                  className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all"
-                >
-                  <Icon size={18} />
-                </motion.a>
-              );
-            })}
-          </div>
-        </div>
-
-        <div>
-          <h4 className="text-white font-bold mb-6 uppercase text-sm tracking-widest">Quick Links</h4>
-          <ul className="space-y-4 text-base font-medium">
-            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowAbout(); }} className="hover:text-white compact-transition">About</a></li>
-            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowWanted(); }} className="hover:text-white compact-transition">Property Wanted</a></li>
-            <li><a href="#" onClick={(e) => { e.preventDefault(); onShowContact(); }} className="hover:text-white compact-transition">Contact Support</a></li>
-            <li><a href="#" className="hover:text-white compact-transition">Terms of Service</a></li>
-            <li><a href="#" className="hover:text-white compact-transition">Privacy Policy</a></li>
-            <li><a href="#" className="hover:text-white compact-transition">Sitemap</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="text-white font-bold mb-6 uppercase text-sm tracking-widest">Popular Areas</h4>
-          <ul className="space-y-4 text-base font-medium">
-            {["Colombo Real Estate", "Kandy Properties", "Galle Villas", "Negombo Land", "Kurunegala Homes", "Kalutara Estates"].map(item => (
-              <li key={item}><a href="#" className="hover:text-white compact-transition">{item}</a></li>
-            ))}
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="text-white font-bold mb-6 uppercase text-sm tracking-widest">Newsletter</h4>
-          <p className="text-base font-medium mb-6 leading-relaxed text-white">Subscribe to receive the latest property market insights and deals.</p>
-          <div className="relative">
+          <div className="flex w-full md:w-auto h-14 shadow-lg shadow-black/20 rounded-xl overflow-hidden">
             <input 
-              type="email" 
-              placeholder="Your email address" 
-              className="w-full bg-white border border-white/10 rounded-xl px-4 py-4 text-base text-[#002618] placeholder:text-gray-400 focus:outline-none focus:border-[#004F31] compact-transition"
+              type="email"
+              placeholder="Enter your email address..."
+              className="bg-white/5 border border-white/20 border-r-0 rounded-l-xl px-6 h-full text-white placeholder:text-white/40 focus:outline-none focus:bg-white/10 w-full md:w-[320px] transition-colors"
             />
-            <button className="absolute right-2 top-2 bottom-2 px-6 bg-primary text-white rounded-lg text-sm font-bold hover:bg-brand-red compact-transition">
-              Join
-            </button>
-          </div>
-          <div 
-            onClick={() => onShowPromotion()}
-            className="flex items-center gap-3 mt-6 text-xs bg-white border-2 border-brand-green/20 p-4 rounded-xl text-[#004F31] font-black cursor-pointer hover:bg-brand-green hover:text-white transition-all shadow-lg active:scale-95"
-          >
-            <Percent size={16} className="animate-bounce" />
-            <span className="uppercase tracking-widest">Get 10% off your first ad listing!</span>
+            {subscribed ? (
+              <button disabled className="bg-[#10B981] text-white px-8 h-full rounded-r-xl font-bold flex items-center gap-2 transition-all">
+                <Check size={20} /> Subscribed!
+              </button>
+            ) : (
+              <button 
+                onClick={() => setSubscribed(true)} 
+                className="bg-[#10B981] hover:bg-white hover:text-[#10B981] text-white px-8 h-full rounded-r-xl font-bold transition-colors whitespace-nowrap"
+              >
+                Subscribe &rarr;
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-        <div className="flex flex-col gap-2">
-          <div className="text-[11px] font-bold text-white tracking-wider">
-            &copy; 2026 LANKAPROPERTY.LK. ALL RIGHTS RESERVED. DESIGNED FOR EXCELLENCE.
+      {/* Main Footer - 4 Columns */}
+      <div className="px-5 md:px-[80px] py-[64px]">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[48px]">
+          
+          {/* Column 1 - About */}
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-[#10B981] text-2xl font-black tracking-tight mb-1">LankaProperty.lk</h2>
+              <p className="text-white text-sm font-bold opacity-90">Sri Lanka's Most Trusted Property Marketplace</p>
+            </div>
+            <p className="text-sm leading-relaxed font-medium">
+              Find your dream property across Sri Lanka.<br />Buy, sell or rent houses, lands, apartments<br />and commercial properties with ease.
+            </p>
+            <div className="flex gap-3">
+              {[Facebook, Instagram, Twitter, Youtube].map((Icon, idx) => (
+                <a key={idx} href="#" className="w-[36px] h-[36px] rounded-full bg-white/[0.08] flex items-center justify-center text-white hover:bg-[#10B981] hover:scale-110 hover:shadow-lg hover:shadow-[#10B981]/50 transition-all duration-300">
+                  <Icon size={16} />
+                </a>
+              ))}
+            </div>
+            <div className="flex gap-3 pt-2">
+               <button className="flex items-center justify-center gap-2 bg-white/5 hover:bg-[#10B981] rounded-full py-2.5 px-4 text-white text-xs font-bold transition-all w-fit border border-white/10 hover:border-transparent">
+                 🍎 App Store
+               </button>
+               <button className="flex items-center justify-center gap-2 bg-white/5 hover:bg-[#10B981] rounded-full py-2.5 px-4 text-white text-xs font-bold transition-all w-fit border border-white/10 hover:border-transparent">
+                 ▶ Google Play
+               </button>
+            </div>
+            <div className="flex gap-3 pt-2 mt-2">
+               <button onClick={(e) => { e.preventDefault(); onShowSecretLogin(); }} className="flex items-center justify-center gap-2 bg-white/5 hover:bg-[#10B981] rounded-full py-2.5 px-4 text-white text-xs font-bold transition-all w-fit border border-white/10 hover:border-transparent">
+                 <HomeIcon size={16} /> Admin Portal
+               </button>
+            </div>
           </div>
+
+          {/* Column 2 - Property Types */}
           <div>
-            <button onClick={onShowSecretLogin} className="text-white hover:text-white transition-colors p-2 bg-white/10 rounded-lg text-xs" title="Admin Access">
-              <HomeIcon size={18} />
-            </button>
+            <div className="mb-6 relative">
+              <h3 className="text-white font-bold text-[15px]">Property Types</h3>
+              <motion.div 
+                initial={{ width: 0 }}
+                whileInView={{ width: 32 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, ease: "easeOut", delay: 0.1 }}
+                className="h-[2px] bg-[#10B981] mt-2 rounded-full" 
+              />
+            </div>
+            <ul className="space-y-3.5 font-medium text-sm">
+              {[
+                "Houses for Sale",
+                "Land for Sale",
+                "Apartments for Sale",
+                "Houses for Rent",
+                "Commercial Properties",
+                "Hotels & Guest Houses",
+                "Wanted Properties"
+              ].map((link, idx) => (
+                <li key={idx}>
+                  <a href="#" className="flex items-center group text-white/65 hover:text-[#10B981] transition-all duration-200">
+                    <span className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200 mr-2 font-bold">&rarr;</span>
+                    <span className="group-hover:translate-x-1 transition-transform duration-200 block">{link}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
+
+          {/* Column 3 - Quick Links */}
+          <div>
+            <div className="mb-6 relative">
+              <h3 className="text-white font-bold text-[15px]">Quick Links</h3>
+              <motion.div 
+                initial={{ width: 0 }}
+                whileInView={{ width: 32 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, ease: "easeOut", delay: 0.2 }}
+                className="h-[2px] bg-[#10B981] mt-2 rounded-full" 
+              />
+            </div>
+            <ul className="space-y-3.5 font-medium text-sm">
+              {[
+                { name: "Home", action: onNavigateHome },
+                { name: "Advertised Packages", action: onShowPackages },
+                { name: "Find an Agent", action: onShowContact },
+                { name: "Post a Property", action: () => {} },
+                { name: "Projects", action: () => {} },
+                { name: "Feedback", action: onShowContact },
+                { name: "Admin Portal", action: onShowSecretLogin },
+                { name: "Privacy Policy", action: () => {} },
+                { name: "Terms & Conditions", action: () => {} }
+              ].map((link, idx) => (
+                <li key={idx}>
+                  <a href="#" onClick={(e) => { e.preventDefault(); link.action(); }} className="flex items-center group text-white/65 hover:text-[#10B981] transition-all duration-200">
+                    <span className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200 mr-2 font-bold">&rarr;</span>
+                    <span className="group-hover:translate-x-1 transition-transform duration-200 block">{link.name}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Column 4 - Contact Us */}
+          <div>
+            <div className="mb-6 relative">
+              <h3 className="text-white font-bold text-[15px]">Contact Us</h3>
+              <motion.div 
+                initial={{ width: 0 }}
+                whileInView={{ width: 32 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, ease: "easeOut", delay: 0.3 }}
+                className="h-[2px] bg-[#10B981] mt-2 rounded-full" 
+              />
+            </div>
+            <div className="space-y-4 text-sm font-medium">
+              <div className="flex items-start gap-3 group">
+                <MapPin size={18} className="text-[#10B981] shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                <p>No. 59/3/7, Indigolla Yakkala Road,<br/>Gampaha, Sri Lanka.</p>
+              </div>
+              <div className="flex items-center gap-3 group">
+                <Phone size={18} className="text-[#10B981] shrink-0 group-hover:scale-110 transition-transform" />
+                <p>+94 33 222 96 95</p>
+              </div>
+              <div className="flex items-center gap-3 group">
+                <Printer size={18} className="text-[#10B981] shrink-0 group-hover:scale-110 transition-transform" />
+                <p>+94 33 222 96 95 (Fax)</p>
+              </div>
+              <div className="flex items-center gap-3 group">
+                <Mail size={18} className="text-[#10B981] shrink-0 group-hover:scale-110 transition-transform" />
+                <p>info@lankaproperty.lk</p>
+              </div>
+              <div className="flex items-center gap-3 group">
+                <Globe size={18} className="text-[#10B981] shrink-0 group-hover:scale-110 transition-transform" />
+                <p>www.lankaproperty.lk</p>
+              </div>
+              
+              <div className="pt-4 border-t border-white/10 space-y-3 mt-2">
+                <p className="text-white font-bold mb-2 pt-1 flex items-center gap-2">
+                  <Clock size={16} className="text-[#10B981]" /> Office Hours:
+                </p>
+                <div className="flex items-center gap-3 text-white/50">
+                  <p>Mon–Fri: <span className="text-white/80">9:00 AM – 6:00 PM</span></p>
+                </div>
+                <div className="flex items-center gap-3 text-white/50">
+                  <p>Sat: <span className="text-white/80">9:00 AM – 1:00 PM</span></p>
+                </div>
+                <div className="flex items-center gap-3 text-white/50">
+                  <p>Sun: <span className="text-[#10B981]">Closed</span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
-        <div className="flex gap-8 items-center">
-          <div className="flex items-center gap-2 text-sm font-bold text-white group cursor-pointer">
-            <div className="w-2 h-2 bg-secondary rounded-full animate-pulse shadow-[0_0_8px_#558B2F]" />
-            <span className="group-hover:text-secondary compact-transition">Platform Status: Online</span>
+      </div>
+
+      {/* Bottom Copyright Bar */}
+      <div className="px-5 md:px-[80px] py-[24px] border-t border-white/10 bg-black/30">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-[13px] font-medium">
+          <p className="flex items-center gap-2">
+            &copy; 2026 LankaProperty.lk — All Rights Reserved.
+            <button onClick={onShowSecretLogin} className="text-white/30 hover:text-[#10B981] hover:bg-white/10 rounded ml-2 p-1 transition-all">
+              <HomeIcon size={14} />
+            </button>
+          </p>
+          <div className="flex gap-6">
+            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-white transition-colors">Advertise With Us</a>
           </div>
         </div>
       </div>
-    </div>
-  </footer>
-);
+    </footer>
+  );
+};
 
 const MortgageCalculatorModal = ({ isOpen, onClose, initialAmount = 10000000 }: { isOpen: boolean, onClose: () => void, initialAmount?: number }) => {
   const [loanAmount, setLoanAmount] = useState(initialAmount);
@@ -10054,7 +10143,19 @@ function App() {
 </AnimatePresence>
 
       {!['secret_login', 'agent_access', 'agent_publish', 'agent_listings', 'agent_only_listings', 'featured_projects_admin', 'inquiries'].includes(currentView.type) && (
-        <></>
+        <Footer 
+          onNavigateHome={navigateHome} 
+          onShowContact={() => setCurrentView({ type: 'contact' })} 
+          onShowAbout={() => setCurrentView({ type: 'about' })} 
+          onShowPackages={() => setCurrentView({ type: 'packages' })} 
+          onShowPromotion={() => setCurrentView({ type: 'promotion' })}
+          onShowWanted={() => setCurrentView({ type: 'wanted' })}
+          onShowSecretLogin={() => {
+            window.history.pushState({}, '', '/admin-lk2026');
+            setCurrentView({ type: 'secret_login' });
+            window.scrollTo({ top: 0, behavior: 'instant' });
+          }}
+        />
       )}
 
       <MortgageCalculatorModal 
