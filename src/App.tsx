@@ -9,7 +9,6 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Navbar } from "./components/home/Navbar";
 import { Feedback } from "./components/Feedback";
-import FloatingActions from "./components/FloatingActions";
 import { triggerNotification } from "./services/notificationService";
 import { NotificationSettings } from "./components/NotificationSettings";
 
@@ -144,6 +143,7 @@ import { Toaster, toast } from 'react-hot-toast';
 
 import { translateDescription } from "./services/geminiService";
 import PropertyWanted from "./components/PropertyWanted";
+import { WhatsAppFAB } from "./components/WhatsAppFAB";
 import CustomerInquiries from "./components/CustomerInquiries";
 import LiveVisitorTracking from "./components/LiveVisitorTracking";
 import { HomeRedesign } from "./components/home/HomeRedesign";
@@ -3061,8 +3061,13 @@ const PricingPackages = ({ onBack, onGetStarted }: { onBack: () => void, onGetSt
 
             <button
               onClick={() => {
-                const message = `Hello, I am interested in the ${pkg.name}. Please provide more details.`;
-                window.open(`https://wa.me/94773951560?text=${encodeURIComponent(message)}`, '_blank');
+                let text = "";
+                if (pkg.name === "GOLD PACKAGE") text = "Hi LankaProperty.lk! 👋 I'm interested in the GOLD PACKAGE (Rs. 15,000 / 12 Months). Please help me list my property.";
+                else if (pkg.name === "PLATINUM PACKAGE") text = "Hi LankaProperty.lk! 👋 I'm interested in the PLATINUM PACKAGE (Rs. 25,000 / Until Sold). Please help me list my property.";
+                else if (pkg.name === "DIAMOND PACKAGE") text = "Hi LankaProperty.lk! 👋 I'm interested in the DIAMOND PACKAGE (Rs. 45,000 / Until Sold). Please help me list my property.";
+                
+                const msg = encodeURIComponent(text);
+                window.open(`https://wa.me/94332229695?text=${msg}`, '_blank');
               }}
               className={`w-full py-4 rounded-xl font-black text-[11px] tracking-[0.15em] uppercase compact-transition border-2 ${
                 pkg.buttonVariant === 'outline' ? 'border-brand-green text-brand-green hover:bg-brand-green hover:text-white' :
@@ -3120,7 +3125,15 @@ const PricingPackages = ({ onBack, onGetStarted }: { onBack: () => void, onGetSt
             </div>
 
             <button
-              onClick={() => onGetStarted(pkg.name)}
+              onClick={() => {
+                let text = "";
+                if (pkg.name === "STARTER FREE") text = "Hi LankaProperty.lk! 👋 I'd like to start with the FREE LISTING package. Please help me post my property.";
+                else if (pkg.name === "PREMIUM PRO") text = "Hi LankaProperty.lk! 👋 I'm interested in the PREMIUM PRO package (Rs. 4,500 / 2 Months). Please help me list my property.";
+                else if (pkg.name === "ELITE PRO") text = "Hi LankaProperty.lk! 👋 I'm interested in the ELITE PRO package (Rs. 8,500 / 3 Months). Please help me list my property.";
+                
+                const msg = encodeURIComponent(text);
+                window.open(`https://wa.me/94332229695?text=${msg}`, '_blank');
+              }}
               className={`w-full py-4 rounded-xl font-black text-[11px] tracking-[0.15em] uppercase compact-transition border-2 ${
                 pkg.buttonVariant === 'solid-red' ? 'bg-[#C1272D] border-[#C1272D] text-white hover:bg-red-700 shadow-xl shadow-red-900/20' :
                 pkg.buttonVariant === 'solid-black' ? 'bg-dark-navy border-dark-navy text-white hover:bg-black shadow-xl shadow-black/20' :
@@ -9946,11 +9959,9 @@ function App() {
         )}
 
         {currentView.type === 'packages' && (
-          <AdvertisingPackagesView 
-            onGetStarted={() => {
-              if (user) setCurrentView({ type: 'publish' });
-              else setCurrentView({ type: 'auth', data: 'signup' });
-            }}
+          <PricingPackages 
+            onBack={navigateHome}
+            onGetStarted={() => {}}
           />
         )}
 
@@ -10010,18 +10021,7 @@ function App() {
           />
         )}
 
-        {currentView.type === 'packages' && (
-          <PricingPackages 
-            onBack={navigateHome} 
-            onGetStarted={(pkgName) => {
-              if (user) {
-                setCurrentView({ type: 'publish', data: { packageTier: pkgName } });
-              } else {
-                setCurrentView({ type: 'auth', data: { target: 'publish', packageTier: pkgName } });
-              }
-            }} 
-          />
-        )}
+
 
         {currentView.type === 'auth' && (
           <AuthPage 
@@ -10143,19 +10143,23 @@ function App() {
 </AnimatePresence>
 
       {!['secret_login', 'agent_access', 'agent_publish', 'agent_listings', 'agent_only_listings', 'featured_projects_admin', 'inquiries'].includes(currentView.type) && (
-        <Footer 
-          onNavigateHome={navigateHome} 
-          onShowContact={() => setCurrentView({ type: 'contact' })} 
-          onShowAbout={() => setCurrentView({ type: 'about' })} 
-          onShowPackages={() => setCurrentView({ type: 'packages' })} 
-          onShowPromotion={() => setCurrentView({ type: 'promotion' })}
-          onShowWanted={() => setCurrentView({ type: 'wanted' })}
-          onShowSecretLogin={() => {
-            window.history.pushState({}, '', '/admin-lk2026');
-            setCurrentView({ type: 'secret_login' });
-            window.scrollTo({ top: 0, behavior: 'instant' });
-          }}
-        />
+        <>
+          <WhatsAppFAB />
+          <Footer 
+            onNavigateHome={navigateHome} 
+
+            onShowContact={() => setCurrentView({ type: 'contact' })} 
+            onShowAbout={() => setCurrentView({ type: 'about' })} 
+            onShowPackages={() => setCurrentView({ type: 'packages' })} 
+            onShowPromotion={() => setCurrentView({ type: 'promotion' })}
+            onShowWanted={() => setCurrentView({ type: 'wanted' })}
+            onShowSecretLogin={() => {
+              window.history.pushState({}, '', '/admin-lk2026');
+              setCurrentView({ type: 'secret_login' });
+              window.scrollTo({ top: 0, behavior: 'instant' });
+            }}
+          />
+        </>
       )}
 
       <MortgageCalculatorModal 
@@ -10186,11 +10190,7 @@ function App() {
 
 
 
-      <FloatingActions 
-        onOpenChat={() => setIsChatOpen(true)}
-        onStartVoice={() => setIsVoiceListening(true)}
-        voiceStatus={voiceStatus}
-      />
+
 
       <VoiceCommandPanel 
         isForceListening={isVoiceListening}
