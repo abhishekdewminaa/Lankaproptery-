@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Hero } from './Hero';
 import { CategoryIcons } from './CategoryIcons';
 import { FeaturedProperties } from './FeaturedProperties';
@@ -9,6 +9,7 @@ import { PriceCalculator } from './PriceCalculator';
 import { TrustedPartners } from './TrustedPartners';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowUp } from 'lucide-react';
+import Lenis from 'lenis';
 
 interface HomeRedesignProps {
   propertyCount: number;
@@ -26,21 +27,40 @@ export const HomeRedesign: React.FC<HomeRedesignProps> = ({
   onAdminAccess
 }) => {
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Initialize Lenis smooth scrolling
+    const lenis = new Lenis({
+      autoRaf: true,
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    });
+
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 300);
     };
+    
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      lenis.destroy();
+    };
   }, []);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const fadeInUpOptions = {
+    initial: { opacity: 0, y: 50 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, margin: "-50px" },
+    transition: { duration: 0.6, ease: "easeOut" }
+  };
+
   return (
-    <div className="flex flex-col min-h-screen bg-brand-sage overflow-x-hidden">
+    <div className="flex flex-col min-h-screen bg-brand-sage overflow-x-hidden" ref={containerRef}>
       <main>
         <Hero 
           propertyCount={propertyCount} 
@@ -48,27 +68,39 @@ export const HomeRedesign: React.FC<HomeRedesignProps> = ({
           onNavigate={onNavigate}
         />
         
-        <CategoryIcons onNavigate={onNavigate} />
+        <motion.div {...fadeInUpOptions}>
+          <CategoryIcons onNavigate={onNavigate} />
+        </motion.div>
         
-        <FeaturedProperties 
-          properties={featuredProperties} 
-          onNavigate={onNavigate}
-        />
+        <motion.div {...fadeInUpOptions}>
+          <FeaturedProperties 
+            properties={featuredProperties} 
+            onNavigate={onNavigate}
+          />
+        </motion.div>
         
-        <div className="container mx-auto px-6 py-6 max-w-7xl">
+        <motion.div {...fadeInUpOptions} className="container mx-auto px-6 py-6 max-w-7xl">
           <LatestAdvertisements limit={8} onNavigate={onNavigate} />
-        </div>
+        </motion.div>
         
-        <Testimonials />
+        <motion.div {...fadeInUpOptions}>
+          <Testimonials />
+        </motion.div>
         
-        <RecentListings 
-          onNavigate={onNavigate}
-          properties={featuredProperties}
-        />
+        <motion.div {...fadeInUpOptions}>
+          <RecentListings 
+            onNavigate={onNavigate}
+            properties={featuredProperties}
+          />
+        </motion.div>
         
-        <PriceCalculator />
+        <motion.div {...fadeInUpOptions}>
+          <PriceCalculator />
+        </motion.div>
         
-        <TrustedPartners />
+        <motion.div {...fadeInUpOptions}>
+          <TrustedPartners />
+        </motion.div>
       </main>
 
       {/* Scroll to Top Button */}
