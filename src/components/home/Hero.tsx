@@ -16,17 +16,27 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
   const [aiQuery, setAiQuery] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [bilingualIndex, setBilingualIndex] = useState(0);
+  const [wordIndex, setWordIndex] = useState(0);
 
   const bilingualTexts = [
     "Call voice Assistant",
     "හඬ සහායකය අමතන්න (සිංහල)"
   ];
+  
+  const cycleWords = ["Perfect", "Dream", "Ideal", "Luxury", "Future"];
 
   useEffect(() => {
     const interval = setInterval(() => {
       setBilingualIndex((prev) => (prev === 0 ? 1 : 0));
     }, 3500);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const wordInterval = setInterval(() => {
+      setWordIndex((prev) => (prev + 1) % cycleWords.length);
+    }, 3000);
+    return () => clearInterval(wordInterval);
   }, []);
 
   const handleAISearch = async () => {
@@ -65,14 +75,29 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
           transition={{ duration: 0.6 }}
           className="text-4xl md:text-7xl font-bold text-white mb-4 drop-shadow-lg"
         >
-          Find Your Perfect Home <br className="hidden md:block" /> in Sri Lanka
+          Find Your{' '}
+          <div className="inline-grid [grid-template-columns:1fr] [grid-template-rows:1fr] align-baseline text-[#004F31] min-w-[150px] md:min-w-[280px] text-center">
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.span
+                key={wordIndex}
+                initial={{ opacity: 0, y: 40, rotateX: -90 }}
+                animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                exit={{ opacity: 0, y: -40, rotateX: 90 }}
+                transition={{ duration: 0.5, type: "spring", bounce: 0.3 }}
+                className="[grid-area:1/1] origin-center block whitespace-nowrap font-black tracking-tight"
+              >
+                {cycleWords[wordIndex]}
+              </motion.span>
+            </AnimatePresence>
+          </div>
+          {' '}Home <br className="hidden md:block" /> in Sri Lanka
         </motion.h1>
         
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="text-yellow-400 font-semibold tracking-widest text-sm md:text-base uppercase mb-12"
+          className="text-[#004F31] font-semibold tracking-widest text-sm md:text-base uppercase mb-12"
         >
           Sri Lanka's #1 Real Estate Marketplace
         </motion.p>
@@ -86,7 +111,7 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
         >
           {/* Row 1 - Type Tabs & AI Toggle */}
           <div className="flex flex-col lg:flex-row justify-between items-center mb-8 gap-6">
-            <div className="flex relative bg-[#004F31] p-1.5 rounded-2xl w-full lg:w-max shrink-0 shadow-inner overflow-hidden">
+            <div className="flex relative bg-gray-100 p-1.5 rounded-2xl w-full lg:w-max shrink-0 shadow-inner overflow-hidden">
               {[
                 { id: 'sale', label: '🏠 For Sale' },
                 { id: 'rent', label: '🔑 For Rent' }
@@ -98,14 +123,14 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
                     onClick={() => setActiveTab(tab.id as any)}
                     className={`relative z-10 flex-1 lg:flex-none px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap outline-none ${
                         isActive 
-                        ? 'text-[#004F31]' 
-                        : 'text-white/60 hover:text-white'
+                        ? 'text-[white]' 
+                        : 'text-dark-navy hover:text-[#004F31]'
                     }`}
                   >
                     {isActive && (
                       <motion.div
                         layoutId="activeTabHero"
-                        className="absolute inset-0 bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.2)]"
+                        className="absolute inset-0 bg-[#004F31] rounded-xl shadow-[0_4px_12px_rgba(0,79,49,0.3)]"
                         initial={false}
                         transition={{
                           duration: 0.3,

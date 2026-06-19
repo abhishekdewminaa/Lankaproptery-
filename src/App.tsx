@@ -1214,7 +1214,7 @@ const Sidebar = ({ onOpenCalculator, onShowPackages }: { onOpenCalculator: () =>
   </aside>
 );
 
-const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, onShowPromotion, onShowWanted, onShowSecretLogin }: { onNavigateHome: () => void, onShowContact: () => void, onShowAbout: () => void, onShowPackages: () => void, onShowPromotion: () => void, onShowWanted: () => void, onShowSecretLogin: () => void }) => {
+const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, onShowPromotion, onShowWanted, onShowSecretLogin, onPostProperty, onNavigateCategory, onFeedback }: { onNavigateHome: () => void, onShowContact: () => void, onShowAbout: () => void, onShowPackages: () => void, onShowPromotion: () => void, onShowWanted: () => void, onShowSecretLogin: () => void, onPostProperty: () => void, onNavigateCategory: (cat: string, mode: 'buy' | 'rent') => void, onFeedback: () => void }) => {
   const [subscribed, setSubscribed] = useState(false);
 
   return (
@@ -1300,19 +1300,19 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
             </div>
             <ul className="space-y-3.5 font-medium text-sm">
               {[
-                "Houses for Sale",
-                "Land for Sale",
-                "Apartments for Sale",
-                "Houses for Rent",
-                "Commercial Properties",
-                "Hotels & Guest Houses",
-                "Wanted Properties"
+                { name: "Houses for Sale", action: () => onNavigateCategory('House', 'buy') },
+                { name: "Land for Sale", action: () => onNavigateCategory('Land', 'buy') },
+                { name: "Apartments for Sale", action: () => onNavigateCategory('Apartment', 'buy') },
+                { name: "Houses for Rent", action: () => onNavigateCategory('House', 'rent') },
+                { name: "Commercial Properties", action: () => onNavigateCategory('Commercial', 'buy') },
+                { name: "Hotels & Guest Houses", action: () => onNavigateCategory('Hotel', 'buy') },
+                { name: "Wanted Properties", action: onShowWanted }
               ].map((link, idx) => (
                 <li key={idx}>
-                  <a href="#" className="flex items-center group text-white/65 hover:text-[#10B981] transition-all duration-200">
+                  <button onClick={link.action} className="flex items-center group text-white/65 hover:text-[#10B981] transition-all duration-200">
                     <span className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200 mr-2 font-bold">&rarr;</span>
-                    <span className="group-hover:translate-x-1 transition-transform duration-200 block">{link}</span>
-                  </a>
+                    <span className="group-hover:translate-x-1 transition-transform duration-200 block">{link.name}</span>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -1335,18 +1335,18 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
                 { name: "Home", action: onNavigateHome },
                 { name: "Advertised Packages", action: onShowPackages },
                 { name: "Find an Agent", action: onShowContact },
-                { name: "Post a Property", action: () => {} },
-                { name: "Projects", action: () => {} },
-                { name: "Feedback", action: onShowContact },
+                { name: "Post a Property", action: onPostProperty },
+                { name: "Projects", action: () => onNavigateCategory('Project', 'buy') },
+                { name: "Feedback", action: onFeedback },
                 { name: "Admin Portal", action: onShowSecretLogin },
                 { name: "Privacy Policy", action: () => {} },
                 { name: "Terms & Conditions", action: () => {} }
               ].map((link, idx) => (
                 <li key={idx}>
-                  <a href="#" onClick={(e) => { e.preventDefault(); link.action(); }} className="flex items-center group text-white/65 hover:text-[#10B981] transition-all duration-200">
+                  <button onClick={link.action} className="flex items-center group text-white/65 hover:text-[#10B981] transition-all duration-200">
                     <span className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200 mr-2 font-bold">&rarr;</span>
                     <span className="group-hover:translate-x-1 transition-transform duration-200 block">{link.name}</span>
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -10303,6 +10303,16 @@ function App() {
               setCurrentView({ type: 'secret_login' });
               window.scrollTo({ top: 0, behavior: 'instant' });
             }}
+            onPostProperty={() => {
+              window.history.pushState({}, '', '/sell');
+              setCurrentView({ type: 'sell' });
+              window.scrollTo({ top: 0, behavior: 'instant' });
+            }}
+            onNavigateCategory={(cat: string, mode: 'buy' | 'rent') => {
+              setCurrentView({ type: 'category', data: { category: cat, mode } });
+              window.scrollTo({ top: 0, behavior: 'instant' });
+            }}
+            onFeedback={() => setCurrentView({ type: 'feedback' })}
           />
         </>
       )}
