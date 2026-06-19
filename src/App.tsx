@@ -136,7 +136,9 @@ import {
   Edit,
   Save,
   EyeOff,
-  ShieldCheck
+  ShieldCheck,
+  Settings,
+  FileText
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell, PieChart, Pie } from 'recharts';
 
@@ -155,11 +157,13 @@ import { useProperties, Property } from "./hooks/useProperties";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { SkeletonList } from "./components/SkeletonCard";
 import { prefetchProperty } from "./lib/prefetch";
-import { safeStr, safeReplace, formatPriceLong, getFirstImageSafe, USD_RATE, EUR_RATE } from "./utils/safeUtils";
+import { safeStr, safeReplace, formatPriceLong, getFirstImageSafe, USD_RATE, EUR_RATE, updateRates, slugify } from "./utils/safeUtils";
 
 const AdminPortal = React.lazy(() => import('./components/admin/AdminPortal'));
 const CategoryPage = React.lazy(() => import('./components/CategoryPage').then(module => ({ default: module.CategoryPage })));
 const PropertyDetail = React.lazy(() => import('./components/PropertyDetail').then(module => ({ default: module.PropertyDetail })));
+const PublicBlog = React.lazy(() => import('./components/public/PublicBlog'));
+const PublicBlogPost = React.lazy(() => import('./components/public/PublicBlogPost'));
 
 const TopProgressBar = ({ loading }: { loading: boolean }) => {
   const [progress, setProgress] = useState(0);
@@ -1214,13 +1218,33 @@ const Sidebar = ({ onOpenCalculator, onShowPackages }: { onOpenCalculator: () =>
   </aside>
 );
 
-const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, onShowPromotion, onShowWanted, onShowSecretLogin, onPostProperty, onNavigateCategory, onFeedback }: { onNavigateHome: () => void, onShowContact: () => void, onShowAbout: () => void, onShowPackages: () => void, onShowPromotion: () => void, onShowWanted: () => void, onShowSecretLogin: () => void, onPostProperty: () => void, onNavigateCategory: (cat: string, mode: 'buy' | 'rent') => void, onFeedback: () => void }) => {
+const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, onShowPromotion, onShowWanted, onShowSecretLogin, onPostProperty, onNavigateCategory, onFeedback, onShowBlog, hideNewsletter }: { onNavigateHome: () => void, onShowContact: () => void, onShowAbout: () => void, onShowPackages: () => void, onShowPromotion: () => void, onShowWanted: () => void, onShowSecretLogin: () => void, onPostProperty: () => void, onNavigateCategory: (cat: string, mode: 'buy' | 'rent') => void, onFeedback: () => void, onShowBlog?: () => void, hideNewsletter?: boolean }) => {
   const [subscribed, setSubscribed] = useState(false);
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubscribe = async () => {
+    if (!email) return;
+    setIsSubmitting(true);
+    try {
+       await supabase.from('newsletter_subscribers').insert([{ email, source: 'Website Footer' }]);
+       setSubscribed(true);
+       toast.success("Subscribed successfully!");
+    } catch (e) {
+       console.error("Subscription failed", e);
+       // We still show subscribed to the user even if there's an error (like unique constraint)
+       // to avoid leaking what emails are subscribed
+       setSubscribed(true);
+    } finally {
+       setIsSubmitting(false);
+    }
+  };
 
   return (
     <footer className="bg-[linear-gradient(135deg,#0a2010_0%,#0d2d18_50%,#0a1f0e_100%)] border-t border-[#10B981]/30 text-white/65 font-sans overflow-hidden">
       
       {/* Newsletter Subscribe Bar */}
+      {!hideNewsletter && (
       <div className="border-b border-white/10 px-5 md:px-[80px] py-12 md:py-16 bg-white/[0.02]">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 bg-white/5 p-8 md:p-12 rounded-[24px] border border-white/5 shadow-2xl">
           <div className="space-y-2">
@@ -1229,9 +1253,11 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
             </h3>
             <p className="text-white/65 font-medium ml-1">Get new listings straight to your inbox</p>
           </div>
-          <div className="flex w-full md:w-auto h-14 shadow-lg shadow-black/20 rounded-xl overflow-hidden">
+          <div className="flex w-full md:w-auto h-14 shadow-lg shadow-black/20 rounded-xl overflow-hidden relative">
             <input 
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email address..."
               className="bg-white/5 border border-white/20 border-r-0 rounded-l-xl px-6 h-full text-white placeholder:text-white/40 focus:outline-none focus:bg-white/10 w-full md:w-[320px] transition-colors"
             />
@@ -1241,15 +1267,17 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
               </button>
             ) : (
               <button 
-                onClick={() => setSubscribed(true)} 
-                className="bg-[#10B981] hover:bg-white hover:text-[#10B981] text-white px-8 h-full rounded-r-xl font-bold transition-colors whitespace-nowrap"
+                onClick={handleSubscribe} 
+                disabled={isSubmitting || !email}
+                className="bg-[#10B981] disabled:opacity-50 hover:bg-white hover:text-[#10B981] text-white px-8 h-full rounded-r-xl font-bold transition-colors whitespace-nowrap"
               >
-                Subscribe &rarr;
+                {isSubmitting ? "Wait..." : "Subscribe \u2192"}
               </button>
             )}
           </div>
         </div>
       </div>
+      )}
 
       {/* Main Footer - 4 Columns */}
       <div className="px-5 md:px-[80px] py-[64px]">
@@ -1333,6 +1361,7 @@ const Footer = ({ onNavigateHome, onShowContact, onShowAbout, onShowPackages, on
             <ul className="space-y-3.5 font-medium text-sm">
               {[
                 { name: "Home", action: onNavigateHome },
+                { name: "Blog & Insights", action: onShowBlog || (() => {}) },
                 { name: "Advertised Packages", action: onShowPackages },
                 { name: "Find an Agent", action: onShowContact },
                 { name: "Post a Property", action: onPostProperty },
@@ -1539,16 +1568,17 @@ const ContactUs = ({ onBack, onAgentClick, initialData }: { onBack: () => void, 
       if (!supabase) throw new Error("Supabase not initialized");
       
       const { error } = await supabase
-        .from('property_inquiries')
+        .from('leads')
         .insert([{
-          full_name: fullName,
+          name: fullName,
           email,
           phone,
-          inquiry_type: inquiryType,
-          message,
-          created_at: new Date().toISOString(),
-          property_id: initialData?.propertyId || null,
-          agent_id: initialData?.agentId || null
+          message: `${inquiryType ? `[${inquiryType}] ` : ''}${message}`,
+          property_title: initialData?.propertyTitle || initialData?.title || null,
+          property_id: initialData?.propertyId || initialData?.id || null,
+          source: 'website',
+          stage: 'new',
+          created_at: new Date().toISOString()
         }]);
 
       if (error) throw error;
@@ -3299,8 +3329,12 @@ const AboutUs = ({ onBack, onNavigate }: { onBack: () => void, onNavigate?: (vie
   );
 };
 
-const AuthPage = ({ onBack, onLogin, initialMode = 'login', onForgotPassword, onVerifyEmailMessage }: { onBack: () => void, onLogin: (user: any) => void, initialMode?: 'login' | 'signup' | 'forgot_password', onForgotPassword?: () => void, onVerifyEmailMessage?: () => void }) => {
+const AuthPage = ({ onBack, onLogin, initialMode = 'login', onForgotPassword, onVerifyEmailMessage, onModeChange }: { onBack: () => void, onLogin: (user: any) => void, initialMode?: 'login' | 'signup' | 'forgot_password', onForgotPassword?: () => void, onVerifyEmailMessage?: () => void, onModeChange?: (mode: 'login' | 'signup' | 'forgot_password') => void }) => {
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot_password'>(initialMode);
+  
+  useEffect(() => {
+    if (onModeChange) onModeChange(mode);
+  }, [mode, onModeChange]);
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -5176,7 +5210,8 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
   const [hasPool, setHasPool] = useState(initialData?.has_pool ?? false);
   const [yearBuilt, setYearBuilt] = useState(initialData?.year_built?.toString() || "");
   const [furnishingStatus, setFurnishingStatus] = useState(initialData?.furnishing_status || "Unfurnished");
-  const [description, setDescription] = useState(initialData?.property_description || initialData?.description || "");
+const cleanDesc = (text: string) => text ? text.replace(/Welcome to (?:www\.)?lankaproperty\.lk\.?\s*The No\.?1 property sales website in Sri Lanka\.?/gi, "").trim() : "";
+  const [description, setDescription] = useState(cleanDesc(initialData?.property_description || initialData?.description || ""));
   const [additionalInfo, setAdditionalInfo] = useState(initialData?.additional_info || initialData?.additionalInfo || "");
   const [isNegotiable, setIsNegotiable] = useState(initialData?.is_negotiable ?? initialData?.isNegotiable ?? false);
   const [contacts, setContacts] = useState<{ type: 'Mobile' | 'Landline', number: string }[]>(
@@ -5192,6 +5227,65 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
       file: null
     }))
   );
+  
+  const [metaDesc, setMetaDesc] = useState('');
+  const [seoKeywords, setSeoKeywords] = useState('');
+  const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
+  const [isGeneratingSEO, setIsGeneratingSEO] = useState(false);
+  
+  const handleAIGenerateDesc = async () => {
+    setIsGeneratingDesc(true);
+    try {
+      const prompt = `Write a professional property listing description for a ${propertyType} ${listingType} in ${city}, Sri Lanka. Size: ${landArea} ${landUnit}. ${bedrooms} beds, ${bathrooms} baths. Price: Rs. ${price}. Keep it under 200 words. Return only text.`;
+      const apiKey = process.env.GEMINI_API_KEY || localStorage.getItem('gemini_api_key') || '';
+      const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=" + apiKey, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      });
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (text) {
+        setDescription(text.trim());
+        toast.success('✅ AI description generated!');
+      }
+    } catch(err) {
+      toast.error('Failed to generate description');
+    } finally {
+      setIsGeneratingDesc(false);
+    }
+  };
+
+  const handleAISEOTags = async () => {
+    setIsGeneratingSEO(true);
+    try {
+      const prompt = `Generate an SEO-optimized title, a 160-character meta description, and 5 relevant keywords for a ${propertyType} ${listingType} in ${city}, Sri Lanka. Beds: ${bedrooms}, Baths: ${bathrooms}, Price: Rs. ${price}.
+Return ONLY a valid JSON object in this exact format:
+{
+  "title": "SEO Title",
+  "description": "Meta description...",
+  "keywords": "keyword1, keyword2..."
+}`;
+      const apiKey = process.env.GEMINI_API_KEY || localStorage.getItem('gemini_api_key') || '';
+      const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=" + apiKey, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } })
+      });
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (text) {
+        const parsed = JSON.parse(text);
+        if (parsed.title) setTitle(parsed.title);
+        if (parsed.description) setMetaDesc(parsed.description);
+        if (parsed.keywords) setSeoKeywords(parsed.keywords);
+        toast.success('✅ AI SEO Tags generated!');
+      }
+    } catch(err) {
+      toast.error('Failed to generate SEO tags');
+    } finally {
+      setIsGeneratingSEO(false);
+    }
+  };
+
   const [locationLink, setLocationLink] = useState(initialData?.google_maps_link || initialData?.locationLink || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submitLock = useRef(false);
@@ -5350,7 +5444,7 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
       if (data.landArea) setLandArea(data.landArea);
       if (data.floorArea) setFloorArea(data.floorArea);
       if (data.floors) setFloors(data.floors);
-      if (data.rooms) setRooms(data.rooms);
+      if (data.rooms) setBedrooms(data.rooms);
       if (data.bathrooms) setBathrooms(data.bathrooms);
       if (data.isNegotiable !== undefined) setIsNegotiable(data.isNegotiable);
       if (data.additionalInfo) setAdditionalInfo(data.additionalInfo);
@@ -5378,12 +5472,9 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
   };
 
   const limit = 12;
-  const LKR_TO_USD = 1/310;
-  const LKR_TO_EUR = 1/335;
-
   const getEstimate = (val: string, rate: number) => {
     const num = parseFloat(val) || 0;
-    return (num * rate).toLocaleString(undefined, { maximumFractionDigits: 0 });
+    return (num / rate).toLocaleString(undefined, { maximumFractionDigits: 0 });
   };
 
   const handlePublish = async () => {
@@ -5568,8 +5659,14 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                         <option>Commercial</option>
                       </select>
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Listing Title</label>
+                    <div className="space-y-1.5 pt-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Listing Title</label>
+                        <button type="button" onClick={handleAISEOTags} disabled={isGeneratingSEO} className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50">
+                          {isGeneratingSEO ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                          AI SEO Tags
+                        </button>
+                      </div>
                       <input 
                         type="text" 
                         value={title}
@@ -5577,6 +5674,21 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                         placeholder="e.g., Luxury 3BR Apartment" 
                         className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-green/20 outline-none compact-transition" 
                       />
+                      
+                      {metaDesc && (
+                         <div className="mt-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                           <div className="space-y-3">
+                             <div>
+                               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1 block mb-1">Meta Description (160 char limits)</label>
+                               <textarea value={metaDesc} onChange={e => setMetaDesc(e.target.value)} rows={2} className="w-full bg-white border border-gray-100 rounded-lg px-3 py-2 text-xs font-bold text-gray-600 resize-none outline-none focus:border-indigo-300" />
+                             </div>
+                             <div>
+                               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1 block mb-1">SEO Keywords</label>
+                               <input value={seoKeywords} onChange={e => setSeoKeywords(e.target.value)} className="w-full bg-white border border-gray-100 rounded-lg px-3 py-2 text-xs font-bold text-gray-600 outline-none focus:border-indigo-300" />
+                             </div>
+                           </div>
+                         </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -5748,8 +5860,14 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
               className="overflow-hidden"
             >
               <div className="p-6 pt-0 border-t border-gray-100 mt-2 space-y-6">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Property Description</label>
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Property Description</label>
+                      <button type="button" onClick={handleAIGenerateDesc} disabled={isGeneratingDesc} className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50">
+                        {isGeneratingDesc ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                        ✨ Generate with AI
+                      </button>
+                    </div>
                     <textarea 
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
@@ -5989,7 +6107,7 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                         <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center font-black text-xs">$</div>
                         <div>
                           <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">USD Estimate</p>
-                          <p className="text-lg font-black text-dark-navy tracking-tight">{getEstimate(price, LKR_TO_USD)}</p>
+                          <p className="text-lg font-black text-dark-navy tracking-tight">{getEstimate(price, USD_RATE)}</p>
                         </div>
                       </div>
                     </div>
@@ -5998,7 +6116,7 @@ const AgentPublishListingView = ({ onBack, user, onRefresh, initialData }: { onB
                         <div className="w-8 h-8 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center font-black text-xs">€</div>
                         <div>
                           <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">EUR Estimate</p>
-                          <p className="text-lg font-black text-dark-navy tracking-tight">{getEstimate(price, LKR_TO_EUR)}</p>
+                          <p className="text-lg font-black text-dark-navy tracking-tight">{getEstimate(price, EUR_RATE)}</p>
                         </div>
                       </div>
                     </div>
@@ -6345,6 +6463,50 @@ const AdminEditPropertyModal = ({ propertyId, onClose, onRefresh, onShowToast }:
     fetchProperty();
   }, [propertyId]);
 
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [isGeneratingSEO, setIsGeneratingSEO] = useState(false);
+
+  const generateAI = async (type: 'desc' | 'seo') => {
+     if (!formData?.city && !formData?.listing_title) {
+        onShowToast('Please fill some basic details first (Location, Title)', 'error');
+        return;
+     }
+     if (type === 'desc') setIsGeneratingAI(true);
+     else setIsGeneratingSEO(true);
+
+     try {
+       const apiKey = localStorage.getItem('gemini_api_key') || '';
+       const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=" + apiKey;
+       let prompt = type === 'desc' ?
+         `Write a professional 150-word property description for: ${formData.listing_type} ${formData.property_category} in ${formData.city}, ${formData.district}. Price: ${formData.price_lkr}. Title: ${formData.listing_title}. Make it sound appealing. No quotes.`
+         : `Generate SEO title and meta description for this property: ${formData.property_category} in ${formData.city}. Price: ${formData.price_lkr}.
+         Return ONLY a valid JSON object in this exact format:
+         {"title": "SEO Optimized Title here"}`;
+
+       const response = await fetch(endpoint, {
+         method: "POST", headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: type === 'seo' ? "application/json" : "text/plain" } })
+       });
+       const data = await response.json();
+       const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+       if (!text) throw new Error('No generation result');
+       
+       if (type === 'desc') {
+          setFormData({ ...formData, property_description: text.trim() });
+          onShowToast('✅ AI description generated!', 'success');
+       } else {
+          const parsed = JSON.parse(text);
+          setFormData({ ...formData, listing_title: parsed.title || formData.listing_title });
+          onShowToast('✅ AI SEO Tags generated!', 'success');
+       }
+     } catch (err: any) {
+        onShowToast(err.message, 'error');
+     } finally {
+        if (type === 'desc') setIsGeneratingAI(false);
+        else setIsGeneratingSEO(false);
+     }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -6438,7 +6600,12 @@ const AdminEditPropertyModal = ({ propertyId, onClose, onRefresh, onShowToast }:
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Listing Title</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Listing Title</label>
+              <button type="button" onClick={() => generateAI('seo')} disabled={isGeneratingSEO} className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50">
+                {isGeneratingSEO ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />} AI SEO Tags
+              </button>
+            </div>
             <input
               required
               type="text"
@@ -6449,7 +6616,12 @@ const AdminEditPropertyModal = ({ propertyId, onClose, onRefresh, onShowToast }:
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Property Description</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Property Description</label>
+              <button type="button" onClick={() => generateAI('desc')} disabled={isGeneratingAI} className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50">
+                {isGeneratingAI ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />} ✨ Generate with AI
+              </button>
+            </div>
             <textarea
               required
               rows={5}
@@ -9608,6 +9780,29 @@ function App() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isVoiceListening, setIsVoiceListening] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState<'idle' | 'listening' | 'paused'>('idle');
+  const [, setRatesTrigger] = useState(0);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchExRates = async () => {
+      try {
+        const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+        const data = await res.json();
+        const usdRate = data.rates.LKR;
+        const eurRate = data.rates.LKR / data.rates.EUR;
+        if (mounted && usdRate && eurRate) {
+          updateRates(usdRate, eurRate);
+          setRatesTrigger(prev => prev + 1);
+        }
+      } catch (err) {
+        console.error("Failed to fetch rates:", err);
+      }
+    };
+    fetchExRates();
+    // Refresh rates every 1 hour
+    const interval = setInterval(fetchExRates, 3600000);
+    return () => { mounted = false; clearInterval(interval); };
+  }, []);
 
   useEffect(() => {
     const handleVoiceToggle = (e: any) => {
@@ -9660,7 +9855,8 @@ function App() {
     
     setCurrentView({ type: 'search_results', data: result });
   };
-  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'featured' | 'contact' | 'about' | 'packages' | 'auth' | 'verify' | 'reset-password' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'secret_login' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings' | 'agent_only_listings' | 'featured_projects_admin' | 'search_results' | 'sell' | 'feedback', data?: any }>({ type: 'home' });
+  const [currentView, setCurrentView] = useState<{ type: 'home' | 'category' | 'detail' | 'featured' | 'contact' | 'about' | 'packages' | 'auth' | 'verify' | 'reset-password' | 'promotion' | 'agent' | 'agents' | 'compare' | 'publish' | 'profile' | 'agent_access' | 'secret_login' | 'agent_publish' | 'wanted' | 'inquiries' | 'agent_listings' | 'agent_only_listings' | 'featured_projects_admin' | 'search_results' | 'sell' | 'feedback' | 'blog' | 'blog_post', data?: any }>({ type: 'home' });
+  const [authModeTracker, setAuthModeTracker] = useState<'login' | 'signup' | 'forgot_password'>('login');
 
   const [isNavigating, setIsNavigating] = useState(false);
 
@@ -9718,6 +9914,12 @@ function App() {
       setCurrentView({ type: 'secret_login' });
     } else if (path === '/sell') {
       setCurrentView({ type: 'sell' });
+    } else if (path === '/blog') {
+      setCurrentView({ type: 'blog' });
+    } else if (path.startsWith('/blog/')) {
+      const parts = path.split('/');
+      const slug = parts[2];
+      setCurrentView({ type: 'blog_post', data: slug });
     } else if (path.startsWith('/property/')) {
       const parts = path.split('/');
       const id = isNaN(Number(parts[2])) ? parts[2] : Number(parts[2]);
@@ -9807,6 +10009,66 @@ function App() {
     setCompareList(prev => prev.filter(item => item !== id));
   }, []);
 
+  // Handle Schema.org
+  useEffect(() => {
+    // Remove old generic schemas (keep specific ones from PropertyDetail if any)
+    document.querySelectorAll('script[id^="schema-"]').forEach(el => el.remove());
+
+    const addSchema = (id: string, data: any) => {
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.id = `schema-${id}`;
+      script.text = JSON.stringify(data);
+      document.head.appendChild(script);
+    };
+
+    if (currentView.type === 'home') {
+      addSchema('localbusiness', {
+        "@context": "https://schema.org",
+        "@type": "RealEstateAgent",
+        "name": "LankaProperty.lk",
+        "url": "https://lankaproperty.lk",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "59/3/7 Indigolla Yakkala Road",
+          "addressLocality": "Gampaha",
+          "addressCountry": "LK"
+        },
+        "telephone": "+94332229695",
+        "email": "info@lankaproperty.lk",
+        "sameAs": [
+          "https://www.facebook.com/lankaproperty"
+        ]
+      });
+    }
+
+    if (currentView.type !== 'detail') {
+      const itemListElement: any[] = [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://lankaproperty.lk"
+        }
+      ];
+
+      if (currentView.type === 'category' || currentView.type === 'search_results') {
+        itemListElement.push({
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Search",
+          "item": "https://lankaproperty.lk/search"
+        });
+      }
+
+      addSchema('breadcrumb', {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": itemListElement
+      });
+    }
+  }, [currentView.type]);
+
   // Scroll to top when view changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -9861,8 +10123,13 @@ function App() {
   const toggleFavorite = useCallback((id: number) => {
     setFavorites(prev => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+        showToast('Removed from favorites', 'success');
+      } else {
+        next.add(id);
+        showToast('Property saved!', 'success');
+      }
       return next;
     });
   }, []);
@@ -9903,7 +10170,8 @@ function App() {
   const handleDetailClick = useCallback((property: any) => {
     if (!property?.id) return;
     setCurrentView({ type: 'detail', data: property });
-    window.history.pushState({}, '', `/property/${property.id}`);
+    const slug = property.listing_title ? slugify(property.listing_title) : 'property';
+    window.history.pushState({}, '', `/property/${property.id}/${slug}`);
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
 
@@ -10172,6 +10440,7 @@ function App() {
           <AuthPage 
             onBack={navigateHome} 
             initialMode={(typeof currentView.data === 'string' ? currentView.data : currentView.data?.target) === 'signup' ? 'signup' : 'login'}
+            onModeChange={setAuthModeTracker}
             onLogin={(u) => {
               const target = typeof currentView.data === 'string' ? currentView.data : currentView.data?.target;
               if (target === 'publish') {
@@ -10268,6 +10537,24 @@ function App() {
         {currentView.type === 'feedback' && (
           <Feedback onBack={navigateHome} />
         )}
+
+        {currentView.type === 'blog' && (
+          <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><div className="w-8 h-8 border-4 border-brand-green border-t-transparent rounded-full animate-spin"></div></div>}>
+            <PublicBlog onNavigatePost={(slug) => {
+              window.history.pushState({}, '', `/blog/${slug}`);
+              setCurrentView({ type: 'blog_post', data: slug });
+            }} />
+          </React.Suspense>
+        )}
+
+        {currentView.type === 'blog_post' && (
+          <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><div className="w-8 h-8 border-4 border-brand-green border-t-transparent rounded-full animate-spin"></div></div>}>
+            <PublicBlogPost slug={currentView.data} onBack={() => {
+              window.history.pushState({}, '', '/blog');
+              setCurrentView({ type: 'blog' });
+            }} />
+          </React.Suspense>
+        )}
               </motion.div>
             </AnimatePresence>
           </motion.div>
@@ -10291,6 +10578,7 @@ function App() {
         <>
           <WhatsAppFAB />
           <Footer 
+            hideNewsletter={currentView.type === 'auth' && authModeTracker === 'signup'}
             onNavigateHome={navigateHome} 
 
             onShowContact={() => setCurrentView({ type: 'contact' })} 
@@ -10298,6 +10586,10 @@ function App() {
             onShowPackages={() => setCurrentView({ type: 'packages' })} 
             onShowPromotion={() => setCurrentView({ type: 'promotion' })}
             onShowWanted={() => setCurrentView({ type: 'wanted' })}
+            onShowBlog={() => {
+              window.history.pushState({}, '', '/blog');
+              setCurrentView({ type: 'blog' });
+            }}
             onShowSecretLogin={() => {
               window.history.pushState({}, '', '/admin-lk2026');
               setCurrentView({ type: 'secret_login' });

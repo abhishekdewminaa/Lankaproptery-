@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import AutoPromoteModal from '../AutoPromoteModal';
+import { slugify } from '../../utils/safeUtils';
 
 const getPropertyThumbnail = (images: any) => {
   if (!images) return null;
@@ -455,12 +456,13 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
                       <button 
                         onClick={(e) => {
                           e.preventDefault();
-                          const url = `${window.location.origin}/property/${property.id}`;
+                          const slug = property.listing_title ? slugify(property.listing_title) : 'property';
+                          const url = `${window.location.origin}/property/${property.id}/${slug}`;
                           navigator.clipboard.writeText(url);
                           toast.success('Public URL copied to clipboard!');
                           
                           // Navigate seamlessly within the SPA
-                          window.history.pushState({}, '', `/property/${property.id}`);
+                          window.history.pushState({}, '', `/property/${property.id}/${slug}`);
                           window.dispatchEvent(new PopStateEvent('popstate'));
                         }}
                         className="w-12 h-12 bg-admin-text-dark text-[#00FF87] border border-[#00FF87]/30 rounded-2xl flex items-center justify-center hover:bg-[#00FF87] hover:text-[#0B0F19] hover:shadow-[0_0_20px_rgba(0,255,135,0.45)] transition-all shadow-xl active:scale-95 duration-300 group/link"
@@ -472,16 +474,18 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
                       <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl shadow-black/10 border border-gray-100 opacity-0 invisible group-hover/share:opacity-100 group-hover/share:visible transition-all z-50 overflow-hidden flex flex-col py-2">
                          <div className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">Share Link</div>
                          <button onClick={() => {
-                            const url = `${window.location.origin}/property/${property.id}`;
+                            const slug = property.listing_title ? slugify(property.listing_title) : 'property';
+                            const url = `${window.location.origin}/property/${property.id}/${slug}`;
                             navigator.clipboard.writeText(url);
                             toast.success('Link copied!');
                          }} className="px-4 py-2 text-left text-sm font-bold text-gray-900 hover:bg-gray-100 transition-colors flex items-center gap-2">🔗 Copy URL</button>
                          <button onClick={(e) => {
                             e.preventDefault();
-                            window.history.pushState({}, '', `/property/${property.id}`);
+                            const slug = property.listing_title ? slugify(property.listing_title) : 'property';
+                            window.history.pushState({}, '', `/property/${property.id}/${slug}`);
                             window.dispatchEvent(new PopStateEvent('popstate'));
                          }} className="px-4 py-2 text-left text-sm font-bold text-gray-900 hover:bg-[#00FF87]/20 hover:text-[#004f31] transition-colors flex items-center gap-2">👀 View Page</button>
-                         <a href={`https://wa.me/?text=${encodeURIComponent(`Check out this property: ${window.location.origin}/property/${property.id}`)}`} target="_blank" rel="noreferrer" className="px-4 py-2 text-left text-sm font-bold text-gray-900 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">💬 WhatsApp</a>
+                         <a href={`https://wa.me/?text=${encodeURIComponent(`Check out this property: ${window.location.origin}/property/${property.id}/${property.listing_title ? slugify(property.listing_title) : 'property'}`)}`} target="_blank" rel="noreferrer" className="px-4 py-2 text-left text-sm font-bold text-gray-900 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">💬 WhatsApp</a>
                       </div>
                     </div>
                  </div>

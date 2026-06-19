@@ -25,9 +25,16 @@ import {
   Tooltip, 
   PieChart, 
   Pie, 
-  Cell
+  Cell,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  Legend,
+  ResponsiveContainer
 } from 'recharts';
 import { supabase } from '../../supabaseClient';
+import AdminViewAnalytics from './AdminViewAnalytics';
 
 const PERFORMANCE_DATA = [
   { day: 'Mon', views: 4200, avg: 3800 },
@@ -168,36 +175,32 @@ export default function AdminDashboard({ user }: { user: any }) {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard 
-          label="Total Views" 
-          value={stats.totalViews.toLocaleString()} 
-          trend={12.5} 
-          icon={<Eye size={24} />} 
-          delay={0.1}
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <StatCard 
           label="Properties Sold" 
           value={stats.propertiesSold.toString()} 
           trend={8.2} 
           icon={<CheckCircle size={24} />} 
-          delay={0.2}
+          delay={0.1}
         />
         <StatCard 
           label="New Enquiries" 
           value={stats.newEnquiries.toString()} 
           trend={-2.4} 
           icon={<MessageSquare size={24} />} 
-          delay={0.3}
+          delay={0.2}
         />
         <StatCard 
           label="Total Revenue" 
           value={`Rs. ${(stats.totalRevenue / 1000000).toFixed(1)}M`} 
           trend={15.8} 
           icon={<DollarSign size={24} />} 
-          delay={0.4}
+          delay={0.3}
         />
       </div>
+
+      {/* New Views Analytics Section */}
+      <AdminViewAnalytics user={user} />
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

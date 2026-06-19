@@ -88,7 +88,8 @@ const getPropertyImagesList = (images: any) => {
 };
 import { translateDescription } from '../services/geminiService';
 import LatestAdvertisements from './LatestAdvertisements';
-import { safeStr, safeReplace, formatPriceLong, getFirstImageSafe, USD_RATE, EUR_RATE } from '../utils/safeUtils';
+import { safeStr, safeReplace, formatPriceLong, getFirstImageSafe, USD_RATE, EUR_RATE, slugify } from '../utils/safeUtils';
+import toast from 'react-hot-toast';
 
 const convertPrice = (priceVal: any) => {
   if (!priceVal) return null;
@@ -242,13 +243,21 @@ export const PropertyDetail = ({
           sessionId = Math.random().toString(36).substring(2, 15);
           sessionStorage.setItem('lp_session_id', sessionId);
         }
+        
+        let deviceType = 'desktop';
+        if (window.innerWidth < 768) deviceType = 'mobile';
+        else if (window.innerWidth < 1024) deviceType = 'tablet';
+
         await supabase
           .from('property_views')
           .insert([{
             property_id: data.id,
+            property_type: data.type || data.property_category || 'Property',
             district: data.district,
             property_category: data.property_category,
-            session_id: sessionId
+            session_id: sessionId,
+            device_type: deviceType,
+            referrer: document.referrer || 'direct'
           }]);
 
         // Fetch similar properties
@@ -286,24 +295,112 @@ export const PropertyDetail = ({
     window.scrollTo(0, 0);
   }, [propertyId]);
 
+  useEffect(() => {
+    if (property) {
+      const pType = property.property_type || property.property_category || 'Property';
+      const lType = property.listing_type || 'Sale';
+      const city = property.city || '';
+      const district = property.district || '';
+      let title = `${pType} for ${lType}`;
+      if (city && district) {
+        title += ` in ${city}, ${district}`;
+      } else if (city) {
+        title += ` in ${city}`;
+      } else if (district) {
+        title += ` in ${district}`;
+      }
+      title += ` | LankaProperty.lk`;
+      
+      document.title = title;
+
+      const priceStr = property.price_lkr || property.price || 'Price on request';
+      const beds = property.bedrooms || property.rooms || '';
+      let featureStr = '';
+      if (beds) {
+        featureStr += `${beds}-bed ${pType.toLowerCase()}`;
+      } else {
+        featureStr += `${pType}`;
+      }
+      if (property.land_area) {
+        featureStr += ` on ${property.land_area} ${property.land_unit || 'perches'}`;
+      }
+      
+      const desc = `${featureStr} for ${lType.toLowerCase()} in ${city}, ${district}. ${priceStr}. Explore more on LankaProperty.lk.`.slice(0, 160);
+
+      let metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute('content', desc);
+      }
+
+      // Add RealEstateListing schema
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.id = 'schema-realestate';
+      const schemaData = {
+        "@context": "https://schema.org",
+        "@type": "RealEstateListing",
+        "name": property.listing_title || property.title || title,
+        "description": desc,
+        "image": property.images?.[0] || property.image || "https://lankaproperty.lk/og-image.jpg",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "LKR",
+          "price": parseInt(String(priceStr).replace(/[^0-9]/g, '')) || 0,
+          "availability": "https://schema.org/InStock"
+        }
+      };
+      script.text = JSON.stringify(schemaData);
+      document.head.appendChild(script);
+
+      // Add Property Detail Breadcrumb
+      const breadcrumbScript = document.createElement('script');
+      breadcrumbScript.type = 'application/ld+json';
+      breadcrumbScript.id = 'schema-breadcrumb-detail';
+      breadcrumbScript.text = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://lankaproperty.lk" },
+          { "@type": "ListItem", "position": 2, "name": pType, "item": `https://lankaproperty.lk/category/${pType.toLowerCase()}` },
+          { "@type": "ListItem", "position": 3, "name": property.listing_title || property.title || title, "item": `https://lankaproperty.lk/property/${property.id}` }
+        ]
+      });
+      document.head.appendChild(breadcrumbScript);
+    } else {
+      document.title = "LankaProperty.lk | Buy, Sell & Rent Property in Sri Lanka";
+      let metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute('content', "Sri Lanka's trusted property marketplace. Find houses, land, apartments and commercial properties for sale and rent across Sri Lanka.");
+      }
+    }
+    
+    return () => {
+      document.title = "LankaProperty.lk | Buy, Sell & Rent Property in Sri Lanka";
+      let metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute('content', "Sri Lanka's trusted property marketplace. Find houses, land, apartments and commercial properties for sale and rent across Sri Lanka.");
+      }
+      document.getElementById('schema-realestate')?.remove();
+      document.getElementById('schema-breadcrumb-detail')?.remove();
+    };
+  }, [property]);
+
   const handleInquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
       const { error } = await supabase
-        .from('property_inquiries')
+        .from('leads')
         .insert({
           property_id: property.id,
-          agent_id: property.agent_id,
-          client_name: formData.name,
-          full_name: formData.name,
-          client_email: formData.email,
+          assigned_to: property.agent_id,
+          name: formData.name,
           email: formData.email,
-          client_phone: formData.phone,
           phone: formData.phone,
-          inquiry_type: property.listing_title || 'Property Inquiry',
-          message: formData.message,
-          status: 'new'
+          property_title: property.listing_title,
+          message: formData.message || property.listing_title || 'Property Inquiry',
+          source: 'website',
+          stage: 'new',
         });
 
       if (error) throw error;
@@ -376,7 +473,7 @@ export const PropertyDetail = ({
       return;
     }
 
-    const desc = property.property_description || property.description;
+    const desc = (property.property_description || property.description || "").replace(/Welcome to (?:www\.)?lankaproperty\.lk\.?\s*The No\.?1 property sales website in Sri Lanka\.?/gi, "").trim();
     if (!desc) return;
 
     setIsTranslating(true);
@@ -505,8 +602,13 @@ export const PropertyDetail = ({
             <div className="flex items-center gap-3 mb-4 lg:mb-2">
               <button 
                 onClick={() => {
-                  navigator.clipboard.writeText(window.location.href);
-                  alert('Link copied to clipboard!');
+                  const slug = property.listing_title ? slugify(property.listing_title) : 'property';
+                  const shareUrl = `${window.location.origin}/property/${property.id}/${slug}`;
+                  navigator.clipboard.writeText(shareUrl).then(() => {
+                    toast.success('Link copied to clipboard!');
+                  }).catch(() => {
+                    toast.error('Failed to copy link');
+                  });
                 }}
                 className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-gray-900 bg-white border border-gray-200 px-3 py-1.5 rounded-lg transition-colors shadow-sm"
               >
@@ -672,7 +774,7 @@ export const PropertyDetail = ({
                 </button>
               </div>
               <div className="text-gray-600 leading-relaxed space-y-6">
-                {(showOriginal ? (property.property_description || "") : (translatedDesc || "")).split('\n').filter((p: string) => p.trim()).map((para: string, i: number) => (
+                {(showOriginal ? (property.property_description || "").replace(/Welcome to (?:www\.)?lankaproperty\.lk\.?\s*The No\.?1 property sales website in Sri Lanka\.?/gi, "").trim() : (translatedDesc || "")).split('\n').filter((p: string) => p.trim()).map((para: string, i: number) => (
                   <p key={i} className={!showOriginal ? "font-sinhala leading-[2]" : ""}>{para}</p>
                 ))}
               </div>

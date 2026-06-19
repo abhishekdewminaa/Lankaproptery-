@@ -203,7 +203,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
               </button>
               <button
                 onClick={() => onNavigate && onNavigate({ type: 'auth', data: 'signup' })}
-                className="bg-brand-green text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-brand-green/90 transition-colors shadow-lg shadow-brand-green/20 animate-button-glow btn-glow-pulse"
+                className="bg-brand-green text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-brand-green/90 transition-colors shadow-lg shadow-brand-green/20"
               >
                 Register Here
               </button>

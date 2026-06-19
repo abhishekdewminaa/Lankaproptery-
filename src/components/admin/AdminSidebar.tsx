@@ -17,6 +17,11 @@ import {
   Zap,
   Flame,
   MapPin,
+  DollarSign,
+  Sparkles,
+  Kanban,
+  Mail,
+  FileText,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -59,10 +64,15 @@ export default function AdminSidebar({
       icon: <LayoutDashboard size={16} />,
     },
     { id: "listings", label: "Properties", icon: <ClipboardList size={16} /> },
-    { id: "enquiries", label: "Leads", icon: <MessageSquare size={16} /> },
+    { id: "pipeline", label: "Lead Pipeline", icon: <Kanban size={16} />, isNew: true },
+    { id: "enquiries", label: "Legacy Enquiries", icon: <MessageSquare size={16} /> },
     { id: "marketing", label: "Marketing", icon: <Megaphone size={16} /> },
+    { id: "blog", label: "Blog Manager", icon: <FileText size={16} />, isNew: true },
+    { id: "newsletter", label: "Newsletter Manager", icon: <Mail size={16} />, isNew: true },
     { id: "analytics", label: "Analytics", icon: <BarChart3 size={16} /> },
+    { id: "revenue", label: "Revenue Dashboard", icon: <DollarSign size={16} /> },
     { id: "automation", label: "Automation", icon: <Zap size={16} />, isNew: true },
+    { id: "ai-writer", label: "AI Writer", icon: <Sparkles size={16} />, isNew: true },
     { id: "maps", label: "Use Google Maps data", icon: <MapPin size={16} />, isNew: true },
     { id: "settings", label: "Settings", icon: <Settings size={16} /> },
   ];

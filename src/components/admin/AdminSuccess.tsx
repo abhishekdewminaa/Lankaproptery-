@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { CheckCircle2, Share2, ArrowRight, ExternalLink, Globe, MapPin, Bed, Bath } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import toast from 'react-hot-toast';
+import { slugify } from '../../utils/safeUtils';
 
 interface AdminSuccessProps {
   property: any;
@@ -210,7 +211,8 @@ export default function AdminSuccess({ property, onBackToPortal }: AdminSuccessP
           </button>
           <button 
             onClick={() => {
-              const url = `${window.location.origin}/property/${activeProperty?.id}`;
+              const slug = activeProperty?.listing_title ? slugify(activeProperty.listing_title) : 'property';
+              const url = `${window.location.origin}/property/${activeProperty?.id}/${slug}`;
               navigator.clipboard.writeText(url);
               toast.success('Link copied to clipboard!');
             }}

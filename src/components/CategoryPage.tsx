@@ -56,7 +56,7 @@ interface CategoryPageProps {
   onNavigate: (view: any) => void;
 }
 
-const USD_RATE = 300;
+import { USD_RATE } from '../utils/safeUtils';
 
 const AMENITIES = [
   "Garden", "Swimming Pool", "Parking", "Security", "Gym", "Air Conditioning", "Generator"

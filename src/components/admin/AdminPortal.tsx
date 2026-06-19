@@ -9,6 +9,11 @@ import AdminListingForm from './AdminListingForm';
 import AdminSuccess from './AdminSuccess';
 import AdminAnalytics from './AdminAnalytics';
 import AdminMaps from './AdminMaps';
+import AdminRevenue from './AdminRevenue';
+import AdminAIWriter from './AdminAIWriter';
+import AdminPipeline from './AdminPipeline';
+import AdminNewsletter from './AdminNewsletter';
+import AdminBlog from './AdminBlog';
 import { AutomationBuilderPage } from '../../pages/AutomationBuilderPage';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
@@ -167,7 +172,12 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
       )}
       {activePage === 'automation' && <AutomationBuilderPage />}
       {activePage === 'analytics' && <AdminAnalytics />}
+      {activePage === 'revenue' && <AdminRevenue />}
+      {activePage === 'ai-writer' && <AdminAIWriter />}
       {activePage === 'maps' && <AdminMaps />}
+      {activePage === 'pipeline' && <AdminPipeline />}
+      {activePage === 'newsletter' && <AdminNewsletter />}
+      {activePage === 'blog' && <AdminBlog />}
     </AdminLayout>
   );
 }

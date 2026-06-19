@@ -38,6 +38,13 @@ export interface Property {
   contacts?: any[];
   google_maps_link?: string;
   published_by?: string;
+  land_unit?: string;
+  bedrooms?: number;
+  has_garden?: boolean;
+  parking_spaces?: number;
+  has_pool?: boolean;
+  year_built?: number;
+  furnishing_status?: string;
   // Legacy aliases
   title?: string;
   location?: string;
