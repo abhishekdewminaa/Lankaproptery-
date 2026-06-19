@@ -82,93 +82,99 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="max-w-4xl mx-auto bg-white rounded-[20px] shadow-2xl p-6 md:p-8"
+          className="max-w-5xl mx-auto bg-white rounded-[24px] shadow-2xl p-6 md:p-10"
         >
           {/* Row 1 - Type Tabs & AI Toggle */}
-          <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <div className="flex bg-gray-100 p-1 rounded-xl w-full md:w-auto">
-                {[
-                  { id: 'sale', label: '🏠 For Sale' },
-                  { id: 'rent', label: '🔑 For Rent' },
-                  { id: 'lease', label: '📋 For Lease' }
-                ].map((tab) => (
+          <div className="flex flex-col lg:flex-row justify-between items-center mb-8 gap-6">
+            <div className="flex relative bg-[#004F31] p-1.5 rounded-2xl w-full lg:w-max shrink-0 shadow-inner overflow-hidden">
+              {[
+                { id: 'sale', label: '🏠 For Sale' },
+                { id: 'rent', label: '🔑 For Rent' }
+              ].map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
-                      activeTab === tab.id 
-                      ? 'bg-brand-green text-white shadow-md' 
-                      : 'text-gray-500 hover:text-gray-700'
+                    className={`relative z-10 flex-1 lg:flex-none px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap outline-none ${
+                        isActive 
+                        ? 'text-[#004F31]' 
+                        : 'text-white/60 hover:text-white'
                     }`}
                   >
-                    {tab.label}
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeTabHero"
+                        className="absolute inset-0 bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.2)]"
+                        initial={false}
+                        transition={{
+                          duration: 0.3,
+                          ease: [0.4, 0, 0.2, 1]
+                        }}
+                        style={{ zIndex: -1 }}
+                      />
+                    )}
+                    <motion.span 
+                      className="relative z-10 block"
+                      whileTap={{ scale: 0.95 }}
+                      transition={{ duration: 0.1, ease: "easeOut" }}
+                    >
+                      {tab.label}
+                    </motion.span>
                   </button>
-                ))}
-              </div>
-              
-              <button 
+                );
+              })}
+            </div>
+
+            <div className="flex items-center gap-4 w-full lg:w-auto justify-between lg:justify-end overflow-x-auto no-scrollbar pb-1 lg:pb-0">
+              <motion.button 
                 onClick={() => setIsAISearch(!isAISearch)}
-                className={`hidden md:flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all font-black text-[10px] uppercase tracking-wider ${
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96, y: 1 }}
+                transition={{ duration: 0.15, ease: "easeInOut" }}
+                className={`flex items-center justify-center gap-2 px-5 py-3 rounded-full border-2 transition-colors font-black text-xs uppercase tracking-wider whitespace-nowrap shrink-0 h-[48px] ${
                   isAISearch 
-                    ? 'bg-brand-green/10 border-brand-green text-brand-green' 
-                    : 'border-gray-200 text-gray-400 hover:border-brand-green/30'
+                    ? 'bg-brand-green/10 border-brand-green text-brand-green shadow-[0_4px_14px_0_rgba(0,105,65,0.15)]' 
+                    : 'border-gray-200 text-gray-500 hover:text-brand-green hover:bg-gray-50 shadow-sm hover:shadow-[0_4px_14px_0_rgba(0,105,65,0.1)]'
                 }`}
               >
-                <Sparkles size={14} className={isAISearch ? 'animate-pulse' : ''} />
-                AI Smart Search
-              </button>
+                <Sparkles size={16} className={isAISearch ? 'animate-pulse shrink-0' : 'shrink-0'} />
+                <span>AI Smart Search</span>
+              </motion.button>
+              
+              <motion.a 
+                href="#" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  const currentLang = bilingualIndex === 1 ? 'open-si' : 'open';
+                  window.dispatchEvent(new CustomEvent('voice-command', { detail: currentLang }));
+                }} 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-brand-navy hover:bg-brand-navy/90 text-[#00FF87] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-3 px-6 py-3 rounded-full border-2 border-[#00FF87]/30 select-none cursor-pointer shadow-lg shadow-[#00FF87]/10 shrink-0 h-[48px]"
+              >
+                <span className="relative flex h-2.5 w-2.5 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00FF87] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#00FF87]"></span>
+                </span>
+                <Mic size={16} className="text-[#00FF87] shrink-0" />
+                <div className="w-[185px] overflow-hidden text-left flex items-center shrink-0">
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={bilingualIndex}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.35, ease: 'easeOut' }}
+                      className="block truncate font-extrabold text-[#00FF87]"
+                    >
+                      {bilingualTexts[bilingualIndex]}
+                    </motion.span>
+                  </AnimatePresence>
+                </div>
+                <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.5, repeat: Infinity }} className="shrink-0">↗</motion.span>
+              </motion.a>
             </div>
-            <motion.a 
-              href="#" 
-              onClick={(e) => {
-                e.preventDefault();
-                const currentLang = bilingualIndex === 1 ? 'open-si' : 'open';
-                window.dispatchEvent(new CustomEvent('voice-command', { detail: currentLang }));
-              }} 
-              initial={{ scale: 1 }}
-              animate={{ 
-                scale: [1, 1.05, 1, 1.05, 1],
-                rotate: [0, -2, 2, -2, 2, 0],
-                boxShadow: [
-                  "0 0 12px rgba(0, 255, 135, 0.4)",
-                  "0 0 28px rgba(0, 255, 135, 0.7)",
-                  "0 0 12px rgba(0, 255, 135, 0.4)",
-                  "0 0 28px rgba(0, 255, 135, 0.7)",
-                  "0 0 12px rgba(0, 255, 135, 0.4)"
-                ]
-              }}
-              transition={{ 
-                duration: 4,
-                repeat: Infinity,
-                repeatType: "loop",
-                ease: "easeInOut"
-              }}
-              whileHover={{ scale: 1.08, rotate: 0 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-brand-navy hover:bg-brand-navy/90 text-[#00FF87] font-black text-xs uppercase tracking-wider flex items-center gap-3 px-6 py-3 rounded-full whitespace-nowrap border-2 border-[#00FF87]/30 select-none cursor-pointer shadow-lg shadow-[#00FF87]/10"
-            >
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00FF87] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#00FF87]"></span>
-              </span>
-              <Mic size={16} className="text-[#00FF87] shrink-0" />
-              <div className="w-[185px] overflow-hidden text-left flex items-center">
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={bilingualIndex}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.35, ease: 'easeOut' }}
-                    className="block truncate font-extrabold text-[#00FF87]"
-                  >
-                    {bilingualTexts[bilingualIndex]}
-                  </motion.span>
-                </AnimatePresence>
-              </div>
-              <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>↗</motion.span>
-            </motion.a>
           </div>
 
           <AnimatePresence mode="wait">
