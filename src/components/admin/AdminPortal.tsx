@@ -8,6 +8,7 @@ import AdminListings from './AdminListings';
 import AdminListingForm from './AdminListingForm';
 import AdminSuccess from './AdminSuccess';
 import AdminAnalytics from './AdminAnalytics';
+import AdminMaps from './AdminMaps';
 import { AutomationBuilderPage } from '../../pages/AutomationBuilderPage';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
@@ -166,6 +167,7 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
       )}
       {activePage === 'automation' && <AutomationBuilderPage />}
       {activePage === 'analytics' && <AdminAnalytics />}
+      {activePage === 'maps' && <AdminMaps />}
     </AdminLayout>
   );
 }

@@ -96,7 +96,24 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
             onNavigateHome();
           }}
         >
-          <span className="text-2xl font-black text-brand-green tracking-tighter">LankaProperty<span className="text-dark-navy">.lk</span></span>
+          <motion.span 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="text-2xl font-black text-brand-green tracking-tighter flex items-center"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            LankaProperty
+            <motion.span 
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.3, type: "spring", stiffness: 200 }}
+              className="text-brand-green"
+            >
+              .lk
+            </motion.span>
+          </motion.span>
         </div>
 
         {/* Left Nav (Desktop) */}
@@ -166,9 +183,30 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
 
         {/* Right side */}
         <div className="flex items-center gap-4">
-          {user && (
+          {user ? (
             <div className="flex items-center gap-2 mr-2">
               <NotificationBell user={user} onNavigate={onNavigate} />
+              <button
+                onClick={onAdminAccess}
+                className="hidden lg:flex items-center justify-center bg-brand-green/10 text-brand-green px-4 py-2 rounded-xl text-sm font-bold hover:bg-brand-green hover:text-white transition-colors"
+              >
+                Dashboard
+              </button>
+            </div>
+          ) : (
+            <div className="hidden lg:flex items-center gap-3 mr-2">
+              <button
+                onClick={() => onNavigate && onNavigate({ type: 'auth', data: 'login' })}
+                className="text-sm font-bold text-gray-700 hover:text-brand-green transition-colors px-2"
+              >
+                Log In
+              </button>
+              <button
+                onClick={() => onNavigate && onNavigate({ type: 'auth', data: 'signup' })}
+                className="bg-brand-green text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-brand-green/90 transition-colors shadow-lg shadow-brand-green/20"
+              >
+                Register Here
+              </button>
             </div>
           )}
           

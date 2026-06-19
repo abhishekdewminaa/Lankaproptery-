@@ -16,6 +16,7 @@ import {
   ChevronUp,
   Zap,
   Flame,
+  MapPin,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -62,6 +63,7 @@ export default function AdminSidebar({
     { id: "marketing", label: "Marketing", icon: <Megaphone size={16} /> },
     { id: "analytics", label: "Analytics", icon: <BarChart3 size={16} /> },
     { id: "automation", label: "Automation", icon: <Zap size={16} />, isNew: true },
+    { id: "maps", label: "Use Google Maps data", icon: <MapPin size={16} />, isNew: true },
     { id: "settings", label: "Settings", icon: <Settings size={16} /> },
   ];
 

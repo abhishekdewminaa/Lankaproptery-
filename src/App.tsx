@@ -135,7 +135,8 @@ import {
   Power,
   Edit,
   Save,
-  EyeOff
+  EyeOff,
+  ShieldCheck
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell, PieChart, Pie } from 'recharts';
 
@@ -3307,6 +3308,9 @@ const AuthPage = ({ onBack, onLogin, initialMode = 'login', onForgotPassword, on
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [agency, setAgency] = useState('');
+  const [userType, setUserType] = useState('Owner');
+  const [subscribe, setSubscribe] = useState(true);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -3340,6 +3344,10 @@ const AuthPage = ({ onBack, onLogin, initialMode = 'login', onForgotPassword, on
       setErrorMsg('Please fill in all required fields');
       return;
     }
+    if (!acceptTerms) {
+      setErrorMsg('You must accept the Terms & Conditions');
+      return;
+    }
     if (password.length < 8) {
       setErrorMsg('Password must be at least 8 characters');
       return;
@@ -3359,7 +3367,9 @@ const AuthPage = ({ onBack, onLogin, initialMode = 'login', onForgotPassword, on
           data: {
             full_name: fullName,
             phone: phone,
-            agency: agency
+            agency: agency,
+            user_type: userType,
+            subscribe_newsletter: subscribe
           },
           emailRedirectTo: `${window.location.origin}/` 
         }
@@ -3374,6 +3384,7 @@ const AuthPage = ({ onBack, onLogin, initialMode = 'login', onForgotPassword, on
             email: email,
             phone: phone,
             agency: agency,
+            user_type: userType,
             created_at: new Date().toISOString()
          });
          if (insertError) {
@@ -3439,207 +3450,333 @@ const AuthPage = ({ onBack, onLogin, initialMode = 'login', onForgotPassword, on
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="container mx-auto px-6 py-12 flex items-center justify-center min-h-[70vh]"
-    >
-      <div className="bg-white rounded-[40px] shadow-2xl shadow-gray-200 border border-gray-100 p-10 max-w-md w-full relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-green/5 rounded-full -mr-16 -mt-16"></div>
-        <button onClick={onBack} className="absolute top-8 left-8 text-gray-400 hover:text-dark-navy z-20 compact-transition">
-          <ChevronLeft size={24} />
-        </button>
+    <div className="flex min-h-screen bg-white">
+      {/* Left Side - Image/Branding */}
+      <motion.div 
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="hidden lg:flex w-[45%] relative bg-brand-green overflow-hidden flex-col items-center justify-center p-12 lg:p-20"
+      >
+        <div className="absolute inset-0">
+          <img 
+            src="https://images.unsplash.com/photo-1628156681022-311e9f1a2386?auto=format&fit=crop&q=80" 
+            alt="Real Estate" 
+            className="w-full h-full object-cover opacity-20 mix-blend-multiply"
+          />
+          <div className="absolute inset-0 bg-gradient-to-tr from-brand-green/95 via-brand-green/80 to-transparent"></div>
+        </div>
         
-        <div className="relative z-10 space-y-8 mt-4">
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-black text-dark-navy tracking-tight">
-              {mode === 'login' ? 'Welcome Back' : mode === 'signup' ? 'Create Account' : 'Reset Password'}
-            </h2>
-            <p className="text-gray-400 text-sm font-medium">
-              {mode === 'login' ? 'Enter your details to access your account' : mode === 'signup' ? 'Join Sri Lanka\'s premier property network' : 'Enter your email to receive a reset link'}
-            </p>
-          </div>
+        <div className="relative z-10 text-white w-full max-w-lg mt-auto mb-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="w-24 h-24 mb-10 bg-white/10 rounded-[28px] flex items-center justify-center backdrop-blur-md border border-white/20"
+          >
+            <Building2 size={48} className="text-white drop-shadow-md" />
+          </motion.div>
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="text-[64px] font-black mb-6 tracking-tight leading-[1.1] drop-shadow-lg"
+          >
+            Welcome<br />Back
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="text-xl font-medium text-white/90 mb-12 max-w-sm drop-shadow-md"
+          >
+            Sri Lanka's Premier Real Estate Management Platform
+          </motion.p>
+        </div>
 
-          {errorMsg && (
-            <div className="bg-red-50 text-brand-red p-4 rounded-2xl text-sm font-bold border border-red-100 flex items-start gap-3">
-              <AlertTriangle size={20} className="shrink-0 mt-0.5" />
-              <span>{errorMsg}</span>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="relative z-10 w-full max-w-lg flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-white/60 mb-8"
+        >
+          <span>Real Estate</span>
+          <span className="w-1 h-1 rounded-full bg-white/40"></span>
+          <span>Management</span>
+          <span className="w-1 h-1 rounded-full bg-white/40"></span>
+          <span>2026</span>
+        </motion.div>
+      </motion.div>
+
+      {/* Right Side - Form */}
+      <motion.div 
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+        className="w-full lg:w-[55%] flex flex-col relative"
+      >
+        <button onClick={onBack} className="absolute top-8 left-8 lg:left-12 flex items-center gap-2 text-gray-400 hover:text-dark-navy z-20 compact-transition font-bold text-sm">
+          <ChevronLeft size={20} /> Back
+        </button>
+
+        <div className="flex-1 flex items-center justify-center p-6 lg:p-12 overflow-y-auto">
+          <div className="max-w-[440px] w-full pt-16 pb-8">
+            <div className="space-y-3 mb-10 text-center lg:text-left">
+              <div className="inline-flex items-center justify-center bg-brand-green/10 text-brand-green px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase mb-2">
+                {mode === 'login' ? 'Admin Access' : mode === 'signup' ? 'New Member' : 'Recovery'}
+              </div>
+              <h2 className="text-4xl lg:text-[42px] font-black text-dark-navy tracking-tight leading-none">
+                {mode === 'login' ? 'Sign In' : mode === 'signup' ? 'Register' : 'Reset Password'}
+              </h2>
+              <p className="text-gray-400 text-[15px] font-medium pt-2">
+                {mode === 'login' ? 'Enter your credentials to access the admin panel' : mode === 'signup' ? 'Join Sri Lanka\'s premier property network' : 'Enter your email to receive a reset link'}
+              </p>
             </div>
-          )}
 
-          {successMsg && (
-            <div className="bg-brand-green/10 text-brand-green p-4 rounded-2xl text-sm font-bold border border-brand-green/20">
-              {successMsg}
-            </div>
-          )}
-
-          <form onSubmit={mode === 'login' ? handleSignIn : mode === 'signup' ? handleSignUp : handleForgotPassword} className="space-y-4">
-            
-            {mode === 'signup' && (
-              <>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Full Name</label>
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                    <input 
-                      type="text" 
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="John Doe"
-                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Phone Number</label>
-                  <div className="relative">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                    <input 
-                      type="tel" 
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="077 123 4567"
-                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Agency Name <span className="lowercase text-[10px] text-gray-400">(Optional)</span></label>
-                  <div className="relative">
-                    <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                    <input 
-                      type="text" 
-                      value={agency}
-                      onChange={(e) => setAgency(e.target.value)}
-                      placeholder="Agency LLC"
-                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
-                    />
-                  </div>
-                </div>
-              </>
+            {errorMsg && (
+              <div className="bg-red-50 text-brand-red p-4 rounded-2xl text-sm font-bold border border-red-100 flex items-start gap-3 mb-6 animate-pulse-light">
+                <AlertTriangle size={20} className="shrink-0 mt-0.5" />
+                <span>{errorMsg}</span>
+              </div>
             )}
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <input 
-                  type="email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com"
-                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
-                  required
-                />
+            {successMsg && (
+              <div className="bg-brand-green/10 text-brand-green p-4 rounded-2xl text-sm font-bold border border-brand-green/20 mb-6">
+                {successMsg}
+              </div>
+            )}
+
+            <form onSubmit={mode === 'login' ? handleSignIn : mode === 'signup' ? handleSignUp : handleForgotPassword} className="space-y-5">
+              
+              {mode === 'signup' && (
+                <>
+                  <div className="relative space-y-4 mb-8">
+                    <div className="flex items-center space-x-4 mb-5 pt-2">
+                      <div className="h-px bg-gray-100 flex-1"></div>
+                      <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">OR</span>
+                      <div className="h-px bg-gray-100 flex-1"></div>
+                    </div>
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1 block text-center lg:text-left">I am an</label>
+                    <div className="flex flex-wrap gap-2">
+                      {['Owner', 'Agent', 'Developer', 'Business', 'Buyer'].map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => setUserType(type)}
+                          className={`px-4 py-2.5 border-2 rounded-xl text-sm font-bold transition-all duration-300 flex-1 min-w-[30%] ${
+                            userType === type ? 'border-brand-green bg-brand-green/10 text-brand-green shadow-[0_4px_12px_rgba(37,211,102,0.15)] scale-[1.02]' : 'border-gray-100 text-gray-500 hover:border-brand-green/30 hover:bg-brand-green/5'
+                          }`}
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-1">Your Name *</label>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                      <input 
+                        type="text" 
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="John Doe"
+                        className="w-full bg-white border-2 border-gray-100 rounded-2xl py-4 flex pl-12 pr-4 text-base font-bold dark-navy placeholder-gray-300 focus:outline-none focus:ring-4 focus:ring-brand-green/10 focus:border-brand-green transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5 flex flex-col">
+                    <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-1">Phone Number *</label>
+                    <div className="relative">
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                      <input 
+                        type="tel" 
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="077 123 4567"
+                        className="w-full bg-white border-2 border-gray-100 rounded-2xl py-4 flex pl-12 pr-4 text-base font-bold dark-navy placeholder-gray-300 focus:outline-none focus:ring-4 focus:ring-brand-green/10 focus:border-brand-green transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+                  {userType !== 'Buyer' && userType !== 'Owner' && (
+                    <div className="space-y-1.5 flex flex-col">
+                      <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-1">Agency Name <span className="lowercase font-semibold text-[10px] text-gray-400">(Optional)</span></label>
+                      <div className="relative">
+                        <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                        <input 
+                          type="text" 
+                          value={agency}
+                          onChange={(e) => setAgency(e.target.value)}
+                          placeholder="Agency LLC"
+                          className="w-full bg-white border-2 border-gray-100 rounded-2xl py-4 flex pl-12 pr-4 text-base font-bold dark-navy placeholder-gray-300 focus:outline-none focus:ring-4 focus:ring-brand-green/10 focus:border-brand-green transition-all"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              <div className="space-y-1.5 flex flex-col">
+                <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-1">Email address *</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <input 
+                    type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="admin@lankaproperty.lk"
+                    className="w-full bg-white border-2 border-gray-100 rounded-2xl py-4 flex pl-12 pr-4 text-base font-bold dark-navy placeholder-gray-300 focus:outline-none focus:ring-4 focus:ring-brand-green/10 focus:border-brand-green transition-all"
+                    required
+                  />
+                </div>
+              </div>
+
+              {mode !== 'forgot_password' && (
+                <div className="space-y-1.5 flex flex-col">
+                  <div className="flex items-center justify-between px-1">
+                    <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest">{mode === 'signup' ? 'Create Password *' : 'Password *'}</label>
+                    {mode === 'login' && (
+                      <button type="button" onClick={() => setMode('forgot_password')} className="text-[11px] font-black text-brand-green hover:underline uppercase tracking-widest">Forgot Password?</button>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    <input 
+                      type="password" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full bg-white border-2 border-gray-100 rounded-2xl py-4 flex pl-12 pr-12 text-base font-bold dark-navy placeholder-gray-300 focus:outline-none focus:ring-4 focus:ring-brand-green/10 focus:border-brand-green transition-all tracking-[0.2em]"
+                      required
+                      minLength={8}
+                    />
+                    <Eye className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 cursor-pointer transition-colors" size={20} />
+                  </div>
+                </div>
+              )}
+
+              {mode === 'signup' && (
+                <>
+                  <div className="space-y-1.5 flex flex-col">
+                    <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-1">Confirm Password *</label>
+                    <div className="relative">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                      <input 
+                        type="password" 
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full bg-white border-2 border-gray-100 rounded-2xl py-4 flex pl-12 pr-12 text-base font-bold dark-navy placeholder-gray-300 focus:outline-none focus:ring-4 focus:ring-brand-green/10 focus:border-brand-green transition-all tracking-[0.2em]"
+                        required
+                        minLength={8}
+                      />
+                      <Eye className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 cursor-pointer transition-colors" size={20} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-4 pb-2">
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <div className="relative flex items-center pt-0.5 mt-0.5">
+                        <input type="checkbox" checked={subscribe} onChange={(e) => setSubscribe(e.target.checked)} className="peer w-5 h-5 opacity-0 absolute z-10 cursor-pointer" />
+                        <div className="w-[18px] h-[18px] border-2 rounded-[4px] border-gray-300 peer-checked:bg-brand-green peer-checked:border-brand-green flex items-center justify-center transition-all group-hover:border-brand-green/50">
+                          <svg className={`w-3 h-3 text-white transition-opacity ${subscribe ? 'opacity-100' : 'opacity-0'}`} viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      </div>
+                      <span className="text-[13px] font-semibold text-gray-500 leading-snug">Subscribe to our Newsletter and email alerts</span>
+                    </label>
+
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <div className="relative flex items-center pt-0.5 mt-0.5">
+                        <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} className="peer w-5 h-5 opacity-0 absolute z-10 cursor-pointer" />
+                        <div className="w-[18px] h-[18px] border-2 rounded-[4px] border-gray-300 peer-checked:bg-[#000] peer-checked:border-[#000] flex items-center justify-center transition-all group-hover:border-gray-500">
+                          <svg className={`w-3 h-3 text-white transition-opacity ${acceptTerms ? 'opacity-100' : 'opacity-0'}`} viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      </div>
+                      <span className="text-[13px] font-semibold text-gray-500 leading-snug">I have read, understood and accept Terms &amp; Condition</span>
+                    </label>
+                  </div>
+                </>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 bg-[#004b34] text-white font-black py-4 px-6 rounded-2xl shadow-[0_8px_24px_rgba(0,75,52,0.2)] hover:bg-[#003827] hover:shadow-[0_12px_32px_rgba(0,75,52,0.3)] hover:-translate-y-0.5 transition-all duration-300 mt-6 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest text-sm"
+              >
+                {loading && <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"/>}
+                <span>
+                  {mode === 'login' ? (loading ? 'Signing in...' : 'Sign In') : mode === 'signup' ? (loading ? 'Creating Account...' : 'Create Account') : (loading ? 'Sending...' : 'Send Reset Link')}
+                </span>
+                {!loading && <svg className="w-4 h-4 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>}
+              </button>
+            </form>
+
+            <div className="mt-8 flex items-center justify-center gap-2 text-xs font-bold text-gray-400">
+              <ShieldCheck size={14} className="text-gray-400" />
+              <span>SECURED BY LANKAPROPERTY.LK</span>
+            </div>
+
+            <div className="absolute right-8 bottom-8 flex items-center gap-2">
+              <div className="bg-white border border-gray-200 rounded-full flex items-center shadow-sm overflow-hidden">
+                <button className="px-3 py-1.5 bg-[#1a1a1a] text-white text-[10px] font-black">EN</button>
+                <button className="px-3 py-1.5 text-gray-400 hover:text-dark-navy transition-colors">
+                  <Globe size={14} />
+                </button>
               </div>
             </div>
 
             {mode !== 'forgot_password' && (
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                  <input 
-                    type="password" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
-                    required
-                    minLength={8}
-                  />
+              <div className="mt-12">
+                <div className="relative mb-8">
+                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
+                  <div className="relative flex justify-center"><span className="bg-white px-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Or continue with</span></div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <button type="button" onClick={() => handleOAuth('google')} disabled={loading} className="flex items-center justify-center gap-2 bg-white border-2 border-gray-100 rounded-2xl py-3.5 hover:border-gray-200 hover:bg-gray-50 transition-all font-bold text-sm text-gray-600 disabled:opacity-50">
+                    <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src="https://www.iconpacks.net/icons/2/free-google-logo-icon-2422-thumb.png" className="h-5" alt="Google" />
+                    Google
+                  </button>
+                  <button type="button" onClick={() => handleOAuth('facebook')} disabled={loading} className="flex items-center justify-center gap-2 bg-white border-2 border-gray-100 rounded-2xl py-3.5 hover:border-gray-200 hover:bg-gray-50 transition-all font-bold text-sm text-gray-600 disabled:opacity-50">
+                    <Facebook className="text-[#1877f2]" size={20} fill="currentColor" />
+                    Facebook
+                  </button>
                 </div>
               </div>
             )}
 
-            {mode === 'signup' && (
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Confirm Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                  <input 
-                    type="password" 
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green compact-transition"
-                    required
-                    minLength={8}
-                  />
-                </div>
-              </div>
-            )}
-
-            {mode === 'login' && (
-              <div className="text-right">
-                <button type="button" onClick={() => setMode('forgot_password')} className="text-xs font-bold text-brand-green hover:underline">Forgot Password?</button>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-brand-green text-white font-bold py-4 rounded-2xl shadow-xl shadow-brand-green/20 hover:bg-brand-green-dark compact-transition mt-4 disabled:opacity-50"
-            >
-              {loading && <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"/>}
-              {mode === 'login' ? (loading ? 'Signing in...' : 'Sign In') : mode === 'signup' ? (loading ? 'Creating Account...' : 'Create Account') : (loading ? 'Sending...' : 'Send Reset Link')}
-            </button>
-          </form>
-
-          {mode !== 'forgot_password' && (
-            <>
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
-                <div className="relative flex justify-center text-xs uppercase font-bold"><span className="bg-white px-2 text-gray-300">Or continue with</span></div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <button type="button" onClick={() => handleOAuth('google')} disabled={loading} className="flex items-center justify-center gap-2 border border-gray-100 rounded-2xl py-3 hover:bg-gray-50 compact-transition disabled:opacity-50">
-                  <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src="https://www.iconpacks.net/icons/2/free-google-logo-icon-2422-thumb.png" className="h-5" alt="Google" />
-                  <span className="text-sm font-bold text-gray-600">Google</span>
-                </button>
-                <button type="button" onClick={() => handleOAuth('facebook')} disabled={loading} className="flex items-center justify-center gap-2 border border-gray-100 rounded-2xl py-3 hover:bg-gray-50 compact-transition disabled:opacity-50">
-                  <Facebook className="text-[#1877f2]" size={20} fill="currentColor" />
-                  <span className="text-sm font-bold text-gray-600">Facebook</span>
-                </button>
-              </div>
-            </>
-          )}
-
-          <div className="text-center">
-            {mode === 'forgot_password' ? (
-              <button 
-                onClick={() => setMode('login')}
-                className="text-brand-green font-bold text-sm hover:underline flex items-center justify-center gap-2 mx-auto"
-              >
-                <ChevronLeft size={16} /> Back to Sign In
-              </button>
-            ) : (
-              <p className="text-sm text-gray-400 font-medium">
-                {mode === 'login' ? "Don't have an account?" : "Already have an account?"}{' '}
+            <div className="mt-8 text-center">
+              {mode === 'forgot_password' ? (
                 <button 
-                  onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-                  className="text-brand-green font-bold hover:underline"
+                  onClick={() => setMode('login')}
+                  className="text-brand-green font-bold text-sm hover:underline flex items-center justify-center gap-2 mx-auto uppercase tracking-widest"
                 >
-                  {mode === 'login' ? 'Sign Up' : 'Log In'}
+                  <ChevronLeft size={16} /> Back to Sign In
                 </button>
-              </p>
-            )}
+              ) : (
+                <p className="text-[13px] text-gray-500 font-medium">
+                  {mode === 'login' ? "Don't have an account?" : "Already have an account?"}{' '}
+                  <button 
+                    onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                    className="text-brand-green font-black hover:underline uppercase tracking-wide ml-1"
+                  >
+                    {mode === 'login' ? 'Sign Up' : 'Log In'}
+                  </button>
+                </p>
+              )}
+            </div>
+
           </div>
-
-          <button 
-            type="button"
-            onClick={onBack}
-            className="w-full text-gray-400 text-xs font-bold hover:text-gray-600 compact-transition"
-          >
-            Go Back
-          </button>
-
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 };
 

@@ -79,6 +79,42 @@ async function startServer() {
     }
   });
 
+  // Maps AI endpoint
+  app.post("/api/ai/maps", async (req, res) => {
+    try {
+      const { message, lat, lng } = req.body;
+      
+      const config: any = {
+        tools: [{ googleMaps: {} }],
+      };
+
+      if (lat && lng) {
+        config.toolConfig = {
+          retrievalConfig: {
+            latLng: {
+              latitude: parseFloat(lat),
+              longitude: parseFloat(lng),
+            }
+          }
+        };
+      }
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: message || "What's nearby?",
+        config,
+      });
+
+      const text = response.text;
+      const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+
+      res.json({ text, chunks });
+    } catch (error: any) {
+      console.error("[Maps AI Error]", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Local handler for send-notification proxy
   app.post("/api/send-notification", async (req, res) => {
     try {
