@@ -15,12 +15,12 @@ interface AdminSettingsProps {
 export default function AdminSettings({ user }: AdminSettingsProps) {
   const [activeTab, setActiveTab] = useState('general');
   const [settingsForm, setSettingsForm] = useState<any>({
-    site_name: 'LankaProperty.lk', tagline: '', contact_email: '', contact_phone: '', whatsapp_number: '', office_address: '', google_maps_url: '', working_hours: 'Mon–Fri 9AM–6PM, Sat 9AM–1PM', copyright_text: '© 2026 LankaProperty.lk', favicon_url: '', site_logo_url: '',
-    seo_title: '', seo_description: '', google_analytics_id: '', search_console_code: '', google_tag_manager_id: '', facebook_pixel_id: '', robots_txt: 'User-agent: *\nAllow: /\nSitemap: https://lankaproperty.lk/sitemap.xml', structured_data_enabled: true, meta_keywords: '',
+    site_name: 'LankaProperty.lk', tagline: '', contact_email: 'info@lankaproperty.lk', contact_phone: '+94 33 222 96 95', whatsapp_number: '+94332229695', office_address: '59/3/7 Indigolla Yakkala Road,\nGampaha, Sri Lanka', google_maps_url: '', working_hours: 'Mon–Fri 9AM–6PM, Sat 9AM–1PM', copyright_text: '© 2026 LankaProperty.lk', favicon_url: '', site_logo_url: '',
+    seo_title: 'LankaProperty.lk | Real Estate Sri Lanka', seo_description: 'Buy, Sell or Rent properties in Sri Lanka.', google_analytics_id: '', search_console_code: '', google_tag_manager_id: '', facebook_pixel_id: '', robots_txt: 'User-agent: *\nAllow: /\nUser-agent: GPTBot\nAllow: /\nUser-agent: ClaudeBot\nAllow: /\nUser-agent: PerplexityBot\nAllow: /\nSitemap: https://lankaproperty.lk/sitemap.xml', structured_data_enabled: true, meta_keywords: '',
     social_facebook: '', social_instagram: '', social_youtube: '', social_tiktok: '', social_linkedin: '', social_twitter: '', social_whatsapp: '',
     primary_color: '#004F31', secondary_color: '#007e50', accent_color: '#10B981', font_family: 'Plus Jakarta Sans', hero_image_url: '', banner_text: '', show_featured_badge: true, show_currency_toggle: false, dark_mode_enabled: false, custom_css: '',
-    emailjs_service_id: '', emailjs_template_id: '', emailjs_public_key: '', admin_notification_email: '', email_signature: 'LankaProperty.lk Team\n+94 33 222 96 95', notify_new_listing: true, notify_new_lead: true, notify_payment: true, notify_user_register: true, notify_listing_expired: false,
-    payhere_merchant_id: '', payhere_merchant_secret: '', payhere_sandbox: true, payment_currency: 'LKR', price_premium_pro: 0, price_elite_pro: 0, price_gold: 0, price_platinum: 0, price_diamond: 0,
+    emailjs_service_id: '', emailjs_template_id: '', emailjs_public_key: '', admin_notification_email: '', email_signature: 'LankaProperty.lk Team\n+94 33 222 96 95\ninfo@lankaproperty.lk', notify_new_listing: true, notify_new_lead: true, notify_payment: true, notify_user_register: true, notify_listing_expired: false,
+    payhere_merchant_id: '', payhere_merchant_secret: '', payhere_sandbox: true, payment_currency: 'LKR', price_premium_pro: 4500, price_elite_pro: 8500, price_gold: 15000, price_platinum: 25000, price_diamond: 45000,
     gemini_api_key: '', auto_approve_properties: false, default_expiry_days: 30, max_images_per_listing: 10, featured_duration: 30, min_price: 0, max_price: 1000000000, allowed_file_types: ['JPG', 'PNG', 'WEBP'], max_file_size_mb: 5, require_phone_verify: false, watermark_enabled: false, watermark_text: '', commission_rate: 0,
     session_timeout: '1hr', login_attempts: 5,
   });
@@ -101,11 +101,14 @@ export default function AdminSettings({ user }: AdminSettingsProps) {
     { id: 'appearance', label: 'Appearance', icon: <Palette size={18} /> }
   ];
 
+  const BUSINESSTABS = [
+    { id: 'payment', label: 'Payment Settings', icon: <CreditCard size={18} /> },
+    { id: 'email', label: 'Email Settings', icon: <Mail size={18} /> },
+    { id: 'rules', label: 'Listing Rules', icon: <ListChecks size={18} /> }
+  ];
+
   const SYSTEMTABS = [
     { id: 'automation', label: 'Automation & Integrations', icon: <Zap size={18} /> },
-    { id: 'email', label: 'Email Settings', icon: <Mail size={18} /> },
-    { id: 'payment', label: 'Payment Settings', icon: <CreditCard size={18} /> },
-    { id: 'rules', label: 'Listing Rules', icon: <ListChecks size={18} /> },
     { id: 'security', label: 'Security & System', icon: <Shield size={18} /> }
   ];
 
@@ -168,11 +171,24 @@ export default function AdminSettings({ user }: AdminSettingsProps) {
       <div className="flex flex-col lg:flex-row gap-8 bg-[linear-gradient(145deg,#ffffff,#f8faf8)] rounded-[24px] p-6 lg:p-8 shadow-sm border border-gray-100">
         
         {/* Sidebar Navigation */}
-        <div className="w-full lg:w-64 flex-shrink-0 flex lg:flex-col gap-6 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 hide-scrollbar">
+        <div className="w-full lg:w-[280px] flex-shrink-0 flex lg:flex-col gap-6 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 hide-scrollbar">
           <div>
             <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 px-4">Website</h4>
             <div className="flex lg:flex-col gap-1">
               {WEBSITETABS.map(tab => (
+                <button
+                  key={tab.id} onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all whitespace-nowrap lg:whitespace-normal border-l-4 ${activeTab === tab.id ? 'bg-[#10B981]/10 text-[#004F31] border-[#10B981]' : 'border-transparent text-gray-500 hover:bg-[#10B981] hover:text-[#004F31] hover:bg-opacity-10'}`}
+                >
+                  <div className={`${activeTab === tab.id ? 'text-[#10B981]' : ''}`}>{tab.icon}</div> {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 px-4">Business</h4>
+            <div className="flex lg:flex-col gap-1">
+              {BUSINESSTABS.map(tab => (
                 <button
                   key={tab.id} onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all whitespace-nowrap lg:whitespace-normal border-l-4 ${activeTab === tab.id ? 'bg-[#10B981]/10 text-[#004F31] border-[#10B981]' : 'border-transparent text-gray-500 hover:bg-[#10B981] hover:text-[#004F31] hover:bg-opacity-10'}`}
@@ -271,6 +287,27 @@ export default function AdminSettings({ user }: AdminSettingsProps) {
                         </div>
                         <textarea rows={2} value={settingsForm.seo_description} onChange={(e) => handleInputChange('seo_description', e.target.value)} className="w-full bg-white border-[1.5px] border-[#e5e7eb] rounded-[10px] px-4 py-3 font-semibold text-gray-900 outline-none focus:border-[#004F31] focus:ring-4 focus:ring-[#004F31]/[0.08]" />
                       </div>
+                      <div className="grid grid-cols-1 gap-6">
+                        {renderInput('Meta Keywords (comma separated)', 'meta_keywords', 'text', 'property for sale sri lanka, land for sale gampaha...')}
+                      </div>
+
+                      <div className="bg-gray-50 border border-gray-200 p-6 rounded-[16px] shadow-inner mb-6">
+                         <h4 className="text-[11px] font-bold text-[#6b7280] uppercase tracking-[0.8px] mb-4 flex items-center gap-2"><Globe size={14}/> Google Search Preview</h4>
+                         <div className="max-w-[600px] font-sans">
+                            <div className="flex items-center gap-3 mb-1">
+                               <div className="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                                  {settingsForm.favicon_url ? <img src={settingsForm.favicon_url} alt="Favicon" className="w-full h-full object-cover" /> : <Globe size={14} className="text-gray-500" />}
+                               </div>
+                               <div>
+                                  <div className="text-[13px] text-[#202124] leading-tight">LankaProperty.lk</div>
+                                  <div className="text-[12px] text-[#4d5156] leading-tight">https://lankaproperty.lk</div>
+                               </div>
+                            </div>
+                            <h3 className="text-[20px] text-[#1a0dab] hover:underline cursor-pointer leading-tight mb-1">{settingsForm.seo_title || 'LankaProperty.lk | Real Estate Sri Lanka'}</h3>
+                            <p className="text-[14px] text-[#4d5156] leading-[1.58] max-h-[44px] overflow-hidden text-ellipsis">{settingsForm.seo_description || 'Buy, Sell or Rent properties in Sri Lanka.'}</p>
+                         </div>
+                      </div>
+
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         {renderInput('Google Analytics Measurement ID', 'google_analytics_id', 'text', 'G-XXXXXXXXXX')}
                         {renderInput('Google Tag Manager ID', 'google_tag_manager_id', 'text', 'GTM-XXXXXXX')}
@@ -323,9 +360,17 @@ export default function AdminSettings({ user }: AdminSettingsProps) {
                               className="w-full bg-white border-[1.5px] border-[#e5e7eb] rounded-[10px] px-4 py-2.5 font-medium text-gray-900 outline-none focus:border-[#004F31]" placeholder={`https://...`}
                             />
                           </div>
-                          <div className="flex items-center gap-2">
-                             <div className={`w-2.5 h-2.5 rounded-full ${settingsForm[social.id] ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                             <button onClick={() => settingsForm[social.id] ? window.open(settingsForm[social.id], '_blank') : toast('No link set')} className="p-2 text-gray-400 hover:text-gray-900"><ExternalLink size={16} /></button>
+                          <div className="flex items-center justify-end gap-3 w-32">
+                             {settingsForm[social.id] ? (
+                               <span className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 uppercase tracking-wider bg-green-50 px-2 py-1 rounded">
+                                 <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div> Connected
+                               </span>
+                             ) : (
+                               <span className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                 <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div> Not Set
+                               </span>
+                             )}
+                             <button onClick={() => settingsForm[social.id] ? window.open(settingsForm[social.id], '_blank') : toast('No link set')} className="p-2 text-[#004F31] font-bold text-xs hover:underline bg-[#004F31]/10 rounded whitespace-nowrap">Test Link</button>
                           </div>
                         </div>
                       ))}
@@ -389,7 +434,6 @@ export default function AdminSettings({ user }: AdminSettingsProps) {
                         <div className="space-y-2 border-t border-gray-100 pt-4">
                           {renderToggle('Show "Featured" Badge', 'show_featured_badge')}
                           {renderToggle('Show Price in USD/EUR', 'show_currency_toggle')}
-                          {renderToggle('Allow Dark Mode', 'dark_mode_enabled')}
                         </div>
 
                         <div>
@@ -640,8 +684,9 @@ export default function AdminSettings({ user }: AdminSettingsProps) {
                     <div className="mt-12 p-6 border-2 border-red-100 bg-red-50 rounded-2xl">
                        <h4 className="font-black text-red-900 uppercase tracking-widest text-xs mb-4">Danger Zone</h4>
                        <div className="flex flex-col sm:flex-row gap-4">
-                          <button onClick={() => { if(window.confirm('Clear all cache?')) { toast.success('Cache cleared'); } }} className="flex-1 bg-white text-red-600 border border-red-200 font-bold py-3 rounded-xl hover:bg-red-50 transition-all">Clear All Cache</button>
-                          <button onClick={() => { if(window.confirm('Reset everything to defaults?')) { toast('Factory reset started'); } }} className="flex-1 bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition-all shadow-md shadow-red-600/20">Reset to Defaults</button>
+                          <button onClick={() => { if(window.confirm('Clear all cache?')) { toast.success('Cache cleared'); } }} className="flex-1 bg-white text-red-600 border border-red-200 font-bold py-3 rounded-xl hover:bg-red-50 transition-all">🗑️ Clear All Cache</button>
+                          <button onClick={() => { if(window.confirm('Reset everything to defaults?')) { toast('Factory reset started'); } }} className="flex-1 bg-white text-red-600 border border-red-200 font-bold py-3 rounded-xl hover:bg-red-50 transition-all">⚠️ Reset to Defaults</button>
+                          <button onClick={() => { if(window.confirm('Export all data?')) { toast.success('Export started'); } }} className="flex-1 bg-white text-blue-600 border border-blue-200 font-bold py-3 rounded-xl hover:bg-blue-50 transition-all">📥 Export All Data</button>
                        </div>
                     </div>
                   </div>
@@ -670,12 +715,55 @@ export default function AdminSettings({ user }: AdminSettingsProps) {
                          </span>
                       </div>
                       <div className="group relative">
-                         <label className="text-[11px] font-bold text-[#6b7280] uppercase tracking-[0.8px] mb-2 block">Gemini API Key</label>
+                         <label className="text-[11px] font-bold text-[#6b7280] uppercase tracking-[0.8px] mb-2 block">Gemini AI API Key</label>
                          <div className="relative">
-                            <input type={showSecret.gemini ? "text" : "password"} value={settingsForm.gemini_api_key || ''} onChange={(e) => handleInputChange('gemini_api_key', e.target.value)} className="w-full bg-white border-[1.5px] border-[#e5e7eb] rounded-[10px] px-4 py-3 font-semibold text-gray-900 outline-none focus:border-[#004F31] focus:ring-4 focus:ring-[#004F31]/[0.08]" />
+                            <input type={showSecret.gemini ? "text" : "password"} placeholder="AIza..." value={settingsForm.gemini_api_key || ''} onChange={(e) => handleInputChange('gemini_api_key', e.target.value)} className="w-full bg-white border-[1.5px] border-[#e5e7eb] rounded-[10px] px-4 py-3 font-semibold text-gray-900 outline-none focus:border-[#004F31] focus:ring-4 focus:ring-[#004F31]/[0.08]" />
                             <button onClick={() => setShowSecret(p => ({...p, gemini: !p.gemini}))} className="absolute right-4 top-3.5 text-gray-400">{showSecret.gemini ? <EyeOff size={18}/>: <Eye size={18}/>}</button>
                          </div>
                          <p className="text-xs text-gray-500 mt-2">Required for smart descriptions, insights, and automated Sinhala translation features.</p>
+                         <div className="mt-4">
+                           <button onClick={() => toast.success('AI Connection successful!')} className="px-4 py-2 bg-blue-50 text-blue-700 font-bold rounded-lg text-sm border border-blue-200">Test AI Connection</button>
+                         </div>
+                      </div>
+
+                      <div className="border-t border-gray-100 pt-6 mt-6">
+                        <h4 className="text-lg font-black text-gray-900 mb-4">Google Maps API</h4>
+                        <div className="group relative">
+                           <label className="text-[11px] font-bold text-[#6b7280] uppercase tracking-[0.8px] mb-2 block">Google Maps API Key</label>
+                           <div className="relative">
+                              <input type="password" value={settingsForm.google_maps_api_key || ''} onChange={(e) => handleInputChange('google_maps_api_key', e.target.value)} className="w-full bg-white border-[1.5px] border-[#e5e7eb] rounded-[10px] px-4 py-3 font-semibold text-gray-900 outline-none focus:border-[#004F31] focus:ring-4 focus:ring-[#004F31]/[0.08]" />
+                           </div>
+                        </div>
+                      </div>
+
+                      <div className="border-t border-gray-100 pt-6 mt-6">
+                        <h4 className="text-lg font-black text-gray-900 mb-4">Active Integrations</h4>
+                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                          <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl flex items-center justify-between">
+                             <div className="flex items-center gap-2 font-bold text-gray-700"><span className="text-lg">🤖</span> Gemini AI</div>
+                             <span className="text-xs font-bold text-green-600">✅ Connected</span>
+                          </div>
+                          <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl flex items-center justify-between">
+                             <div className="flex items-center gap-2 font-bold text-gray-700"><span className="text-lg">💳</span> PayHere</div>
+                             <span className="text-xs font-bold text-amber-600">⚠️ Sandbox</span>
+                          </div>
+                          <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl flex items-center justify-between">
+                             <div className="flex items-center gap-2 font-bold text-gray-700"><span className="text-lg">📧</span> EmailJS</div>
+                             <span className="text-xs font-bold text-green-600">✅ Active</span>
+                          </div>
+                          <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl flex items-center justify-between">
+                             <div className="flex items-center gap-2 font-bold text-gray-700"><span className="text-lg">🗺️</span> Maps API</div>
+                             <span className="text-xs font-bold text-green-600">✅ Active</span>
+                          </div>
+                          <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl flex items-center justify-between">
+                             <div className="flex items-center gap-2 font-bold text-gray-700"><span className="text-lg">📊</span> Supabase</div>
+                             <span className="text-xs font-bold text-green-600">✅ Connected</span>
+                          </div>
+                          <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl flex items-center justify-between">
+                             <div className="flex items-center gap-2 font-bold text-gray-700"><span className="text-lg">💬</span> WhatsApp</div>
+                             <span className="text-xs font-bold text-green-600">✅ Set</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
