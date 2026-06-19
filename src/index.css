@@ -163,6 +163,16 @@ button, a, .admin-card, .property-card, .quick-import-card, input, select, texta
   transition: all 0.3s ease;
 }
 
+@keyframes glowPulse {
+  0% { box-shadow: 0 0 0 0 rgba(0, 79, 49, 0.6); }
+  70% { box-shadow: 0 0 0 15px rgba(0, 79, 49, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 79, 49, 0); }
+}
+
+.btn-glow-pulse {
+  animation: glowPulse 3s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+
 /* Admin Dark Mode */
 .admin-dark {
   --admin-bg: #0D0D1A;

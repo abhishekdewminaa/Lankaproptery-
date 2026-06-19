@@ -3450,7 +3450,13 @@ const AuthPage = ({ onBack, onLogin, initialMode = 'login', onForgotPassword, on
   };
 
   return (
-    <div className="flex min-h-screen bg-white">
+    <motion.div 
+      initial={{ opacity: 0, y: "-100%" }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: "-100%" }}
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      className="fixed inset-0 z-[200] flex flex-col lg:flex-row min-h-screen bg-white overflow-y-auto"
+    >
       {/* Left Side - Image/Branding */}
       <motion.div 
         initial={{ opacity: 0, x: -50 }}
@@ -3776,7 +3782,7 @@ const AuthPage = ({ onBack, onLogin, initialMode = 'login', onForgotPassword, on
           </div>
         </div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -9949,24 +9955,26 @@ function App() {
       </AnimatePresence>
 
       <TopProgressBar loading={isNavigating || listingsLoading} />
-      <Navbar 
-        onPostAd={() => {
-          if (user) setCurrentView({ type: 'publish' });
-          else setCurrentView({ type: 'auth', data: 'signup' });
-        }}
-        onNavigateHome={navigateHome}
-        onAdminAccess={() => {
-          window.history.pushState({}, '', '/admin-lk2026');
-          setCurrentView({ type: 'secret_login' });
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-        onNavigate={(view) => {
-          setCurrentView(view);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-        currentView={currentView.type}
-        user={user}
-      />
+      {!['auth', 'secret_login', 'verify', 'reset-password'].includes(currentView.type) && (
+        <Navbar 
+          onPostAd={() => {
+            if (user) setCurrentView({ type: 'publish' });
+            else setCurrentView({ type: 'auth', data: 'signup' });
+          }}
+          onNavigateHome={navigateHome}
+          onAdminAccess={() => {
+            window.history.pushState({}, '', '/admin-lk2026');
+            setCurrentView({ type: 'secret_login' });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          onNavigate={(view) => {
+            setCurrentView(view);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          currentView={currentView.type}
+          user={user}
+        />
+      )}
 
       <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center pt-20"><Loader2 className="w-8 h-8 text-brand-green animate-spin" /></div>}>
       <AnimatePresence mode="wait">
@@ -10004,7 +10012,7 @@ function App() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.3 }}
-            className={`min-h-screen bg-slate-50 flex flex-col relative ${['packages', 'sell', 'secret_login', 'agent_access', 'agent_publish', 'agent_listings', 'agent_only_listings', 'featured_projects_admin', 'inquiries', 'wanted'].includes(currentView.type) ? '' : 'pt-20'}`}
+            className={`min-h-screen bg-slate-50 flex flex-col relative ${['auth', 'packages', 'sell', 'secret_login', 'agent_access', 'agent_publish', 'agent_listings', 'agent_only_listings', 'featured_projects_admin', 'inquiries', 'wanted'].includes(currentView.type) ? '' : 'pt-20'}`}
           >
             <AnimatePresence mode="wait">
               <motion.div
