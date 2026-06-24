@@ -86,34 +86,25 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
   };
 
   return (
-    <nav className={`glass-navbar ${isScrolled ? 'scrolled shadow-lg' : 'bg-transparent'} h-20 flex items-center px-6 md:px-12 fixed top-0 w-full z-[100] transition-all duration-300`}>
+    <nav className={`glass-navbar bg-white ${isScrolled ? 'shadow-lg' : 'border-b border-gray-100/60'} h-20 flex items-center px-6 md:px-12 fixed top-0 w-full z-[100] transition-all duration-300`}>
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo */}
         <div 
-          className="flex items-center cursor-pointer" 
+          className="flex items-center gap-3 cursor-pointer" 
           onClick={() => {
             window.history.pushState({}, '', '/');
             onNavigateHome();
           }}
         >
-          <motion.span 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="text-2xl font-black text-brand-green tracking-tighter flex items-center"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            LankaProperty
-            <motion.span 
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.3, type: "spring", stiffness: 200 }}
-              className="text-brand-green"
-            >
-              .lk
-            </motion.span>
-          </motion.span>
+          <motion.img
+            src="https://qsqqolvsndvkwegvcfqv.supabase.co/storage/v1/object/sign/Homa%20page%20images/Homa%20page.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MWNhMTU1MC03OGYzLTQwZGMtYTYzYi02NzVmZTRiYjM2NWMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJIb21hIHBhZ2UgaW1hZ2VzL0hvbWEgcGFnZS5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzgyMjcyNDczLCJleHAiOjI3MjgzNTI0NzN9.anq2vvFCtVaS-LDJkzccWqjo4kqH7wMmOIGw6oM7XKA"
+            alt="LankaProperty Logo"
+            className="h-12 md:h-16 w-auto object-contain rounded-xl"
+            referrerPolicy="no-referrer"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          />
         </div>
 
         {/* Left Nav (Desktop) */}

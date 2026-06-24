@@ -20,7 +20,6 @@ export async function postToSocial(platform: string, content: any): Promise<bool
       // Since we don't have a real backend to hit those APIs securely here, we mock it.
       
       const logMessage = `✅ Posted directly to ${platform} via API`;
-      console.log(logMessage);
       
       // We would log to workflow_logs table here
       
@@ -28,7 +27,6 @@ export async function postToSocial(platform: string, content: any): Promise<bool
       return true;
     } else {
       // Fallback: Open browser composer manually if not connected
-      console.log(`⚠️ No account connected for ${platform} — opening composer manually`);
       
       const encodedMsg = encodeURIComponent(content?.caption || "Check out our new property!");
       

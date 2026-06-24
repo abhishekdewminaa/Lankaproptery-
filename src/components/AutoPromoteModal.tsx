@@ -326,8 +326,8 @@ Generate marketing content. Return JSON strictly in this format:
                           { label: 'Description', val: 'Extracted' },
                           { label: 'Property URL', val: `lankaproperty.lk/LP${String(property?.id).padStart(4, '0')}` },
                         ].map((item, i) => (
-                           <motion.div 
-                             key={i}
+                           <motion.div key={i} 
+
                              initial={{ opacity: 0, x: -20 }}
                              animate={extractedItems > i ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
                              className="flex items-center gap-3 text-gray-700 bg-gray-50 p-3 rounded-xl border border-gray-100"

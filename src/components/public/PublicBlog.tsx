@@ -90,7 +90,7 @@ export default function PublicBlog({ onNavigatePost }: { onNavigatePost: (slug: 
                   <div className="bg-white rounded-[32px] overflow-hidden shadow-xl shadow-black/5 border border-gray-100 group cursor-pointer" onClick={() => onNavigatePost(featuredPost.slug)}>
                      <div className="h-[300px] md:h-[400px] bg-gray-200 relative overflow-hidden">
                         {featuredPost.featured_image && (
-                           <img src={featuredPost.featured_image} alt={featuredPost.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                           <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg' }} src={featuredPost.featured_image} alt={featuredPost.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                         )}
                         <div className="absolute top-6 left-6">
                            <span className="bg-emerald-600 text-white text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-lg shadow-lg">{featuredPost.category}</span>
@@ -132,7 +132,7 @@ export default function PublicBlog({ onNavigatePost }: { onNavigatePost: (slug: 
                      <div key={post.id} onClick={() => onNavigatePost(post.slug)} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 group cursor-pointer transition-all duration-300">
                         <div className="h-[240px] bg-gray-100 overflow-hidden relative">
                            {post.featured_image ? (
-                              <img src={post.featured_image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                              <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg' }} src={post.featured_image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                            ) : (
                               <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-300">
                                  <FileText size={48} />

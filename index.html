@@ -2,8 +2,28 @@
 <html lang="en">
   <head>
     <script>
+    window.onerror = function(msg, src, line, col, err) {
+      document.body.style.background = 'white';
+      document.body.innerHTML = '<div style="padding:20px;font-family:monospace;color:red">' +
+        '<h2>JS ERROR:</h2><pre>' + msg + '\nat ' + src + ':' + line + '</pre></div>';
+    };
+    window.addEventListener('unhandledrejection', function(e) {
+      var reasonStr = String(e.reason && (e.reason.stack || e.reason.message || e.reason));
+      if (reasonStr.indexOf('WebSocket') > -1 || reasonStr.indexOf('websocket') > -1 || reasonStr.indexOf('vite') > -1) {
+        return;
+      }
+      document.body.style.background = 'white';  
+      document.body.innerHTML = '<div style="padding:20px;font-family:monospace;color:red">' +
+        '<h2>PROMISE ERROR:</h2><pre>' + reasonStr + '</pre></div>';
+    });
+    </script>
+    <script>
     /* SUPPRESSION - MUST BE FIRST */
     ;(function(){
+      try {
+        window.process = { env: { NODE_ENV: 'development', GEMINI_API_KEY: '' } };
+        window.global = window;
+      } catch(e) {}
       try {
         var nativeFetch = window.fetch;
         if (nativeFetch) {
@@ -46,21 +66,66 @@
           return
         }
         _error.apply(console, arguments)
+        try {
+          var payload = { 
+            type: 'console_error', 
+            message: msg, 
+            stack: new Error().stack 
+          };
+          // Use original nativeFetch to bypass any potential overriding or infinite loops
+          (window.fetch || nativeFetch)('/api/log-error', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          }).catch(function(){});
+        } catch(err){}
       }
+      window.addEventListener('error', function(e) {
+        try {
+          var payload = {
+            type: 'window_onerror',
+            message: e.message || String(e),
+            filename: e.filename,
+            lineno: e.lineno,
+            colno: e.colno,
+            stack: e.error ? e.error.stack : null
+          };
+          (window.fetch || nativeFetch)('/api/log-error', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          }).catch(function(){});
+        } catch(err){}
+      });
       window.addEventListener(
         'unhandledrejection',
         function(e) {
           if (e.reason && typeof e.reason === 'string' && e.reason.indexOf('WebSocket') > -1) { e.preventDefault(); return }
           if (e.reason && e.reason.message && e.reason.message.indexOf('WebSocket') > -1) { e.preventDefault(); return }
+          try {
+            var reasonMsg = e.reason ? (e.reason.message || String(e.reason)) : 'unknown';
+            var reasonStack = e.reason ? e.reason.stack : null;
+            var payload = {
+              type: 'unhandled_rejection',
+              message: reasonMsg,
+              stack: reasonStack
+            };
+            (window.fetch || nativeFetch)('/api/log-error', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            }).catch(function(){});
+          } catch(err){}
         }, 
         true
       )
     })()
     </script>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, max-scale=5.0, viewport-fit=cover" />
     <title>LankaProperty.lk | Buy, Sell & Rent Property in Sri Lanka</title>
     <meta name="description" content="Sri Lanka's trusted property marketplace. Find houses, land, apartments and commercial properties for sale and rent across Sri Lanka.">
+    
     <meta property="og:title" content="LankaProperty.lk | Sri Lanka Real Estate">
     <meta property="og:description" content="Buy, Sell or Rent property in Sri Lanka. Houses, Land, Apartments, Commercial properties.">
     <meta property="og:url" content="https://lankaproperty.lk">
@@ -72,17 +137,14 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Fix for "undefined" is not valid JSON
-      try {
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (localStorage.getItem(key) === "undefined") {
-            console.warn(`Removing invalid 'undefined' value from localStorage key: ${key}`);
-            localStorage.removeItem(key);
+      // Forcibly unregister any leftover service workers
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+            console.log('Unregistered SW', registration);
           }
-        }
-      } catch (e) {
-        console.error("Error clearing localStorage:", e);
+        });
       }
     </script>
   </body>

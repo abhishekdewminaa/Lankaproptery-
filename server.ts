@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
 import { createClient } from "@supabase/supabase-js";
+import fs from "fs";
 
 dotenv.config();
 
@@ -18,9 +19,9 @@ async function startServer() {
   app.use(express.json());
 
   // Supabase admin client for fetching properties
-  const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || '';
-  const supabase = createClient(supabaseUrl, supabaseKey);
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
   // Gemini Setup
   const ai = new GoogleGenAI({
@@ -37,7 +38,12 @@ async function startServer() {
       const { message, instructions } = req.body;
 
       // 1. Fetch properties to build context
-      const { data: properties } = await supabase.from('properties').select('*').limit(10);
+      let properties = null;
+      if (supabase) {
+        const { data } = await supabase.from('properties').select('*').limit(10);
+        properties = data;
+      }
+      
       let propertyContext = "No properties found.";
       if (properties && properties.length > 0) {
          propertyContext = "Available Properties:\n" + properties.map((p: any) => 
@@ -211,6 +217,18 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
+  // Log client-side errors
+  app.post("/api/log-error", (req, res) => {
+    const errorLog = `[CLIENT ERROR][${new Date().toISOString()}] ${JSON.stringify(req.body)}\n`;
+    console.error(errorLog.trim());
+    try {
+      fs.appendFileSync(path.resolve(__dirname, "browser_errors.log"), errorLog);
+    } catch (e) {
+      console.error("Failed to write client-side error to file:", e);
+    }
+    res.json({ logged: true });
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
@@ -227,7 +245,7 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
   });
 }
 

@@ -8,10 +8,11 @@ import {
   ChevronLeft, ChevronRight, Share2, Printer,
   Heart, Shield, ExternalLink, Calculator,
   Home, Building2, Building, Hotel, Briefcase,
-  LandPlot, TrendingUp
+  LandPlot, TrendingUp, List, Grid
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { DISTRICTS_BY_PROVINCE } from '../constants/districts';
+import { PropertyCountdown } from './PropertyCountdown';
 
 import { safeQuery } from '../utils/supabaseQuery';
 
@@ -69,99 +70,181 @@ const PROPERTY_TYPES_MAP: Record<string, string[]> = {
   'Building': ['OFFICE', 'RETAIL', 'WAREHOUSE']
 };
 
-const SkeletonCard = () => (
-  <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-    <div className="h-56 bg-gray-100 animate-shimmer" />
-    <div className="p-6 space-y-4">
+const SkeletonCard = ({ viewMode = 'grid' }: { viewMode?: 'grid' | 'list' }) => (
+  <div className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 ${viewMode === 'list' ? 'flex flex-row h-32 md:h-48' : 'h-full'}`}>
+    <div className={`bg-gray-100 animate-shimmer ${viewMode === 'list' ? 'w-[120px] md:w-64 h-full shrink-0' : 'h-56'}`} />
+    <div className="p-4 md:p-6 space-y-4 flex-1">
       <div className="h-4 bg-gray-100 animate-shimmer w-1/4 rounded" />
       <div className="h-6 bg-gray-100 animate-shimmer w-3/4 rounded" />
       <div className="h-4 bg-gray-100 animate-shimmer w-1/2 rounded" />
       <div className="pt-4 border-t border-gray-50 flex gap-4">
-        <div className="h-4 bg-gray-100 animate-shimmer w-12 rounded" />
-        <div className="h-4 bg-gray-100 animate-shimmer w-12 rounded" />
-        <div className="h-4 bg-gray-100 animate-shimmer w-12 rounded" />
+        <div className="h-4 bg-gray-100 animate-shimmer w-8 md:w-12 rounded" />
+        <div className="h-4 bg-gray-100 animate-shimmer w-8 md:w-12 rounded" />
       </div>
     </div>
   </div>
 );
 
-const PropertyCard = React.memo(({ p, idx, onPropertyClick, favorites, toggleFavorite }: { 
-  p: any, idx: number, onPropertyClick: (p: any) => void, favorites: Set<number>, toggleFavorite: (id: number) => void 
+const PropertyCard = React.memo(({ p, idx, onPropertyClick, favorites, toggleFavorite, viewMode = 'grid' }: { 
+  p: any, idx: number, onPropertyClick: (p: any) => void, favorites: Set<number>, toggleFavorite: (id: number) => void, viewMode?: 'grid' | 'list'
 }) => {
+  const isFeatured = !!(p.is_featured || p.isFeatured || p.package_tier === 'Elite Pro' || p.package_tier === 'Premium Pro');
+
+  if (viewMode === 'list') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: Math.min(idx * 0.05, 0.5) }}
+        className="group w-full"
+      >
+        <div 
+          onClick={() => onPropertyClick(p)}
+          className="bg-white rounded-[24px] md:rounded-[32px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-row h-[140px] md:h-[220px]"
+        >
+          <div className="relative w-[120px] md:w-[280px] h-full shrink-0 overflow-hidden">
+            <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg'; }} 
+              src={getPropertyImage(p.images)} 
+              alt={p.listing_title || p.title}
+              loading="lazy"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+            {p.is_trending && (
+               <span className="absolute top-2 left-2 md:top-4 md:left-4 px-2 py-1 md:px-3 md:py-1.5 bg-brand-green text-white rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-1 shadow-lg z-10 scale-90 md:scale-100 origin-top-left">
+                  <TrendingUp size={10} className="md:w-3 md:h-3" /> <span className="hidden md:inline">TRENDING</span>
+               </span>
+            )}
+            <button 
+              onClick={(e) => { e.stopPropagation(); toggleFavorite(p.id); }}
+              className={`absolute top-2 right-2 md:top-4 md:right-4 p-2 md:p-3 rounded-full shadow-lg transition-all z-10 ${
+                favorites.has(p.id) ? 'bg-brand-red text-white' : 'bg-white/90 text-dark-navy hover:bg-white'
+              }`}
+            >
+              <Heart size={14} className="md:w-[18px] md:h-[18px]" fill={favorites.has(p.id) ? "currentColor" : "none"} />
+            </button>
+            {isFeatured && p.id && (
+              <div className="absolute bottom-2 left-2 md:bottom-3 md:left-3 z-10 scale-90 md:scale-100 origin-bottom-left">
+                <PropertyCountdown id={p.id} compact />
+              </div>
+            )}
+          </div>
+
+          <div className="p-3 md:p-6 flex flex-col flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 text-brand-green text-[9px] md:text-[11px] font-black uppercase tracking-wider mb-1 md:mb-2 line-clamp-1">
+              <MapPin size={10} className="md:w-3 md:h-3 shrink-0" /> <span className="truncate">{p.district}</span>
+            </div>
+            <h3 className="text-sm md:text-xl font-bold md:font-black text-gray-900 mb-1 md:mb-2 line-clamp-2 md:line-clamp-1 group-hover:text-brand-green transition-colors leading-tight">
+              {p.listing_title || p.title || 'Property Listing'}
+            </h3>
+            
+            <div className="mb-auto">
+              <div className="text-base md:text-2xl font-black text-brand-green leading-none">
+                Rs. {p.price_lkr ? (p.price_lkr / 1000000).toFixed(1) : '0'}M
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 md:gap-4 pt-2 md:pt-4 border-t border-gray-50 flex-wrap">
+              <div className="flex items-center gap-1 md:gap-1.5">
+                <Bed size={12} className="md:w-4 md:h-4 text-gray-400" />
+                <span className="text-[10px] md:text-xs font-bold text-gray-600">{p.rooms || 0}</span>
+              </div>
+              <div className="flex items-center gap-1 md:gap-1.5">
+                <Bath size={12} className="md:w-4 md:h-4 text-gray-400" />
+                <span className="text-[10px] md:text-xs font-bold text-gray-600">{p.bathrooms || 0}</span>
+              </div>
+              <div className="flex items-center gap-1 md:gap-1.5 hidden sm:flex">
+                <Box size={12} className="md:w-4 md:h-4 text-gray-400" />
+                <span className="text-[10px] md:text-xs font-bold text-gray-600">{(p.land_area || p.land_size || '0') + 'p'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Grid version
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: idx * 0.05 }}
-      className="group"
+      transition={{ delay: Math.min(idx * 0.05, 0.5) }}
+      className="group h-full"
     >
       <div 
         onClick={() => onPropertyClick(p)}
-        className="bg-white rounded-[32px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer"
+        className="bg-white rounded-[24px] md:rounded-[32px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 md:hover:-translate-y-2 transition-all duration-300 md:duration-500 cursor-pointer flex flex-col h-full"
       >
-        <div className="relative h-64 overflow-hidden">
-          <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
+        <div className="relative h-48 md:h-64 overflow-hidden shrink-0">
+          <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg'; }} 
             src={getPropertyImage(p.images)} 
             alt={p.listing_title || p.title}
             loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            className="w-full h-full object-cover group-hover:scale-105 md:group-hover:scale-110 transition-transform duration-500 md:duration-700"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60" />
           
-          <div className="absolute top-4 left-4 flex flex-col gap-2">
-            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg ${
+          <div className="absolute top-3 left-3 md:top-4 md:left-4 flex flex-col gap-1.5 md:gap-2">
+            <span className={`px-2 py-1 md:px-4 md:py-1.5 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest shadow-lg ${
               p.listing_type === 'For Sale' ? 'bg-brand-red text-white' : 'bg-brand-gold text-dark-navy'
             }`}>
               {p.listing_type?.toUpperCase()}
             </span>
             {p.is_trending && (
-              <span className="px-4 py-1.5 bg-brand-green text-white rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg">
-                <TrendingUp size={12} /> TRENDING
-              </span>
+               <span className="px-2 py-1 md:px-4 md:py-1.5 bg-brand-green text-white rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-1 shadow-lg">
+                  <TrendingUp size={10} className="md:w-3 md:h-3" /> <span className="hidden md:inline">TRENDING</span>
+               </span>
             )}
           </div>
 
           <button 
             onClick={(e) => { e.stopPropagation(); toggleFavorite(p.id); }}
-            className={`absolute top-4 right-4 p-3 rounded-full shadow-lg transition-all ${
+            className={`absolute top-3 right-3 md:top-4 md:right-4 p-2 md:p-3 rounded-full shadow-lg transition-all z-10 ${
               favorites.has(p.id) ? 'bg-brand-red text-white' : 'bg-white/90 text-dark-navy hover:bg-white'
             }`}
           >
-            <Heart size={18} fill={favorites.has(p.id) ? "currentColor" : "none"} />
+            <Heart size={14} className="md:w-[18px] md:h-[18px]" fill={favorites.has(p.id) ? "currentColor" : "none"} />
           </button>
+          {isFeatured && p.id && (
+            <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 z-10">
+              <PropertyCountdown id={p.id} />
+            </div>
+          )}
         </div>
 
-        <div className="p-8">
-          <div className="flex items-center gap-2 text-brand-green text-[10px] font-black uppercase tracking-widest mb-3">
-            <MapPin size={12} /> {p.district}
+        <div className="p-4 md:p-6 lg:p-8 flex flex-col flex-1">
+          <div className="flex items-center gap-1.5 text-brand-green text-[9px] md:text-[10px] font-black uppercase tracking-widest mb-1.5 md:mb-3">
+            <MapPin size={10} className="md:w-3 md:h-3 shrink-0" /> <span className="truncate">{p.district}</span>
           </div>
-          <h3 className="text-xl font-black text-dark-navy mb-2 line-clamp-1 group-hover:text-brand-green transition-colors">{p.listing_title || p.title || 'Property Listing'}</h3>
+          <h3 className="text-base md:text-xl font-bold md:font-black text-gray-900 mb-2 line-clamp-2 md:line-clamp-1 group-hover:text-brand-green transition-colors leading-tight">
+            {p.listing_title || p.title || 'Property Listing'}
+          </h3>
           
-          <div className="mb-6">
-            <div className="text-2xl font-black text-brand-green leading-none">
+          <div className="mb-4 md:mb-6 mt-auto">
+            <div className="text-lg md:text-2xl font-black text-brand-green leading-none">
               Rs. {p.price_lkr ? (p.price_lkr / 1000000).toFixed(1) : '0'}M
             </div>
-            <div className="text-[11px] font-bold text-gray-400 mt-1 uppercase tracking-widest">
+            <div className="text-[9px] md:text-[11px] font-bold text-gray-400 mt-1 uppercase tracking-widest">
               Approx. ${p.price_lkr ? (p.price_lkr / USD_RATE / 1000).toFixed(1) : '0'}K USD
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-6 border-t border-gray-50">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1.5">
-                <Bed size={16} className="text-gray-400" />
-                <span className="text-xs font-bold text-gray-600">{p.rooms || 0}</span>
+          <div className="flex items-center justify-between pt-3 md:pt-6 border-t border-gray-50">
+            <div className="flex items-center gap-2 md:gap-4 flex-wrap">
+              <div className="flex items-center gap-1 md:gap-1.5">
+                <Bed size={12} className="md:w-4 md:h-4 text-gray-400" />
+                <span className="text-[10px] md:text-xs font-bold text-gray-600">{p.rooms || 0}</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <Bath size={16} className="text-gray-400" />
-                <span className="text-xs font-bold text-gray-600">{p.bathrooms || 0}</span>
+              <div className="flex items-center gap-1 md:gap-1.5">
+                <Bath size={12} className="md:w-4 md:h-4 text-gray-400" />
+                <span className="text-[10px] md:text-xs font-bold text-gray-600">{p.bathrooms || 0}</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <Box size={16} className="text-gray-400" />
-                <span className="text-xs font-bold text-gray-600">{(p.land_area || p.land_size || '0') + 'p'}</span>
+              <div className="flex items-center gap-1 md:gap-1.5 hidden sm:flex">
+                <Box size={12} className="md:w-4 md:h-4 text-gray-400" />
+                <span className="text-[10px] md:text-xs font-bold text-gray-600">{(p.land_area || p.land_size || '0') + 'p'}</span>
               </div>
             </div>
-            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 group-hover:bg-brand-green group-hover:text-white transition-all">
+            <div className="hidden md:flex w-8 h-8 rounded-full bg-gray-50 items-center justify-center text-gray-300 group-hover:bg-brand-green group-hover:text-white transition-all">
                <ArrowRight size={16} />
             </div>
           </div>
@@ -170,6 +253,7 @@ const PropertyCard = React.memo(({ p, idx, onPropertyClick, favorites, toggleFav
     </motion.div>
   );
 });
+
 
 export const CategoryPage: React.FC<CategoryPageProps> = ({
   category,
@@ -641,3 +725,5 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
     </div>
   );
 };
+
+export default CategoryPage;

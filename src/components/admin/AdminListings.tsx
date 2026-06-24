@@ -238,8 +238,8 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
             bgColor: 'bg-admin-gold/5'
           },
         ].map((stat, i) => (
-          <motion.div 
-            key={i}
+          <motion.div key={i} 
+
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}

@@ -251,7 +251,7 @@ export default function AdminRevenue() {
                </select>
             </div>
             <div className="h-[300px] w-full">
-               <ResponsiveContainer width="100%" height="100%">
+               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <BarChart data={barChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                      <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 'bold', fill: '#9ca3af' }} dy={10} />
@@ -266,7 +266,7 @@ export default function AdminRevenue() {
          <div className="bg-white rounded-[32px] p-8 border border-gray-100 shadow-sm flex flex-col">
             <h3 className="text-xl font-black text-gray-900 mb-6 text-center">Revenue by Package</h3>
             <div className="flex-1 min-h-[200px] relative flex justify-center items-center">
-               <ResponsiveContainer width="100%" height="100%">
+               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <PieChart>
                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="value" stroke="none">
                         {pieData.map((entry, index) => (

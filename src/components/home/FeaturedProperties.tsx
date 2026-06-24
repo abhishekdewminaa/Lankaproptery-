@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, TrendingUp, Sparkles, ChevronRight, Play, Pause } from 'lucide-react';
+import { PropertyCountdown } from '../PropertyCountdown';
 
 const getPropertyImage = (images: any, index = 0) => {
   if (!images) return '/placeholder-property.jpg'
@@ -149,9 +150,9 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
         </div>
 
         {/* Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-4 h-auto md:h-[600px]">
+        <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-4 h-[600px]">
           {/* Main Large Card (Slot 1) */}
-          <div className="md:col-span-2 md:row-span-2 relative h-full">
+          <div className="col-span-2 row-span-2 relative h-full">
             <AnimatePresence mode="wait">
               <motion.div 
                 key={activeIndex}
@@ -170,6 +171,9 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
                   />
                 </div>
                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10" />
+                <div className="absolute top-6 right-6 z-20">
+                  <PropertyCountdown id={currentMain.id} />
+                </div>
                 <div className="absolute top-6 left-6 z-20 flex gap-2">
                   {(currentMain.trending || currentMain.package_tier === 'Elite Pro') && (
                     <span className="bg-red-600 text-white text-[10px] font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg">
@@ -187,7 +191,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
                     {currentMain.listing_title}
                   </h3>
                   <div className="flex items-center gap-4">
-                    <div className="text-brand-green font-black text-3xl tracking-tight">
+                    <div className="text-white font-black text-3xl tracking-tight">
                       {typeof currentMain.price_lkr === 'number' ? `Rs. ${currentMain.price_lkr.toLocaleString()}` : currentMain.price_lkr}
                     </div>
                     <div className="text-white/60 font-bold text-sm flex items-center gap-1 uppercase tracking-widest">
@@ -217,6 +221,9 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
               />
             </div>
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
+            <div className="absolute top-4 right-4 z-20">
+              <PropertyCountdown id={displayProperties[secondaryIndex1].id} compact />
+            </div>
             <div className="absolute bottom-6 left-6 z-20">
               <h3 className="text-xl font-black text-white mb-1 drop-shadow-md">
                 {displayProperties[secondaryIndex1].listing_title}
@@ -245,6 +252,9 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
               />
             </div>
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 via-transparent to-transparent z-10" />
+            <div className="absolute top-4 right-4 z-20">
+              <PropertyCountdown id={displayProperties[secondaryIndex2].id} compact />
+            </div>
             <div className="absolute bottom-4 left-4 z-20">
               <h4 className="text-sm font-black text-white mb-0.5 drop-shadow-md line-clamp-1">
                 {displayProperties[secondaryIndex2].listing_title}
@@ -273,6 +283,9 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
               />
             </div>
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 via-transparent to-transparent z-10" />
+            <div className="absolute top-4 right-4 z-20">
+              <PropertyCountdown id={displayProperties[secondaryIndex3].id} compact />
+            </div>
             <div className="absolute bottom-4 left-4 z-20">
               <h4 className="text-sm font-black text-white mb-0.5 drop-shadow-md line-clamp-1">
                 {displayProperties[secondaryIndex3].listing_title}
@@ -284,8 +297,8 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
           </motion.div>
         </div>
 
-        {/* Navigation Dots */}
-        <div className="flex justify-center mt-8 gap-3">
+        {/* Navigation Dots (Desktop) */}
+        <div className="hidden md:flex justify-center mt-8 gap-3">
           {displayProperties.map((_, idx) => (
             <button
               key={idx}
@@ -297,6 +310,48 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
                 idx === activeIndex ? 'w-8 bg-brand-green' : 'w-2.5 bg-gray-200 hover:bg-gray-300'
               }`}
             />
+          ))}
+        </div>
+
+        {/* Mobile Stacked Cards */}
+        <div className="grid md:hidden grid-cols-1 gap-6">
+          {displayProperties.map((prop, idx) => (
+            <div key={prop.id || idx} className="bg-white rounded-[24px] overflow-hidden border border-gray-100 shadow-xl shadow-gray-200/50 flex flex-col cursor-pointer" onClick={() => onNavigate({ type: 'detail', data: prop })}>
+              <div className="h-[200px] relative shrink-0">
+                <img src={getPropertyImage(prop.images)} alt={prop.listing_title} className="w-full h-full object-cover" />
+                <div className="absolute top-4 left-4 z-20 flex flex-wrap gap-2 pr-4">
+                  {(prop.trending || prop.package_tier === 'Elite Pro') && (
+                    <span className="bg-red-600 text-white text-[10px] font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg shrink-0">
+                      <TrendingUp size={12} /> TRENDING
+                    </span>
+                  )}
+                  {(!prop.trending && prop.luxury) && (
+                    <span className="bg-brand-green text-white text-[10px] font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg shrink-0">
+                      <Sparkles size={12} /> LUXURY
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="p-5 flex flex-col flex-1">
+                <div className="text-brand-green font-black text-[18px] mb-1">
+                  {typeof prop.price_lkr === 'number' ? `Rs. ${prop.price_lkr.toLocaleString()}` : prop.price_lkr}
+                </div>
+                <h3 className="text-[16px] font-bold text-gray-900 mb-2 line-clamp-2 leading-tight">
+                  {prop.listing_title}
+                </h3>
+                <div className="text-gray-500 font-medium text-[13px] flex items-center gap-1 mb-4">
+                  <span>📍</span> {prop.city}
+                </div>
+                <div className="flex items-center gap-4 text-gray-600 text-[13px] font-bold mb-5 opacity-80">
+                  <span className="flex items-center gap-1">🛏️ 3<span className="hidden sm:inline"> Beds</span></span>
+                  <span className="flex items-center gap-1">🚿 2<span className="hidden sm:inline"> Bath</span></span>
+                  <span className="flex items-center gap-1">📐 15P<span className="hidden sm:inline"> Land</span></span>
+                </div>
+                <button className="w-full bg-brand-green hover:bg-brand-green-medium text-white h-[44px] rounded-xl font-black text-xs uppercase tracking-widest mt-auto">
+                  View Details
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       </div>

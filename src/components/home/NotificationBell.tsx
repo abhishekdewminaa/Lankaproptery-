@@ -158,16 +158,22 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ user, onNavi
     }
   };
 
-  const handleNotificationClick = (notif: NotificationItem) => {
+  const handleNotificationClick = async (notif: NotificationItem) => {
     // Mark as read first
-    supabase
-      .from('property_inquiries')
-      .update({ status: 'contacted' })
-      .eq('id', notif.id)
-      .then(() => {
-        setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      });
+    try {
+      await supabase
+        .from('property_inquiries')
+        .update({ status: 'contacted' })
+        .eq('id', notif.id);
+      
+      setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (err) {
+      console.warn("Failed to update notification status on server:", err);
+      // Fallback locally anyway so user gets responsive UI
+      setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    }
 
     setIsOpen(false);
     if (onNavigate) {

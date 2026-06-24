@@ -260,7 +260,6 @@ async function markLeadCold(lead: any) {
     follow_up_3_sent_at: new Date().toISOString()
   }).eq('id', lead.id);
   
-  console.log(`Lead from ${lead.name} for ${lead.ref_no || ''} marked as cold after 7 days`);
 }
 
 export async function processWorkflowJobs() {

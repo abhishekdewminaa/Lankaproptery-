@@ -7,6 +7,7 @@ import { Testimonials } from './Testimonials';
 import { RecentListings } from './RecentListings';
 import { PriceCalculator } from './PriceCalculator';
 import { TrustedPartners } from './TrustedPartners';
+import { HomeServices } from './HomeServices';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowUp } from 'lucide-react';
 import Lenis from 'lenis';
@@ -14,6 +15,7 @@ import Lenis from 'lenis';
 interface HomeRedesignProps {
   propertyCount: number;
   featuredProperties: any[];
+  properties?: any[];
   onNavigate: (view: any) => void;
   onPostAd?: () => void;
   onAdminAccess?: () => void;
@@ -22,6 +24,7 @@ interface HomeRedesignProps {
 export const HomeRedesign: React.FC<HomeRedesignProps> = ({
   propertyCount,
   featuredProperties,
+  properties = [],
   onNavigate,
   onPostAd,
   onAdminAccess
@@ -30,12 +33,27 @@ export const HomeRedesign: React.FC<HomeRedesignProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Initialize Lenis smooth scrolling
-    const lenis = new Lenis({
-      autoRaf: true,
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    });
+    // Check if in iframe to prevent Lenis from hijacking scroll and breaking inside parent frame wrappers
+    let isInIframe = false;
+    try {
+      isInIframe = window.self !== window.top;
+    } catch (e) {
+      isInIframe = true;
+    }
+    let lenis: any = null;
+
+    if (!isInIframe) {
+      try {
+        // Initialize Lenis smooth scrolling
+        lenis = new Lenis({
+          autoRaf: true,
+          duration: 1.2,
+          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        });
+      } catch (e) {
+        console.warn("Lenis init failed:", e);
+      }
+    }
 
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 300);
@@ -44,7 +62,9 @@ export const HomeRedesign: React.FC<HomeRedesignProps> = ({
     window.addEventListener('scroll', handleScroll);
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      lenis.destroy();
+      if (lenis) {
+        lenis.destroy();
+      }
     };
   }, []);
 
@@ -72,6 +92,8 @@ export const HomeRedesign: React.FC<HomeRedesignProps> = ({
           <CategoryIcons onNavigate={onNavigate} />
         </motion.div>
         
+        <HomeServices onNavigate={onNavigate} />
+        
         <motion.div {...fadeInUpOptions}>
           <FeaturedProperties 
             properties={featuredProperties} 
@@ -90,7 +112,7 @@ export const HomeRedesign: React.FC<HomeRedesignProps> = ({
         <motion.div {...fadeInUpOptions}>
           <RecentListings 
             onNavigate={onNavigate}
-            properties={featuredProperties}
+            properties={properties}
           />
         </motion.div>
         

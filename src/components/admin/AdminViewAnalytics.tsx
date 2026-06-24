@@ -235,7 +235,7 @@ export default function AdminViewAnalytics({ user }: { user: any }) {
             </div>
             
             <div className="h-[250px] w-full">
-               <ResponsiveContainer width="100%" height="100%">
+               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <BarChart data={barData} layout="vertical" margin={{ top: 0, right: 30, left: 40, bottom: 0 }}>
                      <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f3f4f6" />
                      <XAxis type="number" hide />
@@ -307,7 +307,7 @@ export default function AdminViewAnalytics({ user }: { user: any }) {
          </div>
 
          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                <LineChart data={lineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill:'#6b7280', fontSize:12, fontWeight:700}} dy={10} />
@@ -353,7 +353,7 @@ export default function AdminViewAnalytics({ user }: { user: any }) {
                            <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                                  {p.images && p.images.length > 0 ? (
-                                     <img src={p.images[0]} alt="" className="w-full h-full object-cover" />
+                                     <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg' }} src={p.images[0]} alt="" className="w-full h-full object-cover" />
                                  ) : (
                                      <div className="w-full h-full flex items-center justify-center text-gray-400">
                                         <Home size={16} />

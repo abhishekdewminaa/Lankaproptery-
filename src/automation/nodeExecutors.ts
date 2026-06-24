@@ -32,7 +32,6 @@ export async function executeNode(node: AutomationsNode, context: any = {}) {
   const { label, config } = node.data;
   const result: { output?: any, branchOutcome?: boolean } = {};
 
-  console.log(`Executing [${label}]`, { config, context });
 
   switch (label) {
     case 'Manual Trigger':
@@ -40,14 +39,12 @@ export async function executeNode(node: AutomationsNode, context: any = {}) {
       break;
       
     case 'Send Email':
-      console.log('Sending email using config:', config);
       // Minimal stub for emailjs
       result.output = { email_sent: true };
       toast.success(`Simulated Email sent to ${config.to_email}`);
       break;
       
     case 'Post to Facebook':
-      console.log('Posting to Facebook:', config.caption);
       // Replace vars like {{property.title}}
       let processedCaption = config.caption || '';
       for (const key in context) {
@@ -81,7 +78,6 @@ export async function executeNode(node: AutomationsNode, context: any = {}) {
        break;
 
     case 'Log to Console':
-       console.log('Workflow Log:', context);
        break;
 
     default:

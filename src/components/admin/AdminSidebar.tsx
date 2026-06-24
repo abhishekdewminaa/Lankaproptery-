@@ -20,6 +20,8 @@ import {
   Kanban,
   Mail,
   FileText,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -71,9 +73,7 @@ export default function AdminSidebar({
     { id: "revenue", label: "Revenue Dashboard", icon: <DollarSign size={16} /> },
     { id: "automation", label: "Automation", icon: <Zap size={16} />, isNew: true },
     { id: "ai-writer", label: "AI Writer", icon: <Sparkles size={16} />, isNew: true },
-    { id: "maps", label: "Use Google Maps data", icon: <MapPin size={16} />, isNew: true },
-    { id: "divider" },
-    { id: "settings", label: "Settings", icon: <Settings2 size={16} /> },
+    { id: "maps", label: "Google Maps data", icon: <MapPin size={16} />, isNew: true },
   ];
 
   return (
@@ -160,7 +160,7 @@ export default function AdminSidebar({
               className={`${isCollapsed ? "w-8 h-8 mx-auto" : "sidebar-avatar aspect-square"} rounded-full bg-admin-bg border border-[#1B5E20]/20 flex-shrink-0 flex items-center justify-center overflow-hidden transition-all duration-300`}
             >
               {user?.avatar_url ? (
-                <img
+                <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg' }}
                   src={user.avatar_url}
                   alt="Admin"
                   className="w-full h-full object-cover rounded-full"
@@ -255,6 +255,60 @@ export default function AdminSidebar({
 
         {/* SECTION 3 — BOTTOM: NEVER SCROLLS */}
         <div className={`sidebar-bottom flex-shrink-0 flex flex-col gap-[6px] py-4 bg-transparent z-10 ${isCollapsed ? "px-2" : "px-3"}`} style={{ borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+          <div className="relative group/nav mb-1">
+            <button
+              onClick={() => onNavigate('settings')}
+              className={`sidebar-nav-item w-full flex items-center h-[36px] rounded-lg transition-all duration-300 ${
+                isCollapsed ? "justify-center px-0" : "px-[10px]"
+              } ${
+                activePage === 'settings'
+                  ? "bg-[#1B5E20]/10 text-[#1B5E20] font-bold"
+                  : "text-admin-text-gray hover:bg-[#1B5E20]/5 hover:translate-x-1 hover:text-[#1B5E20] font-medium"
+              }`}
+            >
+              {activePage === 'settings' && (
+                <motion.div
+                  layoutId="sidebar-active"
+                  className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#1B5E20] rounded-r-full"
+                />
+              )}
+              <span className={`${activePage === 'settings' ? "text-[#1B5E20]" : "text-gray-400 group-hover/nav:text-[#1B5E20] transition-colors"}`}>
+                  <Settings2 size={16} />
+              </span>
+              <span className={`transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "ml-3 opacity-100 flex items-center gap-2 whitespace-nowrap text-[13px]"}`}>
+                Settings
+              </span>
+            </button>
+            {isCollapsed && (
+              <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#1B5E20] text-white text-[11px] font-bold rounded-lg opacity-0 invisible group-hover/nav:opacity-100 group-hover/nav:visible transition-all whitespace-nowrap z-[60] shadow-lg">
+                Settings
+                <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#1B5E20] rotate-45" />
+              </div>
+            )}
+          </div>
+
+          <div className="relative group/nav mb-1">
+            <button
+              onClick={toggleAdminDark}
+              className={`sidebar-nav-item w-full flex items-center h-[36px] rounded-lg transition-all duration-300 ${
+                isCollapsed ? "justify-center px-0" : "px-[10px]"
+              } text-admin-text-gray hover:bg-[#1B5E20]/5 hover:translate-x-1 hover:text-[#1B5E20] font-medium`}
+            >
+              <span className={`text-gray-400 group-hover/nav:text-[#1B5E20] transition-colors`}>
+                  {adminDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+              </span>
+              <span className={`transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "ml-3 opacity-100 flex items-center gap-2 whitespace-nowrap text-[13px]"}`}>
+                {adminDarkMode ? "Light Mode" : "Dark Mode"}
+              </span>
+            </button>
+            {isCollapsed && (
+              <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#1B5E20] text-white text-[11px] font-bold rounded-lg opacity-0 invisible group-hover/nav:opacity-100 group-hover/nav:visible transition-all whitespace-nowrap z-[60] shadow-lg">
+                Toggle Theme
+                <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#1B5E20] rotate-45" />
+              </div>
+            )}
+          </div>
+
           <div className="relative group/out mt-[2px]">
             <button
               onClick={onLogout}

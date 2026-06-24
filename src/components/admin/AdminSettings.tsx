@@ -243,13 +243,13 @@ export default function AdminSettings({ user }: AdminSettingsProps) {
                           <div>
                             {renderInput('Favicon URL', 'favicon_url')}
                             <div className="mt-2 w-12 h-12 bg-gray-50 border border-gray-200 rounded flex items-center justify-center p-1">
-                              {settingsForm.favicon_url ? <img src={settingsForm.favicon_url} alt="Favicon" className="w-8 h-8 object-contain" /> : <ImageIcon size={20} className="text-gray-300" />}
+                              {settingsForm.favicon_url ? <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg' }} src={settingsForm.favicon_url} alt="Favicon" className="w-8 h-8 object-contain" /> : <ImageIcon size={20} className="text-gray-300" />}
                             </div>
                           </div>
                           <div>
                             {renderInput('Site Logo URL', 'site_logo_url')}
                             <div className="mt-2 h-20 bg-gray-50 border border-gray-200 rounded flex items-center justify-center p-2">
-                              {settingsForm.site_logo_url ? <img src={settingsForm.site_logo_url} alt="Logo" className="max-h-full max-w-full object-contain" /> : <ImageIcon size={24} className="text-gray-300" />}
+                              {settingsForm.site_logo_url ? <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg' }} src={settingsForm.site_logo_url} alt="Logo" className="max-h-full max-w-full object-contain" /> : <ImageIcon size={24} className="text-gray-300" />}
                             </div>
                           </div>
                         </div>
@@ -296,7 +296,7 @@ export default function AdminSettings({ user }: AdminSettingsProps) {
                          <div className="max-w-[600px] font-sans">
                             <div className="flex items-center gap-3 mb-1">
                                <div className="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-                                  {settingsForm.favicon_url ? <img src={settingsForm.favicon_url} alt="Favicon" className="w-full h-full object-cover" /> : <Globe size={14} className="text-gray-500" />}
+                                  {settingsForm.favicon_url ? <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg' }} src={settingsForm.favicon_url} alt="Favicon" className="w-full h-full object-cover" /> : <Globe size={14} className="text-gray-500" />}
                                </div>
                                <div>
                                   <div className="text-[13px] text-[#202124] leading-tight">LankaProperty.lk</div>

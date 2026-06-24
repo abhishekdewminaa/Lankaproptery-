@@ -50,7 +50,6 @@ const VoiceVisualizer = ({ isListening }: { isListening: boolean }) => {
       analyserRef.current = analyser
       renderFrame()
     } catch(e) {
-      console.log('Mic not available for direct visualizer analysis, using simulated reactive wave')
       renderFrame()
     }
   }
@@ -601,7 +600,6 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps & { isForceListe
   };
 
   const processCommand = (command: string) => {
-    console.log('Processing voice command:', command);
     const cmdClean = command.trim().toLowerCase();
     
     const showSuccess = (action: string) => {

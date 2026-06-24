@@ -105,7 +105,7 @@ export default function PublicBlogPost({ slug, onBack }: { slug: string, onBack:
          {/* FEATURED IMAGE */}
          {post.featured_image && (
             <div className="w-full h-[300px] md:h-[500px] rounded-[32px] overflow-hidden shadow-2xl shadow-black/5 mb-16 relative">
-               <img src={post.featured_image} alt={post.title} className="w-full h-full object-cover" />
+               <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg' }} src={post.featured_image} alt={post.title} className="w-full h-full object-cover" />
             </div>
          )}
 
@@ -153,7 +153,7 @@ export default function PublicBlogPost({ slug, onBack }: { slug: string, onBack:
                {relatedPosts.map(rp => (
                   <a href={`/blog/${rp.slug}`} key={rp.slug} className="group cursor-pointer">
                      <div className="h-[200px] bg-gray-100 rounded-3xl overflow-hidden mb-4 relative">
-                        <img src={rp.featured_image || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa'} alt={rp.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg' }} src={rp.featured_image || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa'} alt={rp.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute top-4 left-4">
                            <span className="bg-white/90 backdrop-blur text-emerald-700 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md">{rp.category}</span>
                         </div>

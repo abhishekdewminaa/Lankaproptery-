@@ -72,8 +72,8 @@ export default function AdminMarketing() {
           { label: 'Total Views', value: '840k', icon: <Eye className="text-indigo-600" />, sub: 'Across Platform', color: 'bg-indigo-50' },
           { label: 'Ad Revenue', value: '$8.4k', icon: <TrendingUp className="text-admin-gold" />, sub: 'Monthly Goal', color: 'bg-admin-gold/10' },
         ].map((stat, i) => (
-          <motion.div 
-            key={i}
+          <motion.div key={i} 
+
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}

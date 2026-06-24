@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
+import { Calendar, MapPin, ChevronDown, Clock, Bed, Bath, LandPlot, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface LatestAdvertisementsProps {
   category?: string | null;
@@ -10,11 +12,11 @@ interface LatestAdvertisementsProps {
 
 const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({ 
   category = null,
-  limit = 10,
+  limit = 8,
   onPropertyClick,
   onNavigate
 }) => {
-  const [period, setPeriod] = useState('today');
+  const [period, setPeriod] = useState('alltime');
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -141,365 +143,244 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
     }
   };
 
+  const timeAgo = (dateStr: string) => {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff/60000);
+    const hours = Math.floor(diff/3600000);
+    const days = Math.floor(diff/86400000);
+    if (mins < 60) return `${Math.max(1, mins)}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
+  };
+
   return (
-    <div style={{
-      background: 'white',
-      borderRadius: '16px',
-      padding: '20px',
-      boxShadow: '0 2px 12px rgba(0,0,0,0.06)'
-    }}>
+    <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-[#004F31]/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
 
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '16px',
-        flexWrap: 'wrap',
-        gap: '12px'
-      }}>
-        <h3 style={{
-          margin: 0,
-          fontSize: '18px',
-          fontWeight: '700',
-          color: '#111827',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          <span style={{
-            width: '4px',
-            height: '20px',
-            background: '#004F31',
-            borderRadius: '4px',
-            display: 'inline-block'
-          }} />
-          Latest Advertisements
-        </h3>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-gray-100 gap-4 mb-6 relative z-10">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-1.5 h-6 bg-[#004F31] rounded-full inline-block" />
+            <h3 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight uppercase">
+              Latest Live Advertisements
+            </h3>
+          </div>
+          <p className="text-xs text-gray-500 font-medium">
+            Real-time properties verified and published directly from the admin platform.
+          </p>
+        </div>
 
-        {/* Period Dropdown */}
-        <div style={{ position: 'relative' }}>
+        {/* Period Dropdown styled beautifully */}
+        <div className="relative self-start sm:self-auto z-[60]">
           <button
             onClick={() => setIsOpen(!isOpen)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 14px',
-              background: '#F9FAFB',
-              border: '1px solid #E5E7EB',
-              borderRadius: '10px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              color: '#374151',
-              fontWeight: '500',
-              whiteSpace: 'nowrap'
-            }}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl cursor-pointer text-sm font-bold text-gray-700 transition-all shadow-sm active:scale-95"
           >
-            📅 {selectedLabel}
-            <span style={{
-              transform: isOpen ? 'rotate(180deg)' : 'none',
-              transition: '0.2s',
-              display: 'inline-block',
-              marginLeft: '4px'
-            }}>▼</span>
+            <Calendar size={16} className="text-[#004F31]" />
+            <span>{selectedLabel}</span>
+            <ChevronDown size={14} className={`text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </button>
 
-          {/* Dropdown menu */}
-          {isOpen && (
-            <>
-              {/* Backdrop */}
-              <div
-                onClick={() => setIsOpen(false)}
-                style={{
-                  position: 'fixed',
-                  inset: 0,
-                  zIndex: 98
-                }}
-              />
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                marginTop: '4px',
-                background: 'white',
-                border: '1px solid #E5E7EB',
-                borderRadius: '12px',
-                boxShadow: '0 8px 25px rgba(0,0,0,0.12)',
-                zIndex: 99,
-                overflow: 'hidden',
-                minWidth: '180px'
-              }}>
-                {periodOptions.map(option => (
-                  <button
-                    key={option.value}
-                    onClick={() => {
-                      setPeriod(option.value);
-                      setIsOpen(false);
-                    }}
-                    style={{
-                      display: 'block',
-                      width: '100%',
-                      padding: '10px 16px',
-                      textAlign: 'left',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      background: period === option.value ? '#E8F5E9' : 'white',
-                      color: period === option.value ? '#004F31' : '#374151',
-                      fontWeight: period === option.value ? '600' : '400',
-                      transition: 'background 0.15s'
-                    }}
-                  >
-                    {period === option.value && '✓ '}
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+          <AnimatePresence>
+            {isOpen && (
+              <>
+                {/* Backdrop to close dropdown */}
+                <div
+                  onClick={() => setIsOpen(false)}
+                  className="fixed inset-0 z-[45]"
+                />
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden divide-y divide-gray-50"
+                >
+                  <div className="py-1.5 max-h-64 overflow-y-auto">
+                    {periodOptions.map(option => (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          setPeriod(option.value);
+                          setIsOpen(false);
+                        }}
+                        className={`w-full px-4 py-2.5 text-left text-sm font-semibold transition-colors flex items-center justify-between ${
+                          period === option.value 
+                            ? 'bg-[#E8F5E9] text-[#004F31] font-bold' 
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        }`}
+                      >
+                        <span>{option.label}</span>
+                        {period === option.value && <span className="w-1.5 h-1.5 bg-[#004F31] rounded-full" />}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
-      {/* Results count */}
-      <p style={{
-        color: '#6B7280',
-        fontSize: '13px',
-        margin: '0 0 16px 0'
-      }}>
-        {loading ? 'Loading...' : `${properties.length} properties found`}
-      </p>
+      {/* Results Status */}
+      <div className="flex items-center justify-between mb-6 relative z-10">
+        <div className="flex items-center gap-2">
+          <span className="flex h-2 w-2 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#004F31] opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#004F31]"></span>
+          </span>
+          <span className="text-xs font-black uppercase tracking-wider text-gray-400">
+            {loading ? 'Querying database...' : `${properties.length} real property units available`}
+          </span>
+        </div>
+      </div>
 
-      {/* Property List */}
+      {/* Main Grid Content */}
       {loading ? (
-        // Skeleton loading with animate-pulse class
-        <div>
-          {Array(3).fill(0).map((_, i) => (
-            <div key={i} className="animate-pulse" style={{
-              display: 'flex',
-              gap: '12px',
-              padding: '12px 0',
-              borderBottom: '1px solid #F3F4F6'
-            }}>
-              <div style={{
-                width: '80px',
-                height: '60px',
-                background: '#F3F4F6',
-                borderRadius: '8px',
-                flexShrink: 0
-              }} />
-              <div style={{ flex: 1 }}>
-                <div style={{
-                  height: '14px',
-                  background: '#F3F4F6',
-                  borderRadius: '4px',
-                  marginBottom: '8px',
-                  width: '80%'
-                }} />
-                <div style={{
-                  height: '12px',
-                  background: '#F3F4F6',
-                  borderRadius: '4px',
-                  width: '50%'
-                }} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative z-10">
+          {Array(4).fill(0).map((_, i) => (
+            <div key={i} className="animate-pulse bg-white border border-gray-100 rounded-3xl p-4 flex flex-col h-full">
+              <div className="w-full aspect-video bg-gray-100 rounded-2xl mb-4" />
+              <div className="h-5 bg-gray-100 rounded-md mb-2 w-3/4" />
+              <div className="h-4 bg-gray-100 rounded-md mb-4 w-1/2" />
+              <div className="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center">
+                <div className="h-4 bg-gray-100 rounded-md w-1/3" />
+                <div className="h-4 bg-gray-100 rounded-md w-1/4" />
               </div>
             </div>
           ))}
         </div>
       ) : properties.length === 0 ? (
-        // Empty state
-        <div style={{
-          textAlign: 'center',
-          padding: '32px 16px',
-          color: '#9CA3AF'
-        }}>
-          <div style={{ 
-            fontSize: '40px',
-            marginBottom: '8px'
-          }}>🏠</div>
-          <p style={{ margin: 0 }}>
-            No properties found for this period
+        <div className="text-center py-16 px-4 border border-dashed border-gray-200 rounded-3xl bg-gray-50/50 relative z-10">
+          <div className="w-16 h-16 bg-[#004F31]/5 text-[#004F31] rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+            🏠
+          </div>
+          <h4 className="text-lg font-bold text-gray-800 mb-1">No Active Listings found</h4>
+          <p className="text-sm text-gray-500 max-w-sm mx-auto mb-6">
+            There are no real property units recorded on the database for {selectedLabel.toLowerCase()}.
           </p>
           <button
             onClick={() => setPeriod('alltime')}
-            style={{
-              marginTop: '12px',
-              color: '#004F31',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontWeight: '600',
-              fontSize: '14px'
-            }}
+            className="px-6 py-2.5 bg-[#004F31] text-white rounded-xl text-sm font-bold hover:bg-[#003B24] transition-all shadow-md active:scale-95 cursor-pointer"
           >
-            View all properties →
+            Show All Time Live Properties
           </button>
         </div>
       ) : (
-        // Property list
-        properties.map((property, index) => {
-          let image = '/placeholder-property.jpg';
-          if (property.images) {
-            if (Array.isArray(property.images)) {
-              image = property.images[0] || '/placeholder-property.jpg';
-            } else if (typeof property.images === 'string') {
-              try {
-                const parsed = JSON.parse(property.images);
-                image = (Array.isArray(parsed) ? parsed[0] : parsed) || '/placeholder-property.jpg';
-              } catch {
-                image = property.images;
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative z-10">
+          {properties.map((property, index) => {
+            let image = '/placeholder-property.jpg';
+            if (property.images) {
+              if (Array.isArray(property.images)) {
+                image = property.images[0] || '/placeholder-property.jpg';
+              } else if (typeof property.images === 'string') {
+                try {
+                  const parsed = JSON.parse(property.images);
+                  image = (Array.isArray(parsed) ? parsed[0] : parsed) || '/placeholder-property.jpg';
+                } catch {
+                  image = property.images;
+                }
               }
             }
-          }
 
-          const timeAgo = (dateStr: string) => {
-            const diff = Date.now() - new Date(dateStr).getTime();
-            const mins = Math.floor(diff/60000);
-            const hours = Math.floor(diff/3600000);
-            const days = Math.floor(diff/86400000);
-            if (mins < 60) return `${Math.max(1, mins)}m ago`;
-            if (hours < 24) return `${hours}h ago`;
-            return `${days}d ago`;
-          };
+            const isSale = property.listing_type === 'For Sale' || property.listing_type === 'Sale';
 
-          return (
-            <div
-              key={property.id}
-              onClick={() => navigateToProperty(property)}
-              style={{
-                display: 'flex',
-                gap: '12px',
-                padding: '12px 0',
-                borderBottom: index < properties.length - 1 ? '1px solid #F3F4F6' : 'none',
-                cursor: 'pointer',
-                transition: 'opacity 0.2s'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.opacity = '0.75';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.opacity = '1';
-              }}
-            >
-              {/* Thumbnail */}
-              <div style={{
-                width: '80px',
-                height: '60px',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                flexShrink: 0,
-                background: '#F3F4F6'
-              }}>
-                <img
-                  src={image}
-                  alt={property.listing_title}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover'
-                  }}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/placeholder-property.jpg';
-                  }}
-                />
-              </div>
-
-              {/* Details */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{
-                  margin: '0 0 4px 0',
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  color: '#111827',
-                  lineHeight: '1.3',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden'
-                }}>
-                  {property.listing_title}
-                </p>
-
-                <p style={{
-                  margin: '0 0 4px 0',
-                  fontSize: '12px',
-                  color: '#6B7280',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}>
-                  📍 {property.city}, {property.district}
-                </p>
-
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '8px'
-                }}>
-                  <span style={{
-                    color: '#004F31',
-                    fontWeight: '700',
-                    fontSize: '13px',
-                    whiteSpace: 'nowrap'
-                  }}>
-                    {property.price_lkr
-                      ? `Rs. ${Number(property.price_lkr).toLocaleString()}`
-                      : 'Price on Request'
-                    }
-                  </span>
-                  <span style={{
-                    color: '#9CA3AF',
-                    fontSize: '11px',
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0
-                  }}>
+            return (
+              <motion.div
+                key={property.id}
+                onClick={() => navigateToProperty(property)}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+                whileHover={{ y: -4 }}
+                className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100/70 hover:border-[#004F31]/20 cursor-pointer flex flex-col h-full transition-all"
+              >
+                {/* Image Section */}
+                <div className="relative aspect-video w-full overflow-hidden bg-gray-50">
+                  <img
+                    src={image}
+                    alt={property.listing_title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = '/placeholder-property.jpg';
+                    }}
+                  />
+                  <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
+                    <span className={`text-[9px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full text-white shadow-sm ${
+                      isSale ? 'bg-rose-600' : 'bg-[#004F31]'
+                    }`}>
+                      FOR {isSale ? 'SALE' : 'RENT'}
+                    </span>
+                  </div>
+                  <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-widest text-gray-800 shadow-sm flex items-center gap-1">
+                    <Clock size={10} className="text-[#004F31]" />
                     {timeAgo(property.created_at)}
-                  </span>
+                  </div>
                 </div>
 
-                {/* FOR SALE / FOR RENT badge */}
-                <span style={{
-                  background: property.listing_type === 'For Sale' ? '#FEE2E2' : '#DBEAFE',
-                  color: property.listing_type === 'For Sale' ? '#CC2222' : '#1D4ED8',
-                  padding: '2px 8px',
-                  borderRadius: '20px',
-                  fontSize: '10px',
-                  fontWeight: '700',
-                  marginTop: '4px',
-                  display: 'inline-block'
-                }}>
-                  {property.listing_type}
-                </span>
-              </div>
-            </div>
-          );
-        })
+                {/* Info Section */}
+                <div className="p-5 flex flex-col flex-1">
+                  {/* Category */}
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#004F31] mb-1.5 block">
+                    {property.property_category || 'Property'}
+                  </span>
+
+                  {/* Title */}
+                  <h4 className="text-sm font-bold text-gray-900 line-clamp-2 leading-snug mb-3 group-hover:text-[#004F31] transition-colors flex-1">
+                    {property.listing_title}
+                  </h4>
+
+                  {/* Location */}
+                  <div className="flex items-center gap-1 text-xs text-gray-400 font-semibold mb-4">
+                    <MapPin size={13} className="text-gray-400 shrink-0" />
+                    <span className="truncate">{property.city}, {property.district}</span>
+                  </div>
+
+                  {/* Details strip */}
+                  <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-gray-400 border-t border-b border-gray-50 py-2.5 mb-4">
+                    <span className="flex items-center gap-1">
+                      <Bed size={13} className="text-[#004F31]" />
+                      {property.rooms || 0} Bed
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Bath size={13} className="text-[#004F31]" />
+                      {property.bathrooms || 0} Bath
+                    </span>
+                    <span className="flex items-center gap-1 truncate max-w-[90px]">
+                      <LandPlot size={13} className="text-[#004F31]" />
+                      {property.land_area || 'N/A'}
+                    </span>
+                  </div>
+
+                  {/* Price & Action */}
+                  <div className="flex items-center justify-between mt-auto pt-2">
+                    <div className="text-[#004F31] font-extrabold text-base">
+                      {property.price_lkr
+                        ? `Rs. ${Number(property.price_lkr).toLocaleString()}`
+                        : 'Price on Request'
+                      }
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
       )}
 
-      {/* View All button */}
+      {/* View All Footer */}
       {!loading && properties.length > 0 && (
-        <button
-          onClick={handleViewAll}
-          style={{
-            width: '100%',
-            marginTop: '16px',
-            padding: '10px',
-            background: '#F0FDF4',
-            color: '#004F31',
-            border: '1px solid #BBF7D0',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            fontWeight: '600',
-            fontSize: '13px',
-            transition: 'all 0.2s'
-          }}
-        >
-          View All Properties →
-        </button>
+        <div className="mt-8 pt-6 border-t border-gray-50 flex justify-center relative z-10">
+          <button
+            onClick={handleViewAll}
+            className="flex items-center gap-2 px-8 py-3 bg-emerald-50 hover:bg-[#004F31] hover:text-white border border-[#BBF7D0] hover:border-[#004F31] rounded-2xl text-[#004F31] font-bold text-sm transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+          >
+            <span>Explore All Real Listings</span>
+            <ArrowRight size={16} />
+          </button>
+        </div>
       )}
     </div>
   );

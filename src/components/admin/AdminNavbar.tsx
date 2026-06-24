@@ -48,7 +48,7 @@ export default function AdminNavbar({ user, onPostAd, onOpenSidebar }: AdminNavb
         <div className="flex items-center gap-3 ml-2">
           <div className="w-10 h-10 rounded-full bg-admin-bg p-0.5 border border-admin-border overflow-hidden">
             {user?.avatar_url ? (
-              <img src={user.avatar_url} alt="User" className="w-full h-full object-cover rounded-full" />
+              <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg' }} src={user.avatar_url} alt="User" className="w-full h-full object-cover rounded-full" />
             ) : (
               <div className="w-full h-full bg-admin-primary text-white flex items-center justify-center text-sm font-black rounded-full">
                 {user?.email?.[0].toUpperCase()}

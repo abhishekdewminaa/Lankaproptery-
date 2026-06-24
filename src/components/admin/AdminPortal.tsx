@@ -27,7 +27,11 @@ interface AdminPortalProps {
 }
 
 export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBack }: AdminPortalProps) {
-  const [activePage, setActivePage] = useState('dashboard');
+  const [activePage, setActivePage] = useState(() => {
+    const path = window.location.pathname;
+    if (path.includes('/settings')) return 'settings';
+    return 'dashboard';
+  });
   const [editingProperty, setEditingProperty] = useState<any>(null);
   const [successProperty, setSuccessProperty] = useState<any>(null);
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -138,7 +142,11 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
   return (
     <AdminLayout 
       activePage={activePage === 'success' ? 'publish' : activePage} 
-      onNavigate={setActivePage} 
+      onNavigate={(page) => {
+        setActivePage(page);
+        if (page === 'settings') window.history.pushState({}, '', '/admin-lk2026/settings');
+        else window.history.pushState({}, '', '/admin-lk2026');
+      }} 
       user={user} 
       onLogout={onLogout}
       adminDarkMode={adminDarkMode}

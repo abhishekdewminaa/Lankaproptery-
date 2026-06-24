@@ -27,9 +27,15 @@ export function AIAgentBuilder() {
   useEffect(() => {
     if (isCreating) {
       setMessages([{ role: 'assistant', content: greeting }]);
-      supabase.from('properties').select('*').limit(20).then(({ data }) => {
-        if (data) setPropertiesCache(data);
-      });
+      const loadProperties = async () => {
+        try {
+          const { data } = await supabase.from('properties').select('*').limit(20);
+          if (data) setPropertiesCache(data);
+        } catch (err) {
+          console.warn("AIAgentBuilder Supabase query failed (using mock cache):", err);
+        }
+      };
+      loadProperties();
     }
   }, [isCreating, greeting]);
 
@@ -51,7 +57,7 @@ export function AIAgentBuilder() {
           return (
             <div key={index} className="my-3 bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex gap-3 text-left">
               {prop.cover_image && (
-                <img src={prop.cover_image} alt={prop.title} className="w-16 h-16 rounded-lg object-cover" />
+                <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg' }} src={prop.cover_image} alt={prop.title} className="w-16 h-16 rounded-lg object-cover" />
               )}
               {!prop.cover_image && (
                 <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400">

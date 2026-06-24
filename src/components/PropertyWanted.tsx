@@ -26,6 +26,10 @@ interface WantedRequest {
   user_email: string;
   created_at: string;
   views_count: number;
+  category: string;
+  bedrooms: string;
+  location: string;
+  views?: number;
 }
 
 export default function PropertyWanted({ onContact, user, isAdmin }: { onContact?: (data: any) => void, user?: any, isAdmin?: boolean }) {
@@ -83,7 +87,6 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
         if (error.code === '42P01') {
           // Table doesn't exist, we will use an empty array. 
           // (In a real app, we'd run a migration)
-          console.log("Table property_wanted does not exist yet.");
           setRequests([]);
           return;
         }
@@ -190,7 +193,6 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
         
         // Simulating email notification
         setTimeout(() => {
-          console.log(`[Email System] Sent notification to agents in ${payload.district} about "${payload.title}"`);
         }, 1000);
       }
 
@@ -275,7 +277,6 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
       
       // Simulating a notification to the poster
       setTimeout(() => {
-        console.log(`[Notification] An agent found a match for requirement: ${req.title}`);
         alert(`Notification sent to ${req.contact_name} about matching properties!`);
       }, 500);
 
@@ -749,7 +750,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
                         {matchingProperties.map(match => (
                           <div key={match.id} className="flex gap-4 p-4 rounded-2xl border border-gray-100 hover:border-brand-green/50 transition-all cursor-pointer group">
                              <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0">
-                               <img src={match.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                               <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg' }} src={match.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
                              </div>
                              <div className="flex flex-col justify-center">
                                 <span className="text-[10px] font-black text-brand-green uppercase tracking-widest mb-1">{match.location}</span>

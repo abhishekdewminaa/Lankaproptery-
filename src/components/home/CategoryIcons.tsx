@@ -21,19 +21,19 @@ export const CategoryIcons: React.FC<CategoryIconsProps> = ({ onNavigate }) => {
     if (label === 'BUSINESS') cat = 'Commercial';
     
     if (onNavigate) {
-      onNavigate({ type: 'category', data: { category: cat, mode: 'buy' } });
+      onNavigate({ type: 'search_results', data: { category: cat, status: 'Sale' } });
       const path = `/buy/${cat.toLowerCase()}`;
       window.history.pushState({}, '', path);
     }
   };
 
   return (
-    <section className="py-12 md:py-20 bg-[#F8FAF8]">
+    <section className="py-6 md:py-10 bg-[#F8FAF8]">
       <div className="container mx-auto px-6">
         <div className="flex flex-wrap justify-center gap-8 md:gap-16">
           {CATEGORIES.map((cat, idx) => (
-            <motion.div
-              key={cat.label}
+            <motion.div key={idx}
+
               initial={{ opacity: 0, scale: 0.5 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true, amount: 0.5 }}

@@ -1,12 +1,13 @@
 import React from 'react';
-import { Facebook, Twitter, Instagram, Linkedin, Send, Moon, Sun } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Linkedin, Send, Moon, Sun, Home } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface FooterProps {
   onAdminClick: () => void;
+  onHomeClick?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onAdminClick }) => {
+export const Footer: React.FC<FooterProps> = ({ onAdminClick, onHomeClick }) => {
   return (
     <footer className="bg-gradient-to-br from-[#004F31] to-[#002618] text-white pt-20 pb-8 overflow-hidden relative">
       {/* Footer Grid */}
@@ -41,7 +42,7 @@ export const Footer: React.FC<FooterProps> = ({ onAdminClick }) => {
            transition={{ duration: 0.5, delay: 0.1 }}
            className="space-y-6"
         >
-          <h4 className="text-sm font-black uppercase tracking-widest text-brand-green">Quick Links</h4>
+          <h4 className="text-sm font-black uppercase tracking-widest text-white">Quick Links</h4>
           <ul className="space-y-3">
             {['About', 'Property Wanted', 'Contact Support', 'Terms of Service', 'Privacy Policy', 'Sitemap'].map((link) => (
               <li key={link}>
@@ -59,7 +60,7 @@ export const Footer: React.FC<FooterProps> = ({ onAdminClick }) => {
            transition={{ duration: 0.5, delay: 0.2 }}
            className="space-y-6"
         >
-          <h4 className="text-sm font-black uppercase tracking-widest text-brand-green">Popular Areas</h4>
+          <h4 className="text-sm font-black uppercase tracking-widest text-white">Popular Areas</h4>
           <ul className="space-y-3">
             {['Colombo Real Estate', 'Kandy Properties', 'Galle Villas', 'Negombo Land', 'Kurunegala Homes', 'Kalutara Estates'].map((link) => (
               <li key={link}>
@@ -77,7 +78,7 @@ export const Footer: React.FC<FooterProps> = ({ onAdminClick }) => {
            transition={{ duration: 0.5, delay: 0.3 }}
            className="space-y-6"
         >
-          <h4 className="text-sm font-black uppercase tracking-widest text-brand-green">Newsletter</h4>
+          <h4 className="text-sm font-black uppercase tracking-widest text-white">Newsletter</h4>
           <p className="text-gray-400 text-sm leading-relaxed">
             Subscribe to receive the latest property market insights and deals.
           </p>
@@ -91,7 +92,7 @@ export const Footer: React.FC<FooterProps> = ({ onAdminClick }) => {
               <Send size={18} />
             </button>
           </div>
-          <div className="inline-flex items-center gap-2 bg-brand-green/10 text-brand-green text-[10px] font-black px-3 py-1.5 rounded-full border border-brand-green/20">
+          <div className="inline-flex items-center gap-2 bg-white text-brand-green text-[10px] font-black px-3 py-1.5 rounded-full border border-brand-green/20">
             GET 10% OFF YOUR FIRST AD LISTING!
           </div>
         </motion.div>
@@ -103,9 +104,11 @@ export const Footer: React.FC<FooterProps> = ({ onAdminClick }) => {
           <span>© 2026 LANKAPROPERTY.LK. ALL RIGHTS RESERVED.</span>
           <button 
             onClick={onAdminClick}
-            className="hover:text-brand-green transition-colors"
+            className="hover:text-brand-green transition-colors flex items-center gap-1.5"
+            title="Admin Access"
           >
-            Admin Access
+            <Home size={14} />
+            <span>Admin Access</span>
           </button>
         </div>
         

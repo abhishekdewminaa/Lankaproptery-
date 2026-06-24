@@ -1,9 +1,21 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: (import.meta.env.VITE_GEMINI_API_KEY as string) });
+let aiInstance: GoogleGenAI | null = null;
+const getAI = (): GoogleGenAI => {
+  if (!aiInstance) {
+    const key = (import.meta.env.VITE_GEMINI_API_KEY as string) || (typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : '') || '';
+    try {
+      aiInstance = new GoogleGenAI({ apiKey: key || 'dummy_gemini_key' });
+    } catch (e) {
+      console.warn("Failed to initialize GoogleGenAI:", e);
+      aiInstance = new GoogleGenAI({ apiKey: 'dummy_gemini_key' });
+    }
+  }
+  return aiInstance;
+};
 
 export const extractPropertyDetails = async (text: string) => {
-  const response = await ai.models.generateContent({
+  const response = await getAI().models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `Extract ALL details from this real estate listing text. Respond ONLY with JSON.
 
@@ -48,7 +60,7 @@ RULES:
 };
 
 export const translateDescription = async (text: string, targetLanguage: 'sinhala' | 'tamil') => {
-  const response = await ai.models.generateContent({
+  const response = await getAI().models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `Translate the following property description into professional and accurate ${targetLanguage} for a real estate listing in Sri Lanka.
     
@@ -62,7 +74,7 @@ export const translateDescription = async (text: string, targetLanguage: 'sinhal
 };
 
 export const generateDescription = async (prompt: string) => {
-  const response = await ai.models.generateContent({
+  const response = await getAI().models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `${prompt}\n\nReturn ONLY the generated description without extra commentary.`,
   });
@@ -71,7 +83,7 @@ export const generateDescription = async (prompt: string) => {
 };
 
 export const getSmartSearchFilters = async (query: string) => {
-  const response = await ai.models.generateContent({
+  const response = await getAI().models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `Extract search filters from this natural language real estate query: "${query}"
     
@@ -97,7 +109,7 @@ export const getSmartSearchFilters = async (query: string) => {
 };
 
 export const getChatbotResponse = async (userMessage: string, history: any[], propertyContext?: string) => {
-  const chat = ai.chats.create({
+  const chat = getAI().chats.create({
     model: "gemini-3-flash-preview",
     config: {
       systemInstruction: `You are a helpful assistant for LankaProperty.lk Sri Lanka's premier real estate website. 
@@ -123,7 +135,7 @@ export const getMarketAnalysis = async (data: {
   land_area: string;
   floor_area: string;
 }) => {
-  const response = await ai.models.generateContent({
+  const response = await getAI().models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `You are a Sri Lankan real estate expert. Analyze this property price vs market value:
         

@@ -72,7 +72,14 @@ interface RecentListingsProps {
 
 export const RecentListings: React.FC<RecentListingsProps> = ({ onNavigate, properties = [] }) => {
   // Use provided properties or fallback to static ones if truly needed (but we prefer dynamic)
-  const displayProperties = properties.length > 0 ? properties.slice(0, 4) : LISTINGS;
+  // Sort properties by creation date (newest first)
+  const sortedProperties = [...properties].sort((a, b) => {
+    const dateA = new Date(a.created_at || a.createdAt || 0).getTime();
+    const dateB = new Date(b.created_at || b.createdAt || 0).getTime();
+    return dateB - dateA;
+  });
+  
+  const displayProperties = sortedProperties.length > 0 ? sortedProperties.slice(0, 4) : LISTINGS;
 
   return (
     <section className="py-20 bg-white">
@@ -87,20 +94,20 @@ export const RecentListings: React.FC<RecentListingsProps> = ({ onNavigate, prop
               </a>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 -mx-6 px-6 md:grid md:grid-cols-2 md:gap-8 md:overflow-visible md:pb-0 md:mx-0 md:px-0 scroll-smooth touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
               {displayProperties.map((listing, idx) => (
-                <motion.div
-                  key={listing.id}
+                <motion.div key={idx}
+
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, amount: 0.2 }}
                   transition={{ duration: 0.5, delay: idx * 0.15 }}
                   whileHover={{ y: -8 }}
                   onClick={() => onNavigate({ type: 'detail', data: listing })}
-                  className="group bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100/50 cursor-pointer h-full"
+                  className="group bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100/50 cursor-pointer h-full w-[260px] md:w-auto shrink-0 snap-center flex flex-col"
                 >
-                  <div className="relative h-56 overflow-hidden">
-                    <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
+                  <div className="relative h-48 md:h-56 overflow-hidden shrink-0">
+                    <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg'; }} 
                       src={getPropertyImage(listing.images)} 
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                       alt={listing.listing_title || listing.title}
@@ -111,14 +118,14 @@ export const RecentListings: React.FC<RecentListingsProps> = ({ onNavigate, prop
                       </span>
                     </div>
                   </div>
-                  <div className="p-6">
-                    <div className="text-brand-green font-black text-xl mb-2">
+                  <div className="p-5 md:p-6 flex flex-col flex-1">
+                    <div className="text-brand-green font-black text-lg md:text-xl mb-1 md:mb-2">
                        {typeof listing.price_lkr === 'number' ? `Rs. ${listing.price_lkr.toLocaleString()}` : (listing.price_lkr || listing.price || 'Price on Request')}
                     </div>
-                    <h3 className="text-gray-900 font-bold mb-4 line-clamp-1 group-hover:text-brand-green transition-colors">{listing.listing_title || listing.title}</h3>
-                    <div className="flex items-center justify-between text-gray-500 text-[10px] font-black uppercase tracking-widest border-t border-gray-50 pt-4">
-                      <span className="flex items-center gap-1.5"><Bed size={14} className="text-brand-green" /> {listing.bedrooms || 0} Beds</span>
-                      <span className="flex items-center gap-1.5"><Bath size={14} className="text-brand-green" /> {listing.bathrooms || 0} Baths</span>
+                    <h3 className="text-gray-900 font-bold mb-4 line-clamp-2 leading-tight group-hover:text-brand-green transition-colors">{listing.listing_title || listing.title}</h3>
+                    <div className="mt-auto flex items-center justify-between text-gray-500 text-[10px] font-black uppercase tracking-widest border-t border-gray-50 pt-4">
+                      <span className="flex items-center gap-1.5"><Bed size={14} className="text-brand-green" /> {listing.bedrooms || 0}</span>
+                      <span className="flex items-center gap-1.5"><Bath size={14} className="text-brand-green" /> {listing.bathrooms || 0}</span>
                       <span className="flex items-center gap-1.5"><LandPlot size={14} className="text-brand-green" /> {listing.land_area || listing.size || 'N/A'}</span>
                     </div>
                   </div>

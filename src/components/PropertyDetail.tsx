@@ -539,8 +539,8 @@ export const PropertyDetail = ({
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 mb-6">
           {breadcrumbs.map((item, idx) => (
-            <motion.div
-              key={idx}
+            <motion.div key={idx}
+
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.1 }}
@@ -558,11 +558,11 @@ export const PropertyDetail = ({
         </nav>
 
         {/* Title Row */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
-          <div className="flex-1">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8 pt-4 md:pt-0">
+          <div className="flex-1 order-2 md:order-1">
             <div className="flex flex-wrap items-center gap-3 mb-3">
               {property.ref_no && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 hidden md:flex">
                   <span className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-100 px-2 py-1 rounded">
                     Ref No: <span className="font-mono text-gray-900">{property.ref_no}</span>
                   </span>
@@ -581,25 +581,30 @@ export const PropertyDetail = ({
               )}
               {property.status === 'active' ? (
                 <span className="flex items-center gap-1.5 text-xs font-bold text-brand-green bg-brand-green/10 px-2 py-1 rounded">
-                  <span className="w-1.5 h-1.5 bg-brand-green rounded-full animate-pulse" /> Active Listing
+                  <span className="w-1.5 h-1.5 bg-brand-green rounded-full animate-pulse" /> Active
                 </span>
               ) : (
                 <span className="flex items-center gap-1.5 text-xs font-bold text-yellow-600 bg-yellow-50 px-2 py-1 rounded">
                   <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full" /> Pending
                 </span>
               )}
+              {property.listing_type && (
+                <span className="md:hidden bg-brand-green text-white text-[10px] font-black tracking-widest px-2 py-1 rounded-full uppercase">
+                  FOR {property.listing_type}
+                </span>
+              )}
             </div>
-            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-3 max-w-4xl leading-tight">
+            <h1 className="text-xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 md:mb-3 max-w-4xl leading-tight">
               {property.listing_title}
             </h1>
             <div className="flex items-center gap-1.5 text-gray-500">
               <MapPin size={16} />
-              <span className="text-sm font-medium">{property.city}, {property.district}</span>
+              <span className="text-xs md:text-sm font-medium">{property.city}{property.district ? `, ${property.district}` : ''}</span>
             </div>
           </div>
 
-          <div className="lg:text-right flex flex-col lg:items-end">
-            <div className="flex items-center gap-3 mb-4 lg:mb-2">
+          <div className="lg:text-right flex flex-col lg:items-end order-1 md:order-2">
+            <div className="hidden md:flex items-center gap-3 mb-4 lg:mb-2">
               <button 
                 onClick={() => {
                   const slug = property.listing_title ? slugify(property.listing_title) : 'property';
@@ -622,39 +627,43 @@ export const PropertyDetail = ({
                 {favorites?.has(property.id) ? 'Saved' : 'Save'}
               </button>
             </div>
-            <div className="flex items-start lg:justify-end gap-1 mb-1">
-              <span className="text-xs font-bold text-[#004F31] mt-2">LKR</span>
-              <span className="text-4xl font-bold text-[#004F31]">
-                {property.price_lkr?.toLocaleString() || property.price?.toLocaleString()}
-              </span>
+            
+            <div className="flex flex-col items-start lg:items-end w-full">
+               <div className="flex items-start lg:justify-end gap-1 mb-1 w-full text-brand-green">
+                 <span className="text-xs md:text-sm font-bold mt-1 md:mt-2">Rs.</span>
+                 <span className="text-2xl md:text-4xl font-bold">
+                   {property.price_lkr?.toLocaleString() ?? property.price?.toLocaleString()}
+                 </span>
+               </div>
+               
+               {(() => {
+                 const converted = convertPrice(property.price_lkr || property.price);
+                 if (!converted) return null;
+                 return (
+                   <div className="hidden md:flex items-center lg:justify-end gap-3 text-xs font-bold text-gray-400 mb-2">
+                     <span className="bg-white px-2 py-0.5 rounded border border-gray-100">{converted.usd}</span>
+                     <span className="bg-white px-2 py-0.5 rounded border border-gray-100">{converted.eur}</span>
+                   </div>
+                 );
+               })()}
+               {property.is_negotiable && (
+                 <span className="inline-block bg-[#004F31]/10 text-[#004F31] text-[10px] font-black tracking-widest px-3 py-1 rounded-full uppercase">
+                   NEGOTIABLE
+                 </span>
+               )}
             </div>
-            {(() => {
-              const converted = convertPrice(property.price_lkr || property.price);
-              if (!converted) return null;
-              return (
-                <div className="flex items-center lg:justify-end gap-3 text-xs font-bold text-gray-400 mb-2">
-                  <span className="bg-white px-2 py-0.5 rounded border border-gray-100">{converted.usd}</span>
-                  <span className="bg-white px-2 py-0.5 rounded border border-gray-100">{converted.eur}</span>
-                </div>
-              );
-            })()}
-            {property.is_negotiable && (
-              <span className="inline-block bg-[#004F31]/10 text-[#004F31] text-[10px] font-black tracking-widest px-3 py-1 rounded-full uppercase">
-                NEGOTIABLE
-              </span>
-            )}
           </div>
         </div>
 
-        {/* Photo Gallery Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-[400px] lg:h-[600px] mb-8">
+        {/* Photo Gallery Bento Grid (Desktop) */}
+        <div className="hidden md:grid grid-cols-2 gap-4 h-[400px] lg:h-[600px] mb-8">
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="relative rounded-2xl overflow-hidden cursor-zoom-in group"
+            className="relative rounded-2xl overflow-hidden cursor-zoom-in group col-span-1"
             onClick={() => { setLightboxOpen(true); setActiveImageIndex(0); }}
           >
-            <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
+            <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg'; }} 
               src={images[0]} 
               className="w-full h-full object-cover group-hover:brightness-105 transition-all duration-300" 
               alt="Main hero" 
@@ -676,7 +685,7 @@ export const PropertyDetail = ({
               >
                 {images[idx] ? (
                   <>
-                    <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
+                    <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg'; }} 
                       src={images[idx]} 
                       className="w-full h-full object-cover group-hover:brightness-105 transition-all duration-300" 
                       alt={`Gallery ${idx}`} 
@@ -695,6 +704,51 @@ export const PropertyDetail = ({
               </motion.div>
             ))}
           </div>
+        </div>
+
+        {/* Mobile Swipe Gallery */}
+        <div className="md:hidden relative h-[260px] -mx-6 mb-6 overflow-hidden snap-x snap-mandatory flex">
+           {images.map((img: string, idx: number) => (
+              <div key={idx} className="w-full h-full shrink-0 snap-center relative" onClick={() => { setLightboxOpen(true); setActiveImageIndex(idx); }}>
+                 <img src={img} alt={`Slide ${idx}`} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg'; }}  />
+              </div>
+           ))}
+           <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md text-white text-xs font-bold px-2.5 py-1 rounded-full z-10 border border-white/20 shadow-xl pointer-events-none">
+              1 / {images.length}
+           </div>
+           
+           <div className="absolute top-4 left-4 z-10 flex gap-2">
+              <button onClick={(e) => { e.stopPropagation(); onBack(); }} className="w-8 h-8 bg-white/90 backdrop-blur-md text-gray-900 rounded-full flex items-center justify-center shadow-lg border border-gray-200">
+                 <ChevronLeft size={20} />
+              </button>
+           </div>
+           
+           <div className="absolute top-4 right-16 z-10 flex gap-2">
+              <button 
+                 onClick={(e) => { e.stopPropagation(); toggleFavorite(property.id); }}
+                 className="w-8 h-8 bg-white/90 backdrop-blur-md text-gray-900 rounded-full flex items-center justify-center shadow-lg border border-gray-200"
+              >
+                 <Heart size={16} fill={favorites?.has(property.id) ? '#ef4444' : 'none'} className={favorites?.has(property.id) ? 'text-red-500' : ''} />
+              </button>
+              <button 
+                 onClick={(e) => { 
+                    e.stopPropagation(); 
+                    const slug = property.listing_title ? slugify(property.listing_title) : 'property';
+                    const shareUrl = `${window.location.origin}/property/${property.id}/${slug}`;
+                    navigator.clipboard.writeText(shareUrl).then(() => toast.success('Link copied!'));
+                 }}
+                 className="w-8 h-8 bg-white/90 backdrop-blur-md text-gray-900 rounded-full flex items-center justify-center shadow-lg border border-gray-200"
+              >
+                 <Share2 size={16} />
+              </button>
+           </div>
+
+           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+              {images.slice(0, 5).map((_, idx) => (
+                 <div key={idx} className={`w-1.5 h-1.5 rounded-full ${idx === 0 ? 'bg-white' : 'bg-white/50'}`} />
+              ))}
+              {images.length > 5 && <div className="w-1.5 h-1.5 rounded-full bg-white/50" />}
+           </div>
         </div>
 
         {/* Property Specs Bar */}
@@ -782,8 +836,8 @@ export const PropertyDetail = ({
               {/* Features Grid */}
               <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
                 {features.map((feature, idx) => (
-                  <motion.div
-                    key={idx}
+                  <motion.div key={idx}
+
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
@@ -846,7 +900,7 @@ export const PropertyDetail = ({
           </div>
 
           {/* Right Column - Agent Card */}
-          <div className="lg:col-span-1">
+          <div className="hidden lg:block lg:col-span-1">
             <div className="sticky top-24 space-y-6">
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -1005,8 +1059,8 @@ export const PropertyDetail = ({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {similarProperties.map((prop, idx) => (
-            <motion.div
-              key={prop.id}
+            <motion.div key={idx}
+
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -1113,13 +1167,39 @@ export const PropertyDetail = ({
                   onClick={() => setActiveImageIndex(idx)}
                   className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${idx === activeImageIndex ? 'border-[#004F31] scale-105' : 'border-transparent opacity-50 hover:opacity-100'}`}
                 >
-                  <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={img} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />
+                  <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg'; }} src={img} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />
                 </button>
               ))}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Mobile Sticky Contact Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-[90] pb-safe">
+        <div className="flex items-center justify-between gap-4 max-w-md mx-auto">
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-100">
+              <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200" alt="Agent" className="w-full h-full object-cover" />
+            </div>
+            <div className="hidden sm:block">
+              <p className="text-sm font-bold text-gray-900 leading-none mb-1">{property.agent_name || 'Agent'}</p>
+              <p className="text-[10px] uppercase tracking-wider text-brand-green font-bold">Verified</p>
+            </div>
+          </div>
+          <div className="flex gap-2 w-full justify-end">
+            <button className="flex-1 bg-white border-2 border-[#004F31] text-[#004F31] py-3 rounded-xl font-bold flex items-center justify-center gap-2 max-w-[120px]">
+              <Phone size={18} />
+            </button>
+            <button 
+              onClick={() => window.open(`https://wa.me/94770000000`, '_blank')}
+              className="flex-1 bg-[#25D366] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 max-w-[140px]"
+            >
+              <MessageCircle size={18} /> Chat
+            </button>
+          </div>
+        </div>
+      </div>
     </motion.div>
   );
 };

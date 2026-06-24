@@ -5,20 +5,19 @@ import { Workflow, AutomationsNode } from './types';
 export async function runWorkflow(workflow: Workflow, triggerData: any = {}) {
   const logId = `log_${Date.now()}_${Math.floor(Math.random()*1000)}`;
   const startTime = Date.now();
-  
-  // Create log entry running status
-  await supabase.from('workflow_logs').insert([{
-    id: logId,
-    workflow_id: workflow.id,
-    triggered_by: workflow.trigger_type || 'Manual',
-    status: 'running',
-    ran_at: new Date().toISOString()
-  }]);
-
   let status = 'success';
   let context = { ...triggerData };
 
   try {
+    // Create log entry running status
+    await supabase.from('workflow_logs').insert([{
+      id: logId,
+      workflow_id: workflow.id,
+      triggered_by: workflow.trigger_type || 'Manual',
+      status: 'running',
+      ran_at: new Date().toISOString()
+    }]);
+
     const triggerNode = workflow.nodes.find(n => n.data.category === 'trigger');
     if (!triggerNode) throw new Error('No trigger node found');
 
@@ -76,7 +75,7 @@ export async function runWorkflow(workflow: Workflow, triggerData: any = {}) {
           // Note: we can't safely increment run_count in update w/o RPC, but good enough for mockup.
        }).eq('id', workflow.id);
     }
+    
+    return { status, context };
   }
-
-  return { status, context };
 }

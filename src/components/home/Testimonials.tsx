@@ -8,21 +8,21 @@ const REVIEWS = [
     quote: "Found my dream villa in Galle through LankaProperty. The search filters were incredibly precise, making the whole process stress-free.",
     name: "Amara Perera",
     role: "HOME BUYER",
-    avatar: "https://i.pravatar.cc/150?u=amara",
+    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&h=150&q=80",
   },
   {
     rating: 5,
     quote: "The AI price estimator was spot on! It helped me list my apartment at the perfect market rate, leading to a quick sale within weeks.",
     name: "Sahan Gunasekera",
     role: "PROPERTY INVESTOR",
-    avatar: "https://i.pravatar.cc/150?u=sahan",
+    avatar: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&w=150&h=150&q=80",
   },
   {
     rating: 5,
     quote: "As a first-time renter in Colombo, I was nervous. This platform provided all the verified details I needed to feel confident in my choice.",
     name: "Dilini Silva",
     role: "RENTER",
-    avatar: "https://i.pravatar.cc/150?u=dilini",
+    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&h=150&q=80",
   },
 ];
 
@@ -38,8 +38,8 @@ export const Testimonials: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {REVIEWS.map((review, idx) => (
-            <motion.div
-              key={idx}
+            <motion.div key={idx}
+
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
@@ -49,8 +49,8 @@ export const Testimonials: React.FC = () => {
             >
               <div className="flex gap-1 mb-6">
                 {[...Array(review.rating)].map((_, i) => (
-                  <motion.div
-                    key={i}
+                  <motion.div key={i}
+
                     initial={{ scale: 0 }}
                     whileInView={{ scale: 1 }}
                     viewport={{ once: true }}
@@ -67,7 +67,7 @@ export const Testimonials: React.FC = () => {
 
               <div className="flex items-center gap-4 mt-auto">
                 <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-brand-green/20">
-                  <img src={review.avatar} className="w-full h-full object-cover" alt={review.name} />
+                  <img referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg' }} src={review.avatar} className="w-full h-full object-cover" alt={review.name} />
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900 leading-none mb-1">{review.name}</h4>

@@ -16,7 +16,6 @@ export interface InquiryNotificationData {
 }
 
 export const triggerNotification = async (type: 'new_inquiry' | 'new_agent' | 'new_property' | 'inquiry_status_change', data: any) => {
-  console.log(`[NotificationTrigger] Triggering ${type} for data:`, data);
   
   // 1. Try Supabase Edge Function first
   try {
@@ -25,7 +24,6 @@ export const triggerNotification = async (type: 'new_inquiry' | 'new_agent' | 'n
     });
     
     if (!error) {
-      console.log('[NotificationTrigger] Supabase Edge Function executed successfully:', resData);
       return { success: true, source: 'edge-function' };
     }
     console.warn('[NotificationTrigger] Supabase Edge Function invocation failed, trying local fallback:', error);
@@ -45,7 +43,6 @@ export const triggerNotification = async (type: 'new_inquiry' | 'new_agent' | 'n
     
     if (response.ok) {
       const resVal = await response.json();
-      console.log('[NotificationTrigger] Local notification service executed successfully:', resVal);
       return { success: true, source: 'local-api' };
     }
     console.error('[NotificationTrigger] Local notification service failed with status:', response.status);

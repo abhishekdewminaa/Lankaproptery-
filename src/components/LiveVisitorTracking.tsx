@@ -262,11 +262,11 @@ export default function LiveVisitorTracking({ visitors = [], isDark = false }: {
               <div className="absolute top-0 right-0 w-32 h-32 bg-brand-green/10 rounded-full blur-3xl pointer-events-none"></div>
               <div className="relative z-10 max-h-[400px] overflow-y-auto p-4 space-y-4 custom-scrollbar">
                 {activityFeed.map((activity, i) => (
-                  <motion.div 
+                  <motion.div key={i} 
                     initial={{ opacity: 0, y: 10 }} 
                     animate={{ opacity: 1, y: 0 }} 
                     transition={{ delay: i * 0.05 }}
-                    key={activity.id} 
+ 
                     className="p-4 bg-white/5 border border-white/5 rounded-2xl flex justify-between items-start group hover:bg-white/10 compact-transition"
                   >
                     <div className="flex gap-3 items-start">

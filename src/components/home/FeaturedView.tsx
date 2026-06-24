@@ -137,8 +137,8 @@ export const FeaturedView: React.FC<FeaturedViewProps> = ({ onBack, onNavigate }
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {sortedProperties.map((p, idx) => (
-              <motion.div
-                key={p.id}
+              <motion.div key={idx}
+
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}

@@ -86,7 +86,7 @@ const CustomAreaTooltip = ({ active, payload, label }: any) => {
 
 const SparklineBar = ({ color, data }: { color: string, data: any[] }) => (
   <div className="h-10 w-24">
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
       <BarChart data={data}>
         <Bar dataKey="value" fill={color} radius={[2, 2, 0, 0]} isAnimationActive={true} />
       </BarChart>
@@ -302,8 +302,8 @@ export default function AdminAnalytics() {
               { title: 'New Enquiries', value: analytics.newEnquiries, icon: MessageCircle, color: '#F57F17', bg: 'bg-amber-50', text: 'text-amber-700', trend: '+8.1%', spark: mockSparkLeads, prefix: '' },
               { title: 'Revenue', value: totalRevenue, icon: CreditCard, color: '#6A1B9A', bg: 'bg-purple-50', text: 'text-purple-700', trend: '+12.4%', spark: mockSparkRev, prefix: 'LKR ' },
             ].map((stat, i) => (
-              <motion.div 
-                key={i}
+              <motion.div key={i} 
+
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
@@ -354,7 +354,7 @@ export default function AdminAnalytics() {
               </div>
             </div>
 
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="100%" height={280} minWidth={0} minHeight={0}>
               <AreaChart data={revenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -420,7 +420,7 @@ export default function AdminAnalytics() {
 
                <div className="mt-4">
                   {barData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={320}>
+                    <ResponsiveContainer width="100%" height={320} minWidth={0} minHeight={0}>
                       <BarChart data={barData} layout="vertical" margin={{ left: -10, right: 60, top: 10, bottom: 0 }}>
                         <CartesianGrid horizontal={false} stroke="#f9fafb" />
                         <XAxis type="number" hide />
@@ -496,7 +496,7 @@ export default function AdminAnalytics() {
                <div className="flex-grow flex flex-col items-center justify-center relative">
                   {pieData.length > 0 ? (
                     <div className="h-[260px] w-full flex justify-center items-center">
-                      <ResponsiveContainer width={260} height={260}>
+                      <ResponsiveContainer width={260} height={260} minWidth={0} minHeight={0}>
                         <PieChart>
                           <Pie
                               data={pieData}
