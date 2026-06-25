@@ -64,6 +64,7 @@ export default function AdminSidebar({
       icon: <LayoutDashboard size={16} />,
     },
     { id: "listings", label: "Properties", icon: <ClipboardList size={16} /> },
+    { id: "lands_manager", label: "Lands Portfolio", icon: <MapPin size={16} />, isNew: true },
     { id: "pipeline", label: "Lead Pipeline", icon: <Kanban size={16} />, isNew: true },
     { id: "enquiries", label: "Legacy Enquiries", icon: <MessageSquare size={16} /> },
     { id: "marketing", label: "Marketing", icon: <Megaphone size={16} /> },

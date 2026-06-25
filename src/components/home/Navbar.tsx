@@ -45,6 +45,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
         { name: 'Land for Sale', href: '/buy/land', data: { category: 'Land', mode: 'buy' } },
         { name: 'Apartments', href: '/buy/apartments', data: { category: 'Apartment', mode: 'buy' } },
         { name: 'Buildings', href: '/buy/buildings', data: { category: 'Building', mode: 'buy' } },
+        { name: 'Hotels', href: '/buy/hotels', data: { category: 'Hotel', mode: 'buy' } },
+        { name: 'Commercial', href: '/buy/commercial', data: { category: 'Commercial', mode: 'buy' } },
         { name: 'All Properties', href: '/', data: { type: 'home' } },
       ]
     },
@@ -54,13 +56,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
       items: [
         { name: 'Houses for Rent', href: '/rent/houses', data: { category: 'House', mode: 'rent' } },
         { name: 'Apartments for Rent', href: '/rent/apartments', data: { category: 'Apartment', mode: 'rent' } },
+        { name: 'Commercial for Rent', href: '/rent/commercial', data: { category: 'Commercial', mode: 'rent' } },
+        { name: 'Buildings for Rent', href: '/rent/buildings', data: { category: 'Building', mode: 'rent' } },
         { name: 'All Rentals', href: '/', data: { type: 'home' } },
       ]
     },
     { name: 'Sell', href: '/sell', type: 'sell' },
     { name: 'Advertised Packages', href: '/packages', type: 'packages' },
     { name: 'Wanted', href: '/wanted', type: 'wanted' },
-    { name: 'Projects', href: '#', type: 'home' },
+    { name: 'Lands', href: '/lands', type: 'lands' },
     { name: 'Find Agent', href: '#', type: 'agents' },
     { name: 'Feedback', href: '/feedback', type: 'feedback' },
   ];

@@ -8,13 +8,15 @@ interface LatestAdvertisementsProps {
   limit?: number;
   onPropertyClick?: (property: any) => void;
   onNavigate?: (view: any) => void;
+  isSidebar?: boolean;
 }
 
 const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({ 
   category = null,
   limit = 8,
   onPropertyClick,
-  onNavigate
+  onNavigate,
+  isSidebar = false
 }) => {
   const [period, setPeriod] = useState('alltime');
   const [properties, setProperties] = useState<any[]>([]);
@@ -154,26 +156,28 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm relative overflow-hidden">
+    <div className={`bg-white rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden ${isSidebar ? 'p-4 md:p-5' : 'p-6 md:p-8'}`}>
       {/* Background decoration */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-[#004F31]/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-gray-100 gap-4 mb-6 relative z-10">
+      <div className={`flex flex-col ${isSidebar ? 'gap-3 mb-4' : 'sm:flex-row sm:items-center sm:justify-between gap-4 mb-6'} pb-4 border-b border-gray-100 relative z-10`}>
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="w-1.5 h-6 bg-[#004F31] rounded-full inline-block" />
-            <h3 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight uppercase">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="w-1.5 h-5 bg-[#004F31] rounded-full inline-block" />
+            <h3 className={`font-black text-gray-900 tracking-tight uppercase ${isSidebar ? 'text-sm' : 'text-xl md:text-2xl'}`}>
               Latest Live Advertisements
             </h3>
           </div>
-          <p className="text-xs text-gray-500 font-medium">
-            Real-time properties verified and published directly from the admin platform.
-          </p>
+          {!isSidebar && (
+            <p className="text-xs text-gray-500 font-medium">
+              Real-time properties verified and published directly from the admin platform.
+            </p>
+          )}
         </div>
 
         {/* Period Dropdown styled beautifully */}
-        <div className="relative self-start sm:self-auto z-[60]">
+        <div className="relative self-start z-[60]">
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl cursor-pointer text-sm font-bold text-gray-700 transition-all shadow-sm active:scale-95"
@@ -239,8 +243,8 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
 
       {/* Main Grid Content */}
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative z-10">
-          {Array(4).fill(0).map((_, i) => (
+        <div className={`grid ${isSidebar ? 'grid-cols-1 gap-5' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'} relative z-10`}>
+          {Array(isSidebar ? 3 : 4).fill(0).map((_, i) => (
             <div key={i} className="animate-pulse bg-white border border-gray-100 rounded-3xl p-4 flex flex-col h-full">
               <div className="w-full aspect-video bg-gray-100 rounded-2xl mb-4" />
               <div className="h-5 bg-gray-100 rounded-md mb-2 w-3/4" />
@@ -269,7 +273,7 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative z-10">
+        <div className={`grid ${isSidebar ? 'grid-cols-1 gap-5' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'} relative z-10`}>
           {properties.map((property, index) => {
             let image = '/placeholder-property.jpg';
             if (property.images) {

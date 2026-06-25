@@ -1042,6 +1042,7 @@ export const PropertyDetail = ({
                 category={property.property_category}
                 limit={5} 
                 onPropertyClick={onPropertyClick}
+                isSidebar={true}
               />
             </div>
           </div>

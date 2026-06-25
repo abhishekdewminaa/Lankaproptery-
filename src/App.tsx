@@ -64,7 +64,9 @@ import PropertyWanted from "./components/PropertyWanted";
 import { Feedback } from "./components/Feedback";
 import { CategoryPage } from "./components/CategoryPage";
 import { AgentPage } from "./components/AgentPage";
+import { LandsPortfolio } from "./components/home/LandsPortfolio";
 import { supabase } from "./supabaseClient";
+import { removeSinhala } from "./utils/safeUtils";
 
 // --- MOCK CONSTANTS & STABILIZED UTILS ---
 const LKR_USD_RATE = 300;
@@ -312,7 +314,7 @@ const AMENITIES_POOL = [
 ];
 
 const unifyProperty = (p: any) => {
-  const title = p.listing_title || p.title || "";
+  const title = removeSinhala(p.listing_title || p.title || "");
   const price = Number(p.price_lkr || p.priceLkr || p.price || 0);
   const type = p.listing_type === 'For Rent' || p.type === 'Rent' ? 'Rent' : 'Sale';
   const category = p.property_category || p.category || "House";
@@ -320,7 +322,7 @@ const unifyProperty = (p: any) => {
   const imagesArray = Array.isArray(p.images) ? p.images : (p.images ? [p.images] : (p.image ? [p.image] : []));
   const image = imagesArray[0] || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80';
   const size = p.land_area || p.floor_area || p.size || 'N/A';
-  const desc = p.property_description || p.description || '';
+  const desc = removeSinhala(p.property_description || p.description || '');
 
   return {
     ...p,
@@ -362,7 +364,7 @@ const unifyProperty = (p: any) => {
 
 export default function App() {
   // --- STATE SYSTEM ---
-  const [currentTab, setCurrentTab] = useState<"explore" | "category" | "dashboard" | "publish" | "ai" | "packages" | "wanted" | "feedback" | "agents">("explore");
+  const [currentTab, setCurrentTab] = useState<"explore" | "category" | "dashboard" | "publish" | "ai" | "packages" | "wanted" | "feedback" | "agents" | "lands">("explore");
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const toggleFavorite = (id: number) => {
     setFavorites(prev => {
@@ -817,6 +819,9 @@ export default function App() {
       } else {
         setAgentPageInitialAgentName(null);
       }
+    } else if (view.type === "lands") {
+      setCurrentTab("lands");
+      setSelectedProperty(null);
     }
   };
 
@@ -904,6 +909,15 @@ export default function App() {
             toggleFavorite={toggleFavorite}
             onNavigate={handleNavigate}
             initialAgentName={agentPageInitialAgentName}
+          />
+        )}
+
+        {currentTab === "lands" && (
+          <LandsPortfolio
+            properties={properties}
+            onPropertyClick={(p) => setSelectedProperty(p)}
+            onNavigateHome={() => handleNavigate({ type: "home" })}
+            onNavigate={handleNavigate}
           />
         )}
 

@@ -21,7 +21,7 @@ export const CategoryIcons: React.FC<CategoryIconsProps> = ({ onNavigate }) => {
     if (label === 'BUSINESS') cat = 'Commercial';
     
     if (onNavigate) {
-      onNavigate({ type: 'search_results', data: { category: cat, status: 'Sale' } });
+      onNavigate({ type: 'category', data: { category: cat, mode: 'buy' } });
       const path = `/buy/${cat.toLowerCase()}`;
       window.history.pushState({}, '', path);
     }

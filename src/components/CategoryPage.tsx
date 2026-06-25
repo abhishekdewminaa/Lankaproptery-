@@ -67,7 +67,9 @@ const PROPERTY_TYPES_MAP: Record<string, string[]> = {
   'House': ['Luxury Villa', 'Modern House', 'Colonial Style', 'Bungalow', 'Town House'],
   'Land': ['Residential Land', 'Commercial Land', 'Agricultural Land', 'Industrial Land'],
   'Apartment': ['Studio', 'Penthouse', 'Standard Apartment', 'Luxury Apartment'],
-  'Building': ['OFFICE', 'RETAIL', 'WAREHOUSE']
+  'Building': ['OFFICE', 'RETAIL', 'WAREHOUSE'],
+  'Hotel': ['Guest House', 'Boutique Hotel', 'Resort', 'Hotel Building', 'Villa Resort'],
+  'Commercial': ['Office Space', 'Retail Shop', 'Warehouse', 'Showroom', 'Factory']
 };
 
 const SkeletonCard = ({ viewMode = 'grid' }: { viewMode?: 'grid' | 'list' }) => (
@@ -316,7 +318,8 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
           status,
           created_at,
           is_trending,
-          views_count
+          views_count,
+          property_description
         `, { count: 'exact' })
         .eq('status', 'active');
       
@@ -361,8 +364,20 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
       return query.range(start, end);
     });
 
-    setProperties(data || []);
-    setTotalCount(count || 0);
+    let processedData = data || [];
+    if (filters.propertySubTypes.length > 0) {
+      processedData = processedData.filter(p => {
+        const title = (p.listing_title || '').toLowerCase();
+        const desc = (p.property_description || '').toLowerCase();
+        return filters.propertySubTypes.some(type => {
+          const t = type.toLowerCase();
+          return title.includes(t) || desc.includes(t);
+        });
+      });
+    }
+
+    setProperties(processedData);
+    setTotalCount(filters.propertySubTypes.length > 0 ? processedData.length : (count || 0));
     setLoading(false);
   }, [category, mode, filters, page]);
 
@@ -592,6 +607,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
               limit={6} 
               onPropertyClick={onPropertyClick}
               onNavigate={onNavigate}
+              isSidebar={true}
             />
           </aside>
 

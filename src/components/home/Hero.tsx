@@ -4,6 +4,52 @@ import { Search, MapPin, ChevronDown, Activity, Trash2, Sparkles, Loader2, Bot }
 import { getSmartSearchFilters } from '../../services/geminiService';
 import { DISTRICTS_BY_PROVINCE } from '../../constants/districts';
 
+const POPULAR_CITIES = [
+  'Colombo', 'Kandy', 'Galle', 'Negombo', 'Kurunegala', 
+  'Jaffna', 'Gampaha', 'Batticaloa', 'Trincomalee', 'Matara', 
+  'Nugegoda', 'Mount Lavinia', 'Dehiwala', 'Rajagiriya', 'Malabe',
+  'Battaramulla', 'Kotte', 'Wattala', 'Moratuwa', 'Maharagama'
+];
+
+const CITIES_BY_DISTRICT: Record<string, string[]> = {
+  'Colombo': ['Colombo', 'Nugegoda', 'Dehiwala', 'Mount Lavinia', 'Moratuwa', 'Maharagama', 'Kotte', 'Rajagiriya', 'Malabe', 'Battaramulla', 'Kolonnawa', 'Avissawella', 'Hanwella', 'Homagama', 'Kesbewa', 'Piliyandala'],
+  'Gampaha': ['Gampaha', 'Negombo', 'Wattala', 'Kelaniya', 'Ja-Ela', 'Kadawatha', 'Kiribathgoda', 'Ragama', 'Minuwangoda', 'Veyangoda', 'Nittambuwa', 'Mirigama'],
+  'Kalutara': ['Kalutara', 'Panadura', 'Horana', 'Aluthgama', 'Beruwala', 'Matugama', 'Wadduwa', 'Bandaragama'],
+  'Kandy': ['Kandy', 'Peradeniya', 'Katugastota', 'Gampola', 'Nawalapitiya', 'Kundasale', 'Pilimathalawa'],
+  'Matale': ['Matale', 'Dambulla', 'Sigiriya', 'Ukuwela'],
+  'Nuwara Eliya': ['Nuwara Eliya', 'Hatton', 'Talawakele', 'Ginigathena'],
+  'Galle': ['Galle', 'Hikkaduwa', 'Elpitiya', 'Karapitiya', 'Ambalangoda', 'Ahangama'],
+  'Matara': ['Matara', 'Weligama', 'Dikwella', 'Mirissa', 'Deniyaya'],
+  'Hambantota': ['Hambantota', 'Tangalle', 'Beliatta', 'Ambalantota', 'Tissamaharama'],
+  'Jaffna': ['Jaffna', 'Chavakachcheri', 'Point Pedro', 'Nallur'],
+  'Kurunegala': ['Kurunegala', 'Kuliyapitiya', 'Wariyapola', 'Narammala', 'Mawathagama', 'Ibbagamuwa'],
+  'Puttalam': ['Puttalam', 'Chilaw', 'Marawila', 'Wennappuwa', 'Kalpitiya'],
+  'Anuradhapura': ['Anuradhapura', 'Mihintale', 'Kekirawa', 'Eppawala'],
+  'Polonnaruwa': ['Polonnaruwa', 'Kaduruwela', 'Hingurakgoda'],
+  'Badulla': ['Badulla', 'Bandarawela', 'Hali-Ela', 'Ella', 'Diyatalawa', 'Mahiyanganaya'],
+  'Monaragala': ['Monaragala', 'Wellawaya', 'Buttala', 'Kataragama'],
+  'Ratnapura': ['Ratnapura', 'Balangoda', 'Pelmadulla', 'Embilipitiya'],
+  'Kegalle': ['Kegalle', 'Mawanella', 'Rambukkana', 'Warakapola'],
+  'Batticaloa': ['Batticaloa', 'Kattankudy', 'Eravur'],
+  'Ampara': ['Ampara', 'Kalmunai', 'Samanthurai'],
+  'Trincomalee': ['Trincomalee', 'Kinniya']
+};
+
+const ALL_CITIES_FLAT: string[] = [];
+Object.values(CITIES_BY_DISTRICT).forEach(cities => {
+  ALL_CITIES_FLAT.push(...cities);
+});
+const UNIQUE_SORTED_CITIES = Array.from(new Set(ALL_CITIES_FLAT)).sort();
+
+const getCityDistrict = (cityName: string): string => {
+  for (const [district, cities] of Object.entries(CITIES_BY_DISTRICT)) {
+    if (cities.includes(cityName)) {
+      return district;
+    }
+  }
+  return '';
+};
+
 interface HeroProps {
   propertyCount: number;
   onSearch: (filters: any) => void;
@@ -17,6 +63,15 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [bilingualIndex, setBilingualIndex] = useState(0);
   const [wordIndex, setWordIndex] = useState(0);
+
+  // Normal Search State variables
+  const [searchType, setSearchType] = useState('All Types');
+  const [searchDistrict, setSearchDistrict] = useState('');
+  const [cityInput, setCityInput] = useState('');
+  const [searchBeds, setSearchBeds] = useState('Bedrooms');
+  const [searchMinPrice, setSearchMinPrice] = useState('Min Price');
+  const [searchMaxPrice, setSearchMaxPrice] = useState('Max Price');
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
 
   const bilingualTexts = [
     "Call voice Assistant",
@@ -214,17 +269,27 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
                 {/* Row 2 - Main search */}
                 <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-3 md:mb-4">
                   <div className="relative w-full md:w-[200px] shrink-0">
-                    <select className="w-full bg-gray-50 border border-transparent focus:border-brand-green focus:bg-white rounded-xl h-[48px] px-4 appearance-none text-sm font-medium outline-none transition-all cursor-pointer">
-                      <option>All Types</option>
-                      <option>Houses</option>
-                      <option>Apartments</option>
-                      <option>Land</option>
+                    <select 
+                      value={searchType}
+                      onChange={(e) => setSearchType(e.target.value)}
+                      className="w-full bg-gray-50 border border-transparent focus:border-brand-green focus:bg-white rounded-xl h-[48px] px-4 appearance-none text-sm font-medium outline-none transition-all cursor-pointer"
+                    >
+                      <option value="All Types">All Types</option>
+                      <option value="House">Houses</option>
+                      <option value="Apartment">Apartments</option>
+                      <option value="Land">Land</option>
+                      <option value="Commercial">Commercial</option>
+                      <option value="Building">Buildings</option>
                     </select>
                     <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
                   </div>
                   
                   <div className="relative w-full md:w-[200px] shrink-0 hidden md:block">
-                    <select className="w-full bg-gray-50 border border-transparent focus:border-brand-green focus:bg-white rounded-xl h-[48px] px-4 appearance-none text-sm font-medium outline-none transition-all cursor-pointer">
+                    <select 
+                      value={searchDistrict}
+                      onChange={(e) => setSearchDistrict(e.target.value)}
+                      className="w-full bg-gray-50 border border-transparent focus:border-brand-green focus:bg-white rounded-xl h-[48px] px-4 appearance-none text-sm font-medium outline-none transition-all cursor-pointer"
+                    >
                       <option value="">All Districts</option>
                       {Object.entries(DISTRICTS_BY_PROVINCE).map(([province, districts]) => (
                         <optgroup key={province} label={province}>
@@ -243,9 +308,119 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
                     </div>
                     <input 
                       type="text" 
+                      value={cityInput}
+                      onChange={(e) => {
+                        setCityInput(e.target.value);
+                        setShowCityDropdown(true);
+                      }}
+                      onFocus={() => setShowCityDropdown(true)}
+                      onBlur={() => {
+                        setTimeout(() => setShowCityDropdown(false), 200);
+                      }}
                       placeholder="City, Neighborhood, or Landmark"
                       className="w-full bg-gray-50 border border-transparent focus:border-brand-green focus:bg-white rounded-xl h-[48px] pl-12 pr-4 text-sm font-medium outline-none transition-all"
                     />
+
+                    {/* Elegant Autocomplete Dropdown */}
+                    <AnimatePresence>
+                      {showCityDropdown && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          transition={{ duration: 0.15 }}
+                          className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-[0_10px_35px_-5px_rgba(0,0,0,0.15),0_5px_15px_-3px_rgba(0,0,0,0.1)] border border-gray-100/80 z-[110] max-h-[320px] overflow-y-auto no-scrollbar"
+                        >
+                          {cityInput.trim() === '' ? (
+                            <div className="p-4">
+                              <div className="mb-4">
+                                <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider block mb-2.5 text-left">
+                                  🔥 Popular Real Estate Hubs
+                                </span>
+                                <div className="flex flex-wrap gap-1.5 justify-start">
+                                  {POPULAR_CITIES.map(city => (
+                                    <button
+                                      key={city}
+                                      type="button"
+                                      onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        setCityInput(city);
+                                        const dist = getCityDistrict(city);
+                                        if (dist) setSearchDistrict(dist);
+                                        setShowCityDropdown(false);
+                                      }}
+                                      className="px-3 py-1.5 bg-gray-50 hover:bg-brand-green hover:text-white rounded-lg text-xs font-bold text-gray-600 transition-colors cursor-pointer"
+                                    >
+                                      {city}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="text-left">
+                                <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider block mb-1.5">
+                                  📍 Select by District
+                                </span>
+                                <div className="grid grid-cols-2 gap-1 max-h-[140px] overflow-y-auto pr-1">
+                                  {Object.keys(CITIES_BY_DISTRICT).sort().map(district => (
+                                    <button
+                                      key={district}
+                                      type="button"
+                                      onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        setSearchDistrict(district);
+                                        setCityInput('');
+                                        setShowCityDropdown(false);
+                                      }}
+                                      className="text-left px-2.5 py-1.5 hover:bg-gray-50 text-xs font-bold text-gray-700 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer"
+                                    >
+                                      <span className="w-1.5 h-1.5 rounded-full bg-brand-green/40" />
+                                      {district}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="p-2 text-left">
+                              {UNIQUE_SORTED_CITIES.filter(city => city.toLowerCase().includes(cityInput.toLowerCase())).length > 0 ? (
+                                UNIQUE_SORTED_CITIES
+                                  .filter(city => city.toLowerCase().includes(cityInput.toLowerCase()))
+                                  .map((city) => {
+                                    const district = getCityDistrict(city);
+                                    return (
+                                      <button
+                                        key={city}
+                                        type="button"
+                                        onMouseDown={(e) => {
+                                          e.preventDefault();
+                                          setCityInput(city);
+                                          if (district) setSearchDistrict(district);
+                                          setShowCityDropdown(false);
+                                        }}
+                                        className="w-full text-left px-4 py-2.5 hover:bg-brand-green/5 hover:text-brand-green flex items-center justify-between rounded-xl transition-colors cursor-pointer group"
+                                      >
+                                        <div className="flex items-center gap-2.5">
+                                          <MapPin size={16} className="text-gray-400 group-hover:text-brand-green transition-colors" />
+                                          <span className="text-sm font-bold text-gray-800 group-hover:text-brand-green">{city}</span>
+                                        </div>
+                                        {district && (
+                                          <span className="text-[10px] font-bold uppercase text-gray-400 group-hover:text-brand-green/80 bg-gray-50 px-2 py-0.5 rounded-md">
+                                            {district}
+                                          </span>
+                                        )}
+                                      </button>
+                                    );
+                                  })
+                              ) : (
+                                <div className="p-6 text-center text-gray-400 text-sm font-medium">
+                                  No cities found matching "{cityInput}"
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
 
@@ -253,33 +428,65 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
                 <div className="flex flex-col md:flex-row gap-3 md:gap-4 items-center">
                   <div className="flex flex-row gap-3 w-full border-t border-gray-100 pt-3 md:pt-0 md:border-0 lg:w-auto overflow-x-auto no-scrollbar shrink-0 pb-1 md:pb-0">
                     <div className="relative shrink-0 min-w-[120px] hidden md:block">
-                      <select className="w-full bg-gray-50 rounded-xl h-[48px] px-4 appearance-none text-xs font-bold text-gray-600 outline-none cursor-pointer">
-                        <option>Bedrooms</option>
-                        <option>1+</option>
-                        <option>2+</option>
-                        <option>3+</option>
+                      <select 
+                        value={searchBeds}
+                        onChange={(e) => setSearchBeds(e.target.value)}
+                        className="w-full bg-gray-50 rounded-xl h-[48px] px-4 appearance-none text-xs font-bold text-gray-600 outline-none cursor-pointer"
+                      >
+                        <option value="Any Beds">Bedrooms</option>
+                        <option value="1">1+ Beds</option>
+                        <option value="2">2+ Beds</option>
+                        <option value="3">3+ Beds</option>
+                        <option value="4">4+ Beds</option>
+                        <option value="5">5+ Beds</option>
                       </select>
                       <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
                     </div>
                     <div className="relative shrink-0 min-w-[130px] flex-1 md:flex-none">
-                      <select className="w-full bg-gray-50 rounded-xl h-[48px] px-4 appearance-none text-xs font-bold text-gray-600 outline-none cursor-pointer">
-                        <option>Min Price</option>
-                        <option>Rs. 1M</option>
-                        <option>Rs. 10M</option>
+                      <select 
+                        value={searchMinPrice}
+                        onChange={(e) => setSearchMinPrice(e.target.value)}
+                        className="w-full bg-gray-50 rounded-xl h-[48px] px-4 appearance-none text-xs font-bold text-gray-600 outline-none cursor-pointer"
+                      >
+                        <option value="Any">Min Price</option>
+                        <option value="1000000">Rs. 10 Lakhs (1M)</option>
+                        <option value="5000000">Rs. 50 Lakhs (5M)</option>
+                        <option value="10000000">Rs. 1 Crore (10M)</option>
+                        <option value="25000000">Rs. 2.5 Crores (25M)</option>
+                        <option value="50000000">Rs. 5 Crores (50M)</option>
                       </select>
                       <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
                     </div>
                     <div className="relative shrink-0 min-w-[130px] flex-1 md:flex-none">
-                      <select className="w-full bg-gray-50 rounded-xl h-[48px] px-4 appearance-none text-xs font-bold text-gray-600 outline-none cursor-pointer">
-                        <option>Max Price</option>
-                        <option>Rs. 10M</option>
-                        <option>Rs. 50M+</option>
+                      <select 
+                        value={searchMaxPrice}
+                        onChange={(e) => setSearchMaxPrice(e.target.value)}
+                        className="w-full bg-gray-50 rounded-xl h-[48px] px-4 appearance-none text-xs font-bold text-gray-600 outline-none cursor-pointer"
+                      >
+                        <option value="Any">Max Price</option>
+                        <option value="5000000">Rs. 50 Lakhs (5M)</option>
+                        <option value="10000000">Rs. 1 Crore (10M)</option>
+                        <option value="25000000">Rs. 2.5 Crores (25M)</option>
+                        <option value="50000000">Rs. 5 Crores (50M)</option>
+                        <option value="100000000">Rs. 10 Crores (100M)</option>
+                        <option value="200000000">Rs. 20 Crores (200M+)</option>
                       </select>
                       <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
                     </div>
                   </div>
 
                   <motion.button 
+                    onClick={() => {
+                      onSearch({
+                        status: activeTab === 'sale' ? 'Sale' : activeTab === 'rent' ? 'Rent' : 'Lease',
+                        category: searchType === 'All Types' ? 'All Categories' : searchType,
+                        district: searchDistrict || 'All Districts',
+                        text: cityInput.trim(),
+                        beds: searchBeds,
+                        minPrice: searchMinPrice,
+                        maxPrice: searchMaxPrice
+                      });
+                    }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     animate={{ 
@@ -312,16 +519,56 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
                 <Activity size={14} className="text-brand-green" />
                 {propertyCount.toLocaleString()} properties found
               </span>
-              <button className="text-xs font-black text-gray-300 hover:text-brand-red flex items-center gap-1 transition-colors uppercase">
+              <button 
+                onClick={() => {
+                  setSearchType('All Types');
+                  setSearchDistrict('');
+                  setCityInput('');
+                  setSearchBeds('Any Beds');
+                  setSearchMinPrice('Any');
+                  setSearchMaxPrice('Any');
+                  onSearch({
+                    status: activeTab === 'sale' ? 'Sale' : activeTab === 'rent' ? 'Rent' : 'Lease',
+                    category: 'All Categories',
+                    district: 'All Districts',
+                    text: '',
+                    beds: 'Any Beds',
+                    minPrice: 'Any',
+                    maxPrice: 'Any'
+                  });
+                }}
+                className="text-xs font-black text-gray-400 hover:text-brand-red flex items-center gap-1 transition-colors uppercase cursor-pointer"
+              >
                 <Trash2 size={12} /> Clear Filters
               </button>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-black text-gray-300 uppercase">Popular:</span>
               <div className="flex gap-2">
-                {['House in Colombo', 'Land in Gampaha', 'Apartments in Rajagiriya'].map(tag => (
-                  <button key={tag} className="px-2.5 py-1 bg-gray-50 text-[10px] font-bold text-gray-500 rounded-md hover:bg-brand-green/10 hover:text-brand-green transition-colors">
-                    {tag}
+                {[
+                  { label: 'Colombo', text: 'Colombo' },
+                  { label: 'Kandy', text: 'Kandy' },
+                  { label: 'Galle', text: 'Galle' }
+                ].map(tag => (
+                  <button 
+                    key={tag.label} 
+                    onClick={() => {
+                      setCityInput(tag.text);
+                      const dist = getCityDistrict(tag.text);
+                      if (dist) setSearchDistrict(dist);
+                      onSearch({
+                        status: activeTab === 'sale' ? 'Sale' : activeTab === 'rent' ? 'Rent' : 'Lease',
+                        category: searchType === 'All Types' ? 'All Categories' : searchType,
+                        district: dist || 'All Districts',
+                        text: tag.text,
+                        beds: searchBeds,
+                        minPrice: searchMinPrice,
+                        maxPrice: searchMaxPrice
+                      });
+                    }}
+                    className="px-2.5 py-1 bg-gray-50 text-[10px] font-bold text-gray-500 rounded-md hover:bg-brand-green/10 hover:text-brand-green transition-colors cursor-pointer"
+                  >
+                    {tag.label}
                   </button>
                 ))}
               </div>

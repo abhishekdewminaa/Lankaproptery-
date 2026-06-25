@@ -14,6 +14,7 @@ import AdminAIWriter from './AdminAIWriter';
 import AdminPipeline from './AdminPipeline';
 import AdminNewsletter from './AdminNewsletter';
 import AdminBlog from './AdminBlog';
+import AdminLandsManager from './AdminLandsManager';
 import { AutomationBuilderPage } from '../../pages/AutomationBuilderPage';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
@@ -163,6 +164,7 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
           onNewProperty={handleNewProperty} 
         />
       )}
+      {activePage === 'lands_manager' && <AdminLandsManager />}
       {activePage === 'publish' && (
         <AdminListingForm 
           user={user} 

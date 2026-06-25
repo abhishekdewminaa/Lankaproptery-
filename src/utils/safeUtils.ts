@@ -47,6 +47,17 @@ export const slugify = (text: string): string => {
     .replace(/-+$/, ""); // Trim - from end of text
 };
 
+export const removeSinhala = (text: string): string => {
+  if (!text) return "";
+  const match = text.match(/[\u0D80-\u0DFF]/);
+  if (match && match.index !== undefined) {
+    let cleaned = text.substring(0, match.index);
+    cleaned = cleaned.replace(/[\s\-\/.,:;(|]+$/, "").trim();
+    return cleaned;
+  }
+  return text;
+};
+
 export const getFirstImageSafe = (images: unknown): string => {
   const fallback =
     "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1000&auto=format&fit=crop";
