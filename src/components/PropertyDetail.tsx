@@ -809,27 +809,10 @@ export const PropertyDetail = ({
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <h2 className="text-2xl font-bold">Property Description</h2>
-                <button 
-                  onClick={handleTranslate}
-                  disabled={isTranslating}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#004F31] text-white text-xs font-bold rounded-lg hover:bg-[#004F31]/90 transition-all disabled:opacity-50"
-                >
-                  {isTranslating ? (
-                    <>
-                      <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Translating...
-                    </>
-                  ) : (
-                    <>
-                      <Star size={14} className={!showOriginal ? "fill-yellow-400 text-yellow-400" : ""} />
-                      {showOriginal ? 'Translate to Sinhala' : 'Show English'}
-                    </>
-                  )}
-                </button>
               </div>
               <div className="text-gray-600 leading-relaxed space-y-6">
-                {(showOriginal ? (property.property_description || "").replace(/Welcome to (?:www\.)?lankaproperty\.lk\.?\s*The No\.?1 property sales website in Sri Lanka\.?/gi, "").trim() : (translatedDesc || "")).split('\n').filter((p: string) => p.trim()).map((para: string, i: number) => (
-                  <p key={i} className={!showOriginal ? "font-sinhala leading-[2]" : ""}>{para}</p>
+                {((property.property_description || property.description || "").replace(/Welcome to (?:www\.)?lankaproperty\.lk\.?\s*The No\.?1 property sales website in Sri Lanka\.?/gi, "").trim()).split('\n').filter((p: string) => p.trim()).map((para: string, i: number) => (
+                  <p key={i}>{para}</p>
                 ))}
               </div>
 

@@ -74,8 +74,8 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
   const [showCityDropdown, setShowCityDropdown] = useState(false);
 
   const bilingualTexts = [
-    "Call voice Assistant",
-    "හඬ සහායකය අමතන්න (සිංහල)"
+    "Call Voice Assistant",
+    "Speak with Voice AI"
   ];
   
   const cycleWords = ["Perfect", "Dream", "Ideal", "Luxury", "Future"];

@@ -32,7 +32,7 @@ export default function AdminAIWriter() {
     'Gated Community', 'Sea View', 'Mountain View', 'Investment Property'
   ];
   const tones = ['Professional', 'Friendly', 'Luxury', 'Urgent'];
-  const languages = ['English', 'Sinhala', 'Both'];
+  const languages = ['English'];
 
   const handleCheckbox = (feature: string) => {
     setFormData(prev => {
@@ -217,16 +217,7 @@ export default function AdminAIWriter() {
                </div>
             </div>
 
-            <div>
-               <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest block mb-3">Language</label>
-               <div className="flex gap-2">
-                 {languages.map(l => (
-                   <button key={l} onClick={() => setFormData({...formData, language: l})} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${formData.language === l ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-                     {l}
-                   </button>
-                 ))}
-               </div>
-            </div>
+
 
             <button 
               onClick={handleGenerate}

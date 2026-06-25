@@ -74,6 +74,7 @@ export default function AdminLayout({
                   onLogout={onLogout} 
                   adminDarkMode={adminDarkMode}
                   toggleAdminDark={toggleAdminDark}
+                  isMobile={true}
                 />
               </motion.div>
             </>

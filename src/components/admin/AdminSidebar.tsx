@@ -31,6 +31,7 @@ interface AdminSidebarProps {
   onLogout: () => void;
   adminDarkMode: boolean;
   toggleAdminDark: () => void;
+  isMobile?: boolean;
 }
 
 export default function AdminSidebar({
@@ -40,6 +41,7 @@ export default function AdminSidebar({
   onLogout,
   adminDarkMode,
   toggleAdminDark,
+  isMobile = false,
 }: AdminSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(() => {
     return localStorage.getItem("admin-sidebar-collapsed") === "true";
@@ -56,6 +58,8 @@ export default function AdminSidebar({
   useEffect(() => {
     localStorage.setItem("workflows_widget", workflowsCollapsed ? "collapsed" : "expanded");
   }, [workflowsCollapsed]);
+
+  const isCurrentlyCollapsed = isMobile ? false : isCollapsed;
 
   const menuItems = [
     {
@@ -112,9 +116,9 @@ export default function AdminSidebar({
         }
       `}</style>
       <aside
-        className={`admin-sidebar relative border-r sticky top-0 z-[50] hidden lg:flex ${adminDarkMode ? "bg-[#13131F] border-[#1F2937]" : "bg-white border-admin-border"}`}
+        className={`admin-sidebar relative border-r sticky top-0 z-[50] ${isMobile ? "flex w-full" : "hidden lg:flex"} ${adminDarkMode ? "bg-[#13131F] border-[#1F2937]" : "bg-white border-admin-border"}`}
         style={{
-          width: isCollapsed ? "64px" : "240px",
+          width: isMobile ? "100%" : (isCurrentlyCollapsed ? "64px" : "240px"),
           display: 'flex',
           flexDirection: 'column',
           height: '100vh',
@@ -123,20 +127,22 @@ export default function AdminSidebar({
         }}
       >
         {/* Toggle Button */}
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-6 w-6 h-6 bg-[#1B5E20] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-green-800 transition-colors z-[100]"
-        >
-          <ChevronLeft
-            size={14}
-            className="transition-transform duration-300"
-            style={{ transform: isCollapsed ? "rotate(180deg)" : "rotate(0deg)" }}
-          />
-        </button>
+        {!isMobile && (
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="absolute -right-3 top-6 w-6 h-6 bg-[#1B5E20] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-green-800 transition-colors z-[100]"
+          >
+            <ChevronLeft
+              size={14}
+              className="transition-transform duration-300"
+              style={{ transform: isCurrentlyCollapsed ? "rotate(180deg)" : "rotate(0deg)" }}
+            />
+          </button>
+        )}
 
         {/* SECTION 1 — TOP: NEVER SCROLLS */}
-        <div className={`flex-shrink-0 ${isCollapsed ? "items-center pt-2" : "pt-2 px-4 pb-2"}`}>
-          {!isCollapsed ? (
+        <div className={`flex-shrink-0 ${isCurrentlyCollapsed ? "items-center pt-2" : "pt-2 px-4 pb-2"}`}>
+          {!isCurrentlyCollapsed ? (
             <div className="mb-2 whitespace-nowrap overflow-hidden transition-opacity duration-300">
               <h1 className="text-[16px] font-black text-[#1B5E20] leading-none">
                 LankaProperty
@@ -158,7 +164,7 @@ export default function AdminSidebar({
             className={`flex items-center gap-3 py-2 transition-all`}
           >
             <div
-              className={`${isCollapsed ? "w-8 h-8 mx-auto" : "sidebar-avatar aspect-square"} rounded-full bg-admin-bg border border-[#1B5E20]/20 flex-shrink-0 flex items-center justify-center overflow-hidden transition-all duration-300`}
+              className={`${isCurrentlyCollapsed ? "w-8 h-8 mx-auto" : "sidebar-avatar aspect-square"} rounded-full bg-admin-bg border border-[#1B5E20]/20 flex-shrink-0 flex items-center justify-center overflow-hidden transition-all duration-300`}
             >
               {user?.avatar_url ? (
                 <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg' }}
@@ -172,7 +178,7 @@ export default function AdminSidebar({
                 </div>
               )}
             </div>
-            {!isCollapsed && (
+            {!isCurrentlyCollapsed && (
               <div className="overflow-hidden whitespace-nowrap transition-opacity duration-300">
                 <h3
                   className={`sidebar-username ${adminDarkMode ? "text-white" : "text-admin-text-dark"}`}
@@ -190,7 +196,7 @@ export default function AdminSidebar({
         {/* SECTION 2 — MIDDLE: SCROLLS INDEPENDENTLY */}
         <div className="sidebar-nav-wrapper flex-1 overflow-hidden relative min-h-0">
           <nav
-            className={`sidebar-nav h-full overflow-y-auto overflow-x-hidden pb-[40px] pt-2 ${isCollapsed ? "px-2" : "px-4"}`}
+            className={`sidebar-nav h-full overflow-y-auto overflow-x-hidden pb-[40px] pt-2 ${isCurrentlyCollapsed ? "px-2" : "px-4"}`}
           >
             {menuItems.map((item) => {
               if (item.id === "divider") {
@@ -205,7 +211,7 @@ export default function AdminSidebar({
                   <button
                     onClick={() => onNavigate(item.id)}
                     className={`sidebar-nav-item w-full flex items-center h-[36px] rounded-lg transition-all duration-300 ${
-                      isCollapsed ? "justify-center px-0" : "px-[10px]"
+                      isCurrentlyCollapsed ? "justify-center px-0" : "px-[10px]"
                     } ${
                       isActive
                         ? "bg-[#1B5E20]/10 text-[#1B5E20] font-bold"
@@ -214,9 +220,9 @@ export default function AdminSidebar({
                   >
                     {isActive && (
                       <motion.div
-                        layoutId="sidebar-active"
-                        className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#1B5E20] rounded-r-full"
-                      />
+                          layoutId="sidebar-active"
+                          className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#1B5E20] rounded-r-full"
+                        />
                     )}
                     <span
                       className={`${isActive ? "text-[#1B5E20]" : "text-gray-400 group-hover/nav:text-[#1B5E20] transition-colors"}`}
@@ -226,7 +232,7 @@ export default function AdminSidebar({
 
                     <span
                       className={`transition-all duration-300 ${
-                        isCollapsed
+                        isCurrentlyCollapsed
                           ? "w-0 opacity-0 hidden"
                           : "ml-3 opacity-100 flex items-center gap-2 whitespace-nowrap text-[13px]"
                       }`}
@@ -242,7 +248,7 @@ export default function AdminSidebar({
                   </button>
 
                   {/* Tooltip for collapsed state */}
-                  {isCollapsed && (
+                  {isCurrentlyCollapsed && (
                     <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#1B5E20] text-white text-[11px] font-bold rounded-lg opacity-0 invisible group-hover/nav:opacity-100 group-hover/nav:visible transition-all whitespace-nowrap z-[60] shadow-lg">
                       {item.label}
                       <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#1B5E20] rotate-45" />
@@ -255,12 +261,12 @@ export default function AdminSidebar({
         </div>
 
         {/* SECTION 3 — BOTTOM: NEVER SCROLLS */}
-        <div className={`sidebar-bottom flex-shrink-0 flex flex-col gap-[6px] py-4 bg-transparent z-10 ${isCollapsed ? "px-2" : "px-3"}`} style={{ borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+        <div className={`sidebar-bottom flex-shrink-0 flex flex-col gap-[6px] py-4 bg-transparent z-10 ${isCurrentlyCollapsed ? "px-2" : "px-3"}`} style={{ borderTop: '1px solid rgba(0,0,0,0.05)' }}>
           <div className="relative group/nav mb-1">
             <button
               onClick={() => onNavigate('settings')}
               className={`sidebar-nav-item w-full flex items-center h-[36px] rounded-lg transition-all duration-300 ${
-                isCollapsed ? "justify-center px-0" : "px-[10px]"
+                isCurrentlyCollapsed ? "justify-center px-0" : "px-[10px]"
               } ${
                 activePage === 'settings'
                   ? "bg-[#1B5E20]/10 text-[#1B5E20] font-bold"
@@ -276,11 +282,11 @@ export default function AdminSidebar({
               <span className={`${activePage === 'settings' ? "text-[#1B5E20]" : "text-gray-400 group-hover/nav:text-[#1B5E20] transition-colors"}`}>
                   <Settings2 size={16} />
               </span>
-              <span className={`transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "ml-3 opacity-100 flex items-center gap-2 whitespace-nowrap text-[13px]"}`}>
+              <span className={`transition-all duration-300 ${isCurrentlyCollapsed ? "w-0 opacity-0 hidden" : "ml-3 opacity-100 flex items-center gap-2 whitespace-nowrap text-[13px]"}`}>
                 Settings
               </span>
             </button>
-            {isCollapsed && (
+            {isCurrentlyCollapsed && (
               <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#1B5E20] text-white text-[11px] font-bold rounded-lg opacity-0 invisible group-hover/nav:opacity-100 group-hover/nav:visible transition-all whitespace-nowrap z-[60] shadow-lg">
                 Settings
                 <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#1B5E20] rotate-45" />
@@ -292,17 +298,17 @@ export default function AdminSidebar({
             <button
               onClick={toggleAdminDark}
               className={`sidebar-nav-item w-full flex items-center h-[36px] rounded-lg transition-all duration-300 ${
-                isCollapsed ? "justify-center px-0" : "px-[10px]"
+                isCurrentlyCollapsed ? "justify-center px-0" : "px-[10px]"
               } text-admin-text-gray hover:bg-[#1B5E20]/5 hover:translate-x-1 hover:text-[#1B5E20] font-medium`}
             >
               <span className={`text-gray-400 group-hover/nav:text-[#1B5E20] transition-colors`}>
                   {adminDarkMode ? <Sun size={16} /> : <Moon size={16} />}
               </span>
-              <span className={`transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "ml-3 opacity-100 flex items-center gap-2 whitespace-nowrap text-[13px]"}`}>
+              <span className={`transition-all duration-300 ${isCurrentlyCollapsed ? "w-0 opacity-0 hidden" : "ml-3 opacity-100 flex items-center gap-2 whitespace-nowrap text-[13px]"}`}>
                 {adminDarkMode ? "Light Mode" : "Dark Mode"}
               </span>
             </button>
-            {isCollapsed && (
+            {isCurrentlyCollapsed && (
               <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#1B5E20] text-white text-[11px] font-bold rounded-lg opacity-0 invisible group-hover/nav:opacity-100 group-hover/nav:visible transition-all whitespace-nowrap z-[60] shadow-lg">
                 Toggle Theme
                 <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#1B5E20] rotate-45" />
@@ -314,18 +320,18 @@ export default function AdminSidebar({
             <button
               onClick={onLogout}
               className={`w-full h-[32px] flex items-center text-admin-text-gray hover:text-red-600 font-bold transition-colors ${
-                isCollapsed ? "justify-center px-0" : "gap-2 px-3 text-[12px]"
+                isCurrentlyCollapsed ? "justify-center px-0" : "gap-2 px-3 text-[12px]"
               }`}
             >
               <LogOut
                 size={16}
                 className="text-gray-400 group-hover/out:text-red-600 transition-colors"
               />
-              {!isCollapsed && (
+              {!isCurrentlyCollapsed && (
                 <span className="whitespace-nowrap">Sign Out</span>
               )}
             </button>
-            {isCollapsed && (
+            {isCurrentlyCollapsed && (
               <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-red-600 text-white text-[11px] font-bold rounded-lg opacity-0 invisible group-hover/out:opacity-100 group-hover/out:visible transition-all whitespace-nowrap z-[60] shadow-lg">
                 Sign Out
                 <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-red-600 rotate-45" />

@@ -361,11 +361,17 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
                     <span className="text-[10px] text-[#00B67A] font-mono font-bold uppercase tracking-widest bg-[#00B67A]/10 px-2 py-0.5 rounded">ID: {property.ref_no || `LP${String(property.id).padStart(4, '0')}`}</span>
                  </div>
                  
-                 <h3 className="text-xl font-black text-[#004F31] line-clamp-1 tracking-tight leading-tight">{property.listing_title}</h3>
+                 <h3 className="text-xl font-black text-[#004F31] line-clamp-1 tracking-tight leading-tight mb-1">{property.listing_title}</h3>
                  
                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[11px] font-bold text-gray-400">
                     <span className="flex items-center gap-1.5"><MapPin size={14} className="text-[#004F31]" /> {property.city}, {property.district}</span>
                     <span className="flex items-center gap-1.5"><Tag size={14} className="text-[#004F31]" /> {property.listing_type}</span>
+                     <span className="flex xl:hidden items-center gap-1 bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-[10px] font-bold">
+                       <Eye size={12} className="text-gray-500" /> {property.views_count || 0}
+                     </span>
+                     <span className="flex xl:hidden items-center gap-1 bg-[#004F31]/10 text-[#004F31] px-2 py-0.5 rounded text-[10px] font-bold">
+                       <Zap size={12} className="text-admin-primary" /> {property.leads_count || 0}
+                     </span>
                     
                     {promotedData[property.id] && (
                        <div className="flex items-center gap-1.5 ml-auto md:ml-0 group border border-gray-200 rounded-full px-2 py-0.5 bg-gray-50" title={`Last promoted: Today ${promotedData[property.id].time}`}>

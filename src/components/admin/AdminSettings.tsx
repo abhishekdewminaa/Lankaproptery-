@@ -720,7 +720,7 @@ export default function AdminSettings({ user }: AdminSettingsProps) {
                             <input type={showSecret.gemini ? "text" : "password"} placeholder="AIza..." value={settingsForm.gemini_api_key || ''} onChange={(e) => handleInputChange('gemini_api_key', e.target.value)} className="w-full bg-white border-[1.5px] border-[#e5e7eb] rounded-[10px] px-4 py-3 font-semibold text-gray-900 outline-none focus:border-[#004F31] focus:ring-4 focus:ring-[#004F31]/[0.08]" />
                             <button onClick={() => setShowSecret(p => ({...p, gemini: !p.gemini}))} className="absolute right-4 top-3.5 text-gray-400">{showSecret.gemini ? <EyeOff size={18}/>: <Eye size={18}/>}</button>
                          </div>
-                         <p className="text-xs text-gray-500 mt-2">Required for smart descriptions, insights, and automated Sinhala translation features.</p>
+                         <p className="text-xs text-gray-500 mt-2">Required for smart descriptions, insights, and automated formatting features.</p>
                          <div className="mt-4">
                            <button onClick={() => toast.success('AI Connection successful!')} className="px-4 py-2 bg-blue-50 text-blue-700 font-bold rounded-lg text-sm border border-blue-200">Test AI Connection</button>
                          </div>

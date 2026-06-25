@@ -206,24 +206,6 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onBackTo
             <Shield size={14} className="text-emerald-600" />
             <span>SECURED BY LANKAPROPERTY.LK</span>
           </div>
-
-          {/* Language selector toggle */}
-          <div className="flex bg-neutral-100 p-0.5 rounded-lg border border-neutral-200 shadow-sm font-black text-[9px]">
-            <button 
-              type="button"
-              onClick={() => setCurrentLang('EN')}
-              className={`px-2.5 py-1 rounded-md transition-all ${currentLang === 'EN' ? 'bg-[#004f31] text-white shadow' : 'text-neutral-500 hover:text-neutral-800'}`}
-            >
-              EN
-            </button>
-            <button 
-              type="button"
-              onClick={() => setCurrentLang('SI')}
-              className={`px-2.5 py-1 rounded-md transition-all ${currentLang === 'SI' ? 'bg-[#004f31] text-white shadow' : 'text-neutral-500 hover:text-neutral-800'}`}
-            >
-              සිං
-            </button>
-          </div>
         </div>
 
       </div>

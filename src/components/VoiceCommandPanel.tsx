@@ -850,24 +850,6 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps & { isForceListe
           )}
         </AnimatePresence>
 
-        <div className="flex flex-col items-center gap-3 pointer-events-auto">
-          {/* Language Switch */}
-          <div className="bg-white p-1 rounded-full shadow-lg border border-gray-100 flex gap-1">
-            <button 
-              onClick={() => setLanguage('en-US')}
-              className={`px-3 py-1 rounded-full text-[10px] font-black uppercase transition-all ${language === 'en-US' ? 'bg-brand-navy text-white' : 'text-gray-400 hover:text-dark-navy'}`}
-            >
-              EN
-            </button>
-            <button 
-              onClick={() => setLanguage('si-LK')}
-              className={`px-3 py-1 rounded-full text-[10px] font-black uppercase transition-all ${language === 'si-LK' ? 'bg-brand-navy text-white' : 'text-gray-400 hover:text-dark-navy'}`}
-            >
-              සිං
-            </button>
-          </div>
-        </div>
-
         {/* Mic Instructions Card */}
       <AnimatePresence>
         {showMicInstructions && (
@@ -961,16 +943,6 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps & { isForceListe
                     icon={<Moon size={18} />}
                     commands={['"Dark mode"', '"Scroll down"', '"Calculate price"']} 
                   />
-                </div>
-                
-                <div className="mt-12 bg-gray-50 p-6 rounded-[24px]">
-                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <CheckCircle size={14} className="text-brand-green" /> Sinhala Support
-                  </h3>
-                  <div className="space-y-2">
-                    <p className="text-sm font-bold text-dark-navy">"ගෙවල් පෙන්වන්න" (Show houses)</p>
-                    <p className="text-sm font-bold text-dark-navy">"කොළඹ දිස්ත්‍රික්කය" (District Colombo)</p>
-                  </div>
                 </div>
               </div>
 

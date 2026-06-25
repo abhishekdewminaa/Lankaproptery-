@@ -1165,22 +1165,9 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
                     toast.error('AI generation failed');
                   }
                 }}
-                className="text-[9px] font-black text-brand-green uppercase hover:underline mr-4"
-              >
-                ✨ Generate AI Context
-              </button>
-              <button 
-                onClick={async () => {
-                  if (!formData.description) return;
-                  setIsTranslating('sinhala');
-                  const trans = await translateDescription(formData.description, 'sinhala');
-                  if (trans) setFormData({ ...formData, description: formData.description + "\n\n(Sinhala Translation):\n" + trans });
-                  setIsTranslating(null);
-                }}
-                disabled={!!isTranslating}
                 className="text-[9px] font-black text-brand-green uppercase hover:underline"
               >
-                Translate to Sinhala
+                ✨ Generate AI Context
               </button>
             </div>
           </div>
