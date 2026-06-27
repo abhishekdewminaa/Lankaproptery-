@@ -39,9 +39,35 @@ export async function executeNode(node: AutomationsNode, context: any = {}) {
       break;
       
     case 'Send Email':
-      // Minimal stub for emailjs
-      result.output = { email_sent: true };
-      toast.success(`Simulated Email sent to ${config.to_email}`);
+      try {
+        const response = await fetch('/api/send-notification', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            type: 'new_inquiry',
+            data: {
+              property_title: context.title || context.listing_title || 'N/A',
+              district: context.district || '',
+              city: context.city || '',
+              price_lkr: context.price_lkr || context.price || 'N/A',
+              agent_email: config.to_email || 'abhishekdewminaa@gmail.com',
+              client_name: 'Automation Workflow',
+              client_phone: 'N/A',
+              client_email: 'noreply@lankaproperty.lk',
+              message: config.body || `Auto promoted listing: ${context.title || context.listing_title || 'N/A'}`
+            }
+          })
+        });
+        const resData = await response.json();
+        result.output = { email_sent: true, api_status: resData.status };
+        toast.success(`Workflow notification sent to ${config.to_email}`);
+      } catch (err: any) {
+        console.error("Failed to send notification via API:", err);
+        result.output = { email_sent: false, error: err.message };
+        toast.error("Workflow notification API error");
+      }
       break;
       
     case 'Post to Facebook':
@@ -56,14 +82,29 @@ export async function executeNode(node: AutomationsNode, context: any = {}) {
       
       result.output = { facebook_post: processedCaption, automated };
       break;
-
+ 
     case 'Generate AI Caption (Gemini)':
       const platform = config.platform || 'Facebook';
-      const prompt = `Write a caption for ${platform} for property in context. Context: ${JSON.stringify(context)}`;
-      // Simulated generation
-      result.output = { 
-         [config.outputVar || 'ai_caption']: `[Simulated AI Caption for ${platform}] This property is amazing!` 
-      };
+      const prompt = `Write an engaging real estate social media caption for ${platform} for the following property:\n\nTitle: ${context.title || context.listing_title || 'N/A'}\nLocation: ${context.city || ''}, ${context.district || ''}\nPrice: Rs. ${context.price_lkr || context.price || 'N/A'}\nDescription: ${context.description || ''}\n\nMake it catchy with relevant hashtags.`;
+      
+      try {
+        const response = await fetch('/api/ai/generate-caption', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ prompt })
+        });
+        const resData = await response.json();
+        result.output = { 
+           [config.outputVar || 'ai_caption']: resData.caption || `Check out this amazing property in ${context.district}! 🏡✨`
+        };
+      } catch (err: any) {
+        console.error("Failed to generate caption via backend Gemini endpoint:", err);
+        result.output = { 
+           [config.outputVar || 'ai_caption']: `Check out this beautiful property in ${context.district}! #LankaProperty`
+        };
+      }
       break;
 
     case 'If/Else':

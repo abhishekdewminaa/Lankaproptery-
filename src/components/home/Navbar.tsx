@@ -16,7 +16,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+
+  const isAgentLoggedIn = localStorage.getItem('agent_logged_in') === 'true';
+  const isOwnerLoggedIn = localStorage.getItem('owner_logged_in') === 'true';
+
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const authDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,6 +37,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setActiveDropdown(null);
+      }
+      if (authDropdownRef.current && !authDropdownRef.current.contains(event.target as Node)) {
+        setIsLoginOpen(false);
+        setIsRegisterOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -64,8 +75,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
     { name: 'Sell', href: '/sell', type: 'sell' },
     { name: 'Advertised Packages', href: '/packages', type: 'packages' },
     { name: 'Wanted', href: '/wanted', type: 'wanted' },
-    { name: 'Lands', href: '/lands', type: 'lands' },
+    { name: 'Projects', href: '/projects', type: 'lands' },
     { name: 'Find Agent', href: '#', type: 'agents' },
+    { name: 'Agent Portal', href: '/agent/dashboard', type: 'agent_dashboard' },
+    { name: 'Sell My Property', href: '/owner/dashboard', type: 'owner_dashboard' },
     { name: 'Feedback', href: '/feedback', type: 'feedback' },
   ];
 
@@ -177,7 +190,158 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
         </div>
 
         {/* Right side */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4" ref={authDropdownRef}>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              window.history.pushState({}, '', '/sell');
+              if (onNavigate) onNavigate({ type: 'sell' });
+            }}
+            className="hidden sm:flex items-center justify-center bg-[#004F31] hover:bg-[#003420] text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-md cursor-pointer"
+          >
+            Post Your Property Free
+          </button>
+
+          {/* User Auth desktop controls */}
+          {isOwnerLoggedIn ? (
+            <div className="hidden lg:flex items-center gap-3">
+              <button
+                onClick={() => {
+                  window.history.pushState({}, '', '/owner/dashboard');
+                  if (onNavigate) onNavigate({ type: 'owner_dashboard' });
+                }}
+                className="text-xs font-bold text-gray-700 hover:text-brand-green px-3 py-2 border border-gray-200 rounded-xl transition-colors"
+              >
+                My Account
+              </button>
+              <button
+                onClick={() => {
+                  localStorage.removeItem('owner_logged_in');
+                  localStorage.removeItem('owner_id');
+                  localStorage.removeItem('owner_name');
+                  localStorage.removeItem('owner_email');
+                  localStorage.removeItem('user_role');
+                  window.history.pushState({}, '', '/');
+                  if (onNavigate) onNavigate({ type: 'explore' });
+                  window.location.reload();
+                }}
+                className="text-xs font-bold text-red-500 hover:text-red-600 transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : isAgentLoggedIn ? (
+            <div className="hidden lg:flex items-center gap-3">
+              <button
+                onClick={() => {
+                  window.history.pushState({}, '', '/agent/dashboard');
+                  if (onNavigate) onNavigate({ type: 'agent_dashboard' });
+                }}
+                className="text-xs font-bold text-gray-700 hover:text-brand-green px-3 py-2 border border-gray-200 rounded-xl transition-colors"
+              >
+                Agent Portal
+              </button>
+              <button
+                onClick={() => {
+                  localStorage.removeItem('agent_logged_in');
+                  localStorage.removeItem('agent_id');
+                  localStorage.removeItem('agent_name');
+                  localStorage.removeItem('agent_email');
+                  localStorage.removeItem('user_role');
+                  window.history.pushState({}, '', '/');
+                  if (onNavigate) onNavigate({ type: 'explore' });
+                  window.location.reload();
+                }}
+                className="text-xs font-bold text-red-500 hover:text-red-600 transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <div className="hidden lg:flex items-center gap-2 relative">
+              {/* Login dropdown trigger */}
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setIsLoginOpen(!isLoginOpen);
+                    setIsRegisterOpen(false);
+                  }}
+                  className="flex items-center gap-1 text-xs font-bold text-gray-700 hover:text-brand-green px-3 py-2 border border-gray-200 rounded-xl transition-all"
+                >
+                  Login
+                  <ChevronDown size={12} className={`transition-transform duration-200 ${isLoginOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isLoginOpen && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-[120]">
+                    <button
+                      onClick={() => {
+                        window.history.pushState({}, '', '/owner/login');
+                        if (onNavigate) onNavigate({ type: 'owner_login' });
+                        setIsLoginOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-3 text-xs font-bold text-gray-700 hover:bg-brand-green/5 hover:text-brand-green border-b border-gray-50 flex flex-col gap-0.5"
+                    >
+                      <span className="flex items-center gap-1.5 font-black text-gray-800"><span className="text-sm">👤</span> I Want to Sell / Rent</span>
+                      <span className="text-[10px] text-gray-400 font-semibold pl-5">My Property</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        window.history.pushState({}, '', '/agent/login');
+                        if (onNavigate) onNavigate({ type: 'agent_login' });
+                        setIsLoginOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-3 text-xs font-bold text-gray-700 hover:bg-brand-green/5 hover:text-brand-green flex flex-col gap-0.5"
+                    >
+                      <span className="flex items-center gap-1.5 font-black text-gray-800"><span className="text-sm">🏢</span> I Am a Real Estate Agent</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Register dropdown trigger */}
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setIsRegisterOpen(!isRegisterOpen);
+                    setIsLoginOpen(false);
+                  }}
+                  className="flex items-center gap-1 text-xs font-black uppercase tracking-wider bg-brand-green/10 text-brand-green hover:bg-brand-green hover:text-white px-3 py-2 rounded-xl transition-all"
+                >
+                  Register
+                  <ChevronDown size={12} className={`transition-transform duration-200 ${isRegisterOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isRegisterOpen && (
+                  <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-[120]">
+                    <button
+                      onClick={() => {
+                        window.history.pushState({}, '', '/owner/register');
+                        if (onNavigate) onNavigate({ type: 'owner_register' });
+                        setIsRegisterOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-3 text-xs font-bold text-gray-700 hover:bg-brand-green/5 hover:text-brand-green border-b border-gray-50 flex flex-col gap-0.5"
+                    >
+                      <span className="flex items-center gap-1.5 font-black text-gray-800"><span className="text-sm">🏠</span> List My Property</span>
+                      <span className="text-[10px] text-gray-400 font-semibold pl-5">(Property Owner)</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        window.history.pushState({}, '', '/agent/register');
+                        if (onNavigate) onNavigate({ type: 'agent_register' });
+                        setIsRegisterOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-3 text-xs font-bold text-gray-700 hover:bg-brand-green/5 hover:text-brand-green flex flex-col gap-0.5"
+                    >
+                      <span className="flex items-center gap-1.5 font-black text-gray-800"><span className="text-sm">🏢</span> Join as Agent</span>
+                      <span className="text-[10px] text-gray-400 font-semibold pl-5">(Real Estate Professional)</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {user ? (
             <div className="flex items-center gap-2 mr-2">
               <NotificationBell user={user} onNavigate={onNavigate} />
@@ -188,22 +352,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                 Dashboard
               </button>
             </div>
-          ) : (
-            <div className="hidden lg:flex items-center gap-3 mr-2">
-              <button
-                onClick={() => onNavigate && onNavigate({ type: 'auth', data: 'login' })}
-                className="text-sm font-bold text-gray-700 hover:text-brand-green transition-colors px-2"
-              >
-                Log In
-              </button>
-              <button
-                onClick={() => onNavigate && onNavigate({ type: 'auth', data: 'signup' })}
-                className="bg-brand-green text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-brand-green/90 transition-colors shadow-lg shadow-brand-green/20"
-              >
-                Register Here
-              </button>
-            </div>
-          )}
+          ) : null}
           
           {/* Mobile Menu Toggle */}
           <button 
@@ -225,6 +374,119 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
             className="absolute top-20 left-0 w-full bg-white border-b border-gray-100 lg:hidden overflow-hidden shadow-2xl z-[90]"
           >
             <div className="flex flex-col p-6 gap-2">
+              {/* Mobile Auth options */}
+              <div className="border-b border-gray-100 pb-4 mb-2">
+                {isOwnerLoggedIn ? (
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Account</p>
+                    <a
+                      href="/owner/dashboard"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.history.pushState({}, '', '/owner/dashboard');
+                        if (onNavigate) onNavigate({ type: 'owner_dashboard' });
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="block px-4 py-3 text-base font-bold text-gray-700 hover:bg-gray-50 rounded-xl"
+                    >
+                      My Dashboard
+                    </a>
+                    <button
+                      onClick={() => {
+                        localStorage.removeItem('owner_logged_in');
+                        localStorage.removeItem('owner_id');
+                        localStorage.removeItem('owner_name');
+                        localStorage.removeItem('owner_email');
+                        localStorage.removeItem('user_role');
+                        window.location.reload();
+                      }}
+                      className="w-full text-left px-4 py-3 text-base font-bold text-red-500 hover:bg-red-50 rounded-xl"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                ) : isAgentLoggedIn ? (
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Account</p>
+                    <a
+                      href="/agent/dashboard"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.history.pushState({}, '', '/agent/dashboard');
+                        if (onNavigate) onNavigate({ type: 'agent_dashboard' });
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="block px-4 py-3 text-base font-bold text-gray-700 hover:bg-gray-50 rounded-xl"
+                    >
+                      Agent Portal
+                    </a>
+                    <button
+                      onClick={() => {
+                        localStorage.removeItem('agent_logged_in');
+                        localStorage.removeItem('agent_id');
+                        localStorage.removeItem('agent_name');
+                        localStorage.removeItem('agent_email');
+                        localStorage.removeItem('user_role');
+                        window.location.reload();
+                      }}
+                      className="w-full text-left px-4 py-3 text-base font-bold text-red-500 hover:bg-red-50 rounded-xl"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Login</p>
+                      <button
+                        onClick={() => {
+                          window.history.pushState({}, '', '/owner/login');
+                          if (onNavigate) onNavigate({ type: 'owner_login' });
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl flex items-center gap-2"
+                      >
+                        👤 I Want to Sell / Rent My Property
+                      </button>
+                      <button
+                        onClick={() => {
+                          window.history.pushState({}, '', '/agent/login');
+                          if (onNavigate) onNavigate({ type: 'agent_login' });
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl flex items-center gap-2"
+                      >
+                        🏢 I Am a Real Estate Agent
+                      </button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Register</p>
+                      <button
+                        onClick={() => {
+                          window.history.pushState({}, '', '/owner/register');
+                          if (onNavigate) onNavigate({ type: 'owner_register' });
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl flex items-center gap-2"
+                      >
+                        🏠 List My Property (Property Owner)
+                      </button>
+                      <button
+                        onClick={() => {
+                          window.history.pushState({}, '', '/agent/register');
+                          if (onNavigate) onNavigate({ type: 'agent_register' });
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl flex items-center gap-2"
+                      >
+                        🏢 Join as Agent (Real Estate Professional)
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {navLinks.map((link) => (
                 <div key={link.name}>
                   {link.type === 'dropdown' ? (

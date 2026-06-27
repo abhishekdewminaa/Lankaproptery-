@@ -217,7 +217,7 @@ export default function AdminDashboard({ user }: { user: any }) {
           </div>
           
           <div className="h-[280px]">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={280}>
               <AreaChart data={PERFORMANCE_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
@@ -311,139 +311,53 @@ export default function AdminDashboard({ user }: { user: any }) {
         </div>
       </div>
 
-      {/* Hot Listings & Premium Card */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <Flame size={20} className="text-admin-accent" />
-              <h3 className="text-xl font-black text-admin-text-dark">Hot Listings</h3>
-            </div>
-            <button className="text-sm font-bold text-admin-primary hover:underline flex items-center gap-1 group">
-              View All Listings <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
-            </button>
+      {/* Hot Listings */}
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Flame size={20} className="text-admin-accent" />
+            <h3 className="text-xl font-black text-admin-text-dark">Hot Listings</h3>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {hotListings.map((listing) => (
-              <motion.div 
-                key={listing.id}
-                whileHover={{ scale: 1.02 }}
-                className="bg-white p-4 rounded-[32px] border border-admin-border shadow-sm flex gap-4 items-center group cursor-pointer"
-              >
-                <div className="w-24 h-24 rounded-2xl bg-gray-100 overflow-hidden shrink-0">
-                  <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
-                    src={listing.images?.[0] || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80'} 
-                    alt={listing.title} 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                </div>
-                <div className="flex-grow min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="px-2 py-0.5 rounded-full bg-admin-primary/10 text-admin-primary text-[8px] font-black uppercase tracking-widest">
-                      {listing.listing_type || 'FOR SALE'}
-                    </span>
-                    <span className="text-[10px] text-admin-text-gray font-bold line-clamp-1">
-                      <MapPin size={10} className="inline mr-1" /> {listing.location || 'Colombo'}
-                    </span>
-                  </div>
-                  <h4 className="text-sm font-black text-admin-text-dark line-clamp-1 mb-1">{listing.title}</h4>
-                  <div className="text-admin-primary font-black text-sm">
-                    Rs. {listing.price_lkr || listing.price || 'Contact for price'}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-            {hotListings.length === 0 && (
-              <div className="col-span-2 py-10 text-center bg-white rounded-[32px] border border-admin-border border-dashed">
-                <p className="text-admin-text-gray font-bold">No active listings to highlight yet.</p>
-              </div>
-            )}
-          </div>
+          <button className="text-sm font-bold text-admin-primary hover:underline flex items-center gap-1 group">
+            View All Listings <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+          </button>
         </div>
 
-        {/* Premium Agent Card */}
-        <div className="bg-admin-primary p-8 rounded-[40px] text-white relative overflow-hidden flex flex-col justify-between">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-full" />
-          <div className="relative z-10">
-            <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mb-6">
-              <Award size={24} className="text-admin-gold" />
-            </div>
-            <h3 className="text-2xl font-black mb-2">Premium Agent Bonus</h3>
-            <p className="text-white/70 text-sm font-medium leading-relaxed">
-              You're only <span className="text-white font-bold">2 listings away</span> from unlocking featured slots for your inventory.
-            </p>
-          </div>
-
-          <div className="relative z-10 mt-8 space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
-                <span>Monthly Progress</span>
-                <span>80%</span>
-              </div>
-              <div className="h-3 bg-white/10 rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: '80%' }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                  className="h-full bg-admin-gold"
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {hotListings.map((listing) => (
+            <motion.div 
+              key={listing.id}
+              whileHover={{ scale: 1.02 }}
+              className="bg-white p-4 rounded-[32px] border border-admin-border shadow-sm flex gap-4 items-center group cursor-pointer"
+            >
+              <div className="w-24 h-24 rounded-2xl bg-gray-100 overflow-hidden shrink-0">
+                <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
+                  src={listing.images?.[0] || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80'} 
+                  alt={listing.title} 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               </div>
+              <div className="flex-grow min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="px-2 py-0.5 rounded-full bg-admin-primary/10 text-admin-primary text-[8px] font-black uppercase tracking-widest">
+                    {listing.listing_type || 'FOR SALE'}
+                  </span>
+                  <span className="text-[10px] text-admin-text-gray font-bold line-clamp-1">
+                    <MapPin size={10} className="inline mr-1" /> {listing.location || 'Colombo'}
+                  </span>
+                </div>
+                <h4 className="text-sm font-black text-admin-text-dark line-clamp-1 mb-1">{listing.title}</h4>
+                <div className="text-admin-primary font-black text-sm">
+                  Rs. {listing.price_lkr || listing.price || 'Contact for price'}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+          {hotListings.length === 0 && (
+            <div className="col-span-2 py-10 text-center bg-white rounded-[32px] border border-admin-border border-dashed">
+              <p className="text-admin-text-gray font-bold">No active listings to highlight yet.</p>
             </div>
-            <button className="w-full bg-white text-admin-primary py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-admin-bg transition-colors shadow-lg shadow-black/20">
-              Claim Featured Slots
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Expiry Widget */}
-      <div className="mt-8 bg-white p-6 rounded-[32px] border border-gray-200 shadow-sm">
-        <h3 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-2">
-          <span>⏰</span> Listing Expiry Status
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-           <div className="p-4 bg-green-50 rounded-2xl flex justify-between items-center border border-green-100">
-             <span className="text-green-700 font-black text-[10px] uppercase tracking-widest">Active listings</span>
-             <span className="text-green-900 font-black text-2xl">12</span>
-           </div>
-           <div className="p-4 bg-yellow-50 rounded-2xl flex justify-between items-center border border-yellow-100">
-             <span className="text-yellow-700 font-black text-[10px] uppercase tracking-widest">Expiring in 3 days</span>
-             <span className="text-yellow-900 font-black text-2xl">3</span>
-           </div>
-           <div className="p-4 bg-red-50 rounded-2xl flex justify-between items-center border border-red-100">
-             <span className="text-red-700 font-black text-[10px] uppercase tracking-widest">Expired today</span>
-             <span className="text-red-900 font-black text-2xl">1</span>
-           </div>
-           <div className="p-4 bg-gray-50 rounded-2xl flex justify-between items-center border border-gray-200">
-             <span className="text-gray-700 font-black text-[10px] uppercase tracking-widest">Total expired</span>
-             <span className="text-gray-900 font-black text-2xl">5</span>
-           </div>
-        </div>
-        <div>
-           <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Expiring Soon</h4>
-           <div className="divide-y divide-gray-100">
-             <div className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex-1">
-                   <h5 className="font-bold text-gray-900 text-sm">LP0012 — Luxury Villa</h5>
-                   <p className="text-yellow-600 font-bold text-xs mt-1">2 days left</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                   <button className="px-4 py-2 text-[10px] uppercase tracking-widest font-black bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors">Send Reminder</button>
-                   <button className="px-4 py-2 text-[10px] uppercase tracking-widest font-black bg-[#1B5E20]/10 hover:bg-[#1B5E20]/20 text-[#1B5E20] rounded-xl transition-colors">Renew</button>
-                </div>
-             </div>
-             <div className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex-1">
-                   <h5 className="font-bold text-gray-900 text-sm">LP0034 — Nugegoda House</h5>
-                   <p className="text-yellow-600 font-bold text-xs mt-1">3 days left</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                   <button className="px-4 py-2 text-[10px] uppercase tracking-widest font-black bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors">Send Reminder</button>
-                   <button className="px-4 py-2 text-[10px] uppercase tracking-widest font-black bg-[#1B5E20]/10 hover:bg-[#1B5E20]/20 text-[#1B5E20] rounded-xl transition-colors">Renew</button>
-                </div>
-             </div>
-           </div>
+          )}
         </div>
       </div>
     </div>

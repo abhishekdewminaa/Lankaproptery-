@@ -6,7 +6,7 @@ export async function runWorkflow(workflow: Workflow, triggerData: any = {}) {
   const logId = `log_${Date.now()}_${Math.floor(Math.random()*1000)}`;
   const startTime = Date.now();
   let status = 'success';
-  let context = { ...triggerData };
+  let finalContext = { ...triggerData };
 
   try {
     // Create log entry running status
@@ -21,42 +21,57 @@ export async function runWorkflow(workflow: Workflow, triggerData: any = {}) {
     const triggerNode = workflow.nodes.find(n => n.data.category === 'trigger');
     if (!triggerNode) throw new Error('No trigger node found');
 
-    let currentNode: AutomationsNode | undefined = triggerNode;
-    let nextNodeId: string | null = null;
-    let limit = 0;
+    let totalExecutions = 0;
+    const maxExecutions = 50;
 
-    // Basic graph traversal engine
-    while (currentNode && limit < 50) {
-       limit++;
-       
-       // execute current node
-       const result = await executeNode(currentNode, context);
-       
-       // merge output into context
-       context = { ...context, ...result.output };
+    async function executeBranch(node: AutomationsNode, context: any): Promise<any> {
+      if (totalExecutions >= maxExecutions) {
+        return context;
+      }
+      totalExecutions++;
 
-       // find next edges
-       const outgoing = workflow.edges.filter(e => e.source === currentNode!.id);
-       
-       if (outgoing.length === 0) {
-          currentNode = undefined; // End of branch
-       } else if (outgoing.length === 1 && currentNode.data.category !== 'condition') {
-          const nextNode = workflow.nodes.find(n => n.id === outgoing[0].target);
-          currentNode = nextNode;
-       } else if (currentNode.data.category === 'condition') {
-          // If condition, evaluate returning branch handle
-          const outcomeHandle = result.branchOutcome ? 'true' : 'false';
-          const matchEdge = outgoing.find(e => e.sourceHandle === outcomeHandle);
-          if (matchEdge) {
-             currentNode = workflow.nodes.find(n => n.id === matchEdge.target);
-          } else {
-             currentNode = undefined;
+      // execute current node
+      const result = await executeNode(node, context);
+      
+      // merge output into context
+      const newContext = { ...context, ...result.output };
+
+      // find next edges
+      const outgoing = workflow.edges.filter(e => e.source === node.id);
+
+      if (outgoing.length === 0) {
+        return newContext;
+      }
+
+      if (node.data.category === 'condition') {
+        const outcomeHandle = result.branchOutcome ? 'true' : 'false';
+        const matchEdge = outgoing.find(e => e.sourceHandle === outcomeHandle);
+        if (matchEdge) {
+          const nextNode = workflow.nodes.find(n => n.id === matchEdge.target);
+          if (nextNode) {
+            return executeBranch(nextNode, newContext);
           }
-       } else {
-          // Unhandled split (parallel not fully supported in this minimal engine)
-          break;
-       }
+        }
+        return newContext;
+      }
+
+      // If multiple outgoing edges (or 1), traverse concurrently using Promise.all
+      const branchPromises = outgoing.map(async (edge) => {
+        const nextNode = workflow.nodes.find(n => n.id === edge.target);
+        if (nextNode) {
+          return executeBranch(nextNode, newContext);
+        }
+        return newContext;
+      });
+
+      const contexts = await Promise.all(branchPromises);
+      
+      // Merge all outputs together
+      return contexts.reduce((acc, ctx) => ({ ...acc, ...ctx }), newContext);
     }
+
+    finalContext = await executeBranch(triggerNode, finalContext);
+
   } catch (err) {
     console.error('Workflow execution failed:', err);
     status = 'failed';
@@ -76,6 +91,6 @@ export async function runWorkflow(workflow: Workflow, triggerData: any = {}) {
        }).eq('id', workflow.id);
     }
     
-    return { status, context };
+    return { status, context: finalContext };
   }
 }

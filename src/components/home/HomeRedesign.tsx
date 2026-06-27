@@ -102,7 +102,7 @@ export const HomeRedesign: React.FC<HomeRedesignProps> = ({
         </motion.div>
         
         <motion.div {...fadeInUpOptions} className="container mx-auto px-6 py-6 max-w-7xl">
-          <LatestAdvertisements limit={8} onNavigate={onNavigate} />
+          <LatestAdvertisements limit={3} onNavigate={onNavigate} />
         </motion.div>
         
         <motion.div {...fadeInUpOptions}>

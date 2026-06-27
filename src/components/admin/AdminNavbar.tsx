@@ -14,7 +14,7 @@ export default function AdminNavbar({ user, onPostAd, onOpenSidebar }: AdminNavb
       <div className="flex items-center gap-4">
         <button 
           onClick={onOpenSidebar}
-          className="lg:hidden p-2 hover:bg-gray-100 rounded-xl transition-colors"
+          className="md:hidden p-2 hover:bg-gray-100 rounded-xl transition-colors"
         >
           <Menu size={24} className="text-admin-text-dark" />
         </button>

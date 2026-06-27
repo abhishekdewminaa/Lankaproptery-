@@ -325,18 +325,18 @@ export const LandsPortfolio: React.FC<LandsPortfolioProps> = ({
             <div className="flex items-center gap-1.5 text-xs text-emerald-200 font-bold uppercase tracking-wider mb-3">
               <button onClick={onNavigateHome} className="hover:text-white transition-colors cursor-pointer">Home</button>
               <ChevronRight size={12} className="opacity-60" />
-              <span className="text-white">Lands</span>
+              <span className="text-white">Projects</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-4 flex items-center gap-3">
-              Lands
+              Projects
               <span className="text-xs bg-brand-yellow/20 text-brand-yellow border border-brand-yellow/30 px-2.5 py-1 rounded-full uppercase tracking-widest font-black">
                 Official Portfolio
               </span>
             </h1>
             
             <p className="max-w-2xl text-emerald-100 text-sm sm:text-base font-medium leading-relaxed">
-              Choose from an elite portfolio of hand-picked land plots across Sri Lanka's finest growth corridors, verified by Prime Group experts for clean title deed clearance and instant appreciation potential.
+              Choose from an elite portfolio of hand-picked prime land developments and housing projects across Sri Lanka's finest growth corridors, verified by Prime Group experts for clean title deed clearance and instant appreciation potential.
             </p>
           </div>
 
@@ -363,7 +363,7 @@ export const LandsPortfolio: React.FC<LandsPortfolioProps> = ({
             <div className="flex justify-between items-center border-b border-gray-100 pb-3">
               <div className="flex items-center gap-3">
                 <div className="w-1.5 h-6 bg-[#004f31] rounded-full" />
-                <h2 className="text-xl sm:text-2xl font-black text-[#004f31] tracking-tight">Featured Land Developments</h2>
+                <h2 className="text-xl sm:text-2xl font-black text-[#004f31] tracking-tight">Featured Project Developments</h2>
               </div>
               <div className="flex gap-1.5">
                 {featuredLands.map((_, idx) => (
@@ -499,7 +499,7 @@ export const LandsPortfolio: React.FC<LandsPortfolioProps> = ({
               <div>
                 <h3 className="text-base font-black text-gray-800">Find Your Dream Property</h3>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-0.5">
-                  Showing {filteredLands.length} exclusive verified land developments
+                  Showing {filteredLands.length} exclusive verified project developments
                 </p>
               </div>
 
@@ -589,7 +589,7 @@ export const LandsPortfolio: React.FC<LandsPortfolioProps> = ({
                           }}
                           className="px-3.5 py-2 bg-[#004f31]/5 hover:bg-[#004f31] hover:text-white rounded-xl text-[10px] font-black uppercase tracking-wider text-[#004f31] transition-colors cursor-pointer flex items-center gap-1"
                         >
-                          Explore Land
+                          Explore Project
                           <ChevronRight size={12} />
                         </button>
                       </div>
@@ -603,9 +603,9 @@ export const LandsPortfolio: React.FC<LandsPortfolioProps> = ({
                   <Compass size={32} className="animate-spin-slow" />
                 </div>
                 <div className="space-y-1 max-w-sm mx-auto">
-                  <h4 className="text-base font-black text-gray-800">No Land Plots Found</h4>
+                  <h4 className="text-base font-black text-gray-800">No Projects Found</h4>
                   <p className="text-xs font-bold text-gray-400 leading-relaxed">
-                    We couldn't find any premium lands matching your current search parameters. Try expanding your location or price filters.
+                    We couldn't find any premium projects matching your current search parameters. Try expanding your location or price filters.
                   </p>
                 </div>
                 <button

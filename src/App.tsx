@@ -65,6 +65,15 @@ import { Feedback } from "./components/Feedback";
 import { CategoryPage } from "./components/CategoryPage";
 import { AgentPage } from "./components/AgentPage";
 import { LandsPortfolio } from "./components/home/LandsPortfolio";
+import { PostPropertyPage } from "./components/PostPropertyPage";
+import { AgentRegisterPage } from "./components/AgentRegisterPage";
+import { AgentLoginPage } from "./components/AgentLoginPage";
+import { AgentDashboardPage } from "./components/AgentDashboardPage";
+import { OwnerRegisterPage } from "./components/OwnerRegisterPage";
+import { OwnerLoginPage } from "./components/OwnerLoginPage";
+import { OwnerPaymentPage } from "./components/OwnerPaymentPage";
+import { OwnerPaymentSuccessPage } from "./components/OwnerPaymentSuccessPage";
+import { OwnerDashboardPage } from "./components/OwnerDashboardPage";
 import { supabase } from "./supabaseClient";
 import { removeSinhala } from "./utils/safeUtils";
 
@@ -364,7 +373,24 @@ const unifyProperty = (p: any) => {
 
 export default function App() {
   // --- STATE SYSTEM ---
-  const [currentTab, setCurrentTab] = useState<"explore" | "category" | "dashboard" | "publish" | "ai" | "packages" | "wanted" | "feedback" | "agents" | "lands">("explore");
+  const [currentTab, setCurrentTab] = useState<"explore" | "category" | "dashboard" | "publish" | "ai" | "packages" | "wanted" | "feedback" | "agents" | "lands" | "sell" | "agent_register" | "agent_dashboard" | "agent_login" | "owner_register" | "owner_login" | "owner_payment" | "owner_payment_success" | "owner_dashboard">("explore");
+  const [isAgentLoggedIn, setIsAgentLoggedIn] = useState(() => {
+    return localStorage.getItem('agent_logged_in') === 'true';
+  });
+  const [agentUser, setAgentUser] = useState<any>(() => {
+    if (localStorage.getItem('agent_logged_in') === 'true') {
+      return {
+        id: localStorage.getItem('agent_user_id') || '',
+        name: localStorage.getItem('agent_name') || '',
+        email: localStorage.getItem('agent_email') || '',
+        phone: localStorage.getItem('agent_phone') || '',
+        agency: localStorage.getItem('agent_agency') || '',
+        image: localStorage.getItem('agent_image') || '',
+        is_verified: localStorage.getItem('agent_is_verified') === 'true'
+      };
+    }
+    return null;
+  });
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const toggleFavorite = (id: number) => {
     setFavorites(prev => {
@@ -456,6 +482,39 @@ export default function App() {
       setVisitorTraffic(prev => prev + (Math.random() > 0.5 ? 1 : -1) * Math.floor(Math.random() * 3));
     }, 4000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Check initial URL pathname for routes
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path === "/agent/register" || path.includes("/agent/register")) {
+      setCurrentTab("agent_register");
+    } else if (path === "/agent/dashboard" || path.includes("/agent/dashboard")) {
+      if (localStorage.getItem('agent_logged_in') === 'true') {
+        setCurrentTab("agent_dashboard");
+      } else {
+        setCurrentTab("agent_login");
+      }
+    } else if (path === "/agent/login" || path.includes("/agent/login")) {
+      setCurrentTab("agent_login");
+    } else if (path === "/sell" || path.includes("/sell")) {
+      setCurrentTab("sell");
+    } else if (path === "/owner/register" || path.includes("/owner/register")) {
+      setCurrentTab("owner_register");
+    } else if (path === "/owner/login" || path.includes("/owner/login")) {
+      setCurrentTab("owner_login");
+    } else if (path === "/owner/payment/success" || path.includes("/owner/payment/success")) {
+      setCurrentTab("owner_payment_success");
+    } else if (path === "/owner/payment" || path.includes("/owner/payment")) {
+      setCurrentTab("owner_payment");
+    } else if (path === "/owner/dashboard" || path.includes("/owner/dashboard")) {
+      if (localStorage.getItem('owner_logged_in') === 'true') {
+        setCurrentTab("owner_dashboard");
+      } else {
+        setCurrentTab("owner_login");
+        toast.error("Please login to access your property dashboard.");
+      }
+    }
   }, []);
 
   // Sync mortgage parameters and active gallery image when a property is selected
@@ -767,7 +826,43 @@ export default function App() {
       setSearchBeds("Any Beds");
       setMinPrice("Any");
       setMaxPrice("Any");
-    } else if (view.type === "sell" || view.type === "publish") {
+    } else if (view.type === "sell") {
+      setCurrentTab("sell");
+      setSelectedProperty(null);
+    } else if (view.type === "agent_register") {
+      setCurrentTab("agent_register");
+      setSelectedProperty(null);
+    } else if (view.type === "agent_dashboard") {
+      if (localStorage.getItem('agent_logged_in') === 'true') {
+        setCurrentTab("agent_dashboard");
+      } else {
+        setCurrentTab("agent_login");
+      }
+      setSelectedProperty(null);
+    } else if (view.type === "agent_login") {
+      setCurrentTab("agent_login");
+      setSelectedProperty(null);
+    } else if (view.type === "owner_register") {
+      setCurrentTab("owner_register");
+      setSelectedProperty(null);
+    } else if (view.type === "owner_login") {
+      setCurrentTab("owner_login");
+      setSelectedProperty(null);
+    } else if (view.type === "owner_payment") {
+      setCurrentTab("owner_payment");
+      setSelectedProperty(null);
+    } else if (view.type === "owner_payment_success") {
+      setCurrentTab("owner_payment_success");
+      setSelectedProperty(null);
+    } else if (view.type === "owner_dashboard") {
+      if (localStorage.getItem('owner_logged_in') === 'true') {
+        setCurrentTab("owner_dashboard");
+      } else {
+        setCurrentTab("owner_login");
+        toast.error("Please login to access your property dashboard.");
+      }
+      setSelectedProperty(null);
+    } else if (view.type === "publish") {
       setCurrentTab("publish");
       setSelectedProperty(null);
     } else if (view.type === "packages") {
@@ -1597,6 +1692,131 @@ export default function App() {
             </form>
           </div>
           </div>
+        )}
+
+        {/* =======================================
+            VIEWPORT: POST YOUR PROPERTY LANDING PAGE
+            ======================================= */}
+        {currentTab === "sell" && (
+          <PostPropertyPage 
+            onNavigate={handleNavigate}
+            onNavigateHome={() => handleNavigate({ type: "home" })}
+          />
+        )}
+
+        {/* =======================================
+            VIEWPORT: OWNER REGISTRATION PAGE
+            ======================================= */}
+        {currentTab === "owner_register" && (
+          <OwnerRegisterPage 
+            onNavigate={handleNavigate}
+            onNavigateHome={() => handleNavigate({ type: "home" })}
+          />
+        )}
+
+        {/* =======================================
+            VIEWPORT: OWNER PORTAL LOGIN
+            ======================================= */}
+        {currentTab === "owner_login" && (
+          <OwnerLoginPage 
+            onNavigate={handleNavigate}
+            onNavigateHome={() => handleNavigate({ type: "home" })}
+          />
+        )}
+
+        {/* =======================================
+            VIEWPORT: OWNER PORTAL PAYMENT
+            ======================================= */}
+        {currentTab === "owner_payment" && (
+          <OwnerPaymentPage 
+            onNavigate={handleNavigate}
+            onLogout={() => {
+              localStorage.removeItem('owner_logged_in');
+              localStorage.removeItem('owner_id');
+              localStorage.removeItem('owner_name');
+              localStorage.removeItem('owner_email');
+              localStorage.removeItem('user_role');
+              setCurrentTab("explore");
+              toast.success("Logged out from direct owner session.");
+            }}
+          />
+        )}
+
+        {/* =======================================
+            VIEWPORT: OWNER PAYMENT SUCCESS PAGE
+            ======================================= */}
+        {currentTab === "owner_payment_success" && (
+          <OwnerPaymentSuccessPage 
+            onNavigate={handleNavigate}
+          />
+        )}
+
+        {/* =======================================
+            VIEWPORT: OWNER PORTAL DASHBOARD
+            ======================================= */}
+        {currentTab === "owner_dashboard" && (
+          <OwnerDashboardPage 
+            onNavigate={handleNavigate}
+            onLogout={() => {
+              localStorage.removeItem('owner_logged_in');
+              localStorage.removeItem('owner_id');
+              localStorage.removeItem('owner_name');
+              localStorage.removeItem('owner_email');
+              localStorage.removeItem('user_role');
+              setCurrentTab("explore");
+              toast.success("Logged out from direct owner session.");
+            }}
+          />
+        )}
+
+        {/* =======================================
+            VIEWPORT: AGENT REGISTRATION PAGE
+            ======================================= */}
+        {currentTab === "agent_register" && (
+          <AgentRegisterPage 
+            onNavigate={handleNavigate}
+            onNavigateHome={() => handleNavigate({ type: "home" })}
+          />
+        )}
+
+        {/* =======================================
+            VIEWPORT: AGENT PORTAL LOGIN
+            ======================================= */}
+        {currentTab === "agent_login" && (
+          <AgentLoginPage 
+            onLoginSuccess={(agentData) => {
+              setIsAgentLoggedIn(true);
+              setAgentUser(agentData);
+              setCurrentTab("agent_dashboard");
+            }}
+            onBackToHome={() => handleNavigate({ type: "home" })}
+            onNavigateToRegister={() => handleNavigate({ type: "agent_register" })}
+            onNavigate={handleNavigate}
+          />
+        )}
+
+        {/* =======================================
+            VIEWPORT: AGENT PORTAL DASHBOARD
+            ======================================= */}
+        {currentTab === "agent_dashboard" && agentUser && (
+          <AgentDashboardPage 
+            agent={agentUser}
+            onNavigate={handleNavigate}
+            onLogout={() => {
+              localStorage.removeItem('agent_logged_in');
+              localStorage.removeItem('agent_user_id');
+              localStorage.removeItem('agent_name');
+              localStorage.removeItem('agent_email');
+              localStorage.removeItem('agent_phone');
+              localStorage.removeItem('agent_agency');
+              localStorage.removeItem('agent_image');
+              localStorage.removeItem('agent_is_verified');
+              setIsAgentLoggedIn(false);
+              setAgentUser(null);
+              setCurrentTab("explore");
+              toast.success("Successfully logged out from Agent Portal.");
+            }}
+          />
         )}
 
         {/* =======================================

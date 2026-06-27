@@ -156,7 +156,7 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
   };
 
   return (
-    <div className={`bg-white rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden ${isSidebar ? 'p-4 md:p-5' : 'p-6 md:p-8'}`}>
+    <div className={`bg-white rounded-3xl border border-gray-100 shadow-sm relative ${isSidebar ? 'p-4 md:p-5' : 'p-6 md:p-8'}`}>
       {/* Background decoration */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-[#004F31]/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
 
@@ -166,12 +166,12 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
           <div className="flex items-center gap-2 mb-1.5">
             <span className="w-1.5 h-5 bg-[#004F31] rounded-full inline-block" />
             <h3 className={`font-black text-gray-900 tracking-tight uppercase ${isSidebar ? 'text-sm' : 'text-xl md:text-2xl'}`}>
-              Latest Live Advertisements
+              Latest Project Areas
             </h3>
           </div>
           {!isSidebar && (
             <p className="text-xs text-gray-500 font-medium">
-              Real-time properties verified and published directly from the admin platform.
+              Real-time projects verified and published directly from the admin platform.
             </p>
           )}
         </div>
@@ -236,15 +236,15 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
             <span className="relative inline-flex rounded-full h-2 w-2 bg-[#004F31]"></span>
           </span>
           <span className="text-xs font-black uppercase tracking-wider text-gray-400">
-            {loading ? 'Querying database...' : `${properties.length} real property units available`}
+            {loading ? 'Querying database...' : `${properties.length} project areas available`}
           </span>
         </div>
       </div>
 
       {/* Main Grid Content */}
       {loading ? (
-        <div className={`grid ${isSidebar ? 'grid-cols-1 gap-5' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'} relative z-10`}>
-          {Array(isSidebar ? 3 : 4).fill(0).map((_, i) => (
+        <div className={`grid ${isSidebar ? 'grid-cols-1 gap-5' : 'grid-cols-1 md:grid-cols-3 gap-8'} relative z-10`}>
+          {Array(isSidebar ? 3 : 3).fill(0).map((_, i) => (
             <div key={i} className="animate-pulse bg-white border border-gray-100 rounded-3xl p-4 flex flex-col h-full">
               <div className="w-full aspect-video bg-gray-100 rounded-2xl mb-4" />
               <div className="h-5 bg-gray-100 rounded-md mb-2 w-3/4" />
@@ -273,7 +273,7 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
           </button>
         </div>
       ) : (
-        <div className={`grid ${isSidebar ? 'grid-cols-1 gap-5' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'} relative z-10`}>
+        <div className={`grid ${isSidebar ? 'grid-cols-1 gap-5' : 'grid-cols-1 md:grid-cols-3 gap-8'} relative z-10`}>
           {properties.map((property, index) => {
             let image = '/placeholder-property.jpg';
             if (property.images) {
@@ -381,7 +381,7 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
             onClick={handleViewAll}
             className="flex items-center gap-2 px-8 py-3 bg-emerald-50 hover:bg-[#004F31] hover:text-white border border-[#BBF7D0] hover:border-[#004F31] rounded-2xl text-[#004F31] font-bold text-sm transition-all duration-300 hover:scale-[1.02] cursor-pointer"
           >
-            <span>Explore All Real Listings</span>
+            <span>Explore All Project Areas</span>
             <ArrowRight size={16} />
           </button>
         </div>

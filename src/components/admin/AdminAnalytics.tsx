@@ -86,11 +86,9 @@ const CustomAreaTooltip = ({ active, payload, label }: any) => {
 
 const SparklineBar = ({ color, data }: { color: string, data: any[] }) => (
   <div className="h-10 w-24">
-    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-      <BarChart data={data}>
-        <Bar dataKey="value" fill={color} radius={[2, 2, 0, 0]} isAnimationActive={true} />
-      </BarChart>
-    </ResponsiveContainer>
+    <BarChart width={96} height={40} data={data}>
+      <Bar dataKey="value" fill={color} radius={[2, 2, 0, 0]} isAnimationActive={true} />
+    </BarChart>
   </div>
 );
 

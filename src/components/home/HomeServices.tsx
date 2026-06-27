@@ -17,9 +17,9 @@ export const HomeServices: React.FC<HomeServicesProps> = ({ onNavigate }) => {
           <motion.div 
             animate={{ y: [0, -4, 0] }} 
             transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-            className="relative z-10 text-brand-green group-hover:text-brand-green-medium transition-colors"
+            className="relative z-10 text-[#004F31] group-hover:text-emerald-600 transition-colors"
           >
-            <Home className="w-12 h-12" strokeWidth={1.5} />
+            <Home className="w-12 h-12" strokeWidth={2.5} />
           </motion.div>
         </div>
       ),
@@ -35,9 +35,9 @@ export const HomeServices: React.FC<HomeServicesProps> = ({ onNavigate }) => {
           <motion.div 
             animate={{ y: [0, -4, 0] }} 
             transition={{ repeat: Infinity, duration: 3.2, ease: "easeInOut", delay: 0.2 }}
-            className="relative z-10 text-brand-green group-hover:text-brand-green-medium transition-colors"
+            className="relative z-10 text-[#004F31] group-hover:text-emerald-600 transition-colors"
           >
-            <Building2 className="w-12 h-12" strokeWidth={1.5} />
+            <Building2 className="w-12 h-12" strokeWidth={2.5} />
           </motion.div>
         </div>
       ),
@@ -53,9 +53,9 @@ export const HomeServices: React.FC<HomeServicesProps> = ({ onNavigate }) => {
           <motion.div 
             animate={{ y: [0, -4, 0] }} 
             transition={{ repeat: Infinity, duration: 3.4, ease: "easeInOut", delay: 0.4 }}
-            className="relative z-10 text-brand-green group-hover:text-brand-green-medium transition-colors"
+            className="relative z-10 text-[#004F31] group-hover:text-emerald-600 transition-colors"
           >
-            <BadgeDollarSign className="w-12 h-12" strokeWidth={1.5} />
+            <BadgeDollarSign className="w-12 h-12" strokeWidth={2.5} />
           </motion.div>
         </div>
       ),

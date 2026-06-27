@@ -161,14 +161,10 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.8, ease: "easeInOut" }}
                 onClick={() => onNavigate({ type: 'detail', data: currentMain })}
-                className="absolute inset-0 group rounded-3xl overflow-hidden shadow-2xl cursor-pointer"
+                className="absolute inset-0 group rounded-3xl overflow-hidden shadow-2xl cursor-pointer bg-[#004F31]"
               >
                 <div className="absolute inset-0 z-0 overflow-hidden">
-                  <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} 
-                    src={getPropertyImage(currentMain.images)} 
-                    className="w-full h-full object-cover transition-transform duration-10000 group-hover:scale-110" 
-                    alt={currentMain.listing_title}
-                  />
+                  {/* Image removed per user request */}
                 </div>
                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10" />
                 <div className="absolute top-6 right-6 z-20">
@@ -191,7 +187,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
                     {currentMain.listing_title}
                   </h3>
                   <div className="flex items-center gap-4">
-                    <div className="text-white font-black text-3xl tracking-tight">
+                    <div className="text-white font-black text-3xl tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                       {typeof currentMain.price_lkr === 'number' ? `Rs. ${currentMain.price_lkr.toLocaleString()}` : currentMain.price_lkr}
                     </div>
                     <div className="text-white/60 font-bold text-sm flex items-center gap-1 uppercase tracking-widest">
@@ -228,7 +224,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
               <h3 className="text-xl font-black text-white mb-1 drop-shadow-md">
                 {displayProperties[secondaryIndex1].listing_title}
               </h3>
-              <div className="text-brand-green font-black text-lg">
+              <div className="text-white font-black text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                 {typeof displayProperties[secondaryIndex1].price_lkr === 'number' ? `Rs. ${displayProperties[secondaryIndex1].price_lkr.toLocaleString()}` : displayProperties[secondaryIndex1].price_lkr}
               </div>
             </div>
@@ -259,7 +255,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
               <h4 className="text-sm font-black text-white mb-0.5 drop-shadow-md line-clamp-1">
                 {displayProperties[secondaryIndex2].listing_title}
               </h4>
-              <div className="text-brand-green font-black text-xs">
+              <div className="text-white font-black text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                 {typeof displayProperties[secondaryIndex2].price_lkr === 'number' ? `Rs. ${displayProperties[secondaryIndex2].price_lkr.toLocaleString()}` : displayProperties[secondaryIndex2].price_lkr}
               </div>
             </div>
@@ -290,7 +286,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
               <h4 className="text-sm font-black text-white mb-0.5 drop-shadow-md line-clamp-1">
                 {displayProperties[secondaryIndex3].listing_title}
               </h4>
-              <div className="text-brand-green font-black text-xs">
+              <div className="text-white font-black text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                 {typeof displayProperties[secondaryIndex3].price_lkr === 'number' ? `Rs. ${displayProperties[secondaryIndex3].price_lkr.toLocaleString()}` : displayProperties[secondaryIndex3].price_lkr}
               </div>
             </div>
