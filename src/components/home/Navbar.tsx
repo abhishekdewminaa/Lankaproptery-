@@ -19,6 +19,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 
+  const [showPostModal, setShowPostModal] = useState(false);
+
   const isAgentLoggedIn = localStorage.getItem('agent_logged_in') === 'true';
   const isOwnerLoggedIn = localStorage.getItem('owner_logged_in') === 'true';
 
@@ -77,13 +79,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
     { name: 'Wanted', href: '/wanted', type: 'wanted' },
     { name: 'Projects', href: '/projects', type: 'lands' },
     { name: 'Find Agent', href: '#', type: 'agents' },
-    { name: 'Agent Portal', href: '/agent/dashboard', type: 'agent_dashboard' },
     { name: 'Sell My Property', href: '/owner/dashboard', type: 'owner_dashboard' },
-    { name: 'Feedback', href: '/feedback', type: 'feedback' },
   ];
 
   const handleLinkClick = (e: React.MouseEvent, link: any) => {
     e.preventDefault();
+    if (link.type === 'sell') {
+      setShowPostModal(true);
+      setActiveDropdown(null);
+      setIsMobileMenuOpen(false);
+      return;
+    }
     if (onNavigate) {
       if (link.type === 'category') {
         window.history.pushState({}, '', link.href);
@@ -194,8 +200,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
           <button
             onClick={(e) => {
               e.preventDefault();
-              window.history.pushState({}, '', '/sell');
-              if (onNavigate) onNavigate({ type: 'sell' });
+              setShowPostModal(true);
             }}
             className="hidden sm:flex items-center justify-center bg-[#004F31] hover:bg-[#003420] text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-md cursor-pointer"
           >
@@ -527,6 +532,103 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
               ))}
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Choose Listing Path Modal */}
+      <AnimatePresence>
+        {showPostModal && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[999]">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-[32px] p-6 sm:p-8 max-w-xl w-full shadow-2xl border border-neutral-100 relative text-center"
+            >
+              {/* Close Button */}
+              <button 
+                onClick={() => setShowPostModal(false)}
+                className="absolute top-6 right-6 h-8 w-8 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-600 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 font-display mb-2">
+                List Your Property on LankaProperty.lk
+              </h2>
+              <p className="text-xs font-semibold text-neutral-400 max-w-md mx-auto mb-6">
+                Choose the listing path that matches your profile to proceed with standard owner or agent listings.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                
+                {/* Direct Owner Box */}
+                <div className="border border-neutral-200 hover:border-[#004F31] rounded-[24px] p-5 flex flex-col justify-between items-center text-center transition-all bg-emerald-50/10">
+                  <div className="space-y-2 mb-4">
+                    <div className="h-12 w-12 bg-emerald-50 text-[#004F31] rounded-full flex items-center justify-center text-xl mx-auto">
+                      🏠
+                    </div>
+                    <h3 className="text-sm font-black text-neutral-800 uppercase tracking-wider">I Own This Property</h3>
+                    <p className="text-[10px] font-bold text-neutral-400 leading-relaxed">
+                      Post your private house, apartment or land draft directly for free to reach direct buyers.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowPostModal(false);
+                      window.history.pushState({}, '', '/sell');
+                      if (onNavigate) onNavigate({ type: 'sell' });
+                    }}
+                    className="w-full py-3 bg-[#004F31] hover:bg-[#003420] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm cursor-pointer"
+                  >
+                    Sell As Owner Free
+                  </button>
+                </div>
+
+                {/* Professional Agent Box */}
+                <div className="border border-neutral-200 hover:border-slate-800 rounded-[24px] p-5 flex flex-col justify-between items-center text-center transition-all bg-slate-50/10">
+                  <div className="space-y-2 mb-4">
+                    <div className="h-12 w-12 bg-blue-50 text-slate-800 rounded-full flex items-center justify-center text-xl mx-auto">
+                      🏢
+                    </div>
+                    <h3 className="text-sm font-black text-neutral-800 uppercase tracking-wider">I Am An Agent / Broker</h3>
+                    <p className="text-[10px] font-bold text-neutral-400 leading-relaxed">
+                      Access advanced broker CRM, team leads, pipeline boards, bio profile & syndication tools.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowPostModal(false);
+                      window.history.pushState({}, '', '/agent/post-property/details');
+                      if (onNavigate) onNavigate({ type: 'agent_sell' });
+                    }}
+                    className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm cursor-pointer"
+                  >
+                    Post As Professional Agent
+                  </button>
+                </div>
+
+              </div>
+
+              {/* Login option at the bottom */}
+              <div className="border-t border-neutral-100 mt-6 pt-5 text-center">
+                <p className="text-[11px] font-bold text-neutral-500">
+                  Are you a registered agent?{' '}
+                  <button
+                    onClick={() => {
+                      setShowPostModal(false);
+                      window.history.pushState({}, '', '/agent/login');
+                      if (onNavigate) onNavigate({ type: 'agent_login' });
+                    }}
+                    className="text-blue-600 hover:text-blue-800 font-black hover:underline cursor-pointer"
+                  >
+                    Sign In to Agent Portal →
+                  </button>
+                </p>
+              </div>
+
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </nav>

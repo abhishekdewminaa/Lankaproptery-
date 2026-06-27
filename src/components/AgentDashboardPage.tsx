@@ -222,6 +222,9 @@ export const AgentDashboardPage: React.FC<AgentDashboardPageProps> = ({
   // Navigation states
   const [activeTab, setActiveTab] = useState<'dashboard' | 'listings' | 'add_property' | 'pipeline' | 'clients' | 'package' | 'analytics' | 'profile' | 'settings'>('dashboard');
   const [darkMode, setDarkMode] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(() => {
+    return localStorage.getItem('agent_show_welcome_banner') === 'true';
+  });
   
   // App states
   const [dbProperties, setDbProperties] = useState<any[]>([]);
@@ -620,6 +623,41 @@ export const AgentDashboardPage: React.FC<AgentDashboardPageProps> = ({
                 PENDING VERIFICATION
               </span>
             )}
+
+            {/* Plan Badge */}
+            <div className="mt-2.5 flex items-center gap-2 flex-wrap justify-center">
+              {(() => {
+                const currentPlan = localStorage.getItem('agent_package_type') || 'starter_free';
+                if (currentPlan === 'starter_free') {
+                  return (
+                    <div className="flex items-center gap-1.5 justify-center">
+                      <span className="inline-flex bg-slate-500/20 text-slate-400 border border-slate-500/30 text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        Free Plan
+                      </span>
+                      <button
+                        onClick={() => setActiveTab('package')}
+                        className="text-[9px] font-extrabold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-wider underline cursor-pointer"
+                      >
+                        Upgrade →
+                      </button>
+                    </div>
+                  );
+                } else if (currentPlan === 'premium_pro') {
+                  return (
+                    <span className="inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      ⭐ Premium Pro
+                    </span>
+                  );
+                } else if (currentPlan === 'elite_pro') {
+                  return (
+                    <span className="inline-flex items-center gap-1 bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      👑 Elite Pro
+                    </span>
+                  );
+                }
+                return null;
+              })()}
+            </div>
           </div>
 
           {/* Navigation Items */}
@@ -751,6 +789,51 @@ export const AgentDashboardPage: React.FC<AgentDashboardPageProps> = ({
             TAB VIEWPORTS RENDERERS
             ======================================= */}
         <main className="p-6 flex-1 space-y-6">
+          {showWelcome && (
+            <div className="relative p-6 rounded-[24px] bg-gradient-to-r from-emerald-600 to-green-700 text-white shadow-lg overflow-hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl">🎉</span>
+                  <h2 className="text-lg font-black tracking-tight">
+                    Welcome to LankaProperty.lk Agent Network, {profileName}!
+                  </h2>
+                </div>
+                <div className="space-y-1.5 text-xs text-green-100 font-semibold pl-8">
+                  <p className="flex items-center gap-2">
+                    <span className="text-green-300 font-extrabold">✓</span> Your account is created successfully
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className="text-green-300 font-extrabold">✓</span> Your first listing has been submitted
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className="text-green-300 font-extrabold">✓</span> Our administration team will review and publish it within 24 hours
+                  </p>
+                </div>
+                <div className="mt-4 pl-8">
+                  <button 
+                    onClick={() => {
+                      setActiveTab('profile');
+                      setShowWelcome(false);
+                      localStorage.removeItem('agent_show_welcome_banner');
+                    }}
+                    className="bg-white hover:bg-green-50 text-green-800 text-xs font-black px-4 py-2 rounded-xl transition-all shadow-sm cursor-pointer"
+                  >
+                    Complete My Agent Profile →
+                  </button>
+                </div>
+              </div>
+              <button 
+                onClick={() => {
+                  setShowWelcome(false);
+                  localStorage.removeItem('agent_show_welcome_banner');
+                }}
+                className="absolute top-4 right-4 text-white hover:text-green-200 text-sm bg-black/10 hover:bg-black/20 h-6 w-6 rounded-full flex items-center justify-center transition-all cursor-pointer"
+                title="Dismiss"
+              >
+                ✕
+              </button>
+            </div>
+          )}
           <AnimatePresence mode="wait">
             
             {/* VIEWPORT 1: DASHBOARD HOME */}
@@ -1566,6 +1649,24 @@ export const AgentDashboardPage: React.FC<AgentDashboardPageProps> = ({
                 exit={{ opacity: 0 }}
                 className="space-y-6"
               >
+                {/* Upgrade prompt for Free Plan */}
+                {(localStorage.getItem('agent_package_type') || 'starter_free') === 'starter_free' && (
+                  <div className={`p-4 rounded-xl border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${darkMode ? 'bg-blue-950/25 border-blue-900/40 text-blue-200' : 'bg-blue-50 border-blue-100 text-blue-800'}`}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">⭐</span>
+                      <p className="text-xs font-semibold">
+                        Upgrade to Premium Pro to get WhatsApp lead alerts instantly →
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('package')}
+                      className="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg transition-all shadow-xs shrink-0 cursor-pointer"
+                    >
+                      Upgrade Now
+                    </button>
+                  </div>
+                )}
+
                 {/* Stats Overview banner */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {[
@@ -1793,6 +1894,24 @@ export const AgentDashboardPage: React.FC<AgentDashboardPageProps> = ({
                 exit={{ opacity: 0 }}
                 className="space-y-6"
               >
+                {/* Upgrade prompt for Free Plan */}
+                {(localStorage.getItem('agent_package_type') || 'starter_free') === 'starter_free' && (
+                  <div className={`p-4 rounded-xl border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${darkMode ? 'bg-blue-950/25 border-blue-900/40 text-blue-200' : 'bg-blue-50 border-blue-100 text-blue-800'}`}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">📊</span>
+                      <p className="text-xs font-semibold">
+                        Premium Pro unlocks detailed analytics and performance reports →
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('package')}
+                      className="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg transition-all shadow-xs shrink-0 cursor-pointer"
+                    >
+                      Upgrade Now
+                    </button>
+                  </div>
+                )}
+
                 <div className={`p-6 rounded-2xl border ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'} shadow-sm space-y-4`}>
                   <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">📊 Listing Engagement Analytics</h3>
                   <p className="text-xs font-semibold text-slate-400">Visitor impressions, conversion funnels and leads count analyzed across 30 days.</p>

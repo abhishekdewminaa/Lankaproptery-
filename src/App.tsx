@@ -66,6 +66,7 @@ import { CategoryPage } from "./components/CategoryPage";
 import { AgentPage } from "./components/AgentPage";
 import { LandsPortfolio } from "./components/home/LandsPortfolio";
 import { PostPropertyPage } from "./components/PostPropertyPage";
+import { AgentPostPropertyPage } from "./components/AgentPostPropertyPage";
 import { AgentRegisterPage } from "./components/AgentRegisterPage";
 import { AgentLoginPage } from "./components/AgentLoginPage";
 import { AgentDashboardPage } from "./components/AgentDashboardPage";
@@ -373,7 +374,7 @@ const unifyProperty = (p: any) => {
 
 export default function App() {
   // --- STATE SYSTEM ---
-  const [currentTab, setCurrentTab] = useState<"explore" | "category" | "dashboard" | "publish" | "ai" | "packages" | "wanted" | "feedback" | "agents" | "lands" | "sell" | "agent_register" | "agent_dashboard" | "agent_login" | "owner_register" | "owner_login" | "owner_payment" | "owner_payment_success" | "owner_dashboard">("explore");
+  const [currentTab, setCurrentTab] = useState<"explore" | "category" | "dashboard" | "publish" | "ai" | "packages" | "wanted" | "feedback" | "agents" | "lands" | "sell" | "agent_sell" | "agent_register" | "agent_dashboard" | "agent_login" | "owner_register" | "owner_login" | "owner_payment" | "owner_payment_success" | "owner_dashboard">("explore");
   const [isAgentLoggedIn, setIsAgentLoggedIn] = useState(() => {
     return localStorage.getItem('agent_logged_in') === 'true';
   });
@@ -829,6 +830,9 @@ export default function App() {
     } else if (view.type === "sell") {
       setCurrentTab("sell");
       setSelectedProperty(null);
+    } else if (view.type === "agent_sell") {
+      setCurrentTab("agent_sell");
+      setSelectedProperty(null);
     } else if (view.type === "agent_register") {
       setCurrentTab("agent_register");
       setSelectedProperty(null);
@@ -863,7 +867,7 @@ export default function App() {
       }
       setSelectedProperty(null);
     } else if (view.type === "publish") {
-      setCurrentTab("publish");
+      setCurrentTab("sell");
       setSelectedProperty(null);
     } else if (view.type === "packages") {
       setCurrentTab("packages");
@@ -922,8 +926,13 @@ export default function App() {
 
   const handleSelectPackage = (packageName: string) => {
     setSelectedAdPackage(packageName);
-    setCurrentTab("publish");
-    toast.success(`Selected ${packageName}! Please fill in your property listing details below.`, {
+    let planKey = 'starter_free';
+    if (packageName.toLowerCase().includes('pro')) {
+      planKey = packageName.toLowerCase().includes('elite') ? 'elite_pro' : 'premium_pro';
+    }
+    localStorage.setItem('lp_selected_plan', planKey);
+    setCurrentTab("sell");
+    toast.success(`Selected ${packageName}! Let's start with your property details.`, {
       icon: '💎',
       duration: 5000,
     });
@@ -1699,6 +1708,16 @@ export default function App() {
             ======================================= */}
         {currentTab === "sell" && (
           <PostPropertyPage 
+            onNavigate={handleNavigate}
+            onNavigateHome={() => handleNavigate({ type: "home" })}
+          />
+        )}
+
+        {/* =======================================
+            VIEWPORT: AGENT POST YOUR PROPERTY FLOW
+            ======================================= */}
+        {currentTab === "agent_sell" && (
+          <AgentPostPropertyPage 
             onNavigate={handleNavigate}
             onNavigateHome={() => handleNavigate({ type: "home" })}
           />
@@ -2533,7 +2552,7 @@ and deed entries are officially verified by our administrative desk.
       </AnimatePresence>
 
       {/* --- REDESIGNED FOOTER --- */}
-      {currentTab !== "dashboard" && (
+      {currentTab !== "dashboard" && currentTab !== "sell" && (
         <Footer 
           onAdminClick={() => setCurrentTab("dashboard")} 
           onHomeClick={() => handleNavigate({ type: "home" })}
