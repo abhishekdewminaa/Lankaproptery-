@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Bell, Settings, Menu, X, ChevronDown } from 'lucide-react';
+import { Bell, Settings, Menu, X, ChevronDown, Home, Building2, ArrowRight } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 
 interface NavbarProps {
@@ -74,12 +74,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
         { name: 'All Rentals', href: '/', data: { type: 'home' } },
       ]
     },
-    { name: 'Sell', href: '/sell', type: 'sell' },
+    { name: 'Sell my property', href: '/sell', type: 'sell' },
     { name: 'Advertised Packages', href: '/packages', type: 'packages' },
     { name: 'Wanted', href: '/wanted', type: 'wanted' },
     { name: 'Projects', href: '/projects', type: 'lands' },
     { name: 'Find Agent', href: '#', type: 'agents' },
-    { name: 'Sell My Property', href: '/owner/dashboard', type: 'owner_dashboard' },
   ];
 
   const handleLinkClick = (e: React.MouseEvent, link: any) => {
@@ -538,93 +537,137 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
       {/* Choose Listing Path Modal */}
       <AnimatePresence>
         {showPostModal && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[999]">
+          <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 z-[999]">
             <motion.div 
+              id="post-property-modal-card"
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-[32px] p-6 sm:p-8 max-w-xl w-full shadow-2xl border border-neutral-100 relative text-center"
+              className="bg-white rounded-[32px] p-6 sm:p-8 max-w-2xl w-full shadow-2xl border border-neutral-100 relative text-center overflow-hidden"
             >
               {/* Close Button */}
               <button 
+                id="post-property-close-btn"
                 onClick={() => setShowPostModal(false)}
-                className="absolute top-6 right-6 h-8 w-8 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-600 flex items-center justify-center transition-colors cursor-pointer"
+                className="absolute top-6 right-6 h-9 w-9 rounded-full bg-neutral-50 hover:bg-neutral-100 border border-neutral-100 text-neutral-500 hover:text-neutral-800 flex items-center justify-center transition-all duration-200 hover:scale-105 cursor-pointer z-10"
               >
-                ✕
+                <X size={16} />
               </button>
 
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 font-display mb-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#004F31]/5 border border-[#004F31]/10 text-[#004F31] rounded-full text-[10px] font-extrabold uppercase tracking-widest mb-3">
+                Post Property
+              </div>
+
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
                 List Your Property on LankaProperty.lk
               </h2>
-              <p className="text-xs font-semibold text-neutral-400 max-w-md mx-auto mb-6">
+              <p className="text-sm font-medium text-neutral-500 max-w-md mx-auto mb-8">
                 Choose the listing path that matches your profile to proceed with standard owner or agent listings.
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 
                 {/* Direct Owner Box */}
-                <div className="border border-neutral-200 hover:border-[#004F31] rounded-[24px] p-5 flex flex-col justify-between items-center text-center transition-all bg-emerald-50/10">
-                  <div className="space-y-2 mb-4">
-                    <div className="h-12 w-12 bg-emerald-50 text-[#004F31] rounded-full flex items-center justify-center text-xl mx-auto">
-                      🏠
+                <div 
+                  id="direct-owner-box-card"
+                  onClick={() => {
+                    setShowPostModal(false);
+                    window.history.pushState({}, '', '/sell');
+                    if (onNavigate) onNavigate({ type: 'sell' });
+                  }}
+                  className="group relative border border-neutral-200/80 hover:border-[#004F31] rounded-[24px] p-6 flex flex-col justify-between items-center text-center transition-all duration-300 bg-white hover:shadow-xl hover:shadow-emerald-950/5 hover:-translate-y-1 cursor-pointer overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-b from-emerald-50/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                  
+                  <div className="space-y-2 mb-4 relative z-10 flex flex-col items-center">
+                    <div className="h-14 w-14 bg-emerald-50/80 text-[#004F31] rounded-2xl flex items-center justify-center mx-auto mb-2 border border-emerald-100/50 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                      <Home size={24} className="stroke-[2.25]" />
                     </div>
-                    <h3 className="text-sm font-black text-neutral-800 uppercase tracking-wider">I Own This Property</h3>
-                    <p className="text-[10px] font-bold text-neutral-400 leading-relaxed">
+                    
+                    <span className="inline-block px-2.5 py-0.5 bg-emerald-100/50 text-emerald-800 rounded-full text-[9px] font-extrabold uppercase tracking-wider mb-1">
+                      Free Option
+                    </span>
+                    
+                    <h3 className="text-base font-black text-slate-800 tracking-tight">I Own This Property</h3>
+                    <p className="text-xs font-semibold text-neutral-400 leading-relaxed max-w-[210px]">
                       Post your private house, apartment or land draft directly for free to reach direct buyers.
                     </p>
                   </div>
+                  
                   <button
-                    onClick={() => {
+                    id="direct-owner-submit-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setShowPostModal(false);
                       window.history.pushState({}, '', '/sell');
                       if (onNavigate) onNavigate({ type: 'sell' });
                     }}
-                    className="w-full py-3 bg-[#004F31] hover:bg-[#003420] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm cursor-pointer"
+                    className="w-full mt-2 py-3.5 bg-[#004F31] hover:bg-[#003420] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-lg shadow-emerald-950/10 hover:shadow-emerald-950/20 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5 relative z-10"
                   >
-                    Sell As Owner Free
+                    <span>Sell As Owner Free</span>
+                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                   </button>
                 </div>
 
                 {/* Professional Agent Box */}
-                <div className="border border-neutral-200 hover:border-slate-800 rounded-[24px] p-5 flex flex-col justify-between items-center text-center transition-all bg-slate-50/10">
-                  <div className="space-y-2 mb-4">
-                    <div className="h-12 w-12 bg-blue-50 text-slate-800 rounded-full flex items-center justify-center text-xl mx-auto">
-                      🏢
+                <div 
+                  id="professional-agent-box-card"
+                  onClick={() => {
+                    setShowPostModal(false);
+                    window.history.pushState({}, '', '/agent/post-property/details');
+                    if (onNavigate) onNavigate({ type: 'agent_sell' });
+                  }}
+                  className="group relative border border-neutral-200/80 hover:border-slate-800 rounded-[24px] p-6 flex flex-col justify-between items-center text-center transition-all duration-300 bg-white hover:shadow-xl hover:shadow-slate-950/5 hover:-translate-y-1 cursor-pointer overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-b from-slate-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                  
+                  <div className="space-y-2 mb-4 relative z-10 flex flex-col items-center">
+                    <div className="h-14 w-14 bg-slate-50/80 text-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-2 border border-slate-100 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                      <Building2 size={24} className="stroke-[2.25]" />
                     </div>
-                    <h3 className="text-sm font-black text-neutral-800 uppercase tracking-wider">I Am An Agent / Broker</h3>
-                    <p className="text-[10px] font-bold text-neutral-400 leading-relaxed">
+
+                    <span className="inline-block px-2.5 py-0.5 bg-slate-100 text-slate-800 rounded-full text-[9px] font-extrabold uppercase tracking-wider mb-1">
+                      Agent
+                    </span>
+                    
+                    <h3 className="text-base font-black text-slate-800 tracking-tight">I Am An Agent / Broker</h3>
+                    <p className="text-xs font-semibold text-neutral-400 leading-relaxed max-w-[210px]">
                       Access advanced broker CRM, team leads, pipeline boards, bio profile & syndication tools.
                     </p>
                   </div>
+                  
                   <button
-                    onClick={() => {
+                    id="professional-agent-submit-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setShowPostModal(false);
                       window.history.pushState({}, '', '/agent/post-property/details');
                       if (onNavigate) onNavigate({ type: 'agent_sell' });
                     }}
-                    className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm cursor-pointer"
+                    className="w-full mt-2 py-3.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-lg shadow-slate-950/10 hover:shadow-slate-950/20 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5 relative z-10"
                   >
-                    Post As Professional Agent
+                    <span>Post As Agent</span>
+                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                   </button>
                 </div>
 
               </div>
 
               {/* Login option at the bottom */}
-              <div className="border-t border-neutral-100 mt-6 pt-5 text-center">
-                <p className="text-[11px] font-bold text-neutral-500">
-                  Are you a registered agent?{' '}
-                  <button
-                    onClick={() => {
-                      setShowPostModal(false);
-                      window.history.pushState({}, '', '/agent/login');
-                      if (onNavigate) onNavigate({ type: 'agent_login' });
-                    }}
-                    className="text-blue-600 hover:text-blue-800 font-black hover:underline cursor-pointer"
-                  >
-                    Sign In to Agent Portal →
-                  </button>
-                </p>
+              <div className="border-t border-neutral-100 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-center gap-2">
+                <span className="text-xs font-bold text-neutral-500">Are you a registered agent?</span>
+                <button
+                  id="agent-portal-signin-btn"
+                  onClick={() => {
+                    setShowPostModal(false);
+                    window.history.pushState({}, '', '/agent/login');
+                    if (onNavigate) onNavigate({ type: 'agent_login' });
+                  }}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 hover:bg-blue-100/80 text-blue-600 hover:text-blue-700 rounded-lg text-xs font-black transition-all duration-200 cursor-pointer"
+                >
+                  <span>Sign In to Agent Portal</span>
+                  <ArrowRight size={12} className="stroke-[2.5]" />
+                </button>
               </div>
 
             </motion.div>

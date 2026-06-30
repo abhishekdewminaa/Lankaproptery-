@@ -19,6 +19,8 @@ import {
   FileText,
   Sun,
   Moon,
+  Users,
+  Building2,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -73,6 +75,8 @@ export default function AdminSidebar({
       icon: <LayoutDashboard size={18} />,
     },
     { id: "listings", label: "Properties", icon: <ClipboardList size={18} /> },
+    { id: "user_listings", label: "User Listings Overview", icon: <Users size={18} />, isNew: true },
+    { id: "agents", label: "Agent Management", icon: <Building2 size={18} />, isNew: true },
     { id: "lands_manager", label: "Lands Portfolio", icon: <MapPin size={18} />, isNew: true },
     { id: "pipeline", label: "Lead Pipeline", icon: <Kanban size={18} />, isNew: true },
     { id: "enquiries", label: "Legacy Enquiries", icon: <MessageSquare size={18} /> },

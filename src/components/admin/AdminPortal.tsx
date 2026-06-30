@@ -15,6 +15,8 @@ import AdminPipeline from './AdminPipeline';
 import AdminNewsletter from './AdminNewsletter';
 import AdminBlog from './AdminBlog';
 import AdminLandsManager from './AdminLandsManager';
+import AdminUserListings from './AdminUserListings';
+import AdminAgents from './agents/AdminAgents';
 import { AutomationBuilderPage } from '../../pages/AutomationBuilderPage';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
@@ -31,6 +33,8 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
   const [activePage, setActivePage] = useState(() => {
     const path = window.location.pathname;
     if (path.includes('/settings')) return 'settings';
+    if (path.includes('/user-listings')) return 'user_listings';
+    if (path.includes('/agents')) return 'agents';
     return 'dashboard';
   });
   const [editingProperty, setEditingProperty] = useState<any>(null);
@@ -146,6 +150,8 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
       onNavigate={(page) => {
         setActivePage(page);
         if (page === 'settings') window.history.pushState({}, '', '/admin-lk2026/settings');
+        else if (page === 'user_listings') window.history.pushState({}, '', '/admin-lk2026/user-listings');
+        else if (page === 'agents') window.history.pushState({}, '', '/admin-lk2026/agents');
         else window.history.pushState({}, '', '/admin-lk2026');
       }} 
       user={user} 
@@ -157,6 +163,8 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
       {activePage === 'enquiries' && <AdminInquiries user={user} />}
       {activePage === 'marketing' && <AdminMarketing />}
       {activePage === 'settings' && <AdminSettings user={user} />}
+      {activePage === 'user_listings' && <AdminUserListings user={user} />}
+      {activePage === 'agents' && <AdminAgents user={user} />}
       {activePage === 'listings' && (
         <AdminListings 
           user={user} 
