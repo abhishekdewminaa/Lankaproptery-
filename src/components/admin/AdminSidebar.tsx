@@ -21,6 +21,7 @@ import {
   Moon,
   Users,
   Building2,
+  Link2,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -84,6 +85,7 @@ export default function AdminSidebar({
     { id: "blog", label: "Blog Manager", icon: <FileText size={18} />, isNew: true },
     { id: "newsletter", label: "Newsletter Manager", icon: <Mail size={18} />, isNew: true },
     { id: "analytics", label: "Analytics", icon: <BarChart3 size={18} /> },
+    { id: "links", label: "Link Shortener", icon: <Link2 size={18} />, isNew: true },
     { id: "revenue", label: "Revenue Dashboard", icon: <DollarSign size={18} /> },
     { id: "automation", label: "Automation", icon: <Zap size={18} />, isNew: true },
     { id: "ai-writer", label: "AI Writer", icon: <Sparkles size={18} />, isNew: true },

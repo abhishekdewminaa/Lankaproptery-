@@ -17,6 +17,7 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
 
   // Supabase admin client for fetching properties
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -356,6 +357,400 @@ async function startServer() {
       res.status(500).json({ error: error.message });
     }
   });
+
+  // --- LINK SHORTENER SYSTEM ---
+  function parseUserAgent(ua: string) {
+    ua = ua || "";
+    let device_type: "mobile" | "tablet" | "desktop" = "desktop";
+    if (/tablet|ipad|playbook|silk/i.test(ua)) {
+      device_type = "tablet";
+    } else if (/mobile|phone|android|iphone|ipod|blackberry|iemobile|opera mini/i.test(ua)) {
+      device_type = "mobile";
+    }
+
+    let os = "Other";
+    if (/android/i.test(ua)) os = "Android";
+    else if (/iphone|ipad|ipod/i.test(ua)) os = "iOS";
+    else if (/windows/i.test(ua)) os = "Windows";
+    else if (/macintosh|mac os x/i.test(ua)) os = "Mac";
+    else if (/linux/i.test(ua)) os = "Linux";
+
+    let browser = "Other";
+    if (/chrome|crios/i.test(ua)) browser = "Chrome";
+    else if (/safari/i.test(ua) && !/chrome|crios/i.test(ua)) browser = "Safari";
+    else if (/firefox|fxios/i.test(ua)) browser = "Firefox";
+    else if (/edg/i.test(ua)) browser = "Edge";
+    else if (/opr/i.test(ua)) browser = "Opera";
+    else if (/msie|trident/i.test(ua)) browser = "IE";
+
+    return { device_type, os, browser };
+  }
+
+  async function getIpLocation(ip: string) {
+    if (!ip || ip === "127.0.0.1" || ip === "::1" || ip === "::ffff:127.0.0.1") {
+      return { city: "Colombo", country: "Sri Lanka" };
+    }
+    try {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), 1200);
+      const res = await fetch(`http://ip-api.com/json/${ip}`, { signal: controller.signal });
+      clearTimeout(id);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.status === "success") {
+          return {
+            city: data.city || "Colombo",
+            country: data.country || "Sri Lanka"
+          };
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to fetch IP location:", e);
+    }
+    return { city: "Colombo", country: "Sri Lanka" };
+  }
+
+  async function trackAndRedirect(req: any, res: any, link: any) {
+    if (!supabase) {
+      return res.redirect(link.original_url);
+    }
+
+    try {
+      let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || "";
+      if (typeof ip === "string" && ip.includes(",")) {
+        ip = ip.split(",")[0].trim();
+      }
+      
+      const ua = req.headers['user-agent'] || "";
+      const { device_type, os, browser } = parseUserAgent(ua);
+      const referrer = req.headers['referer'] || req.headers['referrer'] || "Direct";
+      const { city, country } = await getIpLocation(ip as string);
+
+      // Check if IP is unique for this link
+      const { data: previousClicks } = await supabase
+        .from('link_clicks')
+        .select('id')
+        .eq('link_id', link.id)
+        .eq('ip_address', ip)
+        .limit(1);
+        
+      const is_unique = !previousClicks || previousClicks.length === 0;
+
+      // Insert click record
+      const { error: clickError } = await supabase
+        .from('link_clicks')
+        .insert({
+          link_id: link.id,
+          ip_address: ip,
+          country,
+          city,
+          device_type,
+          browser,
+          os,
+          referrer,
+          user_agent: ua,
+          is_unique
+        });
+
+      if (clickError) {
+        console.error("Error inserting link_clicks record:", clickError);
+      }
+
+      // Update total_clicks and unique_clicks in short_links
+      const updateData: any = {
+        total_clicks: (link.total_clicks || 0) + 1,
+        updated_at: new Date().toISOString()
+      };
+      if (is_unique) {
+        updateData.unique_clicks = (link.unique_clicks || 0) + 1;
+      }
+
+      await supabase
+        .from('short_links')
+        .update(updateData)
+        .eq('id', link.id);
+
+    } catch (e) {
+      console.error("Error during link click tracking:", e);
+    }
+
+    res.redirect(301, link.original_url);
+  }
+
+  function renderStatusPage(title: string, message: string, icon: string) {
+    return `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${title} | LankaProperty.lk</title>
+        <style>
+          body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #F8FAF8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #1E293B;
+          }
+          .card {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 79, 49, 0.05), 0 8px 10px -6px rgba(0, 79, 49, 0.05);
+            border: 1px solid #E2E8F0;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+          }
+          .logo {
+            font-size: 24px;
+            font-weight: 900;
+            color: #004F31;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 8px;
+          }
+          .tagline {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #004F31;
+            font-weight: bold;
+            margin-bottom: 32px;
+          }
+          .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+          }
+          h1 {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: #0F172A;
+          }
+          p {
+            font-size: 14px;
+            color: #64748B;
+            line-height: 1.6;
+            margin-bottom: 30px;
+          }
+          .btn {
+            display: inline-block;
+            background-color: #004F31;
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+          }
+          .btn:hover {
+            background-color: #003621;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <a href="/" class="logo">LankaProperty.lk</a>
+          <div class="tagline">Admin Link Shortener</div>
+          <div class="icon">${icon}</div>
+          <h1>${title}</h1>
+          <p>${message}</p>
+          <a href="/" class="btn">Go to Homepage</a>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  function renderPasswordPage(slug: string, errorMsg: string = "") {
+    return `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>🔒 Password Protected | LankaProperty.lk</title>
+        <style>
+          body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #F8FAF8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #1E293B;
+          }
+          .card {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 79, 49, 0.05), 0 8px 10px -6px rgba(0, 79, 49, 0.05);
+            border: 1px solid #E2E8F0;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+          }
+          .logo {
+            font-size: 24px;
+            font-weight: 900;
+            color: #004F31;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 8px;
+          }
+          .tagline {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #004F31;
+            font-weight: bold;
+            margin-bottom: 32px;
+          }
+          .icon {
+            font-size: 44px;
+            margin-bottom: 16px;
+          }
+          h1 {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #0F172A;
+          }
+          p {
+            font-size: 13px;
+            color: #64748B;
+            line-height: 1.5;
+            margin-bottom: 24px;
+          }
+          .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+          }
+          label {
+            display: block;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #64748B;
+            margin-bottom: 6px;
+            letter-spacing: 0.05em;
+          }
+          input[type="password"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            font-size: 15px;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.2s;
+            background: #F8FAF8;
+          }
+          input[type="password"]:focus {
+            border-color: #004F31;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0, 79, 49, 0.08);
+          }
+          .btn-submit {
+            width: 100%;
+            background-color: #004F31;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: background-color 0.2s;
+          }
+          .btn-submit:hover {
+            background-color: #003621;
+          }
+          .error-msg {
+            color: #DC2626;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 16px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <a href="/" class="logo">LankaProperty.lk</a>
+          <div class="tagline">Admin Link Shortener</div>
+          <div class="icon">🔒</div>
+          <h1>Password Protected</h1>
+          <p>This short link is encrypted. Please enter the correct password to access the destination URL.</p>
+          
+          <form method="POST" action="/l/${slug}">
+            ${errorMsg ? `<div class="error-msg">⚠️ ${errorMsg}</div>` : ''}
+            <div class="form-group">
+              <label for="password">Enter Access Password</label>
+              <input type="password" id="password" name="password" placeholder="••••••••" required autofocus />
+            </div>
+            <button type="submit" class="btn-submit">Access Link →</button>
+          </form>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  const handleShortLinkRedirect = async (req: any, res: any) => {
+    const { slug } = req.params;
+    if (!supabase) {
+      return res.status(500).send("Supabase configuration is missing");
+    }
+
+    try {
+      const { data: link, error } = await supabase
+        .from('short_links')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+
+      if (error || !link) {
+        return res.status(404).send(renderStatusPage("Link Not Found", "The link you are trying to reach does not exist or was deleted.", "🔍"));
+      }
+
+      if (!link.is_active) {
+        return res.status(403).send(renderStatusPage("Link Inactive", "This link is no longer active.", "🛑"));
+      }
+
+      if (link.expires_at && new Date(link.expires_at).getTime() < Date.now()) {
+        return res.status(410).send(renderStatusPage("Link Expired", "This link has expired and is no longer accessible.", "⏰"));
+      }
+
+      if (link.password) {
+        const submittedPassword = req.body?.password || req.query?.password;
+        if (!submittedPassword) {
+          return res.send(renderPasswordPage(slug));
+        }
+
+        if (submittedPassword !== link.password) {
+          return res.send(renderPasswordPage(slug, "Incorrect password. Please try again."));
+        }
+      }
+
+      await trackAndRedirect(req, res, link);
+
+    } catch (e: any) {
+      console.error("Redirect error:", e);
+      res.status(500).send("An unexpected error occurred.");
+    }
+  };
+
+  app.get("/l/:slug", handleShortLinkRedirect);
+  app.post("/l/:slug", handleShortLinkRedirect);
 
   // Health check
   app.get("/api/health", (req, res) => {

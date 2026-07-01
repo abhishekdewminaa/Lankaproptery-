@@ -11,6 +11,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { supabase } from '../supabaseClient';
 import { generateDescription } from '../services/geminiService';
+import { slugify } from '../utils/safeUtils';
 
 // Fix Leaflet Default Icon asset paths so they don't break in dev/prod
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -679,6 +680,7 @@ export const AgentPostPropertyPage: React.FC<AgentPostPropertyPageProps> = ({
 
       const payload = {
         listing_title: draft.title,
+        slug: slugify(draft.title),
         listing_type: draft.listingType === 'For Rent' ? 'Rent' : 'Sale',
         property_category: draft.category,
         price_lkr: priceNum,

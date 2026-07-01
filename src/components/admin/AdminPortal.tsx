@@ -17,6 +17,7 @@ import AdminBlog from './AdminBlog';
 import AdminLandsManager from './AdminLandsManager';
 import AdminUserListings from './AdminUserListings';
 import AdminAgents from './agents/AdminAgents';
+import AdminLinks from './AdminLinks';
 import { AutomationBuilderPage } from '../../pages/AutomationBuilderPage';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
@@ -35,6 +36,7 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
     if (path.includes('/settings')) return 'settings';
     if (path.includes('/user-listings')) return 'user_listings';
     if (path.includes('/agents')) return 'agents';
+    if (path.includes('/links') || path.includes('/admin/links')) return 'links';
     return 'dashboard';
   });
   const [editingProperty, setEditingProperty] = useState<any>(null);
@@ -152,6 +154,7 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
         if (page === 'settings') window.history.pushState({}, '', '/admin-lk2026/settings');
         else if (page === 'user_listings') window.history.pushState({}, '', '/admin-lk2026/user-listings');
         else if (page === 'agents') window.history.pushState({}, '', '/admin-lk2026/agents');
+        else if (page === 'links') window.history.pushState({}, '', '/admin-lk2026/links');
         else window.history.pushState({}, '', '/admin-lk2026');
       }} 
       user={user} 
@@ -160,6 +163,7 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
       toggleAdminDark={toggleAdminDark}
     >
       {activePage === 'dashboard' && <AdminDashboard user={user} />}
+      {activePage === 'links' && <AdminLinks user={user} />}
       {activePage === 'enquiries' && <AdminInquiries user={user} />}
       {activePage === 'marketing' && <AdminMarketing />}
       {activePage === 'settings' && <AdminSettings user={user} />}

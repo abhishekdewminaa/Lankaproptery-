@@ -57,6 +57,7 @@ import { Toaster, toast } from 'react-hot-toast';
 import { Navbar } from "./components/home/Navbar";
 import { Footer } from "./components/home/Footer";
 import { HomeRedesign } from "./components/home/HomeRedesign";
+import { PropertyDetail } from "./components/PropertyDetail";
 import AdminPortal from "./components/admin/AdminPortal";
 import { AdminLogin } from "./components/admin/AdminLogin";
 import { AdvertisedPackages } from "./components/AdvertisedPackages";
@@ -76,7 +77,7 @@ import { OwnerPaymentPage } from "./components/OwnerPaymentPage";
 import { OwnerPaymentSuccessPage } from "./components/OwnerPaymentSuccessPage";
 import { OwnerDashboardPage } from "./components/OwnerDashboardPage";
 import { supabase } from "./supabaseClient";
-import { removeSinhala } from "./utils/safeUtils";
+import { removeSinhala, slugify } from "./utils/safeUtils";
 
 // --- MOCK CONSTANTS & STABILIZED UTILS ---
 const LKR_USD_RATE = 300;
@@ -323,6 +324,23 @@ const AMENITIES_POOL = [
   "Parking Area", "Smart TV", "Hot Water", "Solar Power Grid", "CCTV Monitoring"
 ];
 
+const resolveDuplicateSlugs = (props: any[]) => {
+  const slugCounts: { [key: string]: number } = {};
+  return props.map(p => {
+    let slug = p.slug || slugify(p.title || p.listing_title || "property");
+    if (!slug) slug = "property";
+    
+    if (slugCounts[slug] !== undefined) {
+      slugCounts[slug]++;
+      p.slug = `${slug}-${slugCounts[slug]}`;
+    } else {
+      slugCounts[slug] = 1;
+      p.slug = slug;
+    }
+    return p;
+  });
+};
+
 const unifyProperty = (p: any) => {
   const title = removeSinhala(p.listing_title || p.title || "");
   const price = Number(p.price_lkr || p.priceLkr || p.price || 0);
@@ -333,12 +351,14 @@ const unifyProperty = (p: any) => {
   const image = imagesArray[0] || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80';
   const size = p.land_area || p.floor_area || p.size || 'N/A';
   const desc = removeSinhala(p.property_description || p.description || '');
+  const slug = p.slug || slugify(title);
 
   return {
     ...p,
     id: p.id,
     title,
     listing_title: title,
+    slug,
     location: p.location || (p.city && p.district ? `${p.city}, ${p.district}` : ''),
     district: p.district || 'Colombo',
     city: p.city || 'Colombo 03',
@@ -374,7 +394,7 @@ const unifyProperty = (p: any) => {
 
 export default function App() {
   // --- STATE SYSTEM ---
-  const [currentTab, setCurrentTab] = useState<"explore" | "category" | "dashboard" | "publish" | "ai" | "packages" | "wanted" | "feedback" | "agents" | "lands" | "sell" | "agent_sell" | "agent_register" | "agent_dashboard" | "agent_login" | "owner_register" | "owner_login" | "owner_payment" | "owner_payment_success" | "owner_dashboard">("explore");
+  const [currentTab, setCurrentTab] = useState<"explore" | "category" | "dashboard" | "publish" | "ai" | "packages" | "wanted" | "feedback" | "agents" | "lands" | "sell" | "agent_sell" | "agent_register" | "agent_dashboard" | "agent_login" | "owner_register" | "owner_login" | "owner_payment" | "owner_payment_success" | "owner_dashboard" | "property-detail">("explore");
   const [isAgentLoggedIn, setIsAgentLoggedIn] = useState(() => {
     return localStorage.getItem('agent_logged_in') === 'true';
   });
@@ -411,8 +431,9 @@ export default function App() {
   const [selectedAdPackage, setSelectedAdPackage] = useState<string | null>(null);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
-  const [properties, setProperties] = useState(() => INITIAL_PROPERTIES.map(unifyProperty));
+  const [properties, setProperties] = useState(() => resolveDuplicateSlugs(INITIAL_PROPERTIES.map(unifyProperty)));
   const [selectedProperty, setSelectedProperty] = useState<any | null>(null);
+  const [propertyDetailId, setPropertyDetailId] = useState<number | string | null>(null);
   
   // Search parameters
   const [searchStatus, setSearchStatus] = useState<"Sale" | "Rent" | "Lease">("Sale");
@@ -477,45 +498,73 @@ export default function App() {
 
   // Statistics for CRM / Analytics
   const [visitorTraffic, setVisitorTraffic] = useState(1402);
+
+  const handlePropertySelect = (p: any) => {
+    if (!p) {
+      setPropertyDetailId(null);
+      setCurrentTab("explore");
+      window.history.pushState(null, '', '/');
+      return;
+    }
+    const slug = p.slug || slugify(p.title || p.listing_title || "");
+    const idOrSlug = slug || p.id;
+    setPropertyDetailId(idOrSlug);
+    setCurrentTab("property-detail");
+    window.history.pushState(null, '', `/properties/${idOrSlug}`);
+  };
+
+  // Check initial URL pathname and popstate for routes
   useEffect(() => {
-    // Simulated live visitor ticketing
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      const propMatch = path.match(/^\/properties\/([^/]+)/) || path.match(/^\/property\/([^/]+)/);
+      
+      if (propMatch) {
+        const slugOrId = propMatch[1];
+        const parsedId = isNaN(Number(slugOrId)) ? slugOrId : Number(slugOrId);
+        setPropertyDetailId(parsedId);
+        setCurrentTab("property-detail");
+      } else if (path === "/agent/register" || path.includes("/agent/register")) {
+        setCurrentTab("agent_register");
+      } else if (path === "/agent/dashboard" || path.includes("/agent/dashboard")) {
+        if (localStorage.getItem('agent_logged_in') === 'true') {
+          setCurrentTab("agent_dashboard");
+        } else {
+          setCurrentTab("agent_login");
+        }
+      } else if (path === "/agent/login" || path.includes("/agent/login")) {
+        setCurrentTab("agent_login");
+      } else if (path === "/sell" || path.includes("/sell")) {
+        setCurrentTab("sell");
+      } else if (path === "/owner/register" || path.includes("/owner/register")) {
+        setCurrentTab("owner_register");
+      } else if (path === "/owner/login" || path.includes("/owner/login")) {
+        setCurrentTab("owner_login");
+      } else if (path === "/owner/payment/success" || path.includes("/owner/payment/success")) {
+        setCurrentTab("owner_payment_success");
+      } else if (path === "/owner/payment" || path.includes("/owner/payment")) {
+        setCurrentTab("owner_payment");
+      } else if (path === "/owner/dashboard" || path.includes("/owner/dashboard")) {
+        if (localStorage.getItem('owner_logged_in') === 'true') {
+          setCurrentTab("owner_dashboard");
+        } else {
+          setCurrentTab("owner_login");
+          toast.error("Please login to access your property dashboard.");
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    handlePopState();
+
     const interval = setInterval(() => {
       setVisitorTraffic(prev => prev + (Math.random() > 0.5 ? 1 : -1) * Math.floor(Math.random() * 3));
     }, 4000);
-    return () => clearInterval(interval);
-  }, []);
 
-  // Check initial URL pathname for routes
-  useEffect(() => {
-    const path = window.location.pathname;
-    if (path === "/agent/register" || path.includes("/agent/register")) {
-      setCurrentTab("agent_register");
-    } else if (path === "/agent/dashboard" || path.includes("/agent/dashboard")) {
-      if (localStorage.getItem('agent_logged_in') === 'true') {
-        setCurrentTab("agent_dashboard");
-      } else {
-        setCurrentTab("agent_login");
-      }
-    } else if (path === "/agent/login" || path.includes("/agent/login")) {
-      setCurrentTab("agent_login");
-    } else if (path === "/sell" || path.includes("/sell")) {
-      setCurrentTab("sell");
-    } else if (path === "/owner/register" || path.includes("/owner/register")) {
-      setCurrentTab("owner_register");
-    } else if (path === "/owner/login" || path.includes("/owner/login")) {
-      setCurrentTab("owner_login");
-    } else if (path === "/owner/payment/success" || path.includes("/owner/payment/success")) {
-      setCurrentTab("owner_payment_success");
-    } else if (path === "/owner/payment" || path.includes("/owner/payment")) {
-      setCurrentTab("owner_payment");
-    } else if (path === "/owner/dashboard" || path.includes("/owner/dashboard")) {
-      if (localStorage.getItem('owner_logged_in') === 'true') {
-        setCurrentTab("owner_dashboard");
-      } else {
-        setCurrentTab("owner_login");
-        toast.error("Please login to access your property dashboard.");
-      }
-    }
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      clearInterval(interval);
+    };
   }, []);
 
   // Sync mortgage parameters and active gallery image when a property is selected
@@ -539,23 +588,23 @@ export default function App() {
         if (error) {
           console.warn("Supabase live properties query failed (using local database):", error.message || error);
           // Set properties to initial static list
-          setProperties(INITIAL_PROPERTIES.map(unifyProperty));
+          setProperties(resolveDuplicateSlugs(INITIAL_PROPERTIES.map(unifyProperty)));
           return;
         }
 
-        const liveMapped = (data || [])
-          .map(unifyProperty)
+        const liveMapped = resolveDuplicateSlugs((data || [])
+          .map(unifyProperty))
           .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
         if (liveMapped.length > 0) {
           setProperties(liveMapped);
         } else {
-          setProperties(INITIAL_PROPERTIES.map(unifyProperty));
+          setProperties(resolveDuplicateSlugs(INITIAL_PROPERTIES.map(unifyProperty)));
         }
       } catch (err) {
         console.warn("Supabase live properties fetch exception (using local database):", err);
         // Set properties to initial static list
-        setProperties(INITIAL_PROPERTIES.map(unifyProperty));
+        setProperties(resolveDuplicateSlugs(INITIAL_PROPERTIES.map(unifyProperty)));
       }
     };
 
@@ -899,9 +948,8 @@ export default function App() {
     } else if (view.type === "detail") {
       const prop = view.data;
       if (prop) {
-        // If it's a property ID from supabase, look it up or construct a mock object
         const found = properties.find(p => p.id === prop.id) || prop;
-        setSelectedProperty(unifyProperty(found));
+        handlePropertySelect(found);
       }
     } else if (view.type === "category") {
       setCurrentTab("category");
@@ -976,6 +1024,24 @@ export default function App() {
       <main className="w-full">
         
         {/* =======================================
+            VIEWPORT: PROPERTY DETAIL PAGE
+            ======================================= */}
+        {currentTab === "property-detail" && (
+          <PropertyDetail
+            propertyId={propertyDetailId || ""}
+            onBack={() => {
+              window.history.pushState(null, '', '/');
+              setCurrentTab("explore");
+              setPropertyDetailId(null);
+            }}
+            onPropertyClick={handlePropertySelect}
+            favorites={favorites}
+            toggleFavorite={toggleFavorite}
+            isAdmin={isAdminLoggedIn}
+          />
+        )}
+        
+        {/* =======================================
             VIEWPORT: MARKET EXPLORER & PROPERTIES
             ======================================= */}
         {currentTab === "explore" && !isSearching && (
@@ -992,7 +1058,7 @@ export default function App() {
             category={searchCategory === "All Categories" ? "House" : searchCategory}
             mode={searchStatus === "Rent" ? "rent" : "buy"}
             onBack={() => handleNavigate({ type: "home" })}
-            onPropertyClick={(p) => setSelectedProperty(unifyProperty(p))}
+            onPropertyClick={handlePropertySelect}
             favorites={favorites}
             toggleFavorite={toggleFavorite}
             compareList={compareList}
@@ -1007,7 +1073,7 @@ export default function App() {
         {currentTab === "agents" && (
           <AgentPage
             properties={properties}
-            onPropertyClick={(p) => setSelectedProperty(p)}
+            onPropertyClick={handlePropertySelect}
             onBack={() => handleNavigate({ type: "home" })}
             favorites={favorites}
             toggleFavorite={toggleFavorite}
@@ -1019,7 +1085,7 @@ export default function App() {
         {currentTab === "lands" && (
           <LandsPortfolio
             properties={properties}
-            onPropertyClick={(p) => setSelectedProperty(p)}
+            onPropertyClick={handlePropertySelect}
             onNavigateHome={() => handleNavigate({ type: "home" })}
             onNavigate={handleNavigate}
           />
@@ -1324,7 +1390,7 @@ export default function App() {
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.95 }}
                           transition={{ duration: 0.2 }}
-                          onClick={() => setSelectedProperty(prop)}
+                          onClick={() => handlePropertySelect(prop)}
                           className="group bg-white rounded-2xl overflow-hidden border border-neutral-200/80 hover:border-[#004f31] hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col relative"
                         >
                           {/* Banner image representation */}
@@ -1897,7 +1963,7 @@ export default function App() {
                           <p className="leading-relaxed">{cleanedText}</p>
                           {targetProp && (
                             <div 
-                              onClick={() => setSelectedProperty(targetProp)}
+                              onClick={() => handlePropertySelect(targetProp)}
                               className="bg-white border border-neutral-250 p-3 rounded-2xl flex gap-3 shadow-md hover:border-[#004f31] cursor-pointer transition-colors"
                             >
                               <img src={targetProp.image} className="w-20 h-16 object-cover rounded-xl" alt="" />

@@ -214,17 +214,41 @@ export const PropertyDetail = ({
       if (!propertyId) return;
       setLoading(true);
       try {
-        const idToFetch = isNaN(Number(propertyId)) ? propertyId : Number(propertyId);
-        
-        // Fetch property
-        const { data, error } = await supabase
-          .from('properties')
-          .select('*')
-          .eq('id', idToFetch)
-          .eq('status', 'active')
-          .single();
+        let data = null;
+        let error = null;
 
-        if (error) throw error;
+        if (isNaN(Number(propertyId))) {
+          // It's a slug string. Try direct slug column first.
+          const res = await supabase
+            .from('properties')
+            .select('*')
+            .eq('slug', propertyId)
+            .limit(1);
+
+          if (res.data && res.data.length > 0) {
+            data = res.data[0];
+          } else {
+            // Fallback: fetch active properties and match using slugify on-the-fly
+            const allRes = await supabase
+              .from('properties')
+              .select('*')
+              .eq('status', 'active');
+            if (allRes.data) {
+              data = allRes.data.find(p => slugify(p.listing_title || p.title || "") === propertyId);
+            }
+          }
+        } else {
+          // It's a numeric ID
+          const res = await supabase
+            .from('properties')
+            .select('*')
+            .eq('id', Number(propertyId))
+            .single();
+          data = res.data;
+          error = res.error;
+        }
+
+        if (error && !data) throw error;
         if (!data) throw new Error('Property not found');
         
         setProperty(data);
@@ -235,7 +259,7 @@ export const PropertyDetail = ({
           .update({ 
             views_count: (data.views_count || 0) + 1 
           })
-          .eq('id', idToFetch);
+          .eq('id', data.id);
 
         // Record detailed analytics view
         let sessionId = sessionStorage.getItem('lp_session_id');

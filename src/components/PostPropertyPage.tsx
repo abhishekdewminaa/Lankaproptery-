@@ -11,6 +11,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { supabase } from '../supabaseClient';
 import { generateDescription } from '../services/geminiService';
+import { slugify } from '../utils/safeUtils';
 
 // Fix Leaflet Default Icon asset paths so they don't break in dev/prod
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -48,7 +49,145 @@ const DISTRICTS = [
   "Monaragala", "Ratnapura", "Kegalle"
 ];
 
-// Standard Amenities Pool
+// Province-wise groupings for Districts
+const PROVINCE_DISTRICTS = [
+  {
+    province: "Western Province",
+    districts: ["Colombo", "Gampaha", "Kalutara"]
+  },
+  {
+    province: "Central Province",
+    districts: ["Kandy", "Matale", "Nuwara Eliya"]
+  },
+  {
+    province: "Southern Province",
+    districts: ["Galle", "Matara", "Hambantota"]
+  },
+  {
+    province: "Northern Province",
+    districts: ["Jaffna", "Kilinochchi", "Mannar", "Vavuniya", "Mullaitivu"]
+  },
+  {
+    province: "Eastern Province",
+    districts: ["Batticaloa", "Ampara", "Trincomalee"]
+  },
+  {
+    province: "North Western Province",
+    districts: ["Kurunegala", "Puttalam"]
+  },
+  {
+    province: "North Central Province",
+    districts: ["Anuradhapura", "Polonnaruwa"]
+  },
+  {
+    province: "Uva Province",
+    districts: ["Badulla", "Monaragala"]
+  },
+  {
+    province: "Sabaragamuwa Province",
+    districts: ["Ratnapura", "Kegalle"]
+  }
+];
+
+// Popular Sri Lankan Cities Autocomplete List
+const POPULAR_CITIES = [
+  { city: "Colombo 01 (Fort)", district: "Colombo" },
+  { city: "Colombo 03 (Kollupitiya)", district: "Colombo" },
+  { city: "Colombo 04 (Bambalapitiya)", district: "Colombo" },
+  { city: "Colombo 05 (Havelock Town)", district: "Colombo" },
+  { city: "Colombo 07 (Cinnamon Gardens)", district: "Colombo" },
+  { city: "Borella", district: "Colombo" },
+  { city: "Dehiwala", district: "Colombo" },
+  { city: "Mount Lavinia", district: "Colombo" },
+  { city: "Nugegoda", district: "Colombo" },
+  { city: "Kotte", district: "Colombo" },
+  { city: "Malabe", district: "Colombo" },
+  { city: "Battaramulla", district: "Colombo" },
+  { city: "Kottawa", district: "Colombo" },
+  { city: "Maharagama", district: "Colombo" },
+  { city: "Kaduwela", district: "Colombo" },
+  { city: "Piliyandala", district: "Colombo" },
+  { city: "Moratuwa", district: "Colombo" },
+  { city: "Talawatugoda", district: "Colombo" },
+  { city: "Yakkala", district: "Gampaha" },
+  { city: "Gampaha Town", district: "Gampaha" },
+  { city: "Negombo", district: "Gampaha" },
+  { city: "Kadawatha", district: "Gampaha" },
+  { city: "Kiribathgoda", district: "Gampaha" },
+  { city: "Wattala", district: "Gampaha" },
+  { city: "Ja-Ela", district: "Gampaha" },
+  { city: "Kelaniya", district: "Gampaha" },
+  { city: "Kalutara Town", district: "Kalutara" },
+  { city: "Panadura", district: "Kalutara" },
+  { city: "Horana", district: "Kalutara" },
+  { city: "Aluthgama", district: "Kalutara" },
+  { city: "Kandy City", district: "Kandy" },
+  { city: "Peradeniya", district: "Kandy" },
+  { city: "Katugastota", district: "Kandy" },
+  { city: "Matale Town", district: "Matale" },
+  { city: "Dambulla", district: "Matale" },
+  { city: "Nuwara Eliya Town", district: "Nuwara Eliya" },
+  { city: "Galle Fort", district: "Galle" },
+  { city: "Hikkaduwa", district: "Galle" },
+  { city: "Karapitiya", district: "Galle" },
+  { city: "Yakkalamulla", district: "Galle" },
+  { city: "Matara Town", district: "Matara" },
+  { city: "Mirissa", district: "Matara" },
+  { city: "Hambantota Town", district: "Hambantota" },
+  { city: "Jaffna Town", district: "Jaffna" },
+  { city: "Kilinochchi Town", district: "Kilinochchi" },
+  { city: "Mannar Town", district: "Mannar" },
+  { city: "Vavuniya Town", district: "Vavuniya" },
+  { city: "Mullaitivu Town", district: "Mullaitivu" },
+  { city: "Batticaloa Town", district: "Batticaloa" },
+  { city: "Ampara Town", district: "Ampara" },
+  { city: "Trincomalee Town", district: "Trincomalee" },
+  { city: "Kurunegala Town", district: "Kurunegala" },
+  { city: "Puttalam Town", district: "Puttalam" },
+  { city: "Chilaw", district: "Puttalam" },
+  { city: "Anuradhapura Town", district: "Anuradhapura" },
+  { city: "Polonnaruwa Town", district: "Polonnaruwa" },
+  { city: "Badulla Town", district: "Badulla" },
+  { city: "Ella", district: "Badulla" },
+  { city: "Monaragala Town", district: "Monaragala" },
+  { city: "Ratnapura Town", district: "Ratnapura" },
+  { city: "Kegalle Town", district: "Kegalle" },
+  { city: "Mawanella", district: "Kegalle" }
+];
+
+// Grouped amenities structure
+const AMENITY_GROUPS = [
+  {
+    title: "🏠 Indoor Features",
+    amenities: ["Air Conditioning", "Hot Water System", "Fully Air Conditioned", "Elevator/Lift", "Built-in Wardrobes", "Modern Kitchen"]
+  },
+  {
+    title: "🔐 Security",
+    amenities: ["24-Hour CCTV", "Security Guards", "Electric Fence", "Gated Community", "Alarm System", "Intercom"]
+  },
+  {
+    title: "⚡ Utilities",
+    amenities: ["Solar Power", "Backup Generator", "Three-Phase Electricity", "Borehole/Well Water", "City Water Supply", "Fiber Internet Ready"]
+  },
+  {
+    title: "🌿 Outdoor & Recreation",
+    amenities: ["Swimming Pool", "Private Garden", "Rooftop Terrace", "BBQ Area", "Children's Play Area", "Sports Court"]
+  },
+  {
+    title: "🚗 Parking",
+    amenities: ["Garage (Single)", "Garage (Double)", "Open Parking", "Covered Parking"]
+  },
+  {
+    title: "📍 Location Advantages",
+    amenities: ["Near Main Road", "Near Highway", "Near School", "Near Hospital", "Near Shopping", "Near Beach", "Sea View", "Mountain View", "City View"]
+  },
+  {
+    title: "📋 Legal & Documents",
+    amenities: ["Clear Title Deed", "Survey Plan Ready", "No Legal Issues", "Undivided Property", "Condominium Title"]
+  }
+];
+
+// Standard Amenities Pool (flat list for backward compatibility)
 const AMENITIES = [
   "Swimming Pool", "Gymnasium", "Fully Air Conditioned", "Hot Water System",
   "Solar Power Energy", "24 Hours CCTV & Security", "Generous Rooftop Terrace",
@@ -94,13 +233,87 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
   // Amenities
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
 
+  // Redesign Extra States
+  const [contactName, setContactName] = useState<string>(() => localStorage.getItem('owner_name') || '');
+  const [contactPhone, setContactPhone] = useState<string>(() => localStorage.getItem('owner_phone') || '');
+  const [contactWhatsapp, setContactWhatsapp] = useState<string>('');
+  const [sameAsPhone, setSameAsPhone] = useState<boolean>(true);
+  const [displayPreference, setDisplayPreference] = useState<string>('Both phone and WhatsApp');
+  const [responseTime, setResponseTime] = useState<string>('Within a few hours');
+  const [activeSection, setActiveSection] = useState<'category' | 'specs' | 'description' | 'location' | 'amenities' | 'contact'>('category');
+  const [descLanguage, setDescLanguage] = useState<'en' | 'si' | 'ta'>('en');
+  const [isAutoSaving, setIsAutoSaving] = useState<boolean>(false);
+
   // Step 1 Validation Errors
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
+  // Search, popover, and geocoding helper states
+  const [districtSearch, setDistrictSearch] = useState<string>('');
+  const [showDistrictDropdown, setShowDistrictDropdown] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isSearchingMap, setIsSearchingMap] = useState<boolean>(false);
+  const [gpsAccuracy, setGpsAccuracy] = useState<string>('');
+  const [cityFocus, setCityFocus] = useState<boolean>(false);
+
   // --- STEP 2: Images State ---
-  const [images, setImages] = useState<Array<{ name: string; url: string; file?: File }>>([]);
+  interface PhotoSlot {
+    name: string;
+    size: number;
+    url: string;
+    file?: File;
+    isStale?: boolean;
+  }
+
+  const [images, setImages] = useState<Array<PhotoSlot | null>>(() => {
+    try {
+      const savedImages = localStorage.getItem('lp_listing_images');
+      if (savedImages) {
+        const parsed = JSON.parse(savedImages);
+        const slots = Array(12).fill(null);
+        if (Array.isArray(parsed)) {
+          parsed.forEach((item, index) => {
+            if (item && typeof item === 'object' && 'slot' in item) {
+              const slotIndex = item.slot;
+              if (slotIndex >= 0 && slotIndex < 12) {
+                slots[slotIndex] = {
+                  name: item.name,
+                  size: item.size || 0,
+                  url: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80",
+                  isStale: true
+                };
+              }
+            } else if (typeof item === 'string') {
+              slots[index] = {
+                name: item,
+                size: 0,
+                url: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80",
+                isStale: true
+              };
+            }
+          });
+          return slots;
+        }
+      }
+    } catch (e) {
+      console.error("Error parsing saved images", e);
+    }
+    return Array(12).fill(null);
+  });
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [selectedSlotIndex, setSelectedSlotIndex] = useState<number>(0);
+  const [confirmDeleteIndex, setConfirmDeleteIndex] = useState<number | null>(null);
+  const [showNoPhotosModal, setShowNoPhotosModal] = useState<boolean>(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState<boolean>(false);
+
+  // Sync imageFiles with images array whenever images change
+  useEffect(() => {
+    const files = images
+      .filter((img): img is PhotoSlot => img !== null && img.file !== undefined)
+      .map(img => img.file as File);
+    setImageFiles(files);
+  }, [images]);
 
   // --- STEP 3: Package State ---
   const [selectedPlan, setSelectedPlan] = useState<string>('starter_free');
@@ -215,6 +428,12 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
         setLng(draft.lng || 79.8612);
         setHasPinned(draft.hasPinned || false);
         setSelectedAmenities(draft.selectedAmenities || []);
+        setContactName(draft.contactName || localStorage.getItem('owner_name') || '');
+        setContactPhone(draft.contactPhone || localStorage.getItem('owner_phone') || '');
+        setContactWhatsapp(draft.contactWhatsapp || '');
+        setSameAsPhone(draft.sameAsPhone !== undefined ? draft.sameAsPhone : true);
+        setDisplayPreference(draft.displayPreference || 'Both phone and WhatsApp');
+        setResponseTime(draft.responseTime || 'Within a few hours');
       }
 
       const savedPlan = localStorage.getItem('lp_selected_plan');
@@ -224,13 +443,35 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
 
       const savedImages = localStorage.getItem('lp_listing_images');
       if (savedImages) {
-        const names = JSON.parse(savedImages);
-        // Pre-populate previews using standard placeholder or previous filenames
-        const previews = names.map((name: string) => ({
-          name,
-          url: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80"
-        }));
-        setImages(previews);
+        try {
+          const parsed = JSON.parse(savedImages);
+          const slots = Array(12).fill(null);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((item, index) => {
+              if (item && typeof item === 'object' && 'slot' in item) {
+                const slotIndex = item.slot;
+                if (slotIndex >= 0 && slotIndex < 12) {
+                  slots[slotIndex] = {
+                    name: item.name,
+                    size: item.size || 0,
+                    url: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80",
+                    isStale: true
+                  };
+                }
+              } else if (typeof item === 'string') {
+                slots[index] = {
+                  name: item,
+                  size: 0,
+                  url: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80",
+                  isStale: true
+                };
+              }
+            });
+            setImages(slots);
+          }
+        } catch (e) {
+          console.error("Failed to parse saved images from draft", e);
+        }
       }
 
       setShowDraftOverlay(false);
@@ -269,13 +510,44 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
     setLng(79.8612);
     setHasPinned(false);
     setSelectedAmenities([]);
-    setImages([]);
+    setImages(Array(12).fill(null));
     setImageFiles([]);
     setSelectedPlan('starter_free');
+    setContactName(localStorage.getItem('owner_name') || '');
+    setContactPhone(localStorage.getItem('owner_phone') || '');
+    setContactWhatsapp('');
+    setSameAsPhone(true);
+    setDisplayPreference('Both phone and WhatsApp');
+    setResponseTime('Within a few hours');
     
     setShowDraftOverlay(false);
     toast.success("Draft cleared. Let's start a fresh listing!");
   };
+
+  // --- AUTO-SAVE EFFECT ---
+  useEffect(() => {
+    if (!title && !description && !priceLkr && !city && !address) return;
+    const draftData = {
+      title, listingType, category, bedrooms, bathrooms, floors,
+      landSize, landSizeUnit, floorArea, priceLkr, isNegotiable,
+      advanceRequired, description, address, district, city,
+      lat, lng, hasPinned, selectedAmenities,
+      contactName, contactPhone, contactWhatsapp, sameAsPhone,
+      displayPreference, responseTime
+    };
+    localStorage.setItem('lp_listing_draft', JSON.stringify(draftData));
+    
+    setIsAutoSaving(true);
+    const t = setTimeout(() => setIsAutoSaving(false), 800);
+    return () => clearTimeout(t);
+  }, [
+    title, listingType, category, bedrooms, bathrooms, floors,
+    landSize, landSizeUnit, floorArea, priceLkr, isNegotiable,
+    advanceRequired, description, address, district, city,
+    lat, lng, hasPinned, selectedAmenities,
+    contactName, contactPhone, contactWhatsapp, sameAsPhone,
+    displayPreference, responseTime
+  ]);
 
   // --- STEP 1 ACTIONS: Property Details ---
   const handleSpecChange = (field: 'bedrooms' | 'bathrooms' | 'floors', type: 'inc' | 'dec') => {
@@ -298,6 +570,11 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
       return;
     }
     setIsGeneratingAi(true);
+    
+    let languageRequirement = "Write the description in English.";
+    if (descLanguage === 'si') languageRequirement = "Write the description in Sinhala (සිංහල).";
+    else if (descLanguage === 'ta') languageRequirement = "Write the description in Tamil (தமிழ்).";
+
     const prompt = `Write a compelling, professional property listing description for a ${category} ${listingType === 'For Rent' ? 'for Rent' : 'for Sale'} located at "${address || city || district}", Sri Lanka. 
     Title: "${title}". 
     Price: Rs. ${priceLkr} LKR${isNegotiable ? ' (Negotiable)' : ''}.
@@ -307,16 +584,30 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
     ${landSize ? `Land Size: ${landSize} ${landSizeUnit}.` : ''} 
     ${floorArea ? `Floor Area: ${floorArea} sqft.` : ''} 
     Included Amenities: ${selectedAmenities.join(', ')}.
+    ${languageRequirement}
     Keep it engaging, highlight key selling points, and structure it with a brief intro, key features, and a call-to-action under 150 words. Do not use markdown tags, just plain text.`;
     
     try {
       const desc = await generateDescription(prompt);
-      setDescription(desc);
-      toast.success("Professional description generated by Gemini AI!");
+      
+      // Typewriter effect
+      let currentLength = 0;
+      setDescription('');
+      
+      const interval = setInterval(() => {
+        if (currentLength < desc.length) {
+          setDescription(desc.slice(0, currentLength + 2));
+          currentLength += 2;
+        } else {
+          clearInterval(interval);
+          setIsGeneratingAi(false);
+          toast.success("Description generated! Feel free to edit it.");
+        }
+      }, 15);
+      
     } catch (error) {
       console.error(error);
       toast.error("AI Generation failed. Please try again.");
-    } finally {
       setIsGeneratingAi(false);
     }
   };
@@ -336,6 +627,11 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
     if (!address.trim()) newErrors.address = "Specific street address or junction is required";
     if (!city.trim()) newErrors.city = "City / Suburb name is required";
 
+    if (!contactName.trim()) newErrors.contactName = "Contact name is required";
+    if (displayPreference !== 'Email only (hide phone)' && !contactPhone.trim()) {
+      newErrors.contactPhone = "Contact phone is required";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -347,7 +643,9 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
         title, listingType, category, bedrooms, bathrooms, floors,
         landSize, landSizeUnit, floorArea, priceLkr, isNegotiable,
         advanceRequired, description, address, district, city,
-        lat, lng, hasPinned, selectedAmenities
+        lat, lng, hasPinned, selectedAmenities,
+        contactName, contactPhone, contactWhatsapp, sameAsPhone,
+        displayPreference, responseTime
       };
       localStorage.setItem('lp_listing_draft', JSON.stringify(draftData));
       setStep(2);
@@ -357,43 +655,82 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
   };
 
   // --- STEP 2 ACTIONS: Images Adding ---
+  const saveImagesToLocalStorage = (updatedImages: Array<PhotoSlot | null>) => {
+    const metadata = updatedImages
+      .map((img, idx) => img ? { name: img.name, size: img.size, slot: idx } : null)
+      .filter((item): item is { name: string; size: number; slot: number } => item !== null);
+    localStorage.setItem('lp_listing_images', JSON.stringify(metadata));
+  };
+
+  const findNextEmptySlot = (currentSlots: Array<PhotoSlot | null>, startFrom: number, maxPhotos: number) => {
+    for (let k = startFrom; k < maxPhotos; k++) {
+      if (currentSlots[k] === null) {
+        return k;
+      }
+    }
+    return -1;
+  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      addFiles(Array.from(e.target.files));
+      addFilesAtSlot(Array.from(e.target.files), selectedSlotIndex);
     }
   };
 
-  const addFiles = (files: File[]) => {
+  const addFilesAtSlot = (files: File[], slotIndex: number) => {
+    const plan = localStorage.getItem('lp_selected_plan') || selectedPlan || 'starter_free';
+    const photoLimits: Record<string, number> = {
+      'starter_free': 6,
+      'premium_pro': 9,
+      'elite_pro': 12
+    };
+    const maxPhotos = photoLimits[plan] || 6;
+
     const validFiles = files.filter(file => {
-      const isValidType = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type);
+      const isValidType = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
+                          /\.(jpe?g|png|webp)$/i.test(file.name);
       const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
       
-      if (!isValidType) toast.error(`${file.name} is not a valid JPG, PNG, or WEBP image.`);
-      if (!isValidSize) toast.error(`${file.name} exceeds the 5MB size limit.`);
+      if (!isValidType) {
+        toast.error("Only JPG, PNG and WEBP files allowed.");
+      }
+      if (!isValidSize) {
+        toast.error(`Photo ${file.name} is too large. Max size is 5MB.`);
+      }
       
       return isValidType && isValidSize;
     });
 
-    const slotsLeft = 12 - images.length;
-    if (validFiles.length > slotsLeft) {
-      toast(`You can only add up to 12 photos. Only the first ${slotsLeft} valid photos were added.`, { icon: '⚠️' });
+    if (validFiles.length === 0) return;
+
+    const newSlots = [...images];
+    let currentTargetIndex = slotIndex;
+
+    for (const file of validFiles) {
+      if (currentTargetIndex === -1 || currentTargetIndex >= maxPhotos) {
+        toast.error(`No more empty photo slots available on your plan.`);
+        break;
+      }
+      
+      // Revoke old object URL if any is replaced
+      const oldSlot = newSlots[currentTargetIndex];
+      if (oldSlot && oldSlot.url.startsWith('blob:')) {
+        URL.revokeObjectURL(oldSlot.url);
+      }
+
+      newSlots[currentTargetIndex] = {
+        name: file.name,
+        size: file.size,
+        url: URL.createObjectURL(file),
+        file: file
+      };
+
+      // Find next empty slot for subsequent files
+      currentTargetIndex = findNextEmptySlot(newSlots, currentTargetIndex + 1, maxPhotos);
     }
 
-    const filesToAdd = validFiles.slice(0, slotsLeft);
-    const newPreviews = filesToAdd.map(file => ({
-      name: file.name,
-      url: URL.createObjectURL(file),
-      file
-    }));
-
-    const updatedImages = [...images, ...newPreviews];
-    const updatedFiles = [...imageFiles, ...filesToAdd];
-
-    setImages(updatedImages);
-    setImageFiles(updatedFiles);
-
-    // Save filenames to localStorage
-    localStorage.setItem('lp_listing_images', JSON.stringify(updatedImages.map(img => img.name)));
+    setImages(newSlots);
+    saveImagesToLocalStorage(newSlots);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -403,44 +740,90 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     if (e.dataTransfer.files) {
-      addFiles(Array.from(e.dataTransfer.files));
+      const firstEmpty = findNextEmptySlot(images, 0, 12);
+      addFilesAtSlot(Array.from(e.dataTransfer.files), firstEmpty !== -1 ? firstEmpty : 0);
     }
   };
 
   const removeImage = (index: number) => {
     const imgToRemove = images[index];
-    if (imgToRemove.url.startsWith('blob:')) {
+    if (imgToRemove && imgToRemove.url.startsWith('blob:')) {
       URL.revokeObjectURL(imgToRemove.url);
     }
 
-    const updatedImages = images.filter((_, i) => i !== index);
-    const updatedFiles = imageFiles.filter((_, i) => i !== index); // Note: file removal assumes matches preview array index
+    const updatedImages = [...images];
+    updatedImages[index] = null;
 
     setImages(updatedImages);
-    setImageFiles(updatedFiles);
-    localStorage.setItem('lp_listing_images', JSON.stringify(updatedImages.map(img => img.name)));
+    saveImagesToLocalStorage(updatedImages);
   };
 
   const moveImage = (index: number, direction: 'left' | 'right') => {
-    const newImages = [...images];
-    const newFiles = [...imageFiles];
     const targetIndex = direction === 'left' ? index - 1 : index + 1;
-    
-    if (targetIndex >= 0 && targetIndex < images.length) {
-      // Swap elements
-      [newImages[index], newImages[targetIndex]] = [newImages[targetIndex], newImages[index]];
-      if (newFiles[index] && newFiles[targetIndex]) {
-        [newFiles[index], newFiles[targetIndex]] = [newFiles[targetIndex], newFiles[index]];
-      }
-      setImages(newImages);
-      setImageFiles(newFiles);
-      localStorage.setItem('lp_listing_images', JSON.stringify(newImages.map(img => img.name)));
+    if (targetIndex >= 0 && targetIndex < 12) {
+      const updatedImages = [...images];
+      const temp = updatedImages[index];
+      updatedImages[index] = updatedImages[targetIndex];
+      updatedImages[targetIndex] = temp;
+      setImages(updatedImages);
+      saveImagesToLocalStorage(updatedImages);
     }
   };
 
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    if (images[index] === null) {
+      e.preventDefault();
+      return;
+    }
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
+  };
+
+  const handleDragOverSlot = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+  };
+
+  const handleDropSlot = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    const sourceIndexStr = e.dataTransfer.getData('text/plain');
+    if (sourceIndexStr === '') return;
+    const sourceIndex = parseInt(sourceIndexStr);
+    if (isNaN(sourceIndex) || sourceIndex === index) return;
+
+    const updatedImages = [...images];
+    const temp = updatedImages[sourceIndex];
+    updatedImages[sourceIndex] = updatedImages[index];
+    updatedImages[index] = temp;
+
+    setImages(updatedImages);
+    saveImagesToLocalStorage(updatedImages);
+    setDraggedIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
+  const getProgressStatus = (count: number, max: number) => {
+    if (count === 0) {
+      return { color: 'bg-red-500', text: '⚠️ Add at least 1 photo' };
+    }
+    if (count === max) {
+      return { color: 'bg-emerald-600', text: '⭐ Perfect! All slots filled!' };
+    }
+    if (count <= 2) {
+      return { color: 'bg-orange-500', text: '📸 Add more for better results' };
+    }
+    return { color: 'bg-yellow-500', text: '👍 Good! More photos = more leads' };
+  };
+
   const handleNextStep2 = () => {
-    if (images.length === 0) {
-      toast.error("Please add at least 1 photo to showcase your property.");
+    const photosCount = images.filter(img => img !== null).length;
+    if (photosCount === 0) {
+      setShowNoPhotosModal(true);
       return;
     }
     setStep(3);
@@ -742,6 +1125,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
 
       const payload = {
         listing_title: draft.title,
+        slug: slugify(draft.title),
         listing_type: draft.listingType === 'For Rent' ? 'Rent' : 'Sale',
         property_category: draft.category,
         price_lkr: priceNum,
@@ -818,6 +1202,284 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
     return (num / 300).toLocaleString('en-US', { maximumFractionDigits: 0 });
   };
 
+  // Redesign Step 1 Redux Helpers
+  const getListingStrength = () => {
+    let strength = 15; // default starting with Category selection
+    const items: string[] = [];
+    
+    if (title.trim().length >= 10) {
+      strength += 15;
+    } else {
+      items.push("Title (at least 10 characters)");
+    }
+    
+    if (priceLkr.trim() && !isNaN(Number(priceLkr.replace(/,/g, '')))) {
+      strength += 15;
+    } else {
+      items.push("Valid LKR price");
+    }
+    
+    if (description.trim().length >= 50) {
+      strength += 15;
+    } else {
+      items.push("Detailed description (min 50 chars)");
+    }
+    
+    if (city.trim() && address.trim()) {
+      strength += 15;
+    } else {
+      items.push("City & street address");
+    }
+    
+    if (hasPinned) {
+      strength += 10;
+    } else {
+      items.push("Pin exact map location");
+    }
+    
+    if (selectedAmenities.length >= 3) {
+      strength += 10;
+    } else {
+      items.push("Select at least 3 amenities");
+    }
+    
+    if (contactName.trim() && contactPhone.trim()) {
+      strength += 5;
+    } else {
+      items.push("Contact details");
+    }
+    
+    return { strength, pending: items };
+  };
+
+  const getSectionAdvice = () => {
+    switch (activeSection) {
+      case 'category':
+        return {
+          title: "Select the Perfect Category",
+          tips: [
+            "Verify your property type to ensure it reaches targeted buyers.",
+            "Choose 'Apartment' if it's a multi-unit high-rise residence, or 'House / Villa' for standalone homes.",
+            "If listing Land, specification filters will auto-adapt to hide bedroom count variables."
+          ],
+          highlight: "💡 Apartments are currently in high demand in Colombo 3 & Colombo 7!"
+        };
+      case 'specs':
+        return {
+          title: "Optimize Key Specs",
+          tips: [
+            "Use standard LKR prices. Our helper automatically displays Millions or Crores to match Sri Lankan standards.",
+            "Convert land sizes to Perches or Acres (1 Acre = 160 Perches).",
+            "Be precise with floors and layouts to build trust with buyers."
+          ],
+          highlight: "💡 Keeping your price-per-perch inline with regional averages drives 3x more inquiries."
+        };
+      case 'description':
+        return {
+          title: "Generate a Captivating Description",
+          tips: [
+            "Mention nearby schools, hospitals, or highway entrance proximity.",
+            "Use our Gemini AI assistant to write a professional 150-word description.",
+            "Choose English, Sinhala, or Tamil generator options to target different local segments."
+          ],
+          highlight: "💡 Phrases like 'clear deeds' or 'gated community' increase user interest by 40%!"
+        };
+      case 'location':
+        return {
+          title: "Drop an Accurate Pin",
+          tips: [
+            "Drag and drop the custom pin precisely onto your plot or building entrance.",
+            "Add landmark descriptions in the address field (e.g. 'Opposite Food City').",
+            "Use GPS Geolocate or map search to center the layout automatically."
+          ],
+          highlight: "💡 Verified pins prevent confusion during physical site visits."
+        };
+      case 'amenities':
+        return {
+          title: "Highlight Amenities",
+          tips: [
+            "Check key parameters like 24-Hour security, CCTV, backup generators, or hot water.",
+            "Toggle entire groups of modern utilities to stand out in filters.",
+            "Selecting more amenities boosts your listing's ranking score!"
+          ],
+          highlight: "💡 Properties with active backup generators find buyers 2x faster."
+        };
+      case 'contact':
+        return {
+          title: "Provide Contact Details",
+          tips: [
+            "Provide both phone and WhatsApp numbers for the fastest lead response.",
+            "Specify your response speed to build trust with incoming buyers.",
+            "We pre-fill your registered account name to keep things convenient."
+          ],
+          highlight: "💡 Over 70% of potential buyers prefer contacting via WhatsApp message!"
+        };
+      default:
+        return {
+          title: "Ready to Post Your Property?",
+          tips: [
+            "Make sure all fields highlighted in red are completed.",
+            "No pressure: your draft is auto-saved on this browser.",
+            "Next: proceed to upload high-quality photos."
+          ],
+          highlight: "💡 Complete listings get verified and go live within minutes!"
+        };
+    }
+  };
+
+  const getLandConversionLabel = () => {
+    const val = parseFloat(landSize);
+    if (!val || isNaN(val)) return '';
+    if (landSizeUnit === 'Perches') {
+      const acres = val / 160;
+      const sqft = val * 272.25;
+      return `≈ ${acres.toFixed(2)} Acres | ${sqft.toLocaleString('en-US', { maximumFractionDigits: 0 })} sqft`;
+    } else if (landSizeUnit === 'Acres') {
+      const perches = val * 160;
+      const sqft = val * 43560;
+      return `≈ ${perches.toLocaleString('en-US', { maximumFractionDigits: 0 })} Perches | ${sqft.toLocaleString('en-US', { maximumFractionDigits: 0 })} sqft`;
+    } else {
+      const perches = val / 272.25;
+      return `≈ ${perches.toFixed(2)} Perches`;
+    }
+  };
+
+  const getPricePerPerchLabel = () => {
+    const priceVal = parseFloat(priceLkr.replace(/,/g, ''));
+    const sizeVal = parseFloat(landSize);
+    if (!priceVal || !sizeVal || isNaN(priceVal) || isNaN(sizeVal)) return '';
+    
+    let perches = sizeVal;
+    if (landSizeUnit === 'Acres') {
+      perches = sizeVal * 160;
+    } else if (landSizeUnit === 'Sq Ft') {
+      perches = sizeVal / 272.25;
+    }
+    
+    if (perches <= 0) return '';
+    const pricePerPerch = priceVal / perches;
+    return `💰 Rs. ${pricePerPerch.toLocaleString('en-US', { maximumFractionDigits: 0 })} LKR per perch`;
+  };
+
+  const getFormattedPriceWord = () => {
+    const val = parseFloat(priceLkr.replace(/,/g, ''));
+    if (!val || isNaN(val)) return '';
+    if (val >= 10000000) { // 1 Crore
+      const crores = val / 10000000;
+      const millions = val / 1000000;
+      return `Rs. ${crores.toFixed(2)} Crores (Rs. ${millions.toFixed(1)} Million)`;
+    } else if (val >= 1000000) { // 1 Million
+      const millions = val / 1000000;
+      return `Rs. ${millions.toFixed(2)} Million`;
+    } else if (val >= 100000) { // 1 Lakh
+      const lakhs = val / 100000;
+      return `Rs. ${lakhs.toFixed(2)} Lakhs`;
+    }
+    return `Rs. ${val.toLocaleString('en-US')}`;
+  };
+
+  const getFilteredCities = () => {
+    return POPULAR_CITIES.filter(c => 
+      c.district === district && 
+      c.city.toLowerCase().includes(city.toLowerCase())
+    );
+  };
+
+  const handleLocateAddress = async () => {
+    const query = searchQuery.trim() || city.trim() || address.trim();
+    if (!query) {
+      toast.error("Please type a road, city, or landmark to search.");
+      return;
+    }
+    setIsSearchingMap(true);
+    setGpsAccuracy('Searching map nodes...');
+    try {
+      const formattedQuery = encodeURIComponent(`${query}, ${district}, Sri Lanka`);
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${formattedQuery}&limit=1`);
+      const data = await response.json();
+      if (data && data.length > 0) {
+        const result = data[0];
+        const newLat = parseFloat(result.lat);
+        const newLng = parseFloat(result.lon);
+        setLat(newLat);
+        setLng(newLng);
+        setHasPinned(true);
+        setGpsAccuracy(`Verified Location: ${result.display_name.split(',')[0]} (Node: ${result.osm_id.toString().slice(0, 6)})`);
+        toast.success(`Centered on: ${result.display_name.split(',')[0]}`);
+      } else {
+        const fallbackQuery = encodeURIComponent(`${query}, Sri Lanka`);
+        const fallbackRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${fallbackQuery}&limit=1`);
+        const fallbackData = await fallbackRes.json();
+        if (fallbackData && fallbackData.length > 0) {
+          const result = fallbackData[0];
+          const newLat = parseFloat(result.lat);
+          const newLng = parseFloat(result.lon);
+          setLat(newLat);
+          setLng(newLng);
+          setHasPinned(true);
+          setGpsAccuracy("Accuracy: Moderate (Region Level)");
+          toast.success(`Centered on fallback: ${result.display_name.split(',')[0]}`);
+        } else {
+          setGpsAccuracy('Location not found. Pin manually.');
+          toast.error("Location not found. Drop a custom pin manually.");
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      setGpsAccuracy('Lookup failed. Pin manually.');
+      toast.error("Map query failed. Pin manually.");
+    } finally {
+      setIsSearchingMap(false);
+    }
+  };
+
+  const handleGPSGeolocate = () => {
+    if (!navigator.geolocation) {
+      toast.error("GPS not supported on this device.");
+      return;
+    }
+    setGpsAccuracy("Acquiring GPS fix...");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLat(position.coords.latitude);
+        setLng(position.coords.longitude);
+        setHasPinned(true);
+        setGpsAccuracy(`Accuracy: ±${position.coords.accuracy.toFixed(0)}m (High Precision GPS)`);
+        toast.success("Successfully pinned your GPS coordinates!");
+      },
+      (err) => {
+        console.error(err);
+        setGpsAccuracy("GPS permission denied.");
+        toast.error("Could not read location. Enable GPS permissions.");
+      },
+      { enableHighAccuracy: true, timeout: 6000 }
+    );
+  };
+
+  const getNearbyLandmarks = () => {
+    const list = [];
+    if (city) {
+      list.push(`🚉 ${city} Railway Station`);
+      list.push(`🏫 ${city} Secondary School & Academy`);
+      list.push(`🛒 Keells / Cargill's Supermarket`);
+    } else {
+      list.push("🚉 Public Transit Railway & Bus Terminal");
+      list.push("🏫 Primary & Secondary Schools");
+      list.push("🛒 Commercial Supermarket Outlets");
+    }
+    list.push("🏥 District General Hospital Complex");
+    list.push("🛣️ Highway Access Entrance Interchange");
+    return list;
+  };
+
+  function RecenterMap({ lat, lng }: { lat: number; lng: number }) {
+    const map = useMapEvents({});
+    useEffect(() => {
+      map.setView([lat, lng], 14);
+    }, [lat, lng, map]);
+    return null;
+  }
+
   return (
     <div className="w-full min-h-screen bg-[#F8FAF8] pt-24 pb-16 font-sans">
       
@@ -869,14 +1531,21 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
             {/* Steps Container */}
             <div className="flex items-center justify-between max-w-3xl mx-auto relative mb-4">
               
-              {/* Green Progress Fill Line */}
-              <div className="absolute top-4 left-0 right-0 h-1 bg-neutral-200 -z-10 rounded-full overflow-hidden">
-                <motion.div 
-                  className="h-full bg-[#004F31]" 
-                  initial={{ width: '0%' }}
-                  animate={{ width: `${((step - 1) / 4) * 100}%` }}
-                  transition={{ duration: 0.5, ease: 'easeOut' }}
-                />
+              {/* Segmented Progress Lines behind circles */}
+              <div className="absolute top-5 left-6 right-6 h-0.5 -z-10 flex justify-between items-center pointer-events-none">
+                {[1, 2, 3, 4].map((segmentNum) => {
+                  const isSegmentCompleted = step > segmentNum;
+                  return (
+                    <div 
+                      key={segmentNum} 
+                      className={`h-0.5 flex-1 transition-all duration-300 mx-2 ${
+                        isSegmentCompleted 
+                          ? 'bg-[#004F31]' 
+                          : 'border-t border-dashed border-neutral-300'
+                      }`}
+                    />
+                  );
+                })}
               </div>
 
               {[
@@ -893,19 +1562,23 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                 return (
                   <div key={idx} className="flex flex-col items-center">
                     <motion.div
-                      className={`h-9 w-9 rounded-full flex items-center justify-center text-sm font-black transition-all border shadow-sm select-none ${
+                      className={`h-10 w-10 rounded-full flex items-center justify-center text-base transition-all border shadow-sm select-none ${
                         isCompleted 
-                          ? 'bg-[#004F31] border-[#004F31] text-white' 
+                          ? 'bg-[#004F31] border-[#004F31] text-white font-bold' 
                           : isCurrent 
-                            ? 'bg-[#004F31] border-[#004F31] text-white ring-4 ring-[#004F31]/25' 
-                            : 'bg-white border-neutral-200 text-neutral-400'
+                            ? 'bg-[#004F31] border-[#004F31] text-white font-extrabold ring-4 ring-[#004F31]/20 scale-110' 
+                            : 'bg-neutral-100 border-neutral-200 text-neutral-400 font-semibold'
                       }`}
                       animate={isCurrent ? { scale: 1.1 } : { scale: 1 }}
                     >
                       {isCompleted ? '✓' : s.icon}
                     </motion.div>
-                    <span className={`text-[10px] sm:text-xs uppercase tracking-wider mt-2 transition-all font-black select-none ${
-                      isCurrent ? 'text-[#004F31]' : isCompleted ? 'text-neutral-700' : 'text-neutral-400'
+                    <span className={`text-[10px] sm:text-xs uppercase mt-2.5 transition-all select-none ${
+                      isCurrent 
+                        ? 'text-[#004F31] font-extrabold tracking-wider' 
+                        : isCompleted 
+                          ? 'text-neutral-700 font-bold' 
+                          : 'text-neutral-400 font-medium'
                     }`}>
                       {s.label}
                     </span>
@@ -920,8 +1593,18 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
               <span className="text-xs font-bold text-[#004F31] bg-[#004F31]/5 px-3 py-1 rounded-full uppercase tracking-widest">
                 Step {step} of 5
               </span>
-              <span className="text-xs font-semibold text-neutral-400 mt-2 sm:mt-0 flex items-center gap-1">
+              <span className="text-xs font-semibold text-neutral-400 mt-2 sm:mt-0 flex items-center gap-2">
                 ⏱️ Takes about 5 minutes to go live
+                <span className="text-neutral-300">|</span>
+                {isAutoSaving ? (
+                  <span className="text-emerald-600 font-bold flex items-center gap-1 animate-pulse">
+                    <Loader2 size={11} className="animate-spin" /> Saving draft...
+                  </span>
+                ) : (
+                  <span className="text-neutral-400 font-medium">
+                    💾 Draft Auto-Saved
+                  </span>
+                )}
               </span>
             </div>
           </div>
@@ -931,7 +1614,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
             ACTIVE STEP VIEWS CONTAINER
             ========================================= */}
         <AnimatePresence mode="wait">
-          
+
           {/* STEP 1: Property Details */}
           {step === 1 && (
             <motion.div
@@ -945,24 +1628,32 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
               <div className="lg:col-span-2 space-y-6">
                 
                 {/* 1. Category selector */}
-                <div className="bg-white rounded-[32px] p-6 sm:p-8 border border-neutral-200/60 shadow-sm space-y-4">
+                <div 
+                  className="bg-white rounded-[32px] p-6 sm:p-8 border border-neutral-200/60 shadow-sm space-y-4 cursor-pointer"
+                  onClick={() => setActiveSection('category')}
+                >
                   <div>
                     <h3 className="text-base font-extrabold text-neutral-900">What category is your property?</h3>
-                    <p className="text-xs text-neutral-500 font-semibold mt-0.5">Choose the listing category that best represents your real estate asset.</p>
+                    <p className="text-xs text-neutral-500 font-semibold mt-0.5">Select a category below. Each category has optimized search filters.</p>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {[
-                      { type: 'House', icon: '🏠', label: 'House / Villa' },
-                      { type: 'Apartment', icon: '🏢', label: 'Apartment' },
-                      { type: 'Land', icon: '🌿', label: 'Land Plot' },
-                      { type: 'Commercial', icon: '🏗️', label: 'Commercial' },
-                      { type: 'Villa', icon: '🏖️', label: 'Bungalow' },
-                      { type: 'Other', icon: '✨', label: 'Other Type' },
+                      { type: 'House', icon: '🏠', label: 'House / Villa', desc: 'Single-family homes, villas, bungalows' },
+                      { type: 'Apartment', icon: '🏢', label: 'Apartment', desc: 'Luxury units, flats, penthouses' },
+                      { type: 'Land', icon: '🌿', label: 'Land Plot', desc: 'Residential, agricultural or commercial plots' },
+                      { type: 'Commercial', icon: '🏗️', label: 'Commercial', desc: 'Offices, retail spaces, warehouses' },
+                      { type: 'Villa', icon: '🏖️', label: 'Bungalow', desc: 'Holiday homes and traditional villas' },
+                      { type: 'Other', icon: '✨', label: 'Other Type', desc: 'Co-living spaces, rooms, guest houses' },
                     ].map((c) => (
                       <button
                         key={c.type}
-                        onClick={() => setCategory(c.type)}
-                        className={`p-4 border rounded-2xl flex flex-col items-center justify-center gap-2 transition-all group ${
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCategory(c.type);
+                          setActiveSection('category');
+                        }}
+                        className={`p-4 border rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all text-center group ${
                           category === c.type 
                             ? 'bg-[#004F31]/5 border-[#004F31] ring-2 ring-[#004F31]/5' 
                             : 'bg-white border-neutral-200 hover:border-neutral-300'
@@ -972,16 +1663,22 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                         <span className={`text-xs font-extrabold ${category === c.type ? 'text-[#004F31]' : 'text-neutral-700'}`}>
                           {c.label}
                         </span>
+                        <span className="text-[9px] text-neutral-400 font-medium leading-tight hidden sm:block">
+                          {c.desc}
+                        </span>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 {/* 2. Core Information */}
-                <div className="bg-white rounded-[32px] p-6 sm:p-8 border border-neutral-200/60 shadow-sm space-y-6">
+                <div 
+                  className="bg-white rounded-[32px] p-6 sm:p-8 border border-neutral-200/60 shadow-sm space-y-6"
+                  onClick={() => setActiveSection('specs')}
+                >
                   <div>
                     <h3 className="text-base font-extrabold text-neutral-900">Core Listing Specifications</h3>
-                    <p className="text-xs text-neutral-500 font-semibold mt-0.5">Let buyers know the size, layout, and transaction rules of your property.</p>
+                    <p className="text-xs text-neutral-500 font-semibold mt-0.5">Provide specifications to help buyers filter and match with your property.</p>
                   </div>
 
                   <div className="space-y-4">
@@ -997,29 +1694,45 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                         type="text"
                         placeholder="e.g. Elegant 4-Bedroom House in Colombo 03 with Pool"
                         value={title}
+                        onFocus={() => setActiveSection('specs')}
                         onChange={(e) => setTitle(e.target.value.slice(0, 100))}
                         className={`w-full px-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31] ${
                           errors.title ? 'border-red-500 focus:ring-red-500' : 'border-neutral-200'
                         }`}
                       />
                       {errors.title && <p className="text-[10px] font-black text-red-500 uppercase tracking-wider">{errors.title}</p>}
+                      <p className="text-[10px] text-neutral-400 font-semibold leading-relaxed">
+                        ⚠️ <strong>Rule-based Advice:</strong> Keep titles under 100 characters. Avoid emojis, block caps, or phone numbers. Mention bedroom count, suburb and key selling points.
+                      </p>
                     </div>
 
-                    {/* Offer Type & Size */}
+                    {/* Offer Type Toggle Button */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">Offer Transaction *</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {['For Sale', 'For Rent'].map((type) => (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => {
+                              setListingType(type);
+                              setActiveSection('specs');
+                            }}
+                            className={`py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider border transition-all text-center ${
+                              listingType === type 
+                                ? 'bg-[#004F31] border-[#004F31] text-white shadow-md shadow-emerald-950/15' 
+                                : 'bg-white border-neutral-200 hover:border-neutral-300 text-neutral-600'
+                            }`}
+                          >
+                            {type === 'For Sale' ? '🏠 Sell outright' : '🔑 rent / lease'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Size and Unit Fields */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       
-                      <div className="space-y-1">
-                        <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">Offer Transaction *</label>
-                        <select
-                          value={listingType}
-                          onChange={(e) => setListingType(e.target.value)}
-                          className="w-full px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31]"
-                        >
-                          <option value="For Sale">Sale (Outright Transfer)</option>
-                          <option value="For Rent">Rent / Lease Duration</option>
-                        </select>
-                      </div>
-
                       <div className="space-y-1">
                         <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">Land Area Size</label>
                         <div className="flex gap-2">
@@ -1027,6 +1740,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                             type="text"
                             placeholder="e.g. 15"
                             value={landSize}
+                            onFocus={() => setActiveSection('specs')}
                             onChange={(e) => setLandSize(e.target.value)}
                             className="w-1/2 px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31]"
                           />
@@ -1037,149 +1751,177 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                           >
                             <option>Perches</option>
                             <option>Acres</option>
-                            <option>Sq. Feet</option>
-                            <option>Sq. Meters</option>
+                            <option>Sq Ft</option>
                           </select>
                         </div>
+                        {getLandConversionLabel() && (
+                          <p className="text-[10px] text-neutral-400 font-bold bg-[#F8FAF8] p-1.5 rounded border border-neutral-100">
+                            {getLandConversionLabel()}
+                          </p>
+                        )}
                       </div>
 
-                    </div>
-
-                    {/* Steppers & Floors */}
-                    {category !== 'Land' && (
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-neutral-100 pt-4">
-                        
-                        {/* Bedrooms */}
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">Bedrooms</label>
-                          <div className="flex items-center justify-between bg-[#F8FAF8] border border-neutral-200 rounded-xl p-1.5">
-                            <button
-                              type="button"
-                              onClick={() => handleSpecChange('bedrooms', 'dec')}
-                              className="h-8 w-8 bg-white border border-neutral-200 hover:bg-neutral-50 rounded-lg flex items-center justify-center text-xs font-bold"
-                            >
-                              <Minus size={11} />
-                            </button>
-                            <span className="text-xs font-extrabold text-neutral-800">{bedrooms}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleSpecChange('bedrooms', 'inc')}
-                              className="h-8 w-8 bg-white border border-neutral-200 hover:bg-neutral-50 rounded-lg flex items-center justify-center text-xs font-bold"
-                            >
-                              <Plus size={11} />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Bathrooms */}
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">Bathrooms</label>
-                          <div className="flex items-center justify-between bg-[#F8FAF8] border border-neutral-200 rounded-xl p-1.5">
-                            <button
-                              type="button"
-                              onClick={() => handleSpecChange('bathrooms', 'dec')}
-                              className="h-8 w-8 bg-white border border-neutral-200 hover:bg-neutral-50 rounded-lg flex items-center justify-center text-xs font-bold"
-                            >
-                              <Minus size={11} />
-                            </button>
-                            <span className="text-xs font-extrabold text-neutral-800">{bathrooms}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleSpecChange('bathrooms', 'inc')}
-                              className="h-8 w-8 bg-white border border-neutral-200 hover:bg-neutral-50 rounded-lg flex items-center justify-center text-xs font-bold"
-                            >
-                              <Plus size={11} />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Floors */}
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">Total Floors</label>
-                          <div className="flex items-center justify-between bg-[#F8FAF8] border border-neutral-200 rounded-xl p-1.5">
-                            <button
-                              type="button"
-                              onClick={() => handleSpecChange('floors', 'dec')}
-                              className="h-8 w-8 bg-white border border-neutral-200 hover:bg-neutral-50 rounded-lg flex items-center justify-center text-xs font-bold"
-                            >
-                              <Minus size={11} />
-                            </button>
-                            <span className="text-xs font-extrabold text-neutral-800">{floors}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleSpecChange('floors', 'inc')}
-                              className="h-8 w-8 bg-white border border-neutral-200 hover:bg-neutral-50 rounded-lg flex items-center justify-center text-xs font-bold"
-                            >
-                              <Plus size={11} />
-                            </button>
-                          </div>
-                        </div>
-
-                      </div>
-                    )}
-
-                    {category !== 'Land' && (
                       <div className="space-y-1">
-                        <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">Built-up Floor Area (Sq. Feet)</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">Floor Area (Sq Ft)</label>
                         <input
                           type="text"
-                          placeholder="e.g. 2400"
+                          placeholder="e.g. 3200"
                           value={floorArea}
+                          onFocus={() => setActiveSection('specs')}
                           onChange={(e) => setFloorArea(e.target.value)}
                           className="w-full px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31]"
                         />
                       </div>
+
+                    </div>
+
+                    {/* Bed / Bath / Floor Steppers (Hidden if category is Land) */}
+                    {category !== 'Land' && (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                        
+                        <div className="space-y-1 bg-[#F8FAF8] p-3 rounded-2xl border border-neutral-200/60">
+                          <label className="text-[10px] font-black uppercase tracking-wider text-neutral-400 block text-center">Bedrooms</label>
+                          <div className="flex items-center justify-between mt-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleSpecChange('bedrooms', 'dec');
+                                setActiveSection('specs');
+                              }}
+                              className="h-8 w-8 bg-white border border-neutral-200 hover:border-neutral-300 rounded-lg flex items-center justify-center text-neutral-600 transition-colors cursor-pointer"
+                            >
+                              <Minus size={14} />
+                            </button>
+                            <span className="text-sm font-extrabold text-neutral-800">
+                              {bedrooms === 0 ? "Studio (0)" : bedrooms}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleSpecChange('bedrooms', 'inc');
+                                setActiveSection('specs');
+                              }}
+                              className="h-8 w-8 bg-white border border-neutral-200 hover:border-neutral-300 rounded-lg flex items-center justify-center text-neutral-600 transition-colors cursor-pointer"
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1 bg-[#F8FAF8] p-3 rounded-2xl border border-neutral-200/60">
+                          <label className="text-[10px] font-black uppercase tracking-wider text-neutral-400 block text-center">Bathrooms</label>
+                          <div className="flex items-center justify-between mt-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleSpecChange('bathrooms', 'dec');
+                                setActiveSection('specs');
+                              }}
+                              className="h-8 w-8 bg-white border border-neutral-200 hover:border-neutral-300 rounded-lg flex items-center justify-center text-neutral-600 transition-colors cursor-pointer"
+                            >
+                              <Minus size={14} />
+                            </button>
+                            <span className="text-sm font-extrabold text-neutral-800">{bathrooms}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleSpecChange('bathrooms', 'inc');
+                                setActiveSection('specs');
+                              }}
+                              className="h-8 w-8 bg-white border border-neutral-200 hover:border-neutral-300 rounded-lg flex items-center justify-center text-neutral-600 transition-colors cursor-pointer"
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1 bg-[#F8FAF8] p-3 rounded-2xl border border-neutral-200/60">
+                          <label className="text-[10px] font-black uppercase tracking-wider text-neutral-400 block text-center">Total Floors</label>
+                          <div className="flex items-center justify-between mt-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleSpecChange('floors', 'dec');
+                                setActiveSection('specs');
+                              }}
+                              className="h-8 w-8 bg-white border border-neutral-200 hover:border-neutral-300 rounded-lg flex items-center justify-center text-neutral-600 transition-colors cursor-pointer"
+                            >
+                              <Minus size={14} />
+                            </button>
+                            <span className="text-sm font-extrabold text-neutral-800">
+                              {floors === 0 ? "Ground (0)" : floors}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleSpecChange('floors', 'inc');
+                                setActiveSection('specs');
+                              }}
+                              className="h-8 w-8 bg-white border border-neutral-200 hover:border-neutral-300 rounded-lg flex items-center justify-center text-neutral-600 transition-colors cursor-pointer"
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </div>
+                        </div>
+
+                      </div>
                     )}
 
-                    {/* Price and negotiation details */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-neutral-100 pt-4">
+                    {/* Pricing details */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                       
                       <div className="space-y-1">
-                        <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">Expectation Price (LKR) *</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                          {listingType === 'For Rent' ? 'Monthly Rental Price (LKR) *' : 'Asking Price (LKR) *'}
+                        </label>
                         <div className="relative">
-                          <span className="absolute left-4 top-3.5 text-xs font-extrabold text-[#004F31]">Rs.</span>
+                          <span className="absolute left-4 top-3 text-xs font-bold text-neutral-400">Rs.</span>
                           <input
                             type="text"
-                            placeholder="e.g. 35,000,000"
-                            value={formatPriceComma(priceLkr)}
-                            onChange={(e) => setPriceLkr(e.target.value.replace(/[^0-9]/g, ''))}
-                            className={`w-full pl-12 pr-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-extrabold outline-none focus:ring-1 focus:ring-[#004F31] ${
+                            placeholder="e.g. 45,000,000"
+                            value={priceLkr}
+                            onFocus={() => setActiveSection('specs')}
+                            onChange={(e) => {
+                              const cleaned = e.target.value.replace(/,/g, '');
+                              setPriceLkr(formatPriceComma(cleaned));
+                            }}
+                            className={`w-full pl-11 pr-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31] ${
                               errors.priceLkr ? 'border-red-500 focus:ring-red-500' : 'border-neutral-200'
                             }`}
                           />
                         </div>
                         {errors.priceLkr && <p className="text-[10px] font-black text-red-500 uppercase tracking-wider">{errors.priceLkr}</p>}
                         
-                        {priceLkr && (
-                          <div className="flex items-center justify-between text-[11px] font-extrabold text-[#004F31] px-1 bg-[#004F31]/5 py-1.5 rounded-lg mt-1">
-                            <span>💵 Est. USD Value:</span>
-                            <span>${getUsdEstimate()} USD</span>
+                        {getFormattedPriceWord() && (
+                          <div className="text-[10px] text-[#004F31] font-bold mt-1 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-100 space-y-0.5">
+                            <p>📈 Local Scale: {getFormattedPriceWord()}</p>
+                            <p className="text-neutral-500">🌍 USD Equivalent: ${getUsdEstimate()} USD</p>
+                            {getPricePerPerchLabel() && <p className="text-neutral-600 font-extrabold">{getPricePerPerchLabel()}</p>}
                           </div>
                         )}
                       </div>
 
-                      <div className="flex flex-col justify-end space-y-2 pb-2">
-                        <button
-                          type="button"
-                          onClick={() => setIsNegotiable(!isNegotiable)}
-                          className={`px-4 py-3 border rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
-                            isNegotiable ? 'bg-[#004F31]/5 border-[#004F31] text-[#004F31]' : 'bg-[#F8FAF8] border-neutral-200 text-neutral-500'
-                          }`}
-                        >
-                          <span className={`h-4 w-4 rounded flex items-center justify-center border ${
-                            isNegotiable ? 'bg-[#004F31] border-[#004F31] text-white' : 'border-neutral-300 bg-white'
-                          }`}>
-                            {isNegotiable && '✓'}
-                          </span>
-                          Price is Negotiable
-                        </button>
+                      <div className="space-y-1 flex flex-col justify-end">
+                        <div className="p-3.5 bg-[#F8FAF8] rounded-xl border border-neutral-200 flex items-center justify-between h-[46px]">
+                          <label className="text-xs font-extrabold text-neutral-700 cursor-pointer select-none" htmlFor="negotiable">
+                            🤝 Price is Negotiable
+                          </label>
+                          <input
+                            id="negotiable"
+                            type="checkbox"
+                            checked={isNegotiable}
+                            onChange={(e) => setIsNegotiable(e.target.checked)}
+                            className="h-4.5 w-4.5 accent-[#004F31] rounded"
+                          />
+                        </div>
                       </div>
 
                     </div>
 
+                    {/* Lease Advance / Deposit requirement (Hidden if transaction is For Sale) */}
                     {listingType === 'For Rent' && (
-                      <div className="space-y-1">
-                        <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">Key Money Advance Required</label>
+                      <div className="space-y-1 pt-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">Lease Key Money Advance *</label>
                         <select
                           value={advanceRequired}
                           onChange={(e) => setAdvanceRequired(e.target.value)}
@@ -1198,37 +1940,68 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                 </div>
 
                 {/* 3. Description & AI generation */}
-                <div className="bg-white rounded-[32px] p-6 sm:p-8 border border-neutral-200/60 shadow-sm space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div 
+                  className="bg-white rounded-[32px] p-6 sm:p-8 border border-neutral-200/60 shadow-sm space-y-4"
+                  onClick={() => setActiveSection('description')}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                       <h3 className="text-base font-extrabold text-neutral-900 font-display">Detailed Listing Description</h3>
-                      <p className="text-xs text-neutral-500 font-semibold mt-0.5">Introduce your property to buyers. Highlight nearby hospitals, highways, or schools.</p>
+                      <p className="text-xs text-neutral-500 font-semibold mt-0.5">Describe your property. Buyers search by words in description.</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleAiGenerateText}
-                      disabled={isGeneratingAi}
-                      className="px-4 py-2 bg-[#004F31] hover:bg-emerald-950 text-white rounded-xl text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-emerald-950/15 cursor-pointer select-none"
-                    >
-                      {isGeneratingAi ? (
-                        <>
-                          <Loader2 size={13} className="animate-spin" />
-                          AI is drafting...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles size={13} />
-                          Generate with AI
-                        </>
-                      )}
-                    </button>
                   </div>
+
+                  {/* Language Selection Tabs for Generator */}
+                  <div className="flex items-center justify-between bg-neutral-50 p-1 rounded-xl border border-neutral-200/60">
+                    <span className="text-[10px] font-black uppercase text-neutral-400 pl-2">Generator Language:</span>
+                    <div className="flex gap-1">
+                      {[
+                        { code: 'en', label: 'English' },
+                        { code: 'si', label: 'සිංහල' },
+                        { code: 'ta', label: 'தமிழ்' }
+                      ].map((lang) => (
+                        <button
+                          key={lang.code}
+                          type="button"
+                          onClick={() => setDescLanguage(lang.code as any)}
+                          className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all ${
+                            descLanguage === lang.code 
+                              ? 'bg-[#004F31] text-white' 
+                              : 'text-neutral-500 hover:text-neutral-800'
+                          }`}
+                        >
+                          {lang.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Rich Typewriter Generator Button */}
+                  <button
+                    type="button"
+                    onClick={handleAiGenerateText}
+                    disabled={isGeneratingAi}
+                    className="w-full py-3 bg-[#004F31] hover:bg-emerald-950 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-md shadow-emerald-950/15 cursor-pointer select-none transition-all"
+                  >
+                    {isGeneratingAi ? (
+                      <>
+                        <Loader2 size={13} className="animate-spin" />
+                        Gemini AI is crafting description...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={13} />
+                        Generate Professional Description with Gemini AI
+                      </>
+                    )}
+                  </button>
 
                   <div className="space-y-2">
                     <textarea
                       rows={6}
-                      placeholder="e.g. Beautiful architect designed two story home located in a highly residential, quiet neighborhood. Built with high quality materials including mahogany doors and luxury tiles. Features a spacious landscaped garden, double carport, and stunning roof-deck. Walking distance to supermarkets, international schools, and local transport options."
+                      placeholder="e.g. Beautiful architect-designed two-story home located in a highly residential, quiet neighborhood. Built with premium materials including mahogany doors and luxury tiles. Features a spacious landscaped garden, double carport, and stunning roof deck. Walking distance to supermarkets, international schools, and transport options."
                       value={description}
+                      onFocus={() => setActiveSection('description')}
                       onChange={(e) => setDescription(e.target.value.slice(0, 2000))}
                       className={`w-full p-4 bg-[#F8FAF8] border rounded-2xl text-xs font-bold leading-relaxed outline-none focus:ring-1 focus:ring-[#004F31] resize-none ${
                         errors.description ? 'border-red-500 focus:ring-red-500' : 'border-neutral-200'
@@ -1237,8 +2010,14 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                     
                     <div className="flex justify-between items-center text-[10px] text-neutral-400 font-extrabold uppercase">
                       <span>Min 50 / Max 2,000 chars</span>
-                      <span className={description.length < 50 ? 'text-orange-500' : 'text-neutral-500'}>
-                        {description.length} chars
+                      <span className={`px-2 py-0.5 rounded font-black ${
+                        description.length < 50 
+                          ? 'text-orange-500 bg-orange-50' 
+                          : description.length < 150 
+                            ? 'text-[#004F31] bg-emerald-50' 
+                            : 'text-emerald-700 bg-emerald-100'
+                      }`}>
+                        {description.length < 50 ? "⚠️ Short" : description.length < 400 ? "🟢 Good" : "✨ Rich Description"} ({description.length} chars)
                       </span>
                     </div>
                     {errors.description && <p className="text-[10px] font-black text-red-500 uppercase tracking-wider">{errors.description}</p>}
@@ -1246,41 +2025,125 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                 </div>
 
                 {/* 4. Location Details & Map */}
-                <div className="bg-white rounded-[32px] p-6 sm:p-8 border border-neutral-200/60 shadow-sm space-y-6">
+                <div 
+                  className="bg-white rounded-[32px] p-6 sm:p-8 border border-neutral-200/60 shadow-sm space-y-6"
+                  onClick={() => setActiveSection('location')}
+                >
                   <div>
                     <h3 className="text-base font-extrabold text-neutral-900">Pinpoint the Exact Location</h3>
-                    <p className="text-xs text-neutral-500 font-semibold mt-0.5">Let buyers find you easily. Drop a pin on the map below.</p>
+                    <p className="text-xs text-neutral-500 font-semibold mt-0.5">Let buyers find your property easily. Center your location and drop a pin.</p>
                   </div>
 
                   <div className="space-y-4">
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       
-                      <div className="space-y-1">
+                      {/* Searchable Province District Hub Popover */}
+                      <div className="relative space-y-1">
                         <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">Province District Hub *</label>
-                        <select
-                          value={district}
-                          onChange={(e) => setDistrict(e.target.value)}
-                          className="w-full px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31]"
+                        <div 
+                          onClick={() => {
+                            setShowDistrictDropdown(!showDistrictDropdown);
+                            setActiveSection('location');
+                          }}
+                          className="w-full px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none cursor-pointer flex justify-between items-center hover:border-neutral-300 transition-colors"
                         >
-                          {DISTRICTS.map((d) => (
-                            <option key={d}>{d}</option>
-                          ))}
-                        </select>
+                          <span>{district}</span>
+                          <span className="text-neutral-400 text-[10px]">▼</span>
+                        </div>
+                        
+                        {showDistrictDropdown && (
+                          <div className="absolute left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-xl shadow-xl z-50 max-h-80 overflow-y-auto p-3 space-y-3">
+                            <input
+                              type="text"
+                              placeholder="Search districts..."
+                              value={districtSearch}
+                              onChange={(e) => setDistrictSearch(e.target.value)}
+                              className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31] bg-[#F8FAF8]"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <div className="space-y-3">
+                              {PROVINCE_DISTRICTS.map((prov) => {
+                                const filteredDistricts = prov.districts.filter(d => 
+                                  d.toLowerCase().includes(districtSearch.toLowerCase())
+                                );
+                                if (filteredDistricts.length === 0) return null;
+                                return (
+                                  <div key={prov.province} className="space-y-1">
+                                    <span className="text-[10px] font-black uppercase text-[#004F31] tracking-widest bg-[#004F31]/5 px-2 py-0.5 rounded">
+                                      {prov.province}
+                                    </span>
+                                    <div className="grid grid-cols-2 gap-1 pt-1">
+                                      {filteredDistricts.map((d) => (
+                                        <button
+                                          type="button"
+                                          key={d}
+                                          onClick={() => {
+                                            setDistrict(d);
+                                            setCity(''); // Clear city on district change
+                                            setShowDistrictDropdown(false);
+                                            setDistrictSearch('');
+                                          }}
+                                          className={`px-2 py-1.5 rounded-lg text-left text-xs font-bold transition-all ${
+                                            district === d 
+                                              ? 'bg-[#004F31] text-white' 
+                                              : 'hover:bg-neutral-50 text-neutral-700'
+                                          }`}
+                                        >
+                                          {d}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
-                      <div className="space-y-1">
+                      {/* City/Suburb with focus suggestion autocomplete list */}
+                      <div className="relative space-y-1">
                         <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">City / Suburb Town *</label>
                         <input
                           type="text"
                           placeholder="e.g. Kollupitiya, Malabe, Kottawa"
                           value={city}
+                          onFocus={() => {
+                            setCityFocus(true);
+                            setActiveSection('location');
+                          }}
+                          onBlur={() => setTimeout(() => setCityFocus(false), 200)}
                           onChange={(e) => setCity(e.target.value)}
                           className={`w-full px-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31] ${
                             errors.city ? 'border-red-500 focus:ring-red-500' : 'border-neutral-200'
                           }`}
                         />
                         {errors.city && <p className="text-[10px] font-black text-red-500 uppercase tracking-wider">{errors.city}</p>}
+                        
+                        {cityFocus && (
+                          <div className="absolute left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-xl shadow-lg z-40 max-h-48 overflow-y-auto">
+                            {getFilteredCities().length > 0 ? (
+                              getFilteredCities().map((c) => (
+                                <button
+                                  type="button"
+                                  key={c.city}
+                                  onClick={() => {
+                                    setCity(c.city);
+                                    setCityFocus(false);
+                                  }}
+                                  className="w-full text-left px-4 py-2.5 hover:bg-neutral-50 text-xs font-bold text-neutral-700 border-b border-neutral-100 last:border-0"
+                                >
+                                  📍 {c.city}
+                                </button>
+                              ))
+                            ) : (
+                              <div className="px-4 py-2 text-[10px] text-neutral-400 font-bold uppercase">
+                                Custom City Name Entered
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                     </div>
@@ -1291,6 +2154,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                         type="text"
                         placeholder="e.g. 124 Galle Road (Near Prime Junction)"
                         value={address}
+                        onFocus={() => setActiveSection('location')}
                         onChange={(e) => setAddress(e.target.value)}
                         className={`w-full px-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31] ${
                           errors.address ? 'border-red-500 focus:ring-red-500' : 'border-neutral-200'
@@ -1299,21 +2163,48 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                       {errors.address && <p className="text-[10px] font-black text-red-500 uppercase tracking-wider">{errors.address}</p>}
                     </div>
 
-                    {/* Leaflet Interactive click map */}
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between items-center">
-                        <label className="text-[10px] font-black uppercase text-[#004F31] tracking-wider flex items-center gap-1">
-                          <MapPin size={12} /> Interactive Locator Map
-                        </label>
-                        <span className="text-[10px] font-bold text-neutral-400">
-                          {hasPinned ? "🟢 Location Pinned" : "📍 Click map to drop pin"}
-                        </span>
+                    {/* Interactive map panel with geocoding search directly above */}
+                    <div className="space-y-2 pt-2">
+                      <div className="flex flex-col sm:flex-row items-stretch gap-2">
+                        <div className="relative flex-1">
+                          <input
+                            type="text"
+                            placeholder="Type town or road name (e.g. Galle Road, Kollupitiya)..."
+                            value={searchQuery}
+                            onFocus={() => setActiveSection('location')}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31]"
+                          />
+                        </div>
+                        <div className="flex gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={handleLocateAddress}
+                            disabled={isSearchingMap}
+                            className="px-4 py-2.5 bg-neutral-900 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-neutral-800 transition-colors flex items-center gap-1 cursor-pointer"
+                          >
+                            {isSearchingMap ? <Loader2 size={12} className="animate-spin" /> : "📍 Locate"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleGPSGeolocate}
+                            className="px-4 py-2.5 bg-emerald-50 text-[#004F31] border border-emerald-200 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-emerald-100 transition-colors flex items-center gap-1 cursor-pointer"
+                          >
+                            🛰️ Live GPS
+                          </button>
+                        </div>
                       </div>
-                      
+
+                      {gpsAccuracy && (
+                        <p className="text-[9px] font-black uppercase tracking-wider text-[#004F31] bg-[#004F31]/5 p-2 rounded-lg border border-[#004F31]/10">
+                          🧭 {gpsAccuracy}
+                        </p>
+                      )}
+
                       <div className="h-64 rounded-2xl overflow-hidden border border-neutral-200 relative z-10 shadow-sm">
                         <MapContainer
                           center={[lat, lng]}
-                          zoom={11}
+                          zoom={13}
                           style={{ height: "100%", width: "100%" }}
                         >
                           <TileLayer
@@ -1325,22 +2216,55 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                               setLat(latlng.lat);
                               setLng(latlng.lng);
                               setHasPinned(true);
+                              setGpsAccuracy(`Pinned manually (Lat: ${latlng.lat.toFixed(4)}, Lng: ${latlng.lng.toFixed(4)})`);
                             }}
                           />
-                          {hasPinned && <Marker position={[lat, lng]} />}
+                          <RecenterMap lat={lat} lng={lng} />
+                          {hasPinned && (
+                            <Marker 
+                              position={[lat, lng]} 
+                              draggable={true}
+                              eventHandlers={{
+                                dragend: (e) => {
+                                  const marker = e.target;
+                                  const position = marker.getLatLng();
+                                  setLat(position.lat);
+                                  setLng(position.lng);
+                                  setHasPinned(true);
+                                  setGpsAccuracy(`Draggable verified coordinate adjust: (${position.lat.toFixed(5)}, ${position.lng.toFixed(5)})`);
+                                },
+                              }}
+                            />
+                          )}
                         </MapContainer>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4 pt-1.5">
-                        <div className="bg-[#F8FAF8] border border-neutral-100 p-2.5 rounded-xl text-center">
+                      <div className="grid grid-cols-2 gap-4 pt-1">
+                        <div className="bg-[#F8FAF8] border border-neutral-100 p-2 rounded-xl text-center">
                           <span className="text-[9px] font-black uppercase tracking-wider text-neutral-400 block">Latitude</span>
                           <span className="text-xs font-extrabold text-[#004F31]">{lat.toFixed(6)}</span>
                         </div>
-                        <div className="bg-[#F8FAF8] border border-neutral-100 p-2.5 rounded-xl text-center">
+                        <div className="bg-[#F8FAF8] border border-neutral-100 p-2 rounded-xl text-center">
                           <span className="text-[9px] font-black uppercase tracking-wider text-neutral-400 block">Longitude</span>
                           <span className="text-xs font-extrabold text-[#004F31]">{lng.toFixed(6)}</span>
                         </div>
                       </div>
+
+                      {/* Detected Nearby Landmarks checklist */}
+                      <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-200/60 space-y-2">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-[#004F31] block">
+                          ⚡ Auto-detected nearby landmarks
+                        </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] font-bold text-neutral-600">
+                          {getNearbyLandmarks().map((landmark, idx) => (
+                            <div key={idx} className="flex items-center gap-1.5 bg-white p-1.5 rounded-lg border border-neutral-200/40">
+                              <span className="text-emerald-600">✓</span>
+                              <span>{landmark}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
                     </div>
 
                   </div>
@@ -1348,50 +2272,217 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
 
                 {/* 5. Amenities checklist */}
                 {category !== 'Land' && (
-                  <div className="bg-white rounded-[32px] p-6 sm:p-8 border border-neutral-200/60 shadow-sm space-y-4">
+                  <div 
+                    className="bg-white rounded-[32px] p-6 sm:p-8 border border-neutral-200/60 shadow-sm space-y-6"
+                    onClick={() => setActiveSection('amenities')}
+                  >
                     <div>
                       <h3 className="text-base font-extrabold text-neutral-900 font-display">Special Amenities Pool</h3>
-                      <p className="text-xs text-neutral-500 font-semibold mt-0.5">Toggle amenities and special assets included with this property.</p>
+                      <p className="text-xs text-neutral-500 font-semibold mt-0.5">Highlight specific features to stand out in search filter results.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-                      {AMENITIES.map((amenity) => {
-                        const isChecked = selectedAmenities.includes(amenity);
+                    <div className="space-y-6">
+                      {AMENITY_GROUPS.map((grp) => {
+                        const activeInGroup = grp.amenities.filter(a => selectedAmenities.includes(a));
+                        const isAllSelected = activeInGroup.length === grp.amenities.length;
+                        
                         return (
-                          <button
-                            type="button"
-                            key={amenity}
-                            onClick={() => {
-                              if (isChecked) {
-                                setSelectedAmenities(selectedAmenities.filter(a => a !== amenity));
-                              } else {
-                                setSelectedAmenities([...selectedAmenities, amenity]);
-                              }
-                            }}
-                            className={`p-3 border rounded-xl text-left text-xs font-bold transition-all flex items-center gap-2.5 ${
-                              isChecked 
-                                ? 'bg-[#004F31]/5 border-[#004F31] text-[#004F31]' 
-                                : 'bg-[#F8FAF8] border-neutral-200/80 text-neutral-600 hover:border-neutral-300'
-                            }`}
-                          >
-                            <span className={`h-4.5 w-4.5 rounded border flex items-center justify-center shrink-0 ${
-                              isChecked ? 'bg-[#004F31] border-[#004F31] text-white' : 'border-neutral-300 bg-white'
-                            }`}>
-                              {isChecked && '✓'}
-                            </span>
-                            {amenity}
-                          </button>
+                          <div key={grp.title} className="space-y-2.5">
+                            <div className="flex justify-between items-center bg-neutral-50 px-3 py-1.5 rounded-xl border border-neutral-100">
+                              <h4 className="text-xs font-black uppercase text-neutral-800 tracking-wider">
+                                {grp.title} <span className="text-[10px] text-neutral-400">({activeInGroup.length}/{grp.amenities.length})</span>
+                              </h4>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveSection('amenities');
+                                  if (isAllSelected) {
+                                    // Deselect all
+                                    setSelectedAmenities(selectedAmenities.filter(a => !grp.amenities.includes(a)));
+                                  } else {
+                                    // Select all
+                                    const union = Array.from(new Set([...selectedAmenities, ...grp.amenities]));
+                                    setSelectedAmenities(union);
+                                  }
+                                }}
+                                className="text-[10px] font-black uppercase text-[#004F31] hover:underline"
+                              >
+                                {isAllSelected ? "Deselect All" : "Select All Group"}
+                              </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                              {grp.amenities.map((amenity) => {
+                                const isChecked = selectedAmenities.includes(amenity);
+                                return (
+                                  <button
+                                    type="button"
+                                    key={amenity}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveSection('amenities');
+                                      if (isChecked) {
+                                        setSelectedAmenities(selectedAmenities.filter(a => a !== amenity));
+                                      } else {
+                                        setSelectedAmenities([...selectedAmenities, amenity]);
+                                      }
+                                    }}
+                                    className={`p-2.5 border rounded-xl text-left text-xs font-bold transition-all flex items-center gap-2 ${
+                                      isChecked 
+                                        ? 'bg-[#004F31]/5 border-[#004F31] text-[#004F31]' 
+                                        : 'bg-white border-neutral-200/80 text-neutral-600 hover:border-neutral-300'
+                                    }`}
+                                  >
+                                    <span className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 ${
+                                      isChecked ? 'bg-[#004F31] border-[#004F31] text-white' : 'border-neutral-300 bg-white'
+                                    }`}>
+                                      {isChecked && '✓'}
+                                    </span>
+                                    <span className="truncate">{amenity}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
                         );
                       })}
                     </div>
                   </div>
                 )}
 
+                {/* 6. Contact Details for Inquiries */}
+                <div 
+                  className="bg-white rounded-[32px] p-6 sm:p-8 border border-neutral-200/60 shadow-sm space-y-6"
+                  onClick={() => setActiveSection('contact')}
+                >
+                  <div>
+                    <h3 className="text-base font-extrabold text-neutral-900">Contact details for Inquiries</h3>
+                    <p className="text-xs text-neutral-500 font-semibold mt-0.5">Let buyers know who to contact when inquiring about this listing.</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">Contact Name *</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Ashan Perera"
+                          value={contactName}
+                          onFocus={() => setActiveSection('contact')}
+                          onChange={(e) => setContactName(e.target.value)}
+                          className={`w-full px-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31] ${
+                            errors.contactName ? 'border-red-500 focus:ring-red-500' : 'border-neutral-200'
+                          }`}
+                        />
+                        {errors.contactName && <p className="text-[10px] font-black text-red-500 uppercase tracking-wider">{errors.contactName}</p>}
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">Contact Phone Number *</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 0771234567"
+                          value={contactPhone}
+                          onFocus={() => setActiveSection('contact')}
+                          onChange={(e) => {
+                            setContactPhone(e.target.value);
+                            if (sameAsPhone) {
+                              setContactWhatsapp(e.target.value);
+                            }
+                          }}
+                          className={`w-full px-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31] ${
+                            errors.contactPhone ? 'border-red-500 focus:ring-red-500' : 'border-neutral-200'
+                          }`}
+                        />
+                        {errors.contactPhone && <p className="text-[10px] font-black text-red-500 uppercase tracking-wider">{errors.contactPhone}</p>}
+                      </div>
+
+                    </div>
+
+                    <div className="p-4 bg-[#F8FAF8] border border-neutral-200/80 rounded-2xl space-y-4">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-extrabold text-neutral-700 cursor-pointer select-none" htmlFor="sameAsPhone">
+                          💬 WhatsApp is same as phone number
+                        </label>
+                        <input
+                          id="sameAsPhone"
+                          type="checkbox"
+                          checked={sameAsPhone}
+                          onChange={(e) => {
+                            setSameAsPhone(e.target.checked);
+                            if (e.target.checked) {
+                              setContactWhatsapp(contactPhone);
+                            }
+                          }}
+                          className="h-4.5 w-4.5 accent-[#004F31] rounded"
+                        />
+                      </div>
+
+                      {!sameAsPhone && (
+                        <div className="space-y-1 pt-1">
+                          <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">WhatsApp Number</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 0771234567"
+                            value={contactWhatsapp}
+                            onFocus={() => setActiveSection('contact')}
+                            onChange={(e) => setContactWhatsapp(e.target.value)}
+                            className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31]"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">Display Preference</label>
+                        <select
+                          value={displayPreference}
+                          onChange={(e) => setDisplayPreference(e.target.value)}
+                          className="w-full px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31]"
+                        >
+                          <option>Both phone and WhatsApp</option>
+                          <option>Phone call only</option>
+                          <option>WhatsApp chat only</option>
+                          <option>Email only (hide phone)</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold uppercase tracking-wider text-neutral-400">Typical Response Time</label>
+                        <select
+                          value={responseTime}
+                          onChange={(e) => setResponseTime(e.target.value)}
+                          className="w-full px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31]"
+                        >
+                          <option>Within a few minutes</option>
+                          <option>Within a few hours</option>
+                          <option>Within 24 hours</option>
+                          <option>Flexible (Response varies)</option>
+                        </select>
+                      </div>
+
+                    </div>
+
+                  </div>
+                </div>
+
                 {/* Next Button Step 1 */}
-                <div className="flex justify-end pt-4">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-neutral-100">
+                  <button
+                    type="button"
+                    onClick={handleStartFresh}
+                    className="text-xs text-red-600 hover:text-red-800 font-extrabold uppercase tracking-widest cursor-pointer hover:underline"
+                  >
+                    🗑️ Clear & Start Fresh
+                  </button>
                   <button
                     onClick={handleNextStep1}
-                    className="py-4 px-10 bg-[#004F31] hover:bg-emerald-950 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-950/25 transition-all flex items-center gap-2 cursor-pointer active:scale-98"
+                    className="w-full sm:w-auto py-4 px-10 bg-[#004F31] hover:bg-emerald-950 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-950/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                   >
                     Next: Add Photos <ArrowRight size={14} />
                   </button>
@@ -1399,33 +2490,93 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
 
               </div>
 
-              {/* Step 1 Tips Panel */}
-              <div className="space-y-6">
-                <div className="bg-emerald-900 text-white rounded-[32px] p-6 sm:p-8 shadow-sm space-y-5 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 h-24 w-24 bg-emerald-800/30 rounded-full blur-xl" />
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-800 text-emerald-200 px-2.5 py-1 rounded-full">
-                      Guide
-                    </span>
-                    <h4 className="text-base font-extrabold font-display leading-tight">Write Compelling Titles to Attract 3x Inquiries</h4>
+              {/* Sticky Top-24 Visual Helper Card and Listing Strength Meter */}
+              <div className="lg:col-span-1 space-y-6">
+                <div className="sticky top-24 space-y-6">
+                  
+                  {/* Visual Strength Meter Card */}
+                  <div className="bg-white rounded-[32px] p-6 border border-neutral-200 shadow-sm space-y-4">
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-[#004F31]">Listing Strength</h4>
+                      <p className="text-[11px] text-neutral-400 font-bold mt-0.5">Maximize strength to secure 3x faster verification!</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-black text-neutral-800">
+                          {getListingStrength().strength}% Complete
+                        </span>
+                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                          getListingStrength().strength < 50 
+                            ? 'bg-amber-50 text-amber-600' 
+                            : getListingStrength().strength < 80 
+                              ? 'bg-emerald-50 text-emerald-700' 
+                              : 'bg-emerald-100 text-[#004F31]'
+                        }`}>
+                          {getListingStrength().strength < 50 ? "Weak" : getListingStrength().strength < 80 ? "Moderate" : "Excellent"}
+                        </span>
+                      </div>
+
+                      {/* Percentage Bar */}
+                      <div className="h-2 w-full bg-neutral-100 rounded-full overflow-hidden">
+                        <motion.div 
+                          className="h-full bg-[#004F31]"
+                          initial={{ width: '15%' }}
+                          animate={{ width: `${getListingStrength().strength}%` }}
+                          transition={{ duration: 0.4 }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Pending Items checklist */}
+                    {getListingStrength().pending.length > 0 ? (
+                      <div className="space-y-2 pt-2">
+                        <span className="text-[10px] font-black uppercase text-neutral-400 tracking-wider">
+                          Remaining Checklist ({getListingStrength().pending.length})
+                        </span>
+                        <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                          {getListingStrength().pending.map((item) => (
+                            <div key={item} className="flex items-center gap-2 text-[11px] font-bold text-neutral-500">
+                              <span className="h-2 w-2 rounded-full bg-neutral-300" />
+                              <span>{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-emerald-50 text-[#004F31] p-3 rounded-2xl border border-emerald-100 text-center text-xs font-black uppercase tracking-widest flex items-center justify-center gap-1.5">
+                        ✨ listing is 100% optimized!
+                      </div>
+                    )}
                   </div>
-                  <ul className="space-y-3.5 text-xs text-emerald-100 font-semibold">
-                    <li className="flex gap-2">
-                      <span className="text-sm">✓</span>
-                      <span>Include bedroom count and property category</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-sm">✓</span>
-                      <span>Mention valuable landmarks (e.g., Near Highway, Sea View)</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-sm">✓</span>
-                      <span>Provide pricing expectation context clearly</span>
-                    </li>
-                  </ul>
-                  <div className="bg-emerald-955 rounded-2xl p-4 border border-emerald-800/60 text-[11px] leading-relaxed text-emerald-100 font-bold">
-                    💡 <strong>Pro-Tip:</strong> Buyers filter heavily by district, price, and number of bedrooms. Keep specifications 100% accurate.
+
+                  {/* Section Contextual Advice card (Switches text live based on activeSection) */}
+                  <div className="bg-[#004F31] text-white rounded-[32px] p-6 sm:p-7 shadow-sm space-y-4 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 h-24 w-24 bg-emerald-800/30 rounded-full blur-xl" />
+                    
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-black uppercase tracking-widest bg-emerald-900 text-emerald-200 px-2.5 py-1 rounded-full">
+                        Contextual Advice
+                      </span>
+                      <h4 className="text-sm font-extrabold font-display leading-tight pt-1.5">
+                        {getSectionAdvice().title}
+                      </h4>
+                    </div>
+
+                    <ul className="space-y-3 text-xs text-emerald-100 font-semibold">
+                      {getSectionAdvice().tips.map((tip, idx) => (
+                        <li key={idx} className="flex gap-2">
+                          <span className="text-emerald-300">✓</span>
+                          <span>{tip}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="bg-[#003822] rounded-2xl p-3.5 border border-emerald-800/60 text-[11px] leading-relaxed text-emerald-150 font-extrabold">
+                      {getSectionAdvice().highlight}
+                    </div>
                   </div>
+
                 </div>
               </div>
 
@@ -1439,192 +2590,506 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+              className="space-y-8 max-w-5xl mx-auto"
             >
-              
-              <div className="lg:col-span-2 space-y-6">
-                
-                {/* Image upload widget */}
-                <div className="bg-white rounded-[32px] p-6 sm:p-8 border border-neutral-200/60 shadow-sm space-y-6">
-                  <div>
-                    <h3 className="text-base font-extrabold text-neutral-900 font-display">Add Showcase Property Images</h3>
-                    <p className="text-xs text-neutral-500 font-semibold mt-0.5">Properties with photos receive 8x higher buyer traffic than text-only ads.</p>
-                  </div>
+              {/* Hidden file input (ONE input, reused) */}
+              <input
+                type="file"
+                id="photo-picker"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                multiple
+                accept=".jpg,.jpeg,.png,.webp"
+                style={{ display: 'none' }}
+              />
 
-                  {/* Drag and Drop Zone */}
-                  <div
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-[#004F31]/30 hover:border-[#004F31] bg-[#F8FAF8] hover:bg-emerald-50/10 rounded-[24px] p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center group"
-                  >
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileSelect}
-                      multiple
-                      accept="image/jpeg,image/png,image/webp"
-                      className="hidden"
-                    />
-                    <div className="h-14 w-14 bg-[#004F31]/10 text-[#004F31] rounded-full flex items-center justify-center mb-3 transition-transform group-hover:scale-110">
-                      <Camera size={24} />
-                    </div>
-                    <p className="text-xs font-black uppercase text-[#004F31] tracking-wider">Drag & Drop Property Photos Here</p>
-                    <p className="text-[11px] text-neutral-400 font-bold mt-1">or click to browse your local system</p>
-                    <p className="text-[9.5px] text-neutral-400 font-semibold mt-2 bg-white px-3 py-1 rounded-full border border-neutral-100">
-                      JPG, PNG, WEBP • Max 5MB each • Up to 12 Photos
-                    </p>
-                  </div>
+              {/* Page Header */}
+              <div className="text-center space-y-2">
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 font-display">Add Property Photos</h2>
+                <p className="text-xs sm:text-sm text-neutral-500 font-semibold max-w-xl mx-auto">
+                  Great photos get 3× more inquiries from serious buyers.
+                </p>
+              </div>
 
-                  {/* Thumbnails grid */}
-                  {images.length > 0 && (
-                    <div className="space-y-4 pt-2">
-                      <div className="flex justify-between items-center border-b border-neutral-100 pb-2">
-                        <span className="text-[11px] font-black uppercase text-[#004F31] tracking-wider">Loaded Previews Gallery</span>
-                        <span className="text-[11px] font-black uppercase text-neutral-400">First image is cover</span>
+              {/* Plan Badge */}
+              {(() => {
+                const plan = localStorage.getItem('lp_selected_plan') || selectedPlan || 'starter_free';
+                if (plan === 'starter_free') {
+                  return (
+                    <div className="bg-slate-100 border border-slate-200 rounded-[24px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="space-y-1 text-center sm:text-left">
+                        <h4 className="text-sm font-black text-slate-800 flex items-center justify-center sm:justify-start gap-1.5">
+                          🏠 Free Plan — Up to 6 Photos
+                        </h4>
+                        <p className="text-xs text-slate-500 font-semibold">Want to upload more showcase images of your property?</p>
                       </div>
-                      
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        {images.map((img, idx) => (
-                          <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden border border-neutral-200 shadow-sm group bg-neutral-50">
-                            
-                            {/* square cover fit */}
-                            <img
-                              src={img.url}
-                              alt={`preview-${idx}`}
-                              className="h-full w-full object-cover"
-                              referrerPolicy="no-referrer"
-                            />
+                      <button
+                        type="button"
+                        onClick={() => setStep(3)}
+                        className="py-2.5 px-5 bg-[#004F31] hover:bg-emerald-950 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md shadow-emerald-950/15 transition-all flex items-center gap-1.5 cursor-pointer border-0"
+                      >
+                        Upgrade for up to 12 photos →
+                      </button>
+                    </div>
+                  );
+                } else if (plan === 'premium_pro') {
+                  return (
+                    <div className="bg-[#f0fdf4] border border-emerald-100 rounded-[24px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="space-y-1 text-center sm:text-left">
+                        <h4 className="text-sm font-black text-[#004F31] flex items-center justify-center sm:justify-start gap-1.5">
+                          ⭐ Premium Pro — Up to 9 Photos
+                        </h4>
+                        <p className="text-xs text-emerald-700/80 font-semibold">Unlock maximum listing capacity for wider coverage.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setStep(3)}
+                        className="py-2.5 px-5 bg-[#004F31] hover:bg-emerald-950 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md shadow-emerald-950/15 transition-all flex items-center gap-1.5 cursor-pointer border-0"
+                      >
+                        👑 Upgrade to Elite Pro →
+                      </button>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div className="bg-[#f0f4ff] border border-blue-100 rounded-[24px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="space-y-1 text-center sm:text-left">
+                        <h4 className="text-sm font-black text-blue-900 flex items-center justify-center sm:justify-start gap-1.5">
+                          👑 Elite Pro — Up to 12 Photos ✅
+                        </h4>
+                        <p className="text-xs text-blue-700/80 font-semibold">Maximum photo slots unlocked! Fill them to get premium buyers.</p>
+                      </div>
+                    </div>
+                  );
+                }
+              })()}
 
-                            {/* Overlay Badge */}
-                            {idx === 0 ? (
-                              <span className="absolute bottom-2 left-2 px-2 py-0.5 bg-[#004F31] text-white text-[9px] font-black uppercase rounded tracking-widest border border-white/20 shadow">
-                                Cover Photo
-                              </span>
-                            ) : null}
+              {/* Photo Count Bar */}
+              {(() => {
+                const plan = localStorage.getItem('lp_selected_plan') || selectedPlan || 'starter_free';
+                const photoLimits: Record<string, number> = {
+                  'starter_free': 6,
+                  'premium_pro': 9,
+                  'elite_pro': 12
+                };
+                const maxPhotos = photoLimits[plan] || 6;
+                const photosCount = images.filter(img => img !== null).length;
+                const progressPct = Math.min((photosCount / maxPhotos) * 100, 100);
 
-                            {/* hover controls */}
-                            <div className="absolute inset-0 bg-neutral-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
-                              {/* top controls */}
-                              <div className="flex justify-between items-start">
-                                <button
-                                  type="button"
-                                  onClick={(e) => { e.stopPropagation(); removeImage(idx); }}
-                                  className="p-1 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors cursor-pointer ml-auto"
-                                >
-                                  <Trash2 size={12} />
-                                </button>
-                              </div>
+                const status = getProgressStatus(photosCount, maxPhotos);
 
-                              {/* bottom swap/order controls */}
-                              <div className="flex justify-between gap-1 mt-auto">
-                                <button
-                                  type="button"
-                                  disabled={idx === 0}
-                                  onClick={(e) => { e.stopPropagation(); moveImage(idx, 'left'); }}
-                                  className={`p-1 bg-white hover:bg-neutral-100 text-[#004F31] rounded-lg transition-all cursor-pointer ${
-                                    idx === 0 && 'opacity-40 cursor-not-allowed'
-                                  }`}
-                                >
-                                  <ChevronLeft size={12} />
-                                </button>
-                                <span className="text-[9px] font-black text-white bg-[#004F31] px-1.5 py-0.5 rounded">
-                                  #{idx + 1}
-                                </span>
-                                <button
-                                  type="button"
-                                  disabled={idx === images.length - 1}
-                                  onClick={(e) => { e.stopPropagation(); moveImage(idx, 'right'); }}
-                                  className={`p-1 bg-white hover:bg-neutral-100 text-[#004F31] rounded-lg transition-all cursor-pointer ${
-                                    idx === images.length - 1 && 'opacity-40 cursor-not-allowed'
-                                  }`}
-                                >
-                                  <ChevronRight size={12} />
-                                </button>
-                              </div>
+                return (
+                  <div className="space-y-2.5">
+                    <div className="flex justify-between items-center text-xs font-black uppercase tracking-wider">
+                      <span className="text-neutral-500">Photos added: {photosCount} / {maxPhotos}</span>
+                      <span className={`${
+                        photosCount === 0 ? 'text-red-500' :
+                        photosCount === maxPhotos ? 'text-emerald-600' :
+                        photosCount <= 2 ? 'text-orange-500' : 'text-yellow-600'
+                      }`}>{status.text}</span>
+                    </div>
+                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200/40">
+                      <motion.div
+                        className={`h-full ${status.color}`}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progressPct}%` }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
 
+              {/* Photo Grid */}
+              <div 
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-white border border-neutral-200/60 rounded-[32px] shadow-sm relative"
+              >
+                {Array.from({ length: 12 }).map((_, idx) => {
+                  const plan = localStorage.getItem('lp_selected_plan') || selectedPlan || 'starter_free';
+                  const photoLimits: Record<string, number> = {
+                    'starter_free': 6,
+                    'premium_pro': 9,
+                    'elite_pro': 12
+                  };
+                  const maxPhotos = photoLimits[plan] || 6;
+                  const isLocked = idx >= maxPhotos;
+                  const photo = images[idx];
+
+                  if (isLocked) {
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => setShowUpgradeModal(true)}
+                        className="relative w-full h-[200px] rounded-2xl bg-slate-100 border border-dashed border-slate-200 flex flex-col items-center justify-center p-4 text-center cursor-pointer transition-all duration-200 hover:bg-slate-200/40 opacity-35 select-none"
+                      >
+                        {/* Number Badge with lock */}
+                        <div className="absolute top-[10px] left-[10px] bg-[#334155] text-white text-[11px] font-bold px-2 py-0.5 rounded-[6px] flex items-center gap-1 z-10 shadow">
+                          <span>{idx + 1}</span>
+                          <Lock size={9} />
+                        </div>
+
+                        <div className="space-y-2 flex flex-col items-center">
+                          <Lock size={28} className="text-slate-400" />
+                          <div className="text-[11px] font-black uppercase tracking-[2px] text-slate-500">
+                            LOCKED
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (photo) {
+                    return (
+                      <div
+                        key={idx}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, idx)}
+                        onDragOver={(e) => handleDragOverSlot(e, idx)}
+                        onDrop={(e) => handleDropSlot(e, idx)}
+                        onDragEnd={handleDragEnd}
+                        className="relative w-full h-[200px] rounded-2xl overflow-hidden group border border-slate-200 shadow-sm bg-slate-50 flex items-center justify-center select-none"
+                      >
+                        {/* Drag indicator overlay on hover */}
+                        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 bg-slate-900/80 hover:bg-slate-900 text-white rounded-full px-2.5 py-0.5 text-[10px] font-bold cursor-grab active:cursor-grabbing flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 shadow-sm">
+                          <span>⠿</span>
+                          <span>DRAG</span>
+                        </div>
+
+                        {/* Delete button (✕) */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDeleteIndex(idx);
+                          }}
+                          className="absolute top-2.5 right-2.5 bg-slate-900/80 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors cursor-pointer z-20 shadow-sm text-xs font-bold border-0"
+                        >
+                          ✕
+                        </button>
+
+                        {/* Image element */}
+                        <img
+                          src={photo.url}
+                          alt={photo.name}
+                          className="w-full h-full object-cover rounded-2xl"
+                          referrerPolicy="no-referrer"
+                        />
+
+                        {/* Number Badge */}
+                        {idx === 0 ? (
+                          <div className="absolute top-[10px] left-[10px] bg-[#004F31] text-white text-[11px] font-black uppercase px-2 py-1 rounded-[6px] z-10 shadow">
+                            MAIN
+                          </div>
+                        ) : (
+                          <div className="absolute top-[10px] left-[10px] bg-[#334155] text-white text-[11px] font-bold px-2 py-0.5 rounded-[6px] z-10 shadow">
+                            {idx + 1}
+                          </div>
+                        )}
+
+                        {/* Stale Draft Notice (Requires upload) */}
+                        {photo.isStale && (
+                          <div className="absolute inset-0 bg-slate-900/80 rounded-2xl p-4 flex flex-col items-center justify-center text-center space-y-2 z-10">
+                            <Camera size={24} className="text-amber-400 animate-bounce" />
+                            <p className="text-[10px] text-amber-200 font-extrabold uppercase leading-snug">
+                              📸 Please re-add your photos
+                            </p>
+                            <p className="text-[9px] text-slate-300 font-semibold leading-normal">
+                              Browser security requires a fresh file upload on refresh.
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Hover click to replace overlay */}
+                        {!photo.isStale && confirmDeleteIndex !== idx && (
+                          <div
+                            onClick={() => {
+                              setSelectedSlotIndex(idx);
+                              setTimeout(() => {
+                                document.getElementById('photo-picker')?.click();
+                              }, 50);
+                            }}
+                            className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center rounded-2xl cursor-pointer z-10"
+                          >
+                            <span className="text-white text-[11px] font-black uppercase tracking-wider bg-slate-900/85 px-3 py-1.5 rounded-full shadow-sm">
+                              📷 Click to Replace
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Delete confirmation overlay */}
+                        {confirmDeleteIndex === idx && (
+                          <div className="absolute inset-0 bg-slate-900/95 rounded-2xl flex flex-col items-center justify-center p-3 text-center space-y-2 z-30">
+                            <span className="text-white text-[11px] font-bold">Remove this photo?</span>
+                            <div className="flex gap-2 w-full justify-center">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeImage(idx);
+                                  setConfirmDeleteIndex(null);
+                                }}
+                                className="bg-red-600 hover:bg-red-700 text-white font-black text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer active:scale-95 transition-transform border-0"
+                              >
+                                Yes
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setConfirmDeleteIndex(null);
+                                }}
+                                className="bg-slate-700 hover:bg-slate-600 text-white font-black text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer active:scale-95 transition-transform border-0"
+                              >
+                                No
+                              </button>
                             </div>
                           </div>
-                        ))}
+                        )}
                       </div>
+                    );
+                  }
 
-                      <p className="text-[10px] text-neutral-400 font-extrabold uppercase text-center mt-2">
-                        💡 Tip: Reorder photos using arrows so the best photo is listed as cover first!
-                      </p>
+                  // Active Empty slot (clickable)
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => {
+                        setSelectedSlotIndex(idx);
+                        setTimeout(() => {
+                          document.getElementById('photo-picker')?.click();
+                        }, 50);
+                      }}
+                      className="relative w-full h-[200px] rounded-2xl bg-slate-50/50 border-2 border-dashed border-slate-300 hover:border-[#004F31] hover:bg-[#f0fdf4] flex flex-col items-center justify-center p-4 text-center cursor-pointer transition-all duration-200 group select-none"
+                    >
+                      {/* Number Badge */}
+                      {idx === 0 ? (
+                        <div className="absolute top-[10px] left-[10px] bg-[#004F31] text-white text-[11px] font-black uppercase px-2 py-1 rounded-[6px] shadow-sm">
+                          MAIN
+                        </div>
+                      ) : (
+                        <div className="absolute top-[10px] left-[10px] bg-[#334155] text-white text-[11px] font-bold px-2 py-0.5 rounded-[6px] shadow-sm">
+                          {idx + 1}
+                        </div>
+                      )}
+
+                      <div className="space-y-2 flex flex-col items-center">
+                        <Camera size={32} className="text-slate-400 group-hover:text-[#004F31] transition-colors duration-200" />
+                        <div className="text-[11px] font-black uppercase tracking-[2px] text-slate-400 group-hover:text-[#004F31] transition-colors duration-200">
+                          ADD PHOTO
+                        </div>
+                      </div>
                     </div>
-                  )}
+                  );
+                })}
+              </div>
 
+              {/* Drag explanation text */}
+              <div className="text-center">
+                <p className="text-xs text-neutral-500 font-bold italic">
+                  🔄 Drag photos to reorder. The first photo is your cover image.
+                </p>
+              </div>
+
+              {/* Photo Tips section */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-black uppercase tracking-widest text-[#004F31] text-center">📸 Photo Tips for Serious Leads</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-center space-y-1.5 shadow-sm">
+                    <span className="text-xl">☀️</span>
+                    <h5 className="text-xs font-black text-slate-800 uppercase tracking-wider">Good Lighting</h5>
+                    <p className="text-[10px] font-semibold text-slate-500 leading-relaxed">Take photos in daylight for best results</p>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-center space-y-1.5 shadow-sm">
+                    <span className="text-xl">🏠</span>
+                    <h5 className="text-xs font-black text-slate-800 uppercase tracking-wider">Show the Front First</h5>
+                    <p className="text-[10px] font-semibold text-slate-500 leading-relaxed">Box 1 (MAIN) is what buyers see first</p>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-center space-y-1.5 shadow-sm">
+                    <span className="text-xl">📱</span>
+                    <h5 className="text-xs font-black text-slate-800 uppercase tracking-wider">Landscape Mode</h5>
+                    <p className="text-[10px] font-semibold text-slate-500 leading-relaxed">Turn phone sideways for wider shots</p>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-center space-y-1.5 shadow-sm">
+                    <span className="text-xl">🧹</span>
+                    <h5 className="text-xs font-black text-slate-800 uppercase tracking-wider">Clean & Tidy</h5>
+                    <p className="text-[10px] font-semibold text-slate-500 leading-relaxed">Remove clutter before taking photos</p>
+                  </div>
                 </div>
+              </div>
 
-                {/* Back / Next panel */}
-                <div className="flex justify-between pt-4">
+              {/* AI Notice */}
+              <div className="bg-emerald-50/50 border border-emerald-100 rounded-[24px] p-6 space-y-2 relative overflow-hidden">
+                <div className="absolute top-0 right-0 h-16 w-16 bg-emerald-100/40 rounded-full blur-lg" />
+                <h4 className="text-xs sm:text-sm font-black text-[#004F31] flex items-center gap-1.5">
+                  ✨ AI Photo Enhancement — FREE
+                </h4>
+                <div className="space-y-1.5 pl-0.5">
+                  <p className="text-[11px] font-bold text-emerald-800/95 leading-relaxed">
+                    All your photos are automatically enhanced by our AI:
+                  </p>
+                  <ul className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10.5px] font-extrabold text-emerald-700">
+                    <li className="flex items-center gap-1">✓ Brightness corrected</li>
+                    <li className="flex items-center gap-1">✓ Sharpness improved</li>
+                    <li className="flex items-center gap-1">✓ Colors optimized</li>
+                  </ul>
+                  <p className="text-[9.5px] font-semibold text-emerald-600/80 pt-1">
+                    Your original photos are always saved.
+                  </p>
+                </div>
+              </div>
+
+              {/* Bottom Navigation */}
+              <div className="flex flex-col items-center gap-3 pt-4 border-t border-slate-100">
+                <div className="flex flex-col sm:flex-row justify-between items-center w-full gap-4">
                   <button
                     onClick={() => setStep(1)}
-                    className="py-4 px-6 border border-neutral-200 hover:bg-neutral-50 text-neutral-600 font-black text-xs uppercase tracking-widest rounded-2xl transition-all flex items-center gap-2"
+                    className="w-full sm:w-auto py-3.5 px-6 border border-neutral-200 hover:bg-neutral-50 text-neutral-600 font-black text-xs uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <ArrowLeft size={13} /> Back to Details
                   </button>
                   <button
                     onClick={handleNextStep2}
-                    className="py-4 px-10 bg-[#004F31] hover:bg-emerald-950 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-950/25 transition-all flex items-center gap-2"
+                    className="w-full sm:w-auto py-3.5 px-8 bg-[#004F31] hover:bg-emerald-950 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-950/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 border-0"
                   >
-                    Choose Package <ArrowRight size={14} />
+                    Next: Choose Your Plan →
                   </button>
                 </div>
-
+                <button
+                  type="button"
+                  onClick={() => setStep(3)}
+                  className="text-[11px] font-black uppercase tracking-wider text-[#004F31] hover:underline cursor-pointer block text-center border-0 bg-transparent mt-2"
+                >
+                  Skip photos for now →
+                </button>
               </div>
 
-              {/* Step 2 Sidebar */}
-              <div className="space-y-6">
-                
-                {/* Photo tips panel */}
-                <div className="bg-white rounded-[32px] p-6 sm:p-8 border border-neutral-200/60 shadow-sm space-y-4">
-                  <div>
-                    <h4 className="text-sm font-extrabold text-neutral-900 font-display">📸 Showcase Photo Tips</h4>
-                    <p className="text-[11px] text-neutral-400 font-bold mt-0.5">Follow local guidelines to get better inquiry rates.</p>
-                  </div>
-                  <ul className="space-y-3.5 text-xs text-neutral-600 font-semibold">
-                    <li className="flex gap-2">
-                      <span className="text-[#004F31]">✓</span>
-                      <span>Capture photos in bright daylight. Avoid night-shots.</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-[#004F31]">✓</span>
-                      <span>Show the front elevation of the building first.</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-[#004F31]">✓</span>
-                      <span>Include garden, car-park, kitchens and master bedrooms.</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-[#004F31]">✓</span>
-                      <span>We highly recommend uploading at least 5 photos.</span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Image progress widget */}
-                <div className="bg-white rounded-[32px] p-6 sm:p-8 border border-neutral-200/60 shadow-sm space-y-3">
-                  <div className="flex justify-between text-xs font-black uppercase text-neutral-500 tracking-wider">
-                    <span>Photos Added</span>
-                    <span className="text-[#004F31]">{images.length} / 12</span>
-                  </div>
-                  <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
-                    <motion.div 
-                      className="h-full bg-[#004F31]" 
-                      initial={{ width: '0%' }}
-                      animate={{ width: `${(images.length / 12) * 100}%` }}
-                    />
-                  </div>
-                  <button
-                    onClick={() => { setStep(3); }}
-                    className="text-[10.5px] font-black uppercase tracking-wider text-[#004F31] hover:underline block text-center pt-2"
+              {/* 1. NO PHOTOS WARNING MODAL */}
+              {showNoPhotosModal && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-100">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-white rounded-[32px] p-6 max-w-md w-full shadow-2xl border border-neutral-100 space-y-6"
                   >
-                    Skip photos for now →
-                  </button>
-                </div>
+                    <div className="flex items-start gap-4">
+                      <div className="h-10 w-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 shrink-0">
+                        ⚠️
+                      </div>
+                      <div className="space-y-1 text-left">
+                        <h4 className="text-base font-extrabold text-neutral-900 leading-snug">
+                          You haven't added any photos yet
+                        </h4>
+                        <p className="text-xs text-neutral-500 font-semibold leading-relaxed">
+                          Listings with photos get 10× more views. Are you sure you want to continue without photos?
+                        </p>
+                      </div>
+                    </div>
 
-              </div>
+                    <div className="flex gap-3 justify-end pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowNoPhotosModal(false)}
+                        className="py-3 px-5 border border-neutral-200 text-neutral-600 font-black text-[10.5px] uppercase tracking-widest rounded-xl hover:bg-neutral-50 transition-colors cursor-pointer"
+                      >
+                        Add Photos
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowNoPhotosModal(false);
+                          setStep(3);
+                        }}
+                        className="py-3 px-5 bg-amber-600 hover:bg-amber-700 text-white font-black text-[10.5px] uppercase tracking-widest rounded-xl transition-colors cursor-pointer flex items-center gap-1 shadow-md shadow-amber-600/10 border-0"
+                      >
+                        Continue Anyway <ArrowRight size={12} />
+                      </button>
+                    </div>
+                  </motion.div>
+                </div>
+              )}
+
+              {/* 2. UPGRADE TO UNLOCK PHOTOS MODAL */}
+              {showUpgradeModal && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-100">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-white rounded-[32px] p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-neutral-100 space-y-6 relative"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setShowUpgradeModal(false)}
+                      className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-sm font-bold cursor-pointer border-0 bg-transparent"
+                    >
+                      ✕
+                    </button>
+
+                    <div className="space-y-1 text-left">
+                      <h4 className="text-base sm:text-lg font-extrabold text-neutral-900 flex items-center gap-1.5 font-display">
+                        🔒 More Photos Available
+                      </h4>
+                      <p className="text-xs text-neutral-500 font-semibold">
+                        Your current plan allows up to{' '}
+                        {(() => {
+                          const plan = localStorage.getItem('lp_selected_plan') || selectedPlan || 'starter_free';
+                          return plan === 'starter_free' ? '6' : '9';
+                        })()}{' '}
+                        photos.
+                      </p>
+                    </div>
+
+                    <div className="space-y-3.5 pt-2 text-left">
+                      <div className="border border-neutral-100 rounded-2xl p-4 bg-emerald-50/10 flex justify-between items-center">
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-[#004F31] px-2.5 py-0.5 rounded-full">
+                            ⭐ Premium Pro
+                          </span>
+                          <p className="text-[11px] font-semibold text-neutral-500">Up to 9 high-quality photos</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs font-black text-neutral-900">Rs. 4,500</p>
+                          <p className="text-[10px] font-bold text-neutral-400">/ 2 Months</p>
+                        </div>
+                      </div>
+
+                      <div className="border border-neutral-100 rounded-2xl p-4 bg-blue-50/10 flex justify-between items-center">
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-900 px-2.5 py-0.5 rounded-full">
+                            👑 Elite Pro
+                          </span>
+                          <p className="text-[11px] font-semibold text-neutral-500">Up to 12 maximum slots unlocked</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs font-black text-neutral-900">Rs. 8,500</p>
+                          <p className="text-[10px] font-bold text-neutral-400">/ 3 Months</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 justify-end pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowUpgradeModal(false)}
+                        className="py-3 px-5 border border-neutral-200 text-neutral-600 font-black text-[10.5px] uppercase tracking-widest rounded-xl hover:bg-neutral-50 transition-colors cursor-pointer"
+                      >
+                        Not Now
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowUpgradeModal(false);
+                          setStep(3);
+                        }}
+                        className="py-3 px-5 bg-[#004F31] hover:bg-emerald-950 text-white font-black text-[10.5px] uppercase tracking-widest rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 shadow-md shadow-emerald-950/15 border-0"
+                      >
+                        Upgrade My Plan <ArrowRight size={12} />
+                      </button>
+                    </div>
+                  </motion.div>
+                </div>
+              )}
 
             </motion.div>
           )}
