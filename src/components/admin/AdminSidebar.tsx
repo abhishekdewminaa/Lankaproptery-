@@ -6,7 +6,6 @@ import {
   MessageSquare,
   Settings2,
   LayoutDashboard,
-  Plus,
   LogOut,
   Megaphone,
   Zap,
@@ -17,8 +16,6 @@ import {
   Kanban,
   Mail,
   FileText,
-  Sun,
-  Moon,
   Users,
   Building2,
   Link2,
@@ -46,34 +43,17 @@ export default function AdminSidebar({
   const [showFade, setShowFade] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const sidebarBg = adminDarkMode ? '#13131F' : '#ffffff';
-  const borderCol = adminDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)';
-  
-  // Text & Visual Colors
-  const textTitle = adminDarkMode ? 'text-white' : 'text-slate-900';
-  const textSubtitle = adminDarkMode ? 'text-[#4ade80]' : 'text-[#004F31]';
-  const profileBorder = adminDarkMode ? 'border-white/10' : 'border-slate-100';
-  const profileAvatarBg = adminDarkMode ? 'bg-white/10 border-white/20' : 'bg-slate-50 border-slate-100';
-  const emailText = adminDarkMode ? 'text-white' : 'text-slate-800';
-  const roleText = adminDarkMode ? 'text-[#4ade80]' : 'text-emerald-700';
-
-  // Navigation Items
-  const navActiveBg = adminDarkMode ? 'bg-white/15' : 'bg-[#004F31]/8';
-  const navActiveText = adminDarkMode ? 'text-white font-bold' : 'text-[#004F31] font-bold';
-  const navActiveBorder = adminDarkMode ? '3px solid #ffffff' : '3px solid #004F31';
-  const navNormalText = adminDarkMode ? 'text-white/70 hover:bg-white/8 hover:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-[#004F31]';
-  const navActiveIcon = adminDarkMode ? 'text-[#4ade80]' : 'text-[#004F31]';
-  const navNormalIcon = adminDarkMode ? 'opacity-70 group-hover/nav:opacity-100' : 'text-slate-400 group-hover/nav:text-[#004F31]';
-
-  // Scrollbar Styles
-  const scrollbarColor = adminDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)';
-  const scrollbarHoverColor = adminDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)';
-
   const menuItems = [
     {
       id: "dashboard",
       label: "Dashboard",
       icon: <LayoutDashboard size={18} />,
+    },
+    {
+      id: "photo-editor",
+      label: "🎨 Photo Editor",
+      icon: <Sparkles size={18} />,
+      isNew: true,
     },
     { id: "listings", label: "Properties", icon: <ClipboardList size={18} /> },
     { id: "user_listings", label: "User Listings Overview", icon: <Users size={18} />, isNew: true },
@@ -133,12 +113,8 @@ export default function AdminSidebar({
       <style>{`
         .sidebar-nav-scrollable {
           scrollbar-width: thin;
-          scrollbar-color: transparent transparent;
-          transition: scrollbar-color 0.3s ease;
+          scrollbar-color: #e5e7eb transparent;
           scroll-behavior: smooth;
-        }
-        .sidebar-nav-scrollable:hover {
-          scrollbar-color: ${scrollbarColor} transparent;
         }
         .sidebar-nav-scrollable::-webkit-scrollbar {
           width: 4px;
@@ -147,15 +123,11 @@ export default function AdminSidebar({
           background: transparent;
         }
         .sidebar-nav-scrollable::-webkit-scrollbar-thumb {
-          background: transparent;
+          background: #e5e7eb;
           border-radius: 4px;
-          transition: background-color 0.3s ease;
-        }
-        .sidebar-nav-scrollable:hover::-webkit-scrollbar-thumb {
-          background: ${scrollbarColor};
         }
         .sidebar-nav-scrollable::-webkit-scrollbar-thumb:hover {
-          background: ${scrollbarHoverColor};
+          background: #d1d5db;
         }
       `}</style>
 
@@ -166,29 +138,30 @@ export default function AdminSidebar({
           top: 0,
           left: 0,
           height: '100vh',
-          width: '260px',
+          width: '240px',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          background: sidebarBg,
+          background: '#ffffff',
           zIndex: isMobile ? 1 : 1000,
-          borderRight: adminDarkMode ? '1px solid #1F2937' : '1px solid #E2E8F0',
+          borderRight: '1px solid #e5e7eb',
+          fontFamily: "'Plus Jakarta Sans', sans-serif"
         }}
       >
         {/* PART 1 — FIXED TOP: NEVER SCROLLS */}
-        <div className="flex-shrink-0 p-6">
+        <div className="flex-shrink-0 p-5">
           <div className="whitespace-nowrap overflow-hidden">
-            <h1 className={`text-[20px] font-black leading-none ${textTitle}`}>
+            <h1 className="text-[18px] font-bold leading-none text-[#004F31]">
               LankaProperty.lk
             </h1>
-            <p className={`text-[10px] uppercase tracking-widest font-black mt-1 ${textSubtitle}`}>
-              Admin Portal
+            <p className="text-[10px] text-[#00897b] font-semibold uppercase tracking-[1.5px] mt-1.5">
+              ADMIN PORTAL
             </p>
           </div>
-
+ 
           {/* User Profile */}
-          <div className={`flex items-center gap-3 py-3 border-b mt-4 ${profileBorder}`}>
-            <div className={`w-10 h-10 rounded-full border flex-shrink-0 flex items-center justify-center overflow-hidden ${profileAvatarBg}`}>
+          <div className="flex items-center gap-3 py-3 border-b mt-4" style={{ borderBottom: '1px solid #e5e7eb' }}>
+            <div className="w-[36px] h-[36px] rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden bg-[#004F31] text-white font-bold">
               {user?.avatar_url ? (
                 <img 
                   onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg' }}
@@ -197,22 +170,20 @@ export default function AdminSidebar({
                   className="w-full h-full object-cover rounded-full"
                 />
               ) : (
-                <div className={`w-full h-full flex items-center justify-center font-black rounded-full text-sm ${adminDarkMode ? 'bg-[#4ade80] text-[#004F31]' : 'bg-[#004F31] text-white'}`}>
-                  {user?.email?.[0].toUpperCase() || 'A'}
-                </div>
+                <span>{user?.email?.[0].toUpperCase() || 'A'}</span>
               )}
             </div>
-            <div className="overflow-hidden whitespace-nowrap">
-              <h3 className={`text-xs font-black truncate ${emailText}`}>
-                {user?.email || 'ceo.lankaland@gmail.com'}
+            <div className="overflow-hidden whitespace-nowrap flex flex-col">
+              <h3 className="text-[13px] font-semibold text-[#111827] truncate">
+                {user?.email || "abhishekdewminaa@gmail.com"}
               </h3>
-              <p className={`text-[9px] font-black tracking-widest uppercase ${roleText}`}>
+              <p className="text-[11px] font-medium text-[#6b7280] uppercase tracking-[0.5px] mt-0.5">
                 ADMINISTRATOR
               </p>
             </div>
           </div>
         </div>
-
+ 
         {/* PART 2 — SCROLLABLE MIDDLE: ONLY THIS SCROLLS */}
         <div className="flex-1 min-h-0 relative">
           <div
@@ -226,39 +197,37 @@ export default function AdminSidebar({
                 <button
                   key={item.id}
                   onClick={() => onNavigate(item.id)}
-                  className={`sidebar-nav-item w-[244px] h-[44px] my-[2px] mx-2 px-4 rounded-lg flex items-center justify-between text-left transition-all duration-150 relative group/nav ${
-                    isActive 
-                      ? `${navActiveBg} ${navActiveText} sidebar-active-item` 
-                      : `${navNormalText}`
+                  className={`sidebar-nav-item w-[224px] py-[10px] px-4 my-[2px] mx-2 transition-all duration-150 relative flex items-center justify-between text-left group/nav outline-none select-none cursor-pointer ${
+                    isActive
+                      ? "bg-[#f0fdf4] text-[#004F31] font-bold border-l-[3px] border-[#004F31] rounded-r-lg rounded-l-none sidebar-active-item"
+                      : "bg-transparent text-[#374151] hover:bg-[#f0fdf4] hover:text-[#004F31] rounded-lg font-medium"
                   }`}
-                  style={{
-                    borderLeft: isActive ? navActiveBorder : 'none',
-                  }}
                 >
-                  <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex items-center gap-[10px] min-w-0">
                     <span 
                       className={`flex-shrink-0 transition-all duration-150 ${
-                        isActive ? navActiveIcon : navNormalIcon
+                        isActive ? "text-[#004F31]" : "text-[#6b7280] group-hover/nav:text-[#004F31]"
                       }`}
                     >
                       {item.icon}
                     </span>
-                    <span className="text-xs tracking-wide truncate">
+                    <span className={`text-[14px] leading-tight truncate transition-all duration-150 ${
+                      isActive ? "text-[#004F31] font-bold" : "text-[#374151] font-medium group-hover/nav:text-[#004F31]"
+                    }`}>
                       {item.label}
                     </span>
                   </div>
-
+ 
                   {item.isNew && (
-                    <span className="flex items-center gap-0.5 bg-red-100 text-red-600 border border-red-200 text-[8px] uppercase tracking-widest font-black px-1.5 py-0.5 rounded-full shadow-sm ml-2 flex-shrink-0 whitespace-nowrap">
-                      <Flame size={10} className="text-orange-500 animate-pulse" />
-                      NEW
+                    <span className="flex items-center gap-0.5 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-[20px] shadow-sm ml-2 flex-shrink-0 whitespace-nowrap">
+                      🔥 NEW
                     </span>
                   )}
                 </button>
               );
             })}
           </div>
-
+ 
           {/* Subtle bottom fade gradient */}
           <AnimatePresence>
             {showFade && (
@@ -269,72 +238,50 @@ export default function AdminSidebar({
                 transition={{ duration: 0.2 }}
                 className="absolute bottom-0 left-0 right-0 h-10 pointer-events-none z-10"
                 style={{
-                  background: `linear-gradient(to bottom, transparent, ${sidebarBg})`
+                  background: `linear-gradient(to bottom, transparent, #ffffff)`
                 }}
               />
             )}
           </AnimatePresence>
         </div>
-
+ 
         {/* PART 3 — FIXED BOTTOM: NEVER SCROLLS */}
         <div 
           className="sidebar-bottom flex-shrink-0 flex flex-col gap-[2px] p-2 bg-transparent z-10" 
-          style={{ borderTop: `1px solid ${borderCol}` }}
+          style={{ borderTop: "1px solid #f3f4f6" }}
         >
           {/* Settings Item */}
           <button
             onClick={() => onNavigate('settings')}
-            className={`sidebar-nav-item w-[244px] h-[44px] my-[2px] mx-2 px-4 rounded-lg flex items-center gap-3 text-left transition-all duration-150 relative group/nav ${
-              activePage === 'settings' 
-                ? `${navActiveBg} ${navActiveText} sidebar-active-item` 
-                : `${navNormalText}`
+            className={`sidebar-nav-item w-[224px] py-[10px] px-4 my-[2px] mx-2 transition-all duration-150 relative flex items-center gap-[10px] text-left group/nav outline-none select-none cursor-pointer ${
+              activePage === 'settings'
+                ? "bg-[#f0fdf4] text-[#004F31] font-bold border-l-[3px] border-[#004F31] rounded-r-lg rounded-l-none sidebar-active-item"
+                : "bg-transparent text-[#374151] hover:bg-[#f0fdf4] hover:text-[#004F31] rounded-lg font-medium"
             }`}
-            style={{
-              borderLeft: activePage === 'settings' ? navActiveBorder : 'none',
-            }}
           >
             <span 
               className={`flex-shrink-0 transition-all duration-150 ${
-                activePage === 'settings' ? navActiveIcon : navNormalIcon
+                activePage === 'settings' ? "text-[#004F31]" : "text-[#6b7280] group-hover/nav:text-[#004F31]"
               }`}
             >
               <Settings2 size={18} />
             </span>
-            <span className="text-xs tracking-wide truncate">
+            <span className={`text-[14px] leading-tight truncate transition-all duration-150 ${
+              activePage === 'settings' ? "text-[#004F31] font-bold" : "text-[#374151] font-medium group-hover/nav:text-[#004F31]"
+            }`}>
               Settings
             </span>
           </button>
-
-          {/* Dark Mode Toggle */}
-          <button
-            onClick={toggleAdminDark}
-            className={`sidebar-nav-item w-[244px] h-[44px] my-[2px] mx-2 px-4 rounded-lg flex items-center gap-3 text-left transition-all duration-150 group/nav ${navNormalText}`}
-          >
-            <span className={`flex-shrink-0 transition-opacity duration-150 ${navNormalIcon}`}>
-              {adminDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-            </span>
-            <span className="text-xs tracking-wide truncate">
-              {adminDarkMode ? 'Light Mode' : 'Dark Mode'}
-            </span>
-          </button>
-
+ 
           {/* Sign Out */}
           <button
             onClick={onLogout}
-            className={`sidebar-nav-item w-[244px] h-[44px] my-[2px] mx-2 px-4 rounded-lg flex items-center gap-3 text-left transition-all duration-150 group/nav ${
-              adminDarkMode 
-                ? 'text-white/70 hover:bg-white/8 hover:text-red-400' 
-                : 'text-slate-600 hover:bg-red-50 hover:text-red-600'
-            }`}
+            className="sidebar-nav-item w-[224px] py-[10px] px-4 my-[2px] mx-2 rounded-lg flex items-center gap-[10px] text-left transition-all duration-150 text-[#374151] hover:bg-[#fef2f2] hover:text-[#dc2626] font-medium group/nav cursor-pointer outline-none select-none"
           >
-            <span className={`flex-shrink-0 transition-opacity duration-150 ${
-              adminDarkMode ? 'opacity-70 group-hover/nav:opacity-100 group-hover/nav:text-red-400' : 'text-slate-400 group-hover/nav:text-red-600'
-            }`}>
+            <span className="flex-shrink-0 transition-opacity duration-150 text-[#6b7280] group-hover/nav:text-[#dc2626]">
               <LogOut size={18} />
             </span>
-            <span className={`text-xs tracking-wide truncate ${
-              adminDarkMode ? 'group-hover/nav:text-red-400' : 'group-hover/nav:text-red-600'
-            }`}>
+            <span className="text-[14px] font-medium leading-tight truncate text-[#374151] group-hover/nav:text-[#dc2626]">
               Sign Out
             </span>
           </button>

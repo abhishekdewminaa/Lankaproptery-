@@ -18,6 +18,7 @@ import AdminLandsManager from './AdminLandsManager';
 import AdminUserListings from './AdminUserListings';
 import AdminAgents from './agents/AdminAgents';
 import AdminLinks from './AdminLinks';
+import AdminPhotoEditor from './AdminPhotoEditor';
 import { AutomationBuilderPage } from '../../pages/AutomationBuilderPage';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
@@ -43,14 +44,9 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
   const [successProperty, setSuccessProperty] = useState<any>(null);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isCheckingAdmin, setIsCheckingAdmin] = useState(true);
-  const [adminDarkMode, setAdminDarkMode] = useState(() => {
-    return localStorage.getItem('admin-dark-mode') === 'true';
-  });
-
+  const adminDarkMode = false;
   const toggleAdminDark = () => {
-    const newValue = !adminDarkMode;
-    setAdminDarkMode(newValue);
-    localStorage.setItem('admin-dark-mode', String(newValue));
+    // Force white theme permanently, removing dark mode toggle functionality
   };
 
   useEffect(() => {
@@ -163,6 +159,13 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
       toggleAdminDark={toggleAdminDark}
     >
       {activePage === 'dashboard' && <AdminDashboard user={user} />}
+      {activePage === 'photo-editor' && (
+        <AdminPhotoEditor 
+          user={user} 
+          onBack={() => setActivePage('dashboard')} 
+          adminDarkMode={adminDarkMode} 
+        />
+      )}
       {activePage === 'links' && <AdminLinks user={user} />}
       {activePage === 'enquiries' && <AdminInquiries user={user} />}
       {activePage === 'marketing' && <AdminMarketing />}

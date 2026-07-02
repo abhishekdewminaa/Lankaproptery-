@@ -1007,7 +1007,26 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900 font-sans selection:bg-[#004f31] selection:text-white antialiased">
-      <Toaster position="bottom-center" />
+      <Toaster 
+        position="bottom-center"
+        toastOptions={{
+          style: {
+            background: '#ffffff',
+            color: '#111827',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            fontSize: '13px',
+            fontWeight: '600',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+          },
+          success: {
+            iconTheme: {
+              primary: '#004F31',
+              secondary: '#ffffff',
+            },
+          },
+        }}
+      />
 
       {/* --- REDESIGNED BRAND NAVIGATION --- */}
       {currentTab !== "dashboard" && (

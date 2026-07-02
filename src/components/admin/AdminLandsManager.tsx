@@ -241,7 +241,26 @@ export default function AdminLandsManager() {
 
   return (
     <div id="admin-lands-manager" className="p-6 space-y-6 text-left text-neutral-800 dark:text-neutral-100">
-      <Toaster position="bottom-center" />
+      <Toaster 
+        position="bottom-center"
+        toastOptions={{
+          style: {
+            background: '#ffffff',
+            color: '#111827',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            fontSize: '13px',
+            fontWeight: '600',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+          },
+          success: {
+            iconTheme: {
+              primary: '#004F31',
+              secondary: '#ffffff',
+            },
+          },
+        }}
+      />
 
       {/* Header section */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-100 pb-4">

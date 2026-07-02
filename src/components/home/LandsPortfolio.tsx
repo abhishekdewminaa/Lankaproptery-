@@ -309,7 +309,26 @@ export const LandsPortfolio: React.FC<LandsPortfolioProps> = ({
 
   return (
     <div id="lands-portfolio-page" className="min-h-screen bg-neutral-50 pb-16 text-neutral-900 selection:bg-[#004f31] selection:text-white">
-      <Toaster position="bottom-center" />
+      <Toaster 
+        position="bottom-center"
+        toastOptions={{
+          style: {
+            background: '#ffffff',
+            color: '#111827',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            fontSize: '13px',
+            fontWeight: '600',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+          },
+          success: {
+            iconTheme: {
+              primary: '#004F31',
+              secondary: '#ffffff',
+            },
+          },
+        }}
+      />
 
       {/* --- HERO BANNER & BREADCRUMB --- */}
       <div className="relative bg-gradient-to-r from-[#003d25] to-[#015f3b] text-white overflow-hidden py-16 px-6 sm:px-12">

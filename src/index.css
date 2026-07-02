@@ -27,6 +27,37 @@
 }
 
 :root {
+  /* Backgrounds */
+  --admin-bg: #f5f7fa;
+  --admin-card-bg: #ffffff;
+  --admin-sidebar-bg: #004F31;
+  --admin-navbar-bg: #ffffff;
+  --admin-table-header-bg: #f9fafb;
+  --admin-table-row-hover: #f0fdf4;
+  --admin-input-bg: #ffffff;
+  --admin-modal-bg: #ffffff;
+  
+  /* Text */
+  --admin-text-primary: #111827;
+  --admin-text-secondary: #6b7280;
+  --admin-text-muted: #9ca3af;
+  --admin-sidebar-text: #ffffff;
+  
+  /* Borders */
+  --admin-border: #e5e7eb;
+  --admin-border-light: #f3f4f6;
+  --admin-input-border: #d1d5db;
+  
+  /* Brand */
+  --admin-primary: #004F31;
+  --admin-primary-hover: #006040;
+  --admin-primary-light: #f0fdf4;
+  
+  /* Shadows */
+  --admin-shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --admin-shadow-md: 0 4px 12px rgba(0,0,0,0.10);
+  --admin-shadow-lg: 0 20px 60px rgba(0,0,0,0.12);
+
   --background: #F8FAF8;
 }
 
@@ -192,35 +223,19 @@ button, a, .admin-card, .property-card, .quick-import-card, input, select, texta
   animation: glowPulse 3s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
 }
 
-/* Admin Dark Mode */
-.admin-dark {
-  --admin-bg: #0D0D1A;
-  --admin-card: #1A1A2E;
-  --admin-sidebar: #13131F;
-  --admin-text: #F9FAFB;
-  --admin-text-gray: #9CA3AF;
-  --admin-border: #374151;
-  --admin-input-bg: #1F2937;
-  --admin-hover: #1F2937;
-  background-color: var(--admin-bg);
-  color: var(--admin-text);
-}
-
-.admin-light {
-  --admin-bg: #F0F4F0;
-  --admin-card: #FFFFFF;
-  --admin-sidebar: #FFFFFF;
-  --admin-text: #111827;
-  --admin-text-gray: #6B7280;
-  --admin-border: #E5E7EB;
-  --admin-input-bg: #FFFFFF;
-  --admin-hover: #F9FAFB;
-  background-color: var(--admin-bg);
-  color: var(--admin-text);
-}
-
+/* Admin Light Theme - enforced globally for both .admin-dark and .admin-light */
 .admin-dark,
 .admin-light {
+  --admin-bg: #f5f7fa;
+  --admin-card: #ffffff;
+  --admin-sidebar: #ffffff;
+  --admin-text: #111827;
+  --admin-text-gray: #6b7280;
+  --admin-border: #e5e7eb;
+  --admin-input-bg: #ffffff;
+  --admin-hover: #f0fdf4;
+  background-color: var(--admin-bg) !important;
+  color: var(--admin-text) !important;
   transition: 
     background-color 0.3s ease,
     color 0.3s ease,
@@ -228,54 +243,95 @@ button, a, .admin-card, .property-card, .quick-import-card, input, select, texta
   min-height: 100vh;
 }
 
-/* Apply variables to admin elements */
-.admin-dark .admin-sidebar, 
-.admin-dark [class*="AdminSidebar"] {
+/* Apply light theme variables to admin elements */
+.admin-dark .admin-sidebar,
+.admin-light .admin-sidebar, 
+.admin-dark [class*="AdminSidebar"],
+.admin-light [class*="AdminSidebar"] {
   background: var(--admin-sidebar) !important;
   border-right: 1px solid var(--admin-border) !important;
 }
 
 .admin-dark .admin-card,
-.admin-dark [class*="AdminCard"] {
+.admin-light .admin-card,
+.admin-dark [class*="AdminCard"],
+.admin-light [class*="AdminCard"] {
   background: var(--admin-card) !important;
   border: 1px solid var(--admin-border) !important;
   color: var(--admin-text) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
 }
 
 .admin-dark .admin-navbar,
-.admin-dark [class*="AdminNavbar"] {
-  background: var(--admin-sidebar) !important;
+.admin-light .admin-navbar,
+.admin-dark [class*="AdminNavbar"],
+.admin-light [class*="AdminNavbar"] {
+  background: #ffffff !important;
   border-bottom: 1px solid var(--admin-border) !important;
 }
 
 .admin-dark input,
+.admin-light input,
 .admin-dark textarea,
-.admin-dark select {
+.admin-light textarea,
+.admin-dark select,
+.admin-light select {
   background: var(--admin-input-bg) !important;
   color: var(--admin-text) !important;
-  border-color: var(--admin-border) !important;
+  border: 1px solid var(--admin-border) !important;
 }
 
-.admin-dark table {
+.admin-dark .admin-navbar input,
+.admin-light .admin-navbar input,
+header.h-\[60px\] input {
+  background: #f3f4f6 !important;
+}
+
+.admin-dark .admin-navbar input:focus,
+.admin-light .admin-navbar input:focus,
+header.h-\[60px\] input:focus {
+  background: #ffffff !important;
+  border-color: #004F31 !important;
+}
+
+.admin-dark input:focus,
+.admin-light input:focus,
+.admin-dark textarea:focus,
+.admin-light textarea:focus,
+.admin-dark select:focus,
+.admin-light select:focus {
+  border-color: #004F31 !important;
+  box-shadow: 0 0 0 3px rgba(0,79,49,0.1) !important;
+}
+
+.admin-dark table,
+.admin-light table {
   background: var(--admin-card) !important;
   color: var(--admin-text) !important;
 }
 
-.admin-dark tr:hover {
+.admin-dark tr:hover,
+.admin-light tr:hover {
   background: var(--admin-hover) !important;
 }
 
 .admin-dark .text-gray-500,
-.admin-dark .text-slate-500 {
+.admin-light .text-gray-500,
+.admin-dark .text-slate-500,
+.admin-light .text-slate-500 {
   color: var(--admin-text-gray) !important;
 }
 
-.admin-dark .bg-white {
+.admin-dark .bg-white,
+.admin-light .bg-white {
   background-color: var(--admin-card) !important;
 }
 
 .admin-dark .border-gray-100,
-.admin-dark .border-gray-200 {
+.admin-light .border-gray-100,
+.admin-dark .border-gray-200,
+.admin-light .border-gray-200 {
   border-color: var(--admin-border) !important;
 }
 
@@ -531,6 +587,10 @@ button, a, .admin-card, .property-card, .quick-import-card, input, select, texta
   display: flex !important;
   flex-direction: column;
   padding: 12px 0 0 0;
+  background: #ffffff !important;
+  border-right: 1px solid #e5e7eb !important;
+  width: 240px !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
 .sidebar-nav {
@@ -542,14 +602,13 @@ button, a, .admin-card, .property-card, .quick-import-card, input, select, texta
 }
 
 .sidebar-nav-item {
-  height: 36px;
-  min-height: 36px;
-  padding: 0 12px;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-radius: 8px;
+  height: auto !important;
+  padding: 10px 16px !important;
+  border-radius: 8px !important;
+  margin: 2px 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
   cursor: pointer;
   white-space: nowrap;
 }

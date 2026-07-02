@@ -51,14 +51,14 @@ export default function AdminLayout({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setIsSidebarOpen(false)}
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[999] md:hidden"
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[999] md:hidden"
               />
               <motion.div 
-                initial={{ x: '-260px' }}
+                initial={{ x: '-240px' }}
                 animate={{ x: 0 }}
-                exit={{ x: '-260px' }}
+                exit={{ x: '-240px' }}
                 transition={{ type: 'tween', duration: 0.3, ease: 'easeInOut' }}
-                className="fixed inset-y-0 left-0 w-[260px] z-[1000] md:hidden shadow-2xl overflow-hidden"
+                className="fixed inset-y-0 left-0 w-[240px] z-[1000] md:hidden shadow-2xl overflow-hidden"
               >
                 <div className="absolute top-6 right-6 z-50">
                   <button onClick={() => setIsSidebarOpen(false)} className="p-2 rounded-lg bg-black/10 hover:bg-black/20 text-white">
@@ -83,7 +83,7 @@ export default function AdminLayout({
         </AnimatePresence>
 
         {/* Main Content */}
-        <div className="flex-grow flex flex-col min-w-0 md:ml-[260px] h-screen overflow-y-auto">
+        <div className="flex-grow flex flex-col min-w-0 md:ml-[240px] h-screen overflow-y-auto">
           <AdminNavbar 
             user={user} 
             onPostAd={() => onNavigate('publish')} 
