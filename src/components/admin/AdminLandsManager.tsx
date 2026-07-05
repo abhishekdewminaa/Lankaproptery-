@@ -240,7 +240,7 @@ export default function AdminLandsManager() {
   };
 
   return (
-    <div id="admin-lands-manager" className="p-6 space-y-6 text-left text-neutral-800 dark:text-neutral-100">
+    <div id="admin-lands-manager" className="space-y-8 animate-in fade-in duration-500 max-w-[1400px] mx-auto pb-24 font-sans text-slate-800">
       <Toaster 
         position="bottom-center"
         toastOptions={{
@@ -263,29 +263,45 @@ export default function AdminLandsManager() {
       />
 
       {/* Header section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-100 pb-4">
-        <div>
-          <h2 className="text-2xl font-black text-[#1B5E20] flex items-center gap-2">
-            <Compass className="text-[#1B5E20]" size={28} />
-            Lands Portfolio Manager
-          </h2>
-          <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">
-            Update and curate the official "Lands Portfolio" page slider, pricing, and project details
-          </p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-6">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">🏔️</span>
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2 font-display">
+              Lands Portfolio
+              <span className="bg-[#004F31]/10 text-[#004F31] font-black text-[11px] tracking-widest uppercase px-2.5 py-0.5 rounded-full border border-[#004F31]/20">
+                PRO
+              </span>
+            </h2>
+            <p className="text-xs sm:text-sm font-semibold text-neutral-400 mt-1">
+              Curate premium land projects, corporate acquisitions, and agricultural assets.
+            </p>
+          </div>
         </div>
 
-        <div className="flex gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => {
+              saveToStorage(lands);
+              toast.success('Lands Portfolio settings saved securely to persistence engine!');
+            }}
+            className="px-4 py-2.5 bg-white border border-slate-200 hover:bg-neutral-50 text-neutral-800 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer shadow-xs"
+          >
+            <Save size={16} />
+            <span>Save Portfolio</span>
+          </button>
+
           <button
             onClick={handleResetToDefaults}
-            className="px-4 py-2 bg-gray-100 dark:bg-neutral-800 hover:bg-red-50 hover:text-red-600 rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer flex items-center gap-1.5 border border-transparent hover:border-red-100"
+            className="px-4 py-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-200 flex items-center gap-1.5 cursor-pointer border border-transparent shadow-sm"
           >
             <RotateCcw size={14} />
-            Reset to Defaults
+            Reset
           </button>
 
           <button
             onClick={handleStartAdd}
-            className="px-4 py-2 bg-[#1B5E20] hover:bg-[#124115] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer flex items-center gap-1.5 shadow-md shadow-[#1B5E20]/10"
+            className="px-4 py-2.5 bg-[#004F31] hover:bg-[#003420] text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-200 flex items-center gap-1.5 cursor-pointer shadow-sm"
           >
             <Plus size={16} />
             New Land Project
@@ -298,9 +314,9 @@ export default function AdminLandsManager() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-neutral-900 border border-emerald-100 rounded-3xl p-6 sm:p-8 shadow-xl"
+          className="bg-white border border-slate-200 rounded-[14px] p-6 sm:p-8 shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
         >
-          <h3 className="text-lg font-black text-[#1B5E20] border-b border-gray-100 dark:border-neutral-800 pb-3 mb-6">
+          <h3 className="text-lg font-black text-slate-900 border-b border-gray-100 pb-3 mb-6">
             {isAddMode ? 'Add New Land Project' : `Edit: ${formTitle}`}
           </h3>
 
@@ -314,7 +330,7 @@ export default function AdminLandsManager() {
                 placeholder="e.g. Green Radiant - Alawwa"
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-[#1B5E20]"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-xs font-semibold outline-none focus:border-[#004F31] focus:bg-white transition-all"
                 required
               />
             </div>
@@ -328,7 +344,7 @@ export default function AdminLandsManager() {
                   placeholder="e.g. 250000"
                   value={formPrice}
                   onChange={(e) => setFormPrice(Number(e.target.value))}
-                  className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-[#1B5E20]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-xs font-semibold outline-none focus:border-[#004F31] focus:bg-white transition-all"
                   required
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400">LKR</span>
@@ -343,7 +359,7 @@ export default function AdminLandsManager() {
                 placeholder="e.g. Alawwa Town, Kurunegala"
                 value={formLocation}
                 onChange={(e) => setFormLocation(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-[#1B5E20]"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-xs font-semibold outline-none focus:border-[#004F31] focus:bg-white transition-all"
                 required
               />
             </div>
@@ -356,7 +372,7 @@ export default function AdminLandsManager() {
                 placeholder="e.g. 10 - 15 Perches"
                 value={formSize}
                 onChange={(e) => setFormSize(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-[#1B5E20]"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-xs font-semibold outline-none focus:border-[#004F31] focus:bg-white transition-all"
               />
             </div>
 
@@ -366,7 +382,7 @@ export default function AdminLandsManager() {
               <select
                 value={formDistrict}
                 onChange={(e) => setFormDistrict(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-[#1B5E20]"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-xs font-semibold outline-none focus:border-[#004F31] focus:bg-white transition-all"
               >
                 <option value="Colombo">Colombo</option>
                 <option value="Gampaha">Gampaha</option>
@@ -387,7 +403,7 @@ export default function AdminLandsManager() {
                 placeholder="e.g. Alawwa"
                 value={formCity}
                 onChange={(e) => setFormCity(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-[#1B5E20]"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-xs font-semibold outline-none focus:border-[#004F31] focus:bg-white transition-all"
               />
             </div>
 
@@ -397,7 +413,7 @@ export default function AdminLandsManager() {
               <select
                 value={formCategory}
                 onChange={(e) => setFormCategory(e.target.value as any)}
-                className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-[#1B5E20]"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-xs font-semibold outline-none focus:border-[#004F31] focus:bg-white transition-all"
               >
                 <option value="Residential">Residential Land</option>
                 <option value="Commercial">Commercial Land</option>
@@ -419,7 +435,7 @@ export default function AdminLandsManager() {
                   placeholder="https://images.unsplash.com/..."
                   value={formImage}
                   onChange={(e) => setFormImage(e.target.value)}
-                  className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-xl px-4 py-2.5 pl-10 text-xs font-bold outline-none focus:ring-2 focus:ring-[#1B5E20]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 pl-10 text-xs font-semibold outline-none focus:border-[#004F31] focus:bg-white transition-all"
                 />
                 <ImageIcon size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
               </div>
@@ -433,45 +449,45 @@ export default function AdminLandsManager() {
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
                 rows={3}
-                className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-[#1B5E20]"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-xs font-semibold outline-none focus:border-[#004F31] focus:bg-white transition-all"
               />
             </div>
 
             {/* Features & metadata */}
-            <div className="col-span-1 md:col-span-2 flex flex-wrap gap-6 items-center bg-gray-50 dark:bg-neutral-800/55 p-4 rounded-2xl">
-              <label className="flex items-center gap-2.5 text-xs font-extrabold cursor-pointer">
+            <div className="col-span-1 md:col-span-2 flex flex-wrap gap-6 items-center bg-slate-50 p-4 rounded-xl">
+              <label className="flex items-center gap-2.5 text-xs font-bold cursor-pointer">
                 <input
                   type="checkbox"
                   checked={formIsFeatured}
                   onChange={(e) => setFormIsFeatured(e.target.checked)}
-                  className="rounded border-gray-300 text-[#1B5E20] focus:ring-[#1B5E20] h-4 w-4 cursor-pointer"
+                  className="rounded border-gray-300 text-[#004F31] focus:ring-[#004F31] h-4 w-4 cursor-pointer"
                 />
                 <span>Feature in Top Carousel Slider</span>
               </label>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-xs">
                 <label className="text-[10px] font-black uppercase text-gray-400">Views Counter Seed</label>
                 <input
                   type="number"
                   value={formViews}
                   onChange={(e) => setFormViews(Number(e.target.value))}
-                  className="w-20 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg px-2 py-1 text-center text-xs font-bold"
+                  className="w-20 bg-white border border-slate-200 rounded px-2 py-1 text-center font-bold"
                 />
               </div>
             </div>
 
             {/* Action buttons */}
-            <div className="col-span-1 md:col-span-2 flex justify-end gap-2 border-t border-gray-100 dark:border-neutral-800 pt-4 mt-2">
+            <div className="col-span-1 md:col-span-2 flex justify-end gap-2 border-t border-gray-100 pt-4 mt-2">
               <button
                 type="button"
                 onClick={handleCancel}
-                className="px-4 py-2.5 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-600 dark:text-neutral-300 rounded-xl text-xs font-black uppercase tracking-widest transition-colors cursor-pointer"
+                className="px-4 py-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 rounded-xl text-xs font-black uppercase tracking-widest transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-[#1B5E20] hover:bg-[#124115] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer flex items-center gap-1 shadow-md shadow-[#1B5E20]/15"
+                className="px-6 py-2.5 bg-[#004F31] hover:bg-[#003420] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer flex items-center gap-1 shadow-sm"
               >
                 <Save size={14} />
                 Save Project
@@ -483,151 +499,179 @@ export default function AdminLandsManager() {
       )}
 
       {/* --- REAL-TIME STATS SUMMARY GRID --- */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-5 bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-2xl flex items-center justify-between">
-          <div>
-            <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 block">Total Land Projects</span>
-            <span className="text-2xl font-black text-gray-800 dark:text-white block mt-1">{lands.length}</span>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        {/* Total Land Projects */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-[#f0fdf4] text-[#004F31] rounded-xl">
+              <Layers size={18} />
+            </div>
+            <span className="text-[12px] font-medium text-green-600">Active</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/45 flex items-center justify-center text-[#1B5E20]">
-            <Layers size={20} />
-          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Total Land Projects</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{lands.length}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Acquisitions & releases</p>
         </div>
 
-        <div className="p-5 bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-2xl flex items-center justify-between">
-          <div>
-            <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 block">Featured Slider Items</span>
-            <span className="text-2xl font-black text-[#1B5E20] block mt-1">
-              {lands.filter(l => l.isFeatured).length}
-            </span>
+        {/* Colombo District */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+              <MapPin size={18} />
+            </div>
+            <span className="text-[12px] font-medium text-blue-600">Urban</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-yellow-50 dark:bg-yellow-950/45 flex items-center justify-center text-amber-500">
-            <Sparkles size={20} />
-          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Colombo District</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
+            {lands.filter(l => l.district === 'Colombo').length}
+          </h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Premium Colombo plots</p>
         </div>
 
-        <div className="p-5 bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-2xl flex items-center justify-between">
-          <div>
-            <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 block">Unique Districts</span>
-            <span className="text-2xl font-black text-gray-800 dark:text-white block mt-1">
-              {new Set(lands.map(l => l.district)).size}
-            </span>
+        {/* Outstation */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-purple-50 text-purple-600 rounded-xl">
+              <Compass size={18} />
+            </div>
+            <span className="text-[12px] font-medium text-purple-600">Regional</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/45 flex items-center justify-center text-blue-500">
-            <MapPin size={20} />
-          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Outstation</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
+            {lands.filter(l => l.district !== 'Colombo').length}
+          </h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Gampaha, Kurunegala, etc.</p>
         </div>
+
+        {/* Total Estimated Perches */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-amber-50 text-amber-500 rounded-xl">
+              <Coins size={18} />
+            </div>
+            <span className="text-[12px] font-medium text-amber-600">Volume</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Total Perches</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
+            {lands.reduce((acc, l) => {
+              const numbers = (l.size || '').match(/\d+/g);
+              if (numbers && numbers.length > 0) {
+                const parsed = Number(numbers[numbers.length - 1]);
+                return acc + (isNaN(parsed) ? 15 : parsed);
+              }
+              return acc + 15;
+            }, 0)}
+          </h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Estimated block sum</p>
+        </div>
+
       </div>
 
-      {/* --- MAIN LANDS LIST --- */}
-      <div className="bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-3xl shadow-md overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 flex justify-between items-center bg-gray-50/50 dark:bg-neutral-800/50">
-          <h3 className="font-extrabold text-sm uppercase tracking-widest text-gray-500 dark:text-gray-400">
-            Current Lands Inventory
+      {/* --- MAIN LANDS LIST (DATA TABLE VIEW) --- */}
+      <div className="bg-white border border-slate-200 rounded-[14px] overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+          <h3 className="font-extrabold text-xs uppercase tracking-widest text-slate-500">
+            Lands Inventory Portfolio
           </h3>
-          <span className="text-xs font-bold text-gray-400">
-            Click on headings to edit or manage sliders instantly
+          <span className="text-[10px] font-bold text-slate-400">
+            Showing {lands.length} active projects
           </span>
         </div>
 
         {lands.length > 0 ? (
-          <div className="divide-y divide-gray-100 dark:divide-neutral-800">
-            {lands.map((land) => (
-              <div 
-                key={land.id}
-                className="p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-gray-50 dark:hover:bg-neutral-800/40 transition-colors"
-              >
-                <div className="flex gap-4 items-center flex-1">
-                  {/* Thumbnail */}
-                  <img
-                    src={land.image}
-                    alt={land.title}
-                    className="w-16 h-16 rounded-xl object-cover border dark:border-neutral-700 shrink-0"
-                    referrerPolicy="no-referrer"
-                  />
-
-                  {/* Details */}
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-extrabold text-sm text-gray-800 dark:text-white leading-tight">
-                        {land.title}
-                      </h4>
-                      <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 text-[9px] font-bold rounded">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-[#f9fafb] border-b border-slate-200">
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Project Title</th>
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Region / City</th>
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Category</th>
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Size / Range</th>
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Price Per Perch</th>
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Status</th>
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af] text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {lands.map((land) => (
+                  <tr key={land.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={land.image}
+                          alt={land.title}
+                          className="w-12 h-12 rounded-lg object-cover border shrink-0 shadow-xs"
+                          referrerPolicy="no-referrer"
+                        />
+                        <div>
+                          <p className="font-extrabold text-slate-900 leading-tight">{land.title}</p>
+                          <p className="text-[10px] text-slate-400 mt-0.5">ID: {land.id}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-slate-700">
+                      <div className="flex items-center gap-1.5">
+                        <MapPin size={12} className="text-[#004F31]" />
+                        <span>{land.location}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-0.5 bg-emerald-50 text-[#004F31] text-[10px] font-bold rounded border border-emerald-100">
                         {land.category}
                       </span>
-                      {land.isFeatured && (
-                        <span className="px-2 py-0.5 bg-amber-50 dark:bg-amber-950/40 text-amber-600 text-[9px] font-black uppercase tracking-wider rounded flex items-center gap-0.5">
-                          <Sparkles size={8} /> Featured
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-1.5 text-xs text-gray-400 font-bold">
-                      <MapPin size={12} />
-                      {land.location}
-                    </div>
-
-                    <div className="flex flex-wrap gap-4 text-[10px] font-bold text-gray-400 pt-1">
-                      <span>Size: <span className="text-gray-700 dark:text-gray-300 font-extrabold">{land.size}</span></span>
-                      <span>District: <span className="text-gray-700 dark:text-gray-300 font-extrabold">{land.district}</span></span>
-                      <span>Views: <span className="text-gray-700 dark:text-gray-300 font-extrabold">{land.views}</span></span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Pricing & quick action switches */}
-                <div className="flex items-center gap-4 sm:self-center shrink-0 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-0 pt-3 sm:pt-0">
-                  <div className="text-left sm:text-right">
-                    <span className="text-[10px] uppercase font-black text-gray-400 tracking-wider block">Price Per Perch</span>
-                    <span className="text-sm font-black text-[#1B5E20] dark:text-[#52c159] block">
-                      Rs. {land.priceLkr.toLocaleString()}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {/* Featured switch toggle button */}
-                    <button
-                      onClick={() => toggleFeatured(land.id)}
-                      className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer border ${
-                        land.isFeatured
-                          ? 'bg-amber-50 border-amber-200 text-amber-600 dark:bg-amber-950/30'
-                          : 'bg-white border-gray-200 hover:bg-gray-100 text-gray-400 dark:bg-neutral-800 dark:border-neutral-700'
-                      }`}
-                      title={land.isFeatured ? 'Click to unfeature' : 'Click to feature in Home Slider'}
-                    >
-                      {land.isFeatured ? 'Slider ON' : 'Slider OFF'}
-                    </button>
-
-                    {/* Edit button */}
-                    <button
-                      onClick={() => handleStartEdit(land)}
-                      className="p-2 bg-gray-50 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg text-gray-500 transition-colors border border-gray-100/50 cursor-pointer dark:bg-neutral-800 dark:border-neutral-700"
-                      title="Edit details"
-                    >
-                      <FileText size={14} />
-                    </button>
-
-                    {/* Delete button */}
-                    <button
-                      onClick={() => handleDelete(land.id)}
-                      className="p-2 bg-gray-50 hover:bg-red-50 hover:text-red-600 rounded-lg text-gray-400 transition-colors border border-gray-100/50 cursor-pointer dark:bg-neutral-800 dark:border-neutral-700"
-                      title="Delete development"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </div>
-
-              </div>
-            ))}
+                    </td>
+                    <td className="px-6 py-4 font-mono font-bold text-slate-600">
+                      {land.size || '10 - 15 Perches'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-black text-[#004F31] text-xs">
+                        Rs. {land.priceLkr.toLocaleString()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => toggleFeatured(land.id)}
+                        className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border ${
+                          land.isFeatured
+                            ? 'bg-amber-50 border-amber-200 text-amber-600'
+                            : 'bg-slate-50 border-slate-200 text-slate-400'
+                        }`}
+                        title="Click to toggle carousel feature"
+                      >
+                        {land.isFeatured ? '★ Featured' : '☆ Standard'}
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex gap-1.5 justify-end">
+                        <button
+                          onClick={() => handleStartEdit(land)}
+                          className="p-1.5 bg-slate-50 hover:bg-[#004F31]/10 text-slate-600 hover:text-[#004F31] rounded border border-slate-100 transition-colors cursor-pointer"
+                          title="Edit"
+                        >
+                          <FileText size={13} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(land.id)}
+                          className="p-1.5 bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded border border-slate-100 transition-colors cursor-pointer"
+                          title="Delete"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : (
-          <div className="p-12 text-center text-gray-400 space-y-3">
-            <Compass className="animate-spin-slow mx-auto text-gray-300" size={36} />
-            <p className="text-sm font-bold">No Lands currently exist in your customized inventory.</p>
+          <div className="p-12 text-center text-slate-400 space-y-3">
+            <Compass className="animate-spin-slow mx-auto text-slate-300" size={36} />
+            <p className="text-sm font-semibold">No Lands currently exist in your customized inventory.</p>
             <button
               onClick={handleStartAdd}
-              className="px-4 py-2 bg-[#1B5E20] hover:bg-[#124115] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer"
+              className="px-4 py-2 bg-[#004F31] hover:bg-[#003420] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer"
             >
               Add Your First Land Project
             </button>
@@ -636,11 +680,11 @@ export default function AdminLandsManager() {
       </div>
 
       {/* Helper guide */}
-      <div className="bg-emerald-50/50 border border-emerald-100/50 rounded-2xl p-4 flex gap-3 text-left">
-        <AlertCircle className="text-[#1B5E20] shrink-0" size={20} />
+      <div className="bg-amber-50 border border-amber-200 rounded-[14px] p-4 flex gap-3 text-left">
+        <AlertCircle className="text-amber-600 shrink-0" size={20} />
         <div className="space-y-1">
-          <h4 className="text-xs font-extrabold text-[#1B5E20]">Quick Publishing Sync Guide</h4>
-          <p className="text-[11px] text-gray-500 font-bold leading-relaxed">
+          <h4 className="text-xs font-extrabold text-slate-900">Quick Publishing Sync Guide</h4>
+          <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">
             All additions and modifications here are applied instantly to the guest-facing "Lands Portfolio" page view on this portal. They run completely on the fast offline state engine with perfect synchronization. Any land property created as a general property in the regular Properties form (with category set to "Land") will also be automatically detected and integrated into this list.
           </p>
         </div>

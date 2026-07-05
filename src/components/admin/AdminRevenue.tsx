@@ -179,60 +179,93 @@ export default function AdminRevenue() {
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-[1400px] mx-auto pb-20">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-black text-gray-900 tracking-tight">Revenue Dashboard</h2>
-          <p className="text-gray-500 font-medium mt-1">Track platform monetization and subscriptions.</p>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-[1400px] mx-auto pb-20 font-sans text-slate-800">
+      
+      {/* 1. Page Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-6">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">💳</span>
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2 font-display">
+              Revenue Dashboard
+            </h2>
+            <p className="text-xs sm:text-sm font-semibold text-neutral-400 mt-1">
+              Monitor premium merchant collections, recurring membership plans, and invoicing logs.
+            </p>
+          </div>
         </div>
+
+        <button 
+          onClick={exportCSV}
+          className="flex items-center gap-2 px-6 py-3 bg-[#004F31] hover:bg-[#003420] text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-sm active:scale-95 cursor-pointer"
+        >
+          <span>📥 Export Billing CSV</span>
+        </button>
       </div>
 
-      {/* Top Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white p-6 rounded-[24px] shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-all">
-           <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-green-100 text-green-700 rounded-xl"><DollarSign size={24} /></div>
-              <div className="bg-green-50 text-green-700 text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-widest">+12% this month</div>
-           </div>
-           <div>
-              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Revenue</p>
-              <h3 className="text-3xl font-black text-gray-900">Rs. {(isDataEmpty ? 245000 : totalRevenue).toLocaleString()}</h3>
-              <p className="text-xs text-gray-400 mt-1 font-semibold">All time revenue</p>
-           </div>
-        </motion.div>
+      {/* 2. Stats Row (4 Cards) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        {/* Total Collected Revenue */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-emerald-50 text-[#004F31] rounded-xl">
+              <DollarSign size={18} />
+            </div>
+            <span className="text-[12px] font-medium text-emerald-600">+12% mo</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Total Collected Revenue</p>
+          <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
+            Rs. {(isDataEmpty ? 245000 : totalRevenue).toLocaleString()}
+          </h3>
+          <p className="text-[12px] text-[#6b7280] mt-0.5">All-time premium receipts</p>
+        </div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white p-6 rounded-[24px] shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-all">
-           <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-blue-100 text-blue-700 rounded-xl"><TrendingUp size={24} /></div>
-           </div>
-           <div>
-              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1">This Month Revenue</p>
-              <h3 className="text-3xl font-black text-gray-900">Rs. {(isDataEmpty ? 45000 : thisMonthRevenue).toLocaleString()}</h3>
-              <p className="text-xs text-gray-400 mt-1 font-semibold">{thisMonthStart.toLocaleString('default', { month: 'long', year: 'numeric' })}</p>
-           </div>
-        </motion.div>
+        {/* Monthly Recurring */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+              <TrendingUp size={18} />
+            </div>
+            <span className="text-[12px] font-medium text-blue-600">Active MRR</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Monthly Recurring</p>
+          <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
+            Rs. {(isDataEmpty ? 184500 : thisMonthRevenue).toLocaleString()}
+          </h3>
+          <p className="text-[12px] text-[#6b7280] mt-0.5">{thisMonthStart.toLocaleString('default', { month: 'long' })} active receipts</p>
+        </div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white p-6 rounded-[24px] shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-all">
-           <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-purple-100 text-purple-700 rounded-xl"><Users size={24} /></div>
-           </div>
-           <div>
-              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1">Active Subscriptions</p>
-              <h3 className="text-3xl font-black text-gray-900">{isDataEmpty ? 42 : activeSubscriptions}</h3>
-              <p className="text-xs text-gray-400 mt-1 font-semibold">Currently paid users</p>
-           </div>
-        </motion.div>
+        {/* Pending Settlements */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all cursor-pointer hover:border-orange-200" onClick={() => setFilter('Pending')}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-orange-50 text-orange-600 rounded-xl">
+              <Clock size={18} />
+            </div>
+            <span className="text-[12px] font-medium text-orange-600">Awaiting clearance</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Pending Settlements</p>
+          <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
+            {isDataEmpty ? 8 : pendingPayments}
+          </h3>
+          <p className="text-[12px] text-[#6b7280] mt-0.5">Click to filter table</p>
+        </div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} onClick={() => setFilter('Pending')} className="bg-white p-6 rounded-[24px] shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md hover:border-orange-200 transition-all cursor-pointer">
-           <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-orange-100 text-orange-600 rounded-xl"><Clock size={24} /></div>
-           </div>
-           <div>
-              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1">Pending Payments</p>
-              <h3 className="text-3xl font-black text-gray-900">{isDataEmpty ? 8 : pendingPayments}</h3>
-              <p className="text-xs text-gray-400 mt-1 font-semibold">Click to filter table</p>
-           </div>
-        </motion.div>
+        {/* Active Subscribers */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-purple-50 text-purple-600 rounded-xl">
+              <Users size={18} />
+            </div>
+            <span className="text-[12px] font-medium text-purple-600">Premium active</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Active Subscribers</p>
+          <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
+            {isDataEmpty ? 42 : activeSubscriptions}
+          </h3>
+          <p className="text-[12px] text-[#6b7280] mt-0.5">Paid membership counts</p>
+        </div>
+
       </div>
 
       {/* Charts Section */}

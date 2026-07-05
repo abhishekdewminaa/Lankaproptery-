@@ -26,12 +26,12 @@ export default defineConfig(({ mode }) => {
       ],
     },
     server: {
-      hmr: {
-        overlay: false
-      },
+      hmr: false,
       port: 3000,
       host: '0.0.0.0',
       strictPort: true,
+      cors: true,
+      allowedHosts: true,
     },
     build: {
       outDir: 'dist',

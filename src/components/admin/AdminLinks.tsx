@@ -677,110 +677,106 @@ export default function AdminLinks({ user }: { user: any }) {
   const domain = window.location.origin;
 
   return (
-    <div className={`space-y-8 font-sans ${adminDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
+    <div className="space-y-8 font-sans text-slate-800 max-w-[1400px] mx-auto pb-24">
       
-      {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-6 border-slate-200 dark:border-slate-800">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+      {/* 1. Page Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-6">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">🔗</span>
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2 font-display">
               Link Shortener
-            </h1>
-            <span className="bg-[#004F31] text-emerald-100 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full animate-pulse shadow-sm">
-              NEW Branded Links
-            </span>
+            </h2>
+            <p className="text-xs sm:text-sm font-semibold text-neutral-400 mt-1">
+              Generate branded vanity URLs, configure redirect targets, and monitor dynamic visitor click statistics.
+            </p>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Create, manage and track all shortened links for LankaProperty.lk with bulletproof analytics.
-          </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          {isLocalMode ? (
-            <span className="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/30 text-xs font-bold px-3 py-1.5 rounded-xl">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-              Local Storage Offline Mode
-            </span>
-          ) : (
-            <span className="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30 text-xs font-bold px-3 py-1.5 rounded-xl">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-              Supabase Live Connected
-            </span>
-          )}
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+          <button 
+            onClick={() => {
+              const el = document.getElementById('create-branded-link-form');
+              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }}
+            className="px-5 py-3 bg-[#004F31] hover:bg-[#003420] text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
+          >
+            <Plus size={16} />
+            <span>Create Branded Link</span>
+          </button>
+          
           <button 
             onClick={fetchData} 
-            className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl transition"
+            className="p-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl transition-all"
             title="Refresh Database"
           >
-            <Activity size={16} />
+            <Activity size={16} className={loading ? "animate-spin text-[#004F31]" : "text-[#004F31]"} />
           </button>
         </div>
       </div>
 
-      {/* TOP STATS CARDS ROW (5 cards) */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* 2. Stats Row (4 Cards) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         
-        {/* Card 1 */}
-        <div className="bg-white dark:bg-[#13131F] border border-slate-100 dark:border-slate-800 p-5 rounded-2xl shadow-sm hover:shadow-md transition">
-          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total Short Links</p>
-          <div className="flex justify-between items-end mt-2">
-            <h3 className="text-2xl font-black text-slate-900 dark:text-white">{loading ? '...' : totalLinks}</h3>
-            <div className="p-2 bg-slate-50 dark:bg-slate-800/40 text-slate-500 rounded-xl">
-              <Link size={18} />
+        {/* Branded Vanity Links */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-emerald-50 text-[#004F31] rounded-xl">
+              <Link2 size={18} />
             </div>
+            <span className="text-[12px] font-medium text-emerald-600">Vanity URLs</span>
           </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Branded Vanity Links</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{loading ? '...' : totalLinks}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Branded short paths</p>
         </div>
 
-        {/* Card 2 */}
-        <div className="bg-white dark:bg-[#13131F] border border-slate-100 dark:border-slate-800 p-5 rounded-2xl shadow-sm hover:shadow-md transition">
-          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Active Links</p>
-          <div className="flex justify-between items-end mt-2">
-            <h3 className="text-2xl font-black text-[#004F31] dark:text-emerald-400">{loading ? '...' : activeLinks}</h3>
-            <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600">
+        {/* Active Redirects */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
               <CheckCircle2 size={18} />
             </div>
+            <span className="text-[12px] font-medium text-blue-600">Live target</span>
           </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Active Redirects</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{loading ? '...' : activeLinks}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Unexpired redirection targets</p>
         </div>
 
-        {/* Card 3 */}
-        <div className="bg-white dark:bg-[#13131F] border border-slate-100 dark:border-slate-800 p-5 rounded-2xl shadow-sm hover:shadow-md transition">
-          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Clicks Today</p>
-          <div className="flex justify-between items-end mt-2">
-            <h3 className="text-2xl font-black text-blue-600 dark:text-blue-400">{loading ? '...' : clicksToday}</h3>
-            <div className="p-2 bg-blue-50 dark:bg-blue-950/20 text-blue-600 rounded-xl">
-              <Activity size={18} />
+        {/* Clicks Today */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-rose-50 text-rose-600 rounded-xl">
+              <span className="text-lg">🔥</span>
             </div>
+            <span className="text-[12px] font-medium text-rose-600">Today</span>
           </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Clicks Today</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{loading ? '...' : clicksToday}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Short url traffic hits</p>
         </div>
 
-        {/* Card 4 */}
-        <div className="bg-white dark:bg-[#13131F] border border-slate-100 dark:border-slate-800 p-5 rounded-2xl shadow-sm hover:shadow-md transition">
-          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">All-Time Clicks</p>
-          <div className="flex justify-between items-end mt-2">
-            <h3 className="text-2xl font-black text-purple-600 dark:text-purple-400">{loading ? '...' : totalClicksAllTime}</h3>
-            <div className="p-2 bg-purple-50 dark:bg-purple-950/20 text-purple-600 rounded-xl">
-              <BarChart3 size={18} />
-            </div>
-          </div>
-        </div>
-
-        {/* Card 5 */}
-        <div className="bg-white dark:bg-[#13131F] border border-slate-100 dark:border-slate-800 p-5 rounded-2xl shadow-sm hover:shadow-md transition col-span-2 lg:col-span-1">
-          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Top Device Today</p>
-          <div className="flex justify-between items-end mt-2">
-            <h3 className="text-sm font-black text-slate-900 dark:text-white truncate max-w-[130px]">{loading ? '...' : getTopDevice()}</h3>
-            <div className="p-2 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 rounded-xl">
+        {/* Top Referrer Traffic */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-teal-50 text-teal-600 rounded-xl">
               <Smartphone size={18} />
             </div>
+            <span className="text-[12px] font-medium text-teal-600">Device</span>
           </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Top Referrer Traffic</p>
+          <h3 className="text-lg sm:text-xl font-black text-slate-900 mt-1 truncate">{loading ? '...' : getTopDevice()}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Dominant referrer profile</p>
         </div>
+
       </div>
 
       {/* ACTION TOOLS PANEL (Create New Short Link & Quick Generator Sidebar) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Create Short Link Form - Col Span 2 */}
-        <div className="lg:col-span-2 bg-white dark:bg-[#13131F] border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm relative overflow-hidden">
+        <div id="create-branded-link-form" className="lg:col-span-2 bg-white border border-slate-200 p-6 rounded-[24px] shadow-sm relative overflow-hidden">
           <div className="absolute top-0 left-0 w-2 h-full bg-[#004F31]" />
           <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
             <Sparkles className="text-emerald-500" size={18} />

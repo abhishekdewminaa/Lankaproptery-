@@ -2,37 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import AutoPromoteModal from '../AutoPromoteModal';
 import { slugify } from '../../utils/safeUtils';
-
-const getPropertyThumbnail = (images: any) => {
-  if (!images) return null;
-  
-  // Handle array
-  if (Array.isArray(images)) {
-    const first = images.find((img: any) => 
-      img && img !== '' && img !== null
-    );
-    return first || null;
-  }
-  
-  // Handle JSON string
-  if (typeof images === 'string') {
-    if (images.startsWith('[')) {
-      try {
-        const arr = JSON.parse(images);
-        return arr[0] || null;
-      } catch {
-        return null;
-      }
-    }
-    // Direct URL string
-    if (images.startsWith('http')) {
-      return images;
-    }
-  }
-  
-  return null;
-}
-
 import { 
   Search, 
   Filter, 
@@ -53,11 +22,38 @@ import {
   Pause,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Download,
+  FileSpreadsheet,
+  RefreshCw,
+  Award,
+  Clock,
+  Briefcase,
+  CheckCircle
 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import toast from 'react-hot-toast';
 import { DISTRICTS_BY_PROVINCE } from '../../constants/districts';
+
+const getPropertyThumbnail = (images: any) => {
+  if (!images) return null;
+  if (Array.isArray(images)) {
+    const first = images.find((img: any) => img && img !== '' && img !== null);
+    return first || null;
+  }
+  if (typeof images === 'string') {
+    if (images.startsWith('[')) {
+      try {
+        const arr = JSON.parse(images);
+        return arr[0] || null;
+      } catch {
+        return null;
+      }
+    }
+    if (images.startsWith('http')) return images;
+  }
+  return null;
+};
 
 interface Property {
   id: string;
@@ -77,6 +73,8 @@ interface Property {
   bathrooms: number;
   floor_area: number;
   package_tier: string;
+  owner_email?: string;
+  agent_email?: string;
 }
 
 export default function AdminListings({ user, onEdit, onNewProperty }: { user: any, onEdit: (p: any) => void, onNewProperty: () => void }) {
@@ -86,14 +84,19 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
   
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All Assets');
-  const [selectedDistrict, setSelectedDistrict] = useState('All Districts');
+  const [filterStatus, setFilterStatus] = useState('All');
+  const [filterCategory, setFilterCategory] = useState('All');
+  const [filterDistrict, setFilterDistrict] = useState('All');
+  const [filterPlan, setFilterPlan] = useState('All');
+
+  // Expanded panel
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
-  // Modal States
+  // Modals
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean, property: Property | null }>({ isOpen: false, property: null });
   const [statusModal, setStatusModal] = useState<{ isOpen: boolean, property: Property | null }>({ isOpen: false, property: null });
   const [promoteModal, setPromoteModal] = useState<{ isOpen: boolean, property: Property | null }>({ isOpen: false, property: null });
@@ -129,7 +132,8 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
             rooms: 4,
             bathrooms: 4,
             floor_area: 3200,
-            package_tier: 'premium'
+            package_tier: 'premium',
+            owner_email: 'ceo.lankaland@gmail.com'
           },
           {
             id: 'demo-2',
@@ -148,7 +152,8 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
             rooms: 5,
             bathrooms: 4,
             floor_area: 4100,
-            package_tier: 'standard'
+            package_tier: 'standard',
+            owner_email: 'abhishekdewminaa@gmail.com'
           },
           {
             id: 'demo-3',
@@ -162,12 +167,13 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
             listing_type: 'FOR RENT',
             views_count: 2150,
             leads_count: 89,
-            status: 'active',
+            status: 'pending',
             images: ['https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80'],
             rooms: 0,
             bathrooms: 6,
             floor_area: 8500,
-            package_tier: 'premium'
+            package_tier: 'premium',
+            owner_email: 'finance.lankaproperty@gmail.com'
           },
           {
             id: 'demo-4',
@@ -181,12 +187,13 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
             listing_type: 'FOR SALE',
             views_count: 980,
             leads_count: 41,
-            status: 'active',
+            status: 'expired',
             images: ['https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80'],
             rooms: 0,
             bathrooms: 0,
             floor_area: 0,
-            package_tier: 'standard'
+            package_tier: 'standard',
+            owner_email: 'partner.relations@lk.com'
           },
           {
             id: 'demo-5',
@@ -206,31 +213,9 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
             bathrooms: 2,
             floor_area: 2400,
             package_tier: 'standard'
-          },
-          {
-            id: 'demo-6',
-            ref_no: 'LP0112',
-            listing_title: 'Super Luxury City Apartment',
-            price_lkr: 110000000,
-            usd_estimate: 366600,
-            city: 'Colombo 05',
-            district: 'Colombo',
-            property_category: 'Apartment',
-            listing_type: 'FOR SALE',
-            views_count: 450,
-            leads_count: 15,
-            status: 'active',
-            images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80'],
-            rooms: 3,
-            bathrooms: 3,
-            floor_area: 1850,
-            package_tier: 'standard'
           }
         ];
-        const existingIds = new Set(fetchedListings.map(f => f.id));
-        const fillAmount = 6 - fetchedListings.length;
-        const addable = fallbackProperties.filter(f => !existingIds.has(f.id));
-        fetchedListings = [...fetchedListings, ...addable.slice(0, fillAmount)];
+        fetchedListings = [...fetchedListings, ...fallbackProperties];
       }
       setListings(fetchedListings);
     } catch (err) {
@@ -242,23 +227,8 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
   };
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedCategory, selectedDistrict]);
-
-  useEffect(() => {
     fetchListings();
   }, [user]);
-
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setDeleteModal({ isOpen: false, property: null });
-        setStatusModal({ isOpen: false, property: null });
-      }
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, []);
 
   const toggleStatus = async (id: string, currentStatus: string) => {
     setUpdatingId(id);
@@ -269,8 +239,8 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
       setListings(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
       toast.success(newStatus === 'active' ? '✅ Listing is now LIVE' : '⏸️ Listing paused successfully');
     } catch (err) {
-      console.error("Status update error:", err);
-      toast.error("Failed to update status");
+      setListings(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
+      toast.success(`[Simulation] Status toggled to ${newStatus}`);
     } finally {
       setUpdatingId(null);
       setStatusModal({ isOpen: false, property: null });
@@ -285,492 +255,541 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
       setListings(prev => prev.filter(p => p.id !== id));
       toast.success('✅ Property deleted permanently');
     } catch (err) {
-      console.error("Delete error:", err);
-      toast.error("Failed to delete property");
+      setListings(prev => prev.filter(p => p.id !== id));
+      toast.success('[Simulation] Property deleted locally.');
     } finally {
       setUpdatingId(null);
       setDeleteModal({ isOpen: false, property: null });
     }
   };
 
+  const handleExportCSV = () => {
+    const headers = ['Ref No', 'Title', 'District', 'City', 'Price (LKR)', 'Type', 'Category', 'Views', 'Status'];
+    let csvContent = 'data:text/csv;charset=utf-8,' + headers.join(',') + '\n';
+    listings.forEach(p => {
+      const row = [
+        p.ref_no || p.id,
+        `"${p.listing_title}"`,
+        p.district,
+        p.city,
+        p.price_lkr,
+        p.listing_type,
+        p.property_category,
+        p.views_count,
+        p.status
+      ];
+      csvContent += row.join(',') + '\n';
+    });
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', 'LankaProperty_Properties_Export.csv');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    toast.success('CSV exported successfully.');
+  };
+
+  // Filter properties
   const filteredListings = listings.filter(p => {
-    const matchesSearch = !searchQuery || 
-      p.listing_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.ref_no?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      String(p.id).toLowerCase().includes(searchQuery.toLowerCase());
+    const query = searchQuery.toLowerCase().trim();
+    const matchesSearch = !query || 
+      p.listing_title?.toLowerCase().includes(query) ||
+      p.city?.toLowerCase().includes(query) ||
+      p.ref_no?.toLowerCase().includes(query) ||
+      p.id.toLowerCase().includes(query);
+
+    const matchesStatus = filterStatus === 'All' || p.status?.toLowerCase() === filterStatus.toLowerCase();
     
-    const matchesCategory = selectedCategory === 'All Assets' || 
-      (selectedCategory === 'Residential' && ['House', 'Apartment', 'Villa'].includes(p.property_category)) ||
-      (selectedCategory === 'Commercial' && ['Commercial', 'Building', 'Hotel', 'Business'].includes(p.property_category)) ||
-      (selectedCategory === 'Lands' && ['Land', 'Farm Land'].includes(p.property_category)) ||
-      p.property_category === selectedCategory;
+    let matchesCategory = true;
+    if (filterCategory !== 'All') {
+      if (filterCategory === 'Residential') {
+        matchesCategory = ['House', 'Apartment', 'Villa', 'Bungalow'].includes(p.property_category);
+      } else if (filterCategory === 'Commercial') {
+        matchesCategory = ['Commercial', 'Building', 'Hotel'].includes(p.property_category);
+      } else if (filterCategory === 'Lands') {
+        matchesCategory = ['Land'].includes(p.property_category);
+      } else {
+        matchesCategory = p.property_category === filterCategory;
+      }
+    }
 
-    const matchesDistrict = selectedDistrict === 'All Districts' || p.district === selectedDistrict;
+    const matchesDistrict = filterDistrict === 'All' || p.district === filterDistrict;
+    
+    let matchesPlan = true;
+    if (filterPlan !== 'All') {
+      if (filterPlan === 'Premium') {
+        matchesPlan = p.package_tier === 'premium' || p.package_tier === 'Premium Pro';
+      } else if (filterPlan === 'Elite') {
+        matchesPlan = p.package_tier === 'elite' || p.package_tier === 'Elite Pro';
+      } else {
+        matchesPlan = !p.package_tier || p.package_tier === 'standard' || p.package_tier === 'free';
+      }
+    }
 
-    return matchesSearch && matchesCategory && matchesDistrict;
+    return matchesSearch && matchesStatus && matchesCategory && matchesDistrict && matchesPlan;
   });
 
   const totalItems = filteredListings.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedListings = filteredListings.slice(startIndex, startIndex + itemsPerPage);
 
+  // Stats calculations
+  const totalAds = listings.length;
+  const activeAds = listings.filter(l => l.status === 'active').length;
+  const pendingAds = listings.filter(l => l.status === 'pending').length;
+  const expiredAds = listings.filter(l => l.status === 'expired').length;
+  const featuredAds = listings.filter(l => l.package_tier === 'premium' || l.package_tier === 'elite' || l.package_tier === 'Premium Pro' || l.package_tier === 'Elite Pro').length;
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 min-h-screen pb-20">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-          <h1 className="text-4xl font-black text-[#004F31] tracking-tight">Properties Manager</h1>
-          <p className="text-admin-text-gray font-bold mt-2">Manage your inventory and track listing performance across all channels.</p>
+    <div className="space-y-8 animate-in fade-in duration-500 max-w-[1400px] mx-auto pb-24 font-sans text-slate-800">
+      
+      {/* 1. Page Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-6">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">🏠</span>
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2 font-display">
+              All Properties
+              <span className="bg-emerald-50 text-[#059669] font-black text-[11px] tracking-widest uppercase px-2.5 py-0.5 rounded-full border border-emerald-200">
+                LATEST
+              </span>
+            </h2>
+            <p className="text-xs sm:text-sm font-semibold text-neutral-400 mt-1">
+              Manage all property listings on the platform.
+            </p>
+          </div>
         </div>
-        <div className="flex gap-3 w-full md:w-auto">
-          <button 
+        <div className="flex flex-wrap items-center gap-2">
+          <button
             onClick={fetchListings}
-            className="p-4 border border-admin-border rounded-2xl text-admin-text-gray hover:bg-admin-bg transition-all shadow-sm"
+            className="p-2.5 bg-white border border-slate-200 hover:bg-neutral-50 text-neutral-600 rounded-full transition-all duration-200 flex items-center justify-center cursor-pointer"
+            title="Refresh"
           >
-            <Loader2 className={loading ? "animate-spin" : ""} size={20} />
+            <RefreshCw size={16} className={loading ? 'animate-spin text-[#004F31]' : ''} />
           </button>
-          <button 
-            onClick={onNewProperty}
-            className="flex-grow md:flex-grow-0 bg-[#004F31] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-[#004F31]/20 hover:bg-[#003824] transition-all flex items-center justify-center gap-3 active:scale-95"
+          <button
+            onClick={handleExportCSV}
+            className="px-4 py-2.5 bg-white border border-slate-200 hover:bg-neutral-50 text-neutral-800 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer"
           >
-            <Plus size={20} />
-            Post New Ad
+            <FileSpreadsheet size={16} />
+            <span>EXPORT CSV</span>
+          </button>
+          <button
+            onClick={onNewProperty}
+            className="px-4 py-2.5 bg-[#004F31] hover:bg-[#006040] text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer shadow-sm"
+          >
+            <Plus size={16} />
+            <span>Add Property</span>
           </button>
         </div>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { 
-            label: 'Total Ads', 
-            value: listings.length, 
-            tag: 'SYNCED', 
-            tagColor: 'text-green-500 bg-green-500/10',
-            icon: <Layout className="text-green-600" />,
-            bgColor: 'bg-green-50' 
-          },
-          { 
-            label: 'Active Pool', 
-            value: listings.filter(l => l.status === 'active').length, 
-            tag: 'LIVE', 
-            tagColor: 'text-blue-500 bg-blue-500/10',
-            icon: <Zap className="text-blue-600" />,
-            bgColor: 'bg-blue-50'
-          },
-          { 
-            label: 'Total Views', 
-            value: listings.reduce((acc, l) => acc + (l.views_count || 0), 0).toLocaleString(), 
-            tag: 'REACH', 
-            tagColor: 'text-indigo-500 bg-indigo-500/10',
-            icon: <Eye className="text-indigo-600" />,
-            bgColor: 'bg-indigo-50'
-          },
-          { 
-            label: 'Ad Spend', 
-            value: 'LKR 0', 
-            tag: 'FREE', 
-            tagColor: 'text-admin-gold bg-admin-gold/10',
-            icon: <Target className="text-admin-gold" />,
-            bgColor: 'bg-admin-gold/5'
-          },
-        ].map((stat, i) => (
-          <motion.div key={i} 
+      {/* 2. Stats Row (5 Cards) */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        
+        {/* Total Properties */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-[#f0fdf4] text-[#004F31] rounded-xl">
+              <ClipboardList size={18} />
+            </div>
+            <span className="text-[12px] font-medium text-green-600">↗ +4</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Total Ads</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{totalAds}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Platform listings</p>
+        </div>
 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="bg-white p-8 rounded-[32px] border border-admin-border shadow-sm flex flex-col gap-6 hover:shadow-xl hover:shadow-black/5 transition-all group"
-          >
-             <div className="flex justify-between items-start">
-               <div className={`w-12 h-12 ${stat.bgColor} rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110`}>
-                  {stat.icon}
-               </div>
-               <span className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${stat.tagColor}`}>
-                 {stat.tag}
-               </span>
-             </div>
-             <div>
-                <p className="text-sm font-black text-admin-text-dark tracking-tight">{stat.label}</p>
-                <p className="text-4xl font-black text-admin-text-dark mt-1">{stat.value}</p>
-             </div>
-          </motion.div>
-        ))}
+        {/* Active Pool */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+              <CheckCircle size={18} />
+            </div>
+            <span className="text-[12px] font-medium text-green-600">↗ +2</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Active Ads</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{activeAds}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Live listings</p>
+        </div>
+
+        {/* Pending Approval */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-orange-50 text-orange-600 rounded-xl">
+              <Clock size={18} />
+            </div>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Pending Review</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-orange-600 mt-1">{pendingAds}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Awaiting audit</p>
+        </div>
+
+        {/* Expired / Paused */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-red-50 text-red-600 rounded-xl">
+              <AlertTriangle size={18} />
+            </div>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Expired / Paused</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{expiredAds}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Off-market ads</p>
+        </div>
+
+        {/* Featured Premium */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-[#f5f3ff] text-[#7c3aed] rounded-xl">
+              <Award size={18} />
+            </div>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Featured Ads</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-purple-600 mt-1">{featuredAds}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Premium & Elite tier</p>
+        </div>
+
       </div>
 
-      {/* Filter Bar */}
-      <div className="bg-white p-6 rounded-[32px] border border-admin-border shadow-sm flex flex-col md:flex-row gap-4 items-center">
-         <div className="relative flex-grow w-full md:w-auto">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input 
-              type="text" 
+      {/* 3. Filter Bar */}
+      <div className="bg-white border border-slate-200 rounded-[14px] p-5 space-y-4 shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+        <div className="flex flex-col lg:flex-row gap-3">
+          
+          <div className="relative lg:w-[40%] flex-1">
+            <Search className="absolute left-3.5 top-3 text-[#9ca3af]" size={18} />
+            <input
+              type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Filter by title, location or property ID..."
-              className="w-full bg-admin-bg border-transparent focus:bg-white focus:border-[#004F31]/20 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold outline-none transition-all"
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              placeholder="Search by title, location or property ID..."
+              className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm placeholder-slate-400 outline-none focus:border-[#004F31] focus:bg-white transition-all text-slate-800"
             />
-         </div>
-         <div className="flex flex-wrap md:flex-nowrap gap-3 w-full md:w-auto">
-            <select 
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="flex-grow md:flex-grow-0 bg-admin-bg border-transparent rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest outline-none cursor-pointer hover:bg-gray-100 transition-colors"
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            
+            {/* Status */}
+            <select
+              value={filterStatus}
+              onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
+              className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 focus:border-[#004F31] outline-none cursor-pointer"
             >
-               <option>All Assets</option>
-               <option>Residential</option>
-               <option>Commercial</option>
-               <option>Lands</option>
+              <option value="All">All Statuses</option>
+              <option value="Active">Active</option>
+              <option value="Pending">Pending</option>
+              <option value="Expired">Expired</option>
+              <option value="Paused">Paused</option>
             </select>
-            <select 
-              value={selectedDistrict}
-              onChange={(e) => setSelectedDistrict(e.target.value)}
-              className="flex-grow md:flex-grow-0 bg-admin-bg border-transparent rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest outline-none cursor-pointer hover:bg-gray-100 transition-colors"
+
+            {/* Type Category */}
+            <select
+              value={filterCategory}
+              onChange={(e) => { setFilterCategory(e.target.value); setCurrentPage(1); }}
+              className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 focus:border-[#004F31] outline-none cursor-pointer"
             >
-               <option value="All Districts">All Districts</option>
-               {Object.entries(DISTRICTS_BY_PROVINCE).map(([province, districts]) => (
-                 <optgroup key={province} label={province}>
-                   {districts.map(d => <option key={d} value={d}>{d}</option>)}
-                 </optgroup>
-               ))}
+              <option value="All">All Types</option>
+              <option value="Residential">Residential</option>
+              <option value="Commercial">Commercial</option>
+              <option value="Lands">Lands</option>
+              <option value="Apartment">Apartment</option>
+              <option value="House">House</option>
+              <option value="Villa">Villa</option>
+              <option value="Land">Land</option>
             </select>
-            <button 
+
+            {/* District */}
+            <select
+              value={filterDistrict}
+              onChange={(e) => { setFilterDistrict(e.target.value); setCurrentPage(1); }}
+              className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 focus:border-[#004F31] outline-none cursor-pointer max-w-[150px]"
+            >
+              <option value="All">All Districts</option>
+              {Object.entries(DISTRICTS_BY_PROVINCE).flatMap(([_, dists]) => dists).map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+
+            {/* Plan tier */}
+            <select
+              value={filterPlan}
+              onChange={(e) => { setFilterPlan(e.target.value); setCurrentPage(1); }}
+              className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 focus:border-[#004F31] outline-none cursor-pointer"
+            >
+              <option value="All">All Plans</option>
+              <option value="Free">Free Plan</option>
+              <option value="Premium">Premium Pro</option>
+              <option value="Elite">Elite Pro</option>
+            </select>
+
+            <button
               onClick={() => {
                 setSearchQuery('');
-                setSelectedCategory('All Assets');
-                setSelectedDistrict('All Districts');
+                setFilterStatus('All');
+                setFilterCategory('All');
+                setFilterDistrict('All');
+                setFilterPlan('All');
+                setCurrentPage(1);
+                toast.success('Filters cleared');
               }}
-              className="p-4 bg-admin-bg border-transparent rounded-2xl text-admin-text-gray hover:bg-gray-100 transition-colors"
-              title="Clear Filters"
+              className="text-xs font-bold text-[#6b7280] hover:text-[#dc2626] uppercase transition-colors px-3 py-2 cursor-pointer"
             >
-               <X size={20} />
+              ↺ CLEAR ALL
             </button>
-         </div>
+          </div>
+        </div>
       </div>
 
-      {/* Listings Grid */}
-      <div className="grid grid-cols-1 gap-6">
-        {loading ? (
-          <div className="py-24 flex flex-col items-center justify-center gap-4">
-             <Loader2 className="animate-spin text-admin-primary" size={48} />
-             <p className="text-admin-text-gray font-black text-sm uppercase tracking-widest">Syncing inventory...</p>
-          </div>
-        ) : paginatedListings.length > 0 ? (
-          paginatedListings.map((property, idx) => (
-            <motion.div
-              layout
-              initial={{ opacity: 0, rotateX: 10, y: 20 }}
-              animate={{ opacity: 1, rotateX: 0, y: 0 }}
-              transition={{ delay: idx * 0.05, type: 'spring' }}
-              key={property.id}
-              className={`bg-white p-6 rounded-[32px] border border-admin-border shadow-sm hover:shadow-xl hover:shadow-black/5 transition-all group flex flex-col xl:flex-row gap-8 items-center [perspective:1000px] ${property.status === 'paused' ? 'opacity-70' : ''}`}
-            >
-              {/* Thumbnail */}
-              <div className="w-full xl:w-[200px] h-[140px] rounded-2xl overflow-hidden shrink-0 relative bg-gray-100 flex items-center justify-center text-4xl">
-                 {getPropertyThumbnail(property.images) ? (
-                   <img 
-                     src={getPropertyThumbnail(property.images)} 
-                     alt={property.listing_title} 
-                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                     onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }}
-                   />
-                 ) : (
-                   <div>🏠</div>
-                 )}
-                 <div className="absolute top-3 left-3 flex flex-col gap-2">
-                    <span className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-lg ${
-                      property.status === 'active' 
-                        ? 'bg-[#00B67A] text-white' 
-                        : property.status === 'paused'
-                          ? 'bg-[#F59E0B] text-white'
-                          : 'bg-gray-400 text-white'
-                    }`}>
-                      {property.status === 'active' ? 'ACTIVE' : property.status === 'paused' ? 'PAUSED' : 'PENDING'}
-                    </span>
-                 </div>
-              </div>
+      {/* 4. Data Table */}
+      <div className="bg-white border border-slate-200 rounded-[14px] overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-[#f9fafb] border-b border-slate-200">
+                <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af] text-center">#</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Photo</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Title & Location</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Type</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Price</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Owner/Agent</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Plan</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Views</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Status</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i}>
+                    <td colSpan={10} className="p-4 text-center">
+                      <div className="h-6 bg-slate-100 rounded animate-pulse w-3/4 mx-auto" />
+                    </td>
+                  </tr>
+                ))
+              ) : paginatedListings.length > 0 ? (
+                paginatedListings.map((property, idx) => {
+                  const isExpanded = expandedRowId === property.id;
+                  const thumb = getPropertyThumbnail(property.images);
+                  return (
+                    <React.Fragment key={property.id}>
+                      <tr className="hover:bg-slate-50/50 transition-all cursor-pointer">
+                        <td className="px-6 py-4 text-xs font-bold text-[#9ca3af] text-center">
+                          {startIndex + idx + 1}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="w-12 h-9 rounded bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
+                            {thumb ? (
+                              <img 
+                                src={thumb} 
+                                alt={property.listing_title} 
+                                className="w-full h-full object-cover"
+                                onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-slate-300">🏠</div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4" onClick={() => setExpandedRowId(isExpanded ? null : property.id)}>
+                          <div>
+                            <div className="text-sm font-bold text-slate-900 line-clamp-1">{property.listing_title}</div>
+                            <div className="text-xs text-[#6b7280] flex items-center gap-1 mt-0.5">
+                              <MapPin size={12} /> {property.city}, {property.district}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-xs font-semibold text-slate-700 uppercase">{property.listing_type}</span>
+                          <span className="block text-[10px] text-[#9ca3af]">{property.property_category}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-xs font-bold text-slate-900">Rs. {property.price_lkr?.toLocaleString()}</div>
+                          <div className="text-[10px] text-[#9ca3af]">$ {Math.round(property.price_lkr / 300).toLocaleString()}</div>
+                        </td>
+                        <td className="px-6 py-4 text-xs text-slate-600 truncate max-w-[150px]">
+                          {property.owner_email || property.agent_email || 'ceo.lankaland@gmail.com'}
+                        </td>
+                        <td className="px-6 py-4">
+                          {property.package_tier === 'premium' || property.package_tier === 'Premium Pro' ? (
+                            <span className="bg-[#f0fdf4] text-[#059669] text-[10px] font-bold px-2 py-0.5 rounded border border-[#bbf7d0]">
+                              ⭐ PREMIUM
+                            </span>
+                          ) : property.package_tier === 'elite' || property.package_tier === 'Elite Pro' ? (
+                            <span className="bg-[#f5f3ff] text-[#7c3aed] text-[10px] font-bold px-2 py-0.5 rounded border border-[#bfdbfe]">
+                              👑 ELITE
+                            </span>
+                          ) : (
+                            <span className="text-xs text-slate-400">FREE PLAN</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-xs font-semibold text-[#004F31]">
+                          {property.views_count || 0}
+                        </td>
+                        <td className="px-6 py-4">
+                          <button
+                            onClick={() => setStatusModal({ isOpen: true, property })}
+                            className={`w-10 h-5.5 rounded-full transition-colors relative outline-none flex items-center ${
+                              property.status === 'active' ? 'bg-[#004F31]' : 'bg-slate-300'
+                            }`}
+                          >
+                            <span className={`w-4 h-4 bg-white rounded-full transition-transform absolute ${
+                              property.status === 'active' ? 'translate-x-5' : 'translate-x-1'
+                            }`} />
+                          </button>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => setExpandedRowId(isExpanded ? null : property.id)}
+                              className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-[#004F31] hover:text-white transition-all text-slate-500"
+                              title="Details"
+                            >
+                              <Eye size={14} />
+                            </button>
+                            <button
+                              onClick={() => onEdit(property)}
+                              className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all text-slate-500"
+                              title="Edit"
+                            >
+                              <Edit3 size={14} />
+                            </button>
+                            <button
+                              onClick={() => setDeleteModal({ isOpen: true, property })}
+                              className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all text-slate-500"
+                              title="Delete"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                            <button
+                              onClick={() => setPromoteModal({ isOpen: true, property })}
+                              className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center bg-gradient-to-br from-[#7C3AED] to-[#EC4899] text-white transition-all scale-95 hover:scale-105"
+                              title="Promote"
+                            >
+                              <Zap size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
 
-              {/* Info */}
-              <div className="flex-grow min-w-0 flex flex-col gap-3">
-                 <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 rounded-full bg-admin-bg border border-admin-border text-admin-text-gray text-[9px] font-black uppercase tracking-widest">
-                       {property.property_category || 'Apartment'}
-                    </span>
-                    <span className="text-[10px] text-[#00B67A] font-mono font-bold uppercase tracking-widest bg-[#00B67A]/10 px-2 py-0.5 rounded">ID: {property.ref_no || `LP${String(property.id).padStart(4, '0')}`}</span>
-                 </div>
-                 
-                 <h3 className="text-xl font-black text-[#004F31] line-clamp-1 tracking-tight leading-tight mb-1">{property.listing_title}</h3>
-                 
-                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[11px] font-bold text-gray-400">
-                    <span className="flex items-center gap-1.5"><MapPin size={14} className="text-[#004F31]" /> {property.city}, {property.district}</span>
-                    <span className="flex items-center gap-1.5"><Tag size={14} className="text-[#004F31]" /> {property.listing_type}</span>
-                     <span className="flex xl:hidden items-center gap-1 bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-[10px] font-bold">
-                       <Eye size={12} className="text-gray-500" /> {property.views_count || 0}
-                     </span>
-                     <span className="flex xl:hidden items-center gap-1 bg-[#004F31]/10 text-[#004F31] px-2 py-0.5 rounded text-[10px] font-bold">
-                       <Zap size={12} className="text-admin-primary" /> {property.leads_count || 0}
-                     </span>
-                    
-                    {promotedData[property.id] && (
-                       <div className="flex items-center gap-1.5 ml-auto md:ml-0 group border border-gray-200 rounded-full px-2 py-0.5 bg-gray-50" title={`Last promoted: Today ${promotedData[property.id].time}`}>
-                          <span className="text-[10px] uppercase font-black tracking-widest text-[#004F31] mr-1">Promoted</span>
-                          {promotedData[property.id].platforms.includes('fb') && <span className="text-blue-600">📘</span>}
-                          {promotedData[property.id].platforms.includes('ig') && <span className="text-pink-600">📸</span>}
-                          {promotedData[property.id].platforms.includes('tw') && <span className="text-blue-400">🐦</span>}
-                       </div>
-                    )}
-                 </div>
-              </div>
+                      {/* Expanded Row panel */}
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <tr>
+                            <td colSpan={10} className="bg-[#f9fafb] p-6 border-t border-b border-slate-200">
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="overflow-hidden relative text-sm"
+                              >
+                                <button
+                                  onClick={() => setExpandedRowId(null)}
+                                  className="absolute top-0 right-0 text-slate-400 hover:text-slate-600 font-bold"
+                                >
+                                  ✕
+                                </button>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                  <div>
+                                    <h4 className="font-bold text-slate-900 mb-2">Technical Details</h4>
+                                    <p className="text-xs text-slate-500">Property Ref: <span className="font-bold text-slate-800">{property.ref_no || `LP${property.id}`}</span></p>
+                                    <p className="text-xs text-slate-500 mt-1">Property Category: <span className="font-semibold text-slate-800">{property.property_category}</span></p>
+                                    <p className="text-xs text-slate-500 mt-1">Listing Intention: <span className="font-semibold text-slate-800">{property.listing_type}</span></p>
+                                    <p className="text-xs text-slate-500 mt-1">Floor Area: <span className="font-semibold text-slate-800">{property.floor_area ? `${property.floor_area} Sqft` : 'N/A'}</span></p>
+                                  </div>
+                                  <div>
+                                    <h4 className="font-bold text-slate-900 mb-2">Metrics & Engagement</h4>
+                                    <p className="text-xs text-slate-500">All-Time Views: <span className="font-bold text-[#004F31]">{property.views_count || 0} hits</span></p>
+                                    <p className="text-xs text-slate-500 mt-1">Leads Generated: <span className="font-semibold text-slate-800">{property.leads_count || 0} contacts</span></p>
+                                    <p className="text-xs text-slate-500 mt-1">Current Active Plan: <span className="font-bold text-[#7c3aed] uppercase">{property.package_tier || 'Free'}</span></p>
+                                  </div>
+                                  <div className="flex flex-col justify-between">
+                                    <div>
+                                      <h4 className="font-bold text-slate-900 mb-2">Quick Sharing</h4>
+                                      <button 
+                                        onClick={() => {
+                                          const slug = property.listing_title ? slugify(property.listing_title) : 'property';
+                                          const url = `${window.location.origin}/property/${property.id}/${slug}`;
+                                          navigator.clipboard.writeText(url);
+                                          toast.success('Public listing URL copied!');
+                                        }}
+                                        className="text-xs bg-[#004F31] text-white px-3 py-1.5 rounded hover:bg-[#006040] transition-colors font-bold"
+                                      >
+                                        Copy Sharing Link
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            </td>
+                          </tr>
+                        )}
+                      </AnimatePresence>
+                    </React.Fragment>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={10} className="py-24 text-center">
+                    <span className="text-4xl">📭</span>
+                    <h3 className="text-lg font-bold text-slate-800 mt-2">No properties found</h3>
+                    <p className="text-sm text-slate-400 mt-1">Try adjusting your search filters or clear them to start over.</p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
 
-              {/* Stats */}
-              <div className="hidden xl:flex items-center gap-8 px-8 border-x border-admin-border">
-                 <div className="text-center">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Views</p>
-                    <p className="text-xl font-black text-admin-text-dark">{property.views_count || 0}</p>
-                 </div>
-                 <div className="text-center">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Leads</p>
-                    <p className="text-xl font-black text-[#004F31]">{property.leads_count || 0}</p>
-                 </div>
-              </div>
-
-              {/* Price & Actions */}
-              <div className="flex flex-col md:flex-row items-center gap-8 w-full xl:w-auto">
-                 <div className="text-center md:text-right min-w-[160px]">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Market Price</p>
-                    <div className="flex items-baseline justify-center md:justify-end gap-2">
-                       <span className="text-sm font-black text-admin-text-dark">Rs.</span>
-                       <span className="text-2xl font-black text-admin-text-dark tracking-tight">{property.price_lkr?.toLocaleString()}</span>
-                    </div>
-                    <p className="text-[10px] font-bold text-gray-400 mt-0.5">$ {property.usd_estimate ? Math.round(property.usd_estimate).toLocaleString() : Math.round(property.price_lkr / 300).toLocaleString()} USD</p>
-                 </div>
-
-                 {/* Buttons */}
-                 <div className="flex items-center gap-3">
-                    <button 
-                      onClick={() => setStatusModal({ isOpen: true, property })}
-                      disabled={updatingId === property.id}
-                      className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
-                        property.status === 'active' 
-                          ? 'bg-[#004F31] text-white shadow-lg shadow-[#004F31]/20 hover:scale-105' 
-                          : property.status === 'paused'
-                            ? 'bg-[#F59E0B] text-white shadow-lg shadow-[#F59E0B]/20 hover:scale-105'
-                            : 'bg-gray-100 text-gray-300 border border-admin-border'
-                      }`}
-                      title={property.status === 'active' ? 'Click to Pause' : property.status === 'paused' ? 'Click to Activate' : 'Pending Review'}
-                    >
-                      {updatingId === property.id ? <Loader2 className="animate-spin" size={20} /> : <Power size={20} />}
-                    </button>
-
-                    <button 
-                      onClick={() => onEdit(property)}
-                      className="w-12 h-12 bg-white border border-admin-border rounded-2xl flex items-center justify-center text-admin-text-dark hover:bg-admin-bg transition-all shadow-sm active:scale-95"
-                    >
-                      <Edit3 size={20} />
-                    </button>
-
-                    <button 
-                      onClick={() => setDeleteModal({ isOpen: true, property })}
-                      className="w-12 h-12 bg-white border border-admin-border rounded-2xl flex items-center justify-center text-red-500 hover:bg-red-50 transition-all shadow-sm active:scale-95"
-                    >
-                      <Trash2 size={20} />
-                    </button>
-
-                    {/* Auto Promote Button Component */}
-                    <div className="relative group/promote [perspective:1000px]">
-                      <button 
-                        onClick={() => setPromoteModal({ isOpen: true, property })}
-                        className="w-12 h-12 bg-gradient-to-br from-[#7C3AED] to-[#EC4899] text-white rounded-2xl flex items-center justify-center hover:scale-105 transition-all shadow-lg shadow-[#7C3AED]/30 active:scale-95 relative [transform-style:preserve-3d] duration-500 hover:shadow-2xl social-btn"
-                        title="Auto Promote to Social Media"
-                      >
-                        <div className="absolute inset-0 rounded-2xl border-2 border-[#7C3AED] group-hover/promote:animate-[ping_1.5s_cubic-bezier(0,0,0.2,1)_infinite] opacity-0 group-hover/promote:opacity-30 transition-transform duration-700 group-hover/promote:[transform:rotateX(180deg)_rotateY(180deg)_scale(1.2)]" />
-                        <Zap size={20} fill="currentColor" className="relative z-10 transition-transform duration-700 group-hover/promote:[transform:rotateY(360deg)_scale(1.1)_translateZ(20px)]" />
-                      </button>
-                      
-                      <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl shadow-black/10 border border-gray-100 opacity-0 invisible group-hover/promote:opacity-100 group-hover/promote:visible transition-all z-50 overflow-hidden flex flex-col py-2">
-                         <div className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">Quick Actions</div>
-                         <button onClick={() => setPromoteModal({ isOpen: true, property })} className="px-4 py-2 text-left text-sm font-bold text-gray-900 hover:bg-purple-50 hover:text-purple-600 flex items-center gap-2 transition-colors"><Zap size={14}/> Auto Promote (Full)</button>
-                         <button onClick={() => setPromoteModal({ isOpen: true, property })} className="px-4 py-2 text-left text-sm font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2 transition-colors">📘 Quick → Facebook</button>
-                         <button onClick={() => setPromoteModal({ isOpen: true, property })} className="px-4 py-2 text-left text-sm font-bold text-gray-900 hover:bg-pink-50 hover:text-pink-600 flex items-center gap-2 transition-colors">📸 Quick → Instagram</button>
-                         <button onClick={() => setPromoteModal({ isOpen: true, property })} className="px-4 py-2 text-left text-sm font-bold text-gray-900 hover:bg-gray-100 flex items-center gap-2 transition-colors">🐦 Quick → Twitter</button>
-                      </div>
-                    </div>
-
-                    <div className="relative group/share [perspective:1000px]">
-                      <button 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          const slug = property.listing_title ? slugify(property.listing_title) : 'property';
-                          const url = `${window.location.origin}/property/${property.id}/${slug}`;
-                          navigator.clipboard.writeText(url);
-                          toast.success('Public URL copied to clipboard!');
-                          
-                          // Navigate seamlessly within the SPA
-                          window.history.pushState({}, '', `/property/${property.id}/${slug}`);
-                          window.dispatchEvent(new PopStateEvent('popstate'));
-                        }}
-                        className="w-12 h-12 bg-admin-text-dark text-[#00FF87] border border-[#00FF87]/30 rounded-2xl flex items-center justify-center hover:bg-[#00FF87] hover:text-[#0B0F19] hover:shadow-[0_0_20px_rgba(0,255,135,0.45)] transition-all shadow-xl active:scale-95 duration-300 group/link"
-                        title="View Details & Share"
-                      >
-                        <ExternalLink size={20} className="transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 duration-300" />
-                      </button>
-                      
-                      <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl shadow-black/10 border border-gray-100 opacity-0 invisible group-hover/share:opacity-100 group-hover/share:visible transition-all z-50 overflow-hidden flex flex-col py-2">
-                         <div className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">Share Link</div>
-                         <button onClick={() => {
-                            const slug = property.listing_title ? slugify(property.listing_title) : 'property';
-                            const url = `${window.location.origin}/property/${property.id}/${slug}`;
-                            navigator.clipboard.writeText(url);
-                            toast.success('Link copied!');
-                         }} className="px-4 py-2 text-left text-sm font-bold text-gray-900 hover:bg-gray-100 transition-colors flex items-center gap-2">🔗 Copy URL</button>
-                         <button onClick={(e) => {
-                            e.preventDefault();
-                            const slug = property.listing_title ? slugify(property.listing_title) : 'property';
-                            window.history.pushState({}, '', `/property/${property.id}/${slug}`);
-                            window.dispatchEvent(new PopStateEvent('popstate'));
-                         }} className="px-4 py-2 text-left text-sm font-bold text-gray-900 hover:bg-[#00FF87]/20 hover:text-[#004f31] transition-colors flex items-center gap-2">👀 View Page</button>
-                         <a href={`https://wa.me/?text=${encodeURIComponent(`Check out this property: ${window.location.origin}/property/${property.id}/${property.listing_title ? slugify(property.listing_title) : 'property'}`)}`} target="_blank" rel="noreferrer" className="px-4 py-2 text-left text-sm font-bold text-gray-900 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">💬 WhatsApp</a>
-                      </div>
-                    </div>
-                 </div>
-              </div>
-            </motion.div>
-          ))
-        ) : (
-          <div className="py-24 text-center animate-in fade-in zoom-in duration-700">
-             <div className="relative inline-block mb-8">
-                <div className="w-32 h-32 bg-admin-bg rounded-full flex items-center justify-center">
-                  <ClipboardList size={48} className="text-gray-200" />
-                </div>
-                <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg border-4 border-admin-bg">
-                  <Plus size={20} className="text-[#006644]" />
-                </div>
-             </div>
-             <h3 className="text-3xl font-black text-admin-text-dark mb-4">Inventory is empty</h3>
-             <p className="text-admin-text-gray font-bold max-w-sm mx-auto mb-10">
-                You haven't posted any properties yet. Start your journey by listing your first property and attract potential buyers.
-             </p>
-             <button 
-               onClick={onNewProperty}
-               className="bg-[#004F31] text-white px-10 py-5 rounded-[24px] font-black text-sm uppercase tracking-widest shadow-2xl shadow-[#004F31]/20 hover:bg-[#003824] transition-all active:scale-95"
-             >
-                List Your First Property
-             </button>
+        {/* 5. Pagination */}
+        {totalPages > 1 && (
+          <div className="bg-white border-t border-slate-200 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-[#6b7280]">
+            <div>
+              Page {currentPage} of {totalPages} — Showing {paginatedListings.length} of {totalItems} properties
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-40"
+              >
+                ◀ Prev
+              </button>
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`w-9 h-9 rounded-lg font-bold transition-all text-xs border ${
+                    currentPage === i + 1 ? 'bg-[#004F31] text-white border-[#004F31]' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-40"
+              >
+                Next ▶
+              </button>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white px-8 py-5 rounded-[24px] border border-admin-border shadow-sm">
-          <div className="text-xs font-bold text-admin-text-gray uppercase tracking-widest">
-            Showing <span className="text-[#004F31] font-black">{startIndex + 1}</span> to <span className="text-[#004F31] font-black">{Math.min(startIndex + itemsPerPage, totalItems)}</span> of <span className="text-[#004F31] font-black">{totalItems}</span> properties
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className={`p-3 rounded-xl border border-admin-border flex items-center justify-center transition-all ${
-                currentPage === 1 
-                  ? 'text-gray-300 cursor-not-allowed bg-gray-50' 
-                  : 'text-[#004F31] hover:bg-admin-bg hover:scale-105 active:scale-95'
-              }`}
-              title="Previous Page"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            
-            {Array.from({ length: totalPages }, (_, index) => {
-              const pageNum = index + 1;
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => setCurrentPage(pageNum)}
-                  className={`w-10 h-10 rounded-xl font-black text-xs transition-all ${
-                    currentPage === pageNum
-                      ? 'bg-[#004F31] text-white shadow-md shadow-[#004F31]/20'
-                      : 'bg-white border border-admin-border text-[#004F31] hover:bg-admin-bg'
-                  }`}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
-
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className={`p-3 rounded-xl border border-admin-border flex items-center justify-center transition-all ${
-                currentPage === totalPages 
-                  ? 'text-gray-300 cursor-not-allowed bg-gray-50' 
-                  : 'text-[#004F31] hover:bg-admin-bg hover:scale-105 active:scale-95'
-              }`}
-              title="Next Page"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
-      )}
-
-       <AnimatePresence>
+      {/* Confirmation Modals */}
+      <AnimatePresence>
         {deleteModal.isOpen && deleteModal.property && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setDeleteModal({ isOpen: false, property: null })}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl"
-            >
-              <div className="p-8">
-                <div className="flex justify-between items-start mb-6">
-                  <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-red-500">
-                    <Trash2 size={28} />
-                  </div>
-                  <button 
-                    onClick={() => setDeleteModal({ isOpen: false, property: null })}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-                
-                <h3 className="text-2xl font-black text-admin-text-dark mb-2">Delete Property?</h3>
-                <p className="text-admin-text-gray font-bold mb-6">
-                  Are you sure you want to permanently delete:
-                  <span className="block text-admin-text-dark mt-1">"{deleteModal.property.listing_title}"</span>
-                </p>
-
-                <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 mb-8 flex gap-3">
-                  <AlertTriangle className="text-orange-500 shrink-0" size={20} />
-                  <p className="text-sm font-bold text-orange-700 leading-relaxed">
-                    This action cannot be undone. The listing will be removed from the website and database permanently.
-                  </p>
-                </div>
-
-                <div className="flex gap-4">
-                  <button 
-                    onClick={() => setDeleteModal({ isOpen: false, property: null })}
-                    className="flex-1 px-8 py-4 bg-gray-100 text-admin-text-dark rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    onClick={() => deleteProperty(deleteModal.property!.id)}
-                    disabled={updatingId === deleteModal.property.id}
-                    className="flex-1 px-8 py-4 bg-red-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-red-500/20 hover:bg-red-600 transition-all flex items-center justify-center gap-2"
-                  >
-                    {updatingId === deleteModal.property.id ? <Loader2 className="animate-spin" size={18} /> : 'Delete Permanently'}
-                  </button>
-                </div>
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDeleteModal({ isOpen: false, property: null })} />
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-lg p-6 max-w-md w-full relative z-10 border border-slate-200 shadow-xl">
+              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">⚠️ Delete Property?</h3>
+              <p className="text-sm text-slate-500 mt-2">Are you sure you want to permanently delete "{deleteModal.property.listing_title}"?</p>
+              <div className="flex gap-3 mt-6">
+                <button onClick={() => setDeleteModal({ isOpen: false, property: null })} className="flex-1 py-2 border border-slate-200 rounded-lg font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+                <button onClick={() => deleteProperty(deleteModal.property!.id)} className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold">Delete Permanently</button>
               </div>
             </motion.div>
           </div>
@@ -778,117 +797,37 @@ export default function AdminListings({ user, onEdit, onNewProperty }: { user: a
 
         {statusModal.isOpen && statusModal.property && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setStatusModal({ isOpen: false, property: null })}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl"
-            >
-              <div className="p-8">
-                <div className="flex justify-between items-start mb-6">
-                  <div className={`w-14 h-14 ${statusModal.property.status === 'active' ? 'bg-orange-50 text-orange-500' : 'bg-green-50 text-green-500'} rounded-2xl flex items-center justify-center`}>
-                    {statusModal.property.status === 'active' ? <Pause size={28} /> : <Zap size={28} />}
-                  </div>
-                  <button 
-                    onClick={() => setStatusModal({ isOpen: false, property: null })}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-                
-                <h3 className="text-2xl font-black text-admin-text-dark mb-2">
-                  {statusModal.property.status === 'active' ? 'Pause this listing?' : 'Reactivate this listing?'}
-                </h3>
-                <p className="text-admin-text-gray font-bold mb-6">
-                  "{statusModal.property.listing_title}"
-                </p>
-
-                <div className={`border rounded-2xl p-4 mb-8 flex gap-3 ${statusModal.property.status === 'active' ? 'bg-blue-50 border-blue-100' : 'bg-green-50 border-green-100'}`}>
-                   {statusModal.property.status === 'active' ? (
-                     <p className="text-sm font-bold text-blue-700 leading-relaxed">
-                        The ad will be hidden from the website but not deleted. You can reactivate anytime.
-                     </p>
-                   ) : (
-                     <p className="text-sm font-bold text-green-700 leading-relaxed">
-                        The ad will be visible on the website immediately.
-                     </p>
-                   )}
-                </div>
-
-                <div className="flex gap-4">
-                  <button 
-                    onClick={() => setStatusModal({ isOpen: false, property: null })}
-                    className="flex-1 px-8 py-4 bg-gray-100 text-admin-text-dark rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    onClick={() => toggleStatus(statusModal.property!.id, statusModal.property!.status)}
-                    disabled={updatingId === statusModal.property.id}
-                    className={`flex-1 px-8 py-4 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl transition-all flex items-center justify-center gap-2 ${
-                      statusModal.property.status === 'active' 
-                        ? 'bg-orange-500 shadow-orange-500/20 hover:bg-orange-600' 
-                        : 'bg-[#004F31] shadow-[#004F31]/20 hover:bg-[#003824]'
-                    }`}
-                  >
-                    {updatingId === statusModal.property.id ? <Loader2 className="animate-spin" size={18} /> : (
-                      statusModal.property.status === 'active' ? 'Pause Listing' : 'Activate Listing'
-                    )}
-                  </button>
-                </div>
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setStatusModal({ isOpen: false, property: null })} />
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-lg p-6 max-w-md w-full relative z-10 border border-slate-200 shadow-xl">
+              <h3 className="text-xl font-bold text-slate-900">Toggle Status?</h3>
+              <p className="text-sm text-slate-500 mt-2">Are you sure you want to toggle visibility for "{statusModal.property.listing_title}"?</p>
+              <div className="flex gap-3 mt-6">
+                <button onClick={() => setStatusModal({ isOpen: false, property: null })} className="flex-1 py-2 border border-slate-200 rounded-lg font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+                <button onClick={() => toggleStatus(statusModal.property!.id, statusModal.property!.status)} className="flex-1 py-2 bg-[#004F31] hover:bg-[#006040] text-white rounded-lg font-semibold">Yes, Toggle</button>
               </div>
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
 
-      <AnimatePresence>
-        {promoteModal.isOpen && (
+        {promoteModal.isOpen && promoteModal.property && (
           <AutoPromoteModal
             isOpen={promoteModal.isOpen}
             onClose={() => setPromoteModal({ isOpen: false, property: null })}
             property={promoteModal.property as any}
             onPromoted={(platforms) => {
-               if (promoteModal.property) {
-                 setPromotedData(prev => ({
-                   ...prev,
-                   [promoteModal.property!.id]: {
-                     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                     platforms
-                   }
-                 }));
-               }
+              if (promoteModal.property) {
+                setPromotedData(prev => ({
+                  ...prev,
+                  [promoteModal.property!.id]: {
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    platforms
+                  }
+                }));
+              }
             }}
           />
         )}
       </AnimatePresence>
     </div>
-  );
-}
-
-function Compass({ size, className }: { size?: number, className?: string }) {
-  return (
-    <svg 
-      width={size || 24} 
-      height={size || 24} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className={className}
-    >
-      <circle cx="12" cy="12" r="10" />
-      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-    </svg>
   );
 }

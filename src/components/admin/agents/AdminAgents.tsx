@@ -512,98 +512,123 @@ export default function AdminAgents({ user }: { user: any }) {
   const bgPage = adminDarkMode ? 'bg-[#0E0E14]' : 'bg-slate-50';
 
   return (
-    <div className={`space-y-6 ${bgPage} min-h-screen pb-12`}>
-      {/* Title block */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className={`text-2xl font-black tracking-tight ${textPrimary}`}>
-            🏢 Agent Management
-          </h1>
-          <p className={`text-xs mt-1 ${textSecondary}`}>
-            Complete overview of all registered real estate agents, their listings, performance, and revenue.
-          </p>
+    <div className="space-y-8 animate-in fade-in duration-500 max-w-[1400px] mx-auto pb-24 font-sans text-slate-800">
+      
+      {/* 1. Page Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-6">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">👮</span>
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2 font-display">
+              Agent Management
+              <span className="bg-emerald-50 text-[#059669] font-black text-[11px] tracking-widest uppercase px-2.5 py-0.5 rounded-full border border-emerald-200">
+                LATEST
+              </span>
+            </h2>
+            <p className="text-xs sm:text-sm font-semibold text-neutral-400 mt-1">
+              Monitor registered real estate agents and agency verification statuses.
+            </p>
+          </div>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition-all shadow-md shrink-0 flex items-center gap-1.5 self-start"
-        >
-          <Plus size={16} /> Add Agent Manually
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={loadData}
+            className="p-2.5 bg-white border border-slate-200 hover:bg-neutral-50 text-neutral-600 rounded-full transition-all duration-200 flex items-center justify-center cursor-pointer"
+            title="Refresh"
+          >
+            <RefreshCw size={16} className={loading ? 'animate-spin text-[#004F31]' : ''} />
+          </button>
+          <button
+            onClick={handleExportAgentsCSV}
+            className="px-4 py-2.5 bg-white border border-slate-200 hover:bg-neutral-50 text-neutral-800 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer"
+          >
+            <Download size={16} />
+            <span>EXPORT CSV</span>
+          </button>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="px-4 py-2.5 bg-[#004F31] hover:bg-[#006040] text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer shadow-sm"
+          >
+            <Plus size={16} />
+            <span>Add Agent</span>
+          </button>
+        </div>
       </div>
 
-      {/* SECTION 1 — TOP STATS ROW */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-        {/* Card 1 */}
-        <div className={`p-3.5 rounded-xl border ${bgCard} shadow-xs border-l-sky-800 border-l-4`}>
-          <p className="text-[10px] text-sky-800 font-bold uppercase">Total Agents</p>
-          <p className={`text-lg font-black ${textPrimary} mt-0.5`}>{totalAgentsCount}</p>
-          <p className="text-[9px] text-slate-400">All registered agents</p>
+      {/* 2. Stats Row (4 Cards) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        {/* Total Agents */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-[#f0fdf4] text-[#004F31] rounded-xl">
+              <Users size={18} />
+            </div>
+            <span className="text-[12px] font-medium text-green-600">↗ +2</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Total Agents</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{totalAgentsCount}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Registered accounts</p>
         </div>
 
-        {/* Card 2 */}
-        <div className={`p-3.5 rounded-xl border ${bgCard} shadow-xs border-l-green-600 border-l-4`}>
-          <p className="text-[10px] text-green-600 font-bold uppercase">Verified Agents</p>
-          <p className={`text-lg font-black ${textPrimary} mt-0.5`}>{verifiedCount}</p>
-          <p className="text-[9px] text-slate-400">Approved by admin</p>
+        {/* Verified Agents */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+              <CheckCircle size={18} />
+            </div>
+            <span className="text-[12px] font-medium text-green-600">↗ +1</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Verified Agents</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{verifiedCount}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Approved by admin</p>
         </div>
 
-        {/* Card 3 */}
+        {/* Pending Approvals */}
         <button
           onClick={() => {
             setFilterVerification('Pending');
             toast.success('Filtered to pending verifications only.');
           }}
-          className={`p-3.5 rounded-xl border ${bgCard} shadow-xs border-l-orange-500 border-l-4 text-left focus:outline-none hover:scale-[1.02] transition-transform`}
+          className="text-left bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all"
         >
-          <p className="text-[10px] text-orange-500 font-bold uppercase">Pending</p>
-          <p className={`text-lg font-black ${textPrimary} mt-0.5`}>{pendingCount}</p>
-          <p className="text-[9px] text-slate-400">Awaiting admin review</p>
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-orange-50 text-orange-600 rounded-xl">
+              <Clock size={18} />
+            </div>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Pending Approval</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-orange-600 mt-1">{pendingCount}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Awaiting audit review</p>
         </button>
 
-        {/* Card 4 */}
-        <div className={`p-3.5 rounded-xl border ${bgCard} shadow-xs border-l-blue-500 border-l-4`}>
-          <p className="text-[10px] text-blue-500 font-bold uppercase">Agent Listings</p>
-          <p className={`text-lg font-black ${textPrimary} mt-0.5`}>{totalListings}</p>
-          <p className="text-[9px] text-slate-400">Properties listed by agents</p>
+        {/* Featured Agents */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-[#f5f3ff] text-[#7c3aed] rounded-xl">
+              <Award size={18} />
+            </div>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Featured Agents</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-purple-600 mt-1">{featuredAgentsCount}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Premium featured</p>
         </div>
 
-        {/* Card 5 */}
-        <div className={`p-3.5 rounded-xl border ${bgCard} shadow-xs border-l-purple-500 border-l-4`}>
-          <p className="text-[10px] text-purple-500 font-bold uppercase">Total Leads</p>
-          <p className={`text-lg font-black ${textPrimary} mt-0.5`}>{totalLeads}</p>
-          <p className="text-[9px] text-slate-400">All time leads received</p>
-        </div>
-
-        {/* Card 6 */}
-        <div className={`p-3.5 rounded-xl border ${bgCard} shadow-xs border-l-emerald-600 border-l-4`}>
-          <p className="text-[10px] text-emerald-600 font-bold uppercase">Agent Revenue</p>
-          <p className={`text-xs font-black text-emerald-600 dark:text-emerald-400 mt-1 truncate`}>
-            Rs. {revenueThisMonth.toLocaleString('en-LK')}
-          </p>
-          <p className="text-[9px] text-slate-400 mt-0.5">This Month</p>
-        </div>
-
-        {/* Card 7 */}
-        <div className={`p-3.5 rounded-xl border ${bgCard} shadow-xs border-l-amber-500 border-l-4`}>
-          <p className="text-[10px] text-amber-500 font-bold uppercase">Featured</p>
-          <p className={`text-lg font-black ${textPrimary} mt-0.5`}>{featuredAgentsCount}</p>
-          <p className="text-[9px] text-slate-400">Currently featured</p>
-        </div>
       </div>
 
       {/* SECTION 2.5 — PENDING VERIFICATION ALERT */}
       {pendingCount > 0 && (
-        <div className="bg-orange-500/15 border-l-4 border-orange-500 p-4 rounded-xl flex items-center justify-between text-xs font-semibold gap-3">
+        <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-center justify-between text-xs font-semibold gap-3">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="text-orange-500 shrink-0 animate-pulse" size={18} />
+            <AlertTriangle className="text-amber-600 shrink-0 animate-pulse" size={18} />
             <div>
-              <p className={textPrimary}>{pendingCount} agents are waiting for verification</p>
-              <p className="text-[11px] text-slate-400 font-normal">Review and approve their profiles to let them start listing properties on LankaProperty.lk.</p>
+              <p className="text-slate-900 font-bold">{pendingCount} agents are waiting for verification</p>
+              <p className="text-[11px] text-slate-500 font-normal">Review and approve their profiles to let them start listing properties on LankaProperty.lk.</p>
             </div>
           </div>
           <button
             onClick={handleReviewNow}
-            className="py-1 px-3 bg-orange-500 hover:bg-orange-600 text-white rounded font-bold transition-colors shrink-0"
+            className="py-1.5 px-3.5 bg-amber-600 hover:bg-amber-700 text-white rounded font-bold transition-colors shrink-0"
           >
             Review Now →
           </button>
@@ -611,43 +636,43 @@ export default function AdminAgents({ user }: { user: any }) {
       )}
 
       {/* SECTION 2 — FILTER & SEARCH BAR */}
-      <div className={`p-5 rounded-xl border ${bgCard} shadow-sm space-y-4 text-xs`}>
+      <div className="bg-white border border-slate-200 rounded-[14px] p-5 space-y-4 shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
         <div className="relative">
-          <Search className="absolute left-3 top-3.5 text-slate-400" size={16} />
+          <Search className="absolute left-3.5 top-3.5 text-[#9ca3af]" size={18} />
           <input
             type="text"
             placeholder="Search agent name, email, agency, license no..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-slate-300 dark:border-slate-850 rounded-lg bg-transparent text-slate-800 dark:text-slate-100 outline-none focus:ring-1 focus:ring-[#004F31] focus:border-[#004F31]"
+            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm placeholder-slate-400 outline-none focus:border-[#004F31] focus:bg-white transition-all text-slate-800"
           />
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 text-xs">
           {/* Verification */}
           <div>
-            <label className={`block font-bold ${textSecondary} mb-1.5`}>Verification:</label>
+            <label className="block font-bold text-[#6b7280] mb-1.5">Verification:</label>
             <select
               value={filterVerification}
               onChange={(e) => setFilterVerification(e.target.value as any)}
-              className="w-full p-2 rounded border border-slate-300 dark:border-slate-850 bg-transparent text-slate-700 dark:text-slate-200 outline-none"
+              className="w-full p-2.5 rounded border border-slate-200 bg-white text-slate-700 outline-none focus:border-[#004F31]"
             >
-              <option value="All" className="bg-white dark:bg-slate-900">All Status</option>
-              <option value="Verified" className="bg-white dark:bg-slate-900">Verified ✅</option>
-              <option value="Pending" className="bg-white dark:bg-slate-900">Pending ⏳</option>
-              <option value="Rejected" className="bg-white dark:bg-slate-900">Rejected ❌</option>
+              <option value="All">All Status</option>
+              <option value="Verified">Verified ✅</option>
+              <option value="Pending">Pending ⏳</option>
+              <option value="Rejected">Rejected ❌</option>
             </select>
           </div>
 
           {/* Package */}
           <div>
-            <label className={`block font-bold ${textSecondary} mb-1.5`}>Package Tier:</label>
+            <label className="block font-bold text-[#6b7280] mb-1.5">Package Tier:</label>
             <select
               value={filterPackage}
               onChange={(e) => setFilterPackage(e.target.value as any)}
-              className="w-full p-2 rounded border border-slate-300 dark:border-slate-850 bg-transparent text-slate-700 dark:text-slate-200 outline-none"
+              className="w-full p-2.5 rounded border border-slate-200 bg-white text-slate-700 outline-none focus:border-[#004F31]"
             >
-              <option value="All" className="bg-white dark:bg-slate-900">All Packages</option>
+              <option value="All">All Packages</option>
               <option value="Free" className="bg-white dark:bg-slate-900">Free</option>
               <option value="Starter" className="bg-white dark:bg-slate-900">Starter</option>
               <option value="Professional" className="bg-white dark:bg-slate-900">Professional</option>
@@ -768,35 +793,36 @@ export default function AdminAgents({ user }: { user: any }) {
 
       {/* SECTION 3 — AGENTS TABLE */}
       {loading ? (
-        <div className={`p-12 text-center rounded-xl border ${bgCard} shadow flex flex-col items-center justify-center gap-3 text-xs text-slate-400`}>
+        <div className="p-12 text-center rounded-xl border border-slate-200 bg-white shadow flex flex-col items-center justify-center gap-3 text-xs text-slate-400">
           <RefreshCw className="animate-spin text-[#004F31]" size={32} />
           <p className="font-semibold">Loading agent management profiles and metadata...</p>
         </div>
       ) : filteredAgents.length === 0 ? (
-        <div className={`p-12 text-center rounded-xl border ${bgCard} shadow`}>
+        <div className="p-12 text-center rounded-xl border border-slate-200 bg-white shadow">
           <p className="text-slate-500 font-bold italic text-sm">No registered agents match your filtering queries.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-700/10 shadow-xs">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead className="bg-[#004F31] text-white font-bold uppercase border-b border-slate-700/10 sticky top-0 z-10">
-              <tr>
-                <th className="p-3.5 w-10">#</th>
-                <th className="p-3.5">Agent Info</th>
-                <th className="p-3.5">Agency Details</th>
-                <th className="p-3.5">Specialization</th>
-                <th className="p-3.5">Service Areas</th>
-                <th className="p-3.5">Listings</th>
-                <th className="p-3.5">Leads</th>
-                <th className="p-3.5">Rating</th>
-                <th className="p-3.5">Package</th>
-                <th className="p-3.5">Revenue</th>
-                <th className="p-3.5">Verified</th>
-                <th className="p-3.5">Status</th>
-                <th className="p-3.5 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-700/10">
+        <div className="bg-white border border-slate-200 rounded-[14px] overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-[#f9fafb] border-b border-slate-200">
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af] text-center w-10">#</th>
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Agent Info</th>
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Agency Details</th>
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Specialization</th>
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Service Areas</th>
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Listings</th>
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Leads</th>
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Rating</th>
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Package</th>
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Revenue</th>
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Verified</th>
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af]">Status</th>
+                  <th className="px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.8px] text-[#9ca3af] text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
               {filteredAgents.map((agent, index) => {
                 const isExpanded = expandedAgentId === agent.id;
                 const agentPropertiesList = properties.filter((p) => p.agent_id === agent.id);
@@ -1059,6 +1085,7 @@ export default function AdminAgents({ user }: { user: any }) {
               })}
             </tbody>
           </table>
+        </div>
         </div>
       )}
 

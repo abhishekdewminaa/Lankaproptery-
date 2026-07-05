@@ -72,9 +72,9 @@ const CustomAreaTooltip = ({ active, payload, label }: any) => {
     return (
       <div className="bg-white border border-gray-200 rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] p-4 font-sans">
         <p className="text-gray-500 font-bold mb-1 text-xs uppercase tracking-wider">{label}</p>
-        <p className="font-black text-[#2E7D32] text-lg">LKR {payload[0].value.toFixed(1)}M</p>
+        <p className="font-black text-[#004F31] text-lg">LKR {payload[0].value.toFixed(1)}M</p>
         {!data.forecast && (
-          <p className="text-[#2E7D32] text-xs font-bold mt-1">
+          <p className="text-[#00897b] text-xs font-bold mt-1">
             +12.4% ↑ <span className="text-gray-400 font-medium">vs last month</span>
           </p>
         )}
@@ -183,7 +183,7 @@ export default function AdminAnalytics() {
   if (analytics.loading && analytics.empty) {
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
-        <Loader2 className="animate-spin text-[#1B5E20]" size={48} />
+        <Loader2 className="animate-spin text-[#004F31]" size={48} />
         <p className="text-gray-400 font-black text-sm uppercase tracking-widest">Loading Analytics...</p>
       </div>
     );
@@ -201,7 +201,7 @@ export default function AdminAnalytics() {
 
   // Enhance leadSourceData colors if needed
   const sourceColors: Record<string, string> = {
-    'Organic': '#1B5E20',
+    'Organic': '#004F31',
     'Social': '#F9A825',
     'Direct': '#1565C0',
     'Referral': '#C62828'
@@ -210,9 +210,9 @@ export default function AdminAnalytics() {
 
   // District Bar Data
   const districtColors: Record<string, string> = {
-    'COLOMBO': '#1B5E20',
-    'KANDY': '#2E7D32',
-    'GAMPAHA': '#388E3C',
+    'COLOMBO': '#004F31',
+    'KANDY': '#00897b',
+    'GAMPAHA': '#00a693',
     'GALLE': '#43A047',
     'KURUNEGALA': '#66BB6A'
   };
@@ -229,24 +229,31 @@ export default function AdminAnalytics() {
   const mockSparkTable = [2,4,3,6,5,8,7].map(v => ({ value: v }));
 
   return (
-    <div className="space-y-10 pb-20 font-sans">
+    <div className="space-y-8 animate-in fade-in duration-500 max-w-[1400px] mx-auto pb-24 font-sans text-slate-800">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Analytics & Insights</h1>
-          <p className="text-gray-500 font-medium mt-2">Performance metrics and strategic data for your property portfolio.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-6">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">📈</span>
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2 font-display">
+              Analytics & Insights
+            </h2>
+            <p className="text-xs sm:text-sm font-semibold text-neutral-400 mt-1">
+              Analyze real-time search trends, traffic volumes, conversion funnel maps, and user activities.
+            </p>
+          </div>
         </div>
-        <div className="flex gap-3 w-full md:w-auto relative">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           <div className="relative group flex-grow md:flex-grow-0">
             <button 
               onClick={() => setIsRangeOpen(!isRangeOpen)}
-              className="w-full flex items-center justify-between gap-3 px-6 py-4 bg-white border border-gray-200 rounded-2xl font-black text-sm text-gray-800 shadow-sm hover:shadow-md transition-all min-w-[200px]"
+              className="px-4 py-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-200 flex items-center justify-between gap-2 cursor-pointer border border-transparent shadow-sm min-w-[180px]"
             >
               <div className="flex items-center gap-2">
-                <Calendar size={18} className="text-[#1B5E20]" />
+                <Calendar size={16} className="text-[#004F31]" />
                 <span>{currentRangeLabel}</span>
               </div>
-              <ChevronDown size={18} className={`transition-transform duration-300 ${isRangeOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`transition-transform duration-300 ${isRangeOpen ? 'rotate-180' : ''}`} />
             </button>
             
             {/* Range Dropdown */}
@@ -256,7 +263,7 @@ export default function AdminAnalytics() {
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 py-2 overflow-hidden"
+                  className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-lg z-50 py-1 overflow-hidden"
                 >
                   {TIME_RANGES.map((range) => (
                     <button
@@ -265,8 +272,8 @@ export default function AdminAnalytics() {
                         setSelectedRange(range.id);
                         setIsRangeOpen(false);
                       }}
-                      className={`w-full text-left px-6 py-3 text-xs font-black uppercase tracking-widest transition-colors ${
-                        selectedRange === range.id ? 'bg-green-50 text-[#1B5E20]' : 'text-gray-500 hover:bg-gray-50'
+                      className={`w-full text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-colors ${
+                        selectedRange === range.id ? 'bg-emerald-50 text-[#004F31]' : 'text-slate-600 hover:bg-slate-50'
                       }`}
                     >
                       {range.label}
@@ -277,8 +284,12 @@ export default function AdminAnalytics() {
             </AnimatePresence>
           </div>
           
-          <button disabled={isExporting} onClick={downloadCSV} className="flex items-center gap-2 px-8 py-4 bg-[#1B5E20] text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg shadow-[#1B5E20]/20 hover:bg-[#2E7D32] transition-all disabled:opacity-50">
-            {isExporting ? <Loader2 className="animate-spin" size={20} /> : <Download size={20} />}
+          <button 
+            disabled={isExporting} 
+            onClick={downloadCSV} 
+            className="px-4 py-2.5 bg-[#004F31] hover:bg-[#003420] text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer shadow-sm disabled:opacity-50"
+          >
+            {isExporting ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
             {isExporting ? 'Exporting...' : 'Export Report'}
           </button>
         </div>
@@ -295,24 +306,27 @@ export default function AdminAnalytics() {
           {/* Top Stat Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { title: 'Total Views', value: analytics.totalViews, icon: Eye, color: '#1565C0', bg: 'bg-blue-50', text: 'text-blue-700', trend: '+14.2%', spark: mockSparkView, prefix: '' },
-              { title: 'Properties Sold', value: analytics.propertiesSold, icon: Home, color: '#1B5E20', bg: 'bg-green-50', text: 'text-green-700', trend: '+5.4%', spark: mockSparkSold, prefix: '' },
-              { title: 'New Enquiries', value: analytics.newEnquiries, icon: MessageCircle, color: '#F57F17', bg: 'bg-amber-50', text: 'text-amber-700', trend: '+8.1%', spark: mockSparkLeads, prefix: '' },
-              { title: 'Revenue', value: totalRevenue, icon: CreditCard, color: '#6A1B9A', bg: 'bg-purple-50', text: 'text-purple-700', trend: '+12.4%', spark: mockSparkRev, prefix: 'LKR ' },
+              { title: 'Total Unique Visitors', value: 24580, icon: Users, color: '#1565C0', bg: 'bg-blue-50', text: 'text-blue-700', trend: '+14.2%', spark: mockSparkView, prefix: '' },
+              { title: 'Bounce Rate', value: '42.3%', icon: Activity, color: '#C62828', bg: 'bg-rose-50', text: 'text-rose-700', trend: '-2.1%', spark: mockSparkSold, prefix: '' },
+              { title: 'Avg Session Time', value: '3m 45s', icon: Layers, color: '#00897b', bg: 'bg-teal-50', text: 'text-teal-700', trend: '+12.4%', spark: mockSparkRev, prefix: '' },
+              { title: 'Leads Generated', value: analytics.newEnquiries, icon: MessageCircle, color: '#F57F17', bg: 'bg-amber-50', text: 'text-amber-700', trend: '+8.1%', spark: mockSparkLeads, prefix: '' },
             ].map((stat, i) => (
               <motion.div key={i} 
-
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all duration-300 relative overflow-hidden flex flex-col justify-between"
+                className="bg-white p-6 rounded-[14px] border border-slate-200 shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all duration-300 relative overflow-hidden flex flex-col justify-between"
                 style={{ borderLeft: `6px solid ${stat.color}` }}
               >
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">{stat.title}</p>
-                    <h3 className="text-3xl font-black text-gray-900 tracking-tight">
-                      <CountUp end={stat.value} prefix={stat.prefix} />
+                    <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                      {typeof stat.value === 'number' ? (
+                        <CountUp end={stat.value} prefix={stat.prefix} />
+                      ) : (
+                        <span>{stat.value}</span>
+                      )}
                     </h3>
                   </div>
                   <div className={`p-3 rounded-2xl ${stat.bg} ${stat.text}`}>
@@ -331,17 +345,17 @@ export default function AdminAnalytics() {
           </div>
 
           {/* 1. REVENUE CHART */}
-          <div className="bg-white p-8 md:p-10 rounded-[32px] border border-gray-100 shadow-sm space-y-8 mt-6">
+          <div className="bg-white p-8 md:p-10 rounded-[24px] border border-slate-100 shadow-sm space-y-8 mt-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
                 <h2 className="text-2xl font-black text-gray-900 tracking-tight">Revenue & Forecast</h2>
                 <div className="flex items-center gap-4 mt-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-[#1B5E20]" />
+                    <div className="w-3 h-3 rounded-full bg-[#004F31]" />
                     <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Actual Revenue</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full border-2 border-[#1B5E20] border-dashed" />
+                    <div className="w-3 h-3 rounded-full border-2 border-[#004F31] border-dashed" />
                     <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Forecasted</span>
                   </div>
                 </div>
@@ -356,8 +370,8 @@ export default function AdminAnalytics() {
               <AreaChart data={revenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#1B5E20" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#1B5E20" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#004F31" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="#004F31" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f0f0f0" />
@@ -378,18 +392,18 @@ export default function AdminAnalytics() {
                 <Area 
                   type="monotone" 
                   dataKey="value" 
-                  stroke="#2E7D32" 
+                  stroke="#00897b" 
                   strokeWidth={3} 
                   fillOpacity={1} 
                   fill="url(#colorRevenue)" 
                   isAnimationActive={true}
-                  dot={{ r: 5, fill: '#fff', strokeWidth: 2, stroke: '#2E7D32' }}
-                  activeDot={{ r: 8, fill: '#1B5E20', strokeWidth: 0, style: { filter: 'drop-shadow(0 0 8px rgba(27,94,32,0.6))' } }}
+                  dot={{ r: 5, fill: '#fff', strokeWidth: 2, stroke: '#00897b' }}
+                  activeDot={{ r: 8, fill: '#004F31', strokeWidth: 0, style: { filter: 'drop-shadow(0 0 8px rgba(0,79,49,0.6))' } }}
                 />
                 <Area 
                   type="monotone" 
                   dataKey="value" 
-                  stroke="#2E7D32" 
+                  stroke="#00897b" 
                   strokeWidth={3} 
                   strokeDasharray="6 6"
                   fill="transparent"
@@ -406,10 +420,10 @@ export default function AdminAnalytics() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
             
             {/* 2. SEARCH VOLUME BY DISTRICT - Horizontal Bar */}
-            <div className="bg-white p-8 md:p-10 rounded-[32px] border border-gray-100 shadow-sm space-y-6">
+            <div className="bg-white p-8 md:p-10 rounded-[24px] border border-slate-100 shadow-sm space-y-6">
                <div className="flex justify-between items-center bg-gray-50/50 p-4 rounded-2xl border border-gray-50">
                   <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-700">
+                     <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-[#004F31]">
                         <MapPin size={20} />
                      </div>
                      <h3 className="text-xl font-black text-gray-900 tracking-tight">TOP SEARCH AREAS</h3>
@@ -482,12 +496,12 @@ export default function AdminAnalytics() {
             </div>
 
             {/* 3. LEAD SOURCE TRACKING - Modern Donut */}
-            <div className="bg-white p-8 md:p-10 rounded-[32px] border border-gray-100 shadow-sm relative flex flex-col justify-between">
+            <div className="bg-white p-8 md:p-10 rounded-[24px] border border-slate-100 shadow-sm relative flex flex-col justify-between">
                <div className="flex justify-between items-center relative z-10 mb-2">
                   <h3 className="text-2xl font-black text-gray-900 tracking-tight">Lead Sources</h3>
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 rounded-full border border-green-200 shadow-sm">
-                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                     <span className="text-[10px] font-black uppercase tracking-wide text-green-700">● LIVE</span>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-full border border-emerald-200 shadow-sm">
+                     <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                     <span className="text-[10px] font-black uppercase tracking-wide text-emerald-700">● LIVE</span>
                   </div>
                </div>
 
@@ -528,7 +542,7 @@ export default function AdminAnalytics() {
                   )}
                   
                   {/* 4 Stat Cards below Donut */}
-                  <div className="grid grid-cols-2 gap-4 w-full mt-2">
+                  <div className="grid grid-cols-2 gap-4 w-full mt-4">
                      {pieData.map((d, i) => {
                        const iconMap: Record<string, string> = {
                          'Organic': '🌐',
@@ -537,7 +551,7 @@ export default function AdminAnalytics() {
                          'Referral': '👥'
                        };
                        const matchingColorClass = {
-                          'Organic': 'text-[#1B5E20]',
+                          'Organic': 'text-[#004F31]',
                           'Social': 'text-[#F9A825]',
                           'Direct': 'text-[#1565C0]',
                           'Referral': 'text-[#C62828]'
@@ -550,7 +564,7 @@ export default function AdminAnalytics() {
                                   <span>{iconMap[d.name] || '📌'}</span>
                                   <span className={`text-[10px] font-black uppercase tracking-widest ${matchingColorClass}`}>{d.name}</span>
                                </div>
-                               <div className="w-2h-2 rounded-full shadow-sm" style={{ backgroundColor: d.color }} />
+                               <div className="w-2 h-2 rounded-full shadow-sm" style={{ backgroundColor: d.color }} />
                             </div>
                             <div className="flex items-end justify-between">
                                <span className="text-2xl font-black text-gray-900 leading-none">{d.value}%</span>
@@ -567,22 +581,22 @@ export default function AdminAnalytics() {
           </div>
 
           {/* 4. TOP PERFORMING CATEGORIES - Rich Visual Table */}
-          <div className="bg-white rounded-[32px] border border-gray-100 shadow-sm overflow-hidden mt-6 pb-2">
-             <div className="p-8 md:p-10 flex justify-between items-center border-b border-gray-100">
+          <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm overflow-hidden mt-6 pb-2">
+             <div className="p-8 md:p-10 flex justify-between items-center border-b border-slate-100">
                 <h3 className="text-2xl font-black text-gray-900 tracking-tight">Top Performing Categories</h3>
-                <button className="text-[10px] font-black text-[#1B5E20] bg-green-50 px-4 py-2 rounded-xl uppercase tracking-widest hover:bg-green-100 transition-colors">
+                <button className="text-[10px] font-black text-[#004F31] bg-emerald-50 px-4 py-2 rounded-xl uppercase tracking-widest hover:bg-emerald-100 transition-colors cursor-pointer">
                    View Full Report
                 </button>
              </div>
              <div className="overflow-x-auto relative">
                 <table className="w-full text-left">
-                   <thead className="bg-[#f0f9f4] sticky top-0 z-10">
+                   <thead className="bg-emerald-50/50 sticky top-0 z-10">
                       <tr>
-                         <th className="px-8 py-5 text-[10px] font-black text-[#1B5E20] uppercase tracking-widest rounded-tl-2xl">Rank / Category</th>
-                         <th className="px-8 py-5 text-[10px] font-black text-[#1B5E20] uppercase tracking-widest text-center">Listings</th>
-                         <th className="px-8 py-5 text-[10px] font-black text-[#1B5E20] uppercase tracking-widest text-center">Leads</th>
-                         <th className="px-8 py-5 text-[10px] font-black text-[#1B5E20] uppercase tracking-widest">Conversion Rate</th>
-                         <th className="px-8 py-5 text-[10px] font-black text-[#1B5E20] uppercase tracking-widest text-center">Trend (7d)</th>
+                         <th className="px-8 py-5 text-[10px] font-black text-[#004F31] uppercase tracking-widest rounded-tl-2xl">Rank / Category</th>
+                         <th className="px-8 py-5 text-[10px] font-black text-[#004F31] uppercase tracking-widest text-center">Listings</th>
+                         <th className="px-8 py-5 text-[10px] font-black text-[#004F31] uppercase tracking-widest text-center">Leads</th>
+                         <th className="px-8 py-5 text-[10px] font-black text-[#004F31] uppercase tracking-widest">Conversion Rate</th>
+                         <th className="px-8 py-5 text-[10px] font-black text-[#004F31] uppercase tracking-widest text-center">Trend (7d)</th>
                       </tr>
                    </thead>
                    <tbody className="divide-y divide-gray-100 bg-white">
@@ -597,7 +611,7 @@ export default function AdminAnalytics() {
                         };
                         const catIcon = emojiMap[row.category] || '📌';
                         const convNum = parseFloat(row.conversion);
-                        const progressBg = row.trend === 'up' ? 'bg-[#2E7D32]' : 'bg-[#1565C0]';
+                        const progressBg = row.trend === 'up' ? 'bg-[#004F31]' : 'bg-[#1565C0]';
 
                         return (
                           <tr key={idx} className="group hover:bg-[#f8fbf9] transition-colors even:bg-gray-50/30">

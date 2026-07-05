@@ -1,4 +1,5 @@
 import express from "express";
+import { createServer as createHttpServer } from "http";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -15,6 +16,13 @@ const __dirname = path.dirname(__filename);
 async function startServer() {
   const app = express();
   const PORT = 3000;
+
+  // Handle WebSocket and cross-origin headers for proxy compatibility
+  app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    next();
+  });
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
@@ -784,8 +792,19 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  const server = createHttpServer(app);
+
+  server.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
+  });
+
+  // Handle WebSocket upgrade errors gracefully
+  server.on("upgrade", (req, socket, head) => {
+    socket.on("error", (err: any) => {
+      // Silently handle WS errors (expected in proxy environments)
+      if (err.message && err.message.includes("WebSocket")) return;
+      console.error("Socket error:", err);
+    });
   });
 }
 

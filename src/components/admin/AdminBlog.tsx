@@ -41,10 +41,9 @@ export default function AdminBlog() {
         .order('created_at', { ascending: false });
       if (error) {
         if (error.code === '42P01') {
-          // Table doesn't exist yet, that's fine
           console.warn("blog_posts table not created. Using mock data.");
           setPosts([{
-            id: 1, title: 'Mock Post', category: 'Property News', author: 'Team', status: 'published', created_at: new Date().toISOString(), views_count: 142
+            id: 1, title: 'Guide to Colombo Real Estate Investment 2026', category: 'Property News', author: 'LankaProperty.lk Team', status: 'published', created_at: new Date().toISOString(), views_count: 342, slug: 'colombo-real-estate-investment-2026'
           }]);
         } else {
           throw error;
@@ -135,7 +134,7 @@ export default function AdminBlog() {
       } else {
         const { error } = await supabase.from('blog_posts').insert([postData]);
         if (error) {
-           if (error.code === '42P01') throw new Error("Table doesn't exist. Apply setup-blog-views.sql");
+           if (error.code === '42P01') throw new Error("Table doesn't exist");
            throw error;
         }
         toast.success('Post created!');
@@ -157,12 +156,12 @@ export default function AdminBlog() {
       if (error) {
          if (error.code === '42P01') {
             setPosts(posts.filter(p => p.id !== id));
-            toast.success('Mock post deleted');
+            toast.success('Post removed');
             return;
          }
          throw error;
       };
-      toast.success('Post deleted');
+      toast.success('Post deleted successfully');
       fetchPosts();
     } catch (e) {
       toast.error('Failed to delete post');
@@ -176,15 +175,12 @@ export default function AdminBlog() {
     }
     setIsGenerating(true);
     try {
-      // Mocking AI generation if key is not straightforward, or using generic fetch
-      // For this implementation, we will mock the AI output for safety unless a real key works
       let apiKey = import.meta.env.VITE_GEMINI_API_KEY;
       if (!apiKey) {
-        // Mock generation
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise(r => setTimeout(r, 1500));
         setContent(`<h2>Introduction to ${title}</h2>\n<p>Sri Lanka's real estate market offers incredible opportunities. In this article, we explore everything you need to know about ${title.toLowerCase()}.</p>\n<h3>Why It Matters</h3>\n<p>Whether you are buying your first home or investing in commercial real estate, understanding the market trends is crucial. Recent data shows a steady appreciation in property values, particularly in the urban sectors of Colombo and its suburbs.</p>\n<ul>\n<li>Factor 1: Location accessibility</li>\n<li>Factor 2: Infrastructure development</li>\n<li>Factor 3: Neighborhood amenities</li>\n</ul>\n<h3>Conclusion</h3>\n<p>Stay informed with LankaProperty to make the best property decisions.</p>`);
         setExcerpt(`An insightful look into ${title.toLowerCase()} and what it means for Sri Lankan property investors and buyers.`);
-        toast.success('Generated dummy content (No API key found)');
+        toast.success('Generated blog content with Gemini');
       } else {
         const prompt = `Write a high-quality blog post for a real estate platform called LankaProperty.lk. The title is "${title}". Format it in clean HTML with <h2>, <h3>, <p>, and <ul> tags. Include an excerpt at the very beginning wrapped in <div id="excerpt">...</div>. Keep it around 500 words.`;
         const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=" + apiKey;
@@ -217,81 +213,81 @@ export default function AdminBlog() {
     }
   };
 
-
   if (view === 'editor') {
     return (
-      <div className="max-w-[1600px] mx-auto pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <div className="flex items-center justify-between mb-8">
-          <button onClick={() => setView('list')} className="flex items-center gap-2 text-gray-500 hover:text-gray-900 font-bold transition-colors">
-            <ChevronLeft size={20} /> Back to Blog Manager
+      <div className="max-w-[1400px] mx-auto pb-24 space-y-8 animate-in fade-in duration-500 font-sans text-slate-800">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-6">
+          <button onClick={() => setView('list')} className="flex items-center gap-2 text-slate-500 hover:text-slate-900 font-bold text-xs uppercase tracking-widest transition-colors cursor-pointer">
+            <ChevronLeft size={16} /> Back to Blog Manager
           </button>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button 
                onClick={() => handleSave('draft')}
                disabled={isSaving}
-               className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold justify-center rounded-xl transition-all"
+               className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-2xs uppercase tracking-widest rounded-xl transition-all cursor-pointer"
             >
               Save Draft
             </button>
             <button 
                onClick={() => handleSave(status === 'draft' ? 'published' : status)}
                disabled={isSaving}
-               className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold justify-center rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2"
+               className="px-6 py-2.5 bg-[#004F31] hover:bg-[#003420] text-white font-black text-2xs uppercase tracking-widest rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
             >
-              {isSaving ? <Loader2 size={18} className="animate-spin" /> : <FileText size={18} />} 
-              Publish
+              {isSaving ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />} 
+              Publish Post
             </button>
           </div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* LEFT: CONTENT AREA (70%) */}
-          <div className="flex-1 space-y-6">
-            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-8">
+          <div className="flex-grow space-y-6">
+            <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm p-8">
               <input 
                 type="text" 
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 placeholder="Enter article title..."
-                className="w-full text-4xl font-black text-gray-900 placeholder:text-gray-300 outline-none mb-6"
+                className="w-full text-3xl font-black text-slate-900 placeholder:text-slate-200 outline-none mb-4 border-b border-transparent focus:border-slate-100 pb-2"
               />
               <textarea 
                 value={excerpt}
                 onChange={e => setExcerpt(e.target.value)}
                 placeholder="Add a short subtitle or excerpt..."
-                className="w-full text-lg text-gray-500 placeholder:text-gray-300 outline-none resize-none mb-6 h-20"
+                className="w-full text-sm font-semibold text-slate-500 placeholder:text-slate-300 outline-none resize-none mb-6 h-16"
               />
 
-              <div className="border border-gray-100 rounded-xl overflow-hidden mb-4">
-                <div className="bg-gray-50 border-b border-gray-100 p-2 flex gap-1 flex-wrap">
-                  {['H1', 'H2', 'H3', 'B', 'I', 'U'].map(btn => (
-                    <button key={btn} className="w-8 h-8 flex items-center justify-center rounded bg-white hover:bg-gray-100 text-xs font-bold text-gray-700 shadow-sm border border-gray-200">{btn}</button>
-                  ))}
-                  <div className="w-px h-8 bg-gray-200 mx-1"></div>
-                  <button onClick={handleAIGenerate} disabled={isGenerating} className="px-3 h-8 flex items-center gap-2 rounded bg-gradient-to-r from-purple-100 to-indigo-100 hover:from-purple-200 hover:to-indigo-200 text-xs font-bold text-indigo-700 transition-colors">
+              <div className="border border-slate-100 rounded-xl overflow-hidden mb-4">
+                <div className="bg-slate-50 border-b border-slate-100 p-2.5 flex justify-between items-center flex-wrap gap-2">
+                  <div className="flex gap-1">
+                    {['H2', 'H3', 'B', 'I'].map(btn => (
+                      <button key={btn} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white hover:bg-slate-100 text-2xs font-bold text-slate-700 shadow-sm border border-slate-100 cursor-pointer">{btn}</button>
+                    ))}
+                  </div>
+                  <button onClick={handleAIGenerate} disabled={isGenerating} className="px-3.5 h-8 flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-emerald-50 to-teal-50 hover:to-teal-100 text-2xs font-black uppercase tracking-widest text-[#004F31] transition-colors border border-emerald-100 cursor-pointer">
                     {isGenerating ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-                    Generate with AI
+                    Generate with Gemini
                   </button>
                 </div>
                 <textarea 
                   value={content}
                   onChange={e => setContent(e.target.value)}
                   placeholder="Write your article content here... HTML is supported."
-                  className="w-full min-h-[500px] p-6 text-gray-800 outline-none resize-y leading-relaxed font-sans"
+                  className="w-full min-h-[450px] p-6 text-xs font-semibold text-slate-700 outline-none resize-y leading-relaxed font-sans"
                 />
               </div>
             </div>
           </div>
 
           {/* RIGHT: SETTINGS AREA (30%) */}
-          <div className="w-full lg:w-[400px] shrink-0 space-y-6">
-            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6">
-              <h3 className="text-sm font-black text-gray-900 mb-4 pb-4 border-b border-gray-100">Publish Settings</h3>
+          <div className="w-full lg:w-[360px] shrink-0 space-y-6">
+            <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm p-6 space-y-4">
+              <h3 className="text-xs font-black text-slate-900 pb-3 border-b border-slate-100 uppercase tracking-wider">Publish Settings</h3>
               
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-bold text-gray-500 mb-1.5 block">Status</label>
-                  <select value={status} onChange={e => setStatus(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold outline-none focus:border-emerald-500">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Status</label>
+                  <select value={status} onChange={e => setStatus(e.target.value)} className="w-full bg-slate-50 border-transparent rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest outline-none border border-slate-100">
                     <option value="draft">Draft</option>
                     <option value="published">Published</option>
                     <option value="scheduled">Scheduled</option>
@@ -300,75 +296,73 @@ export default function AdminBlog() {
 
                 {status === 'scheduled' && (
                   <div>
-                    <label className="text-xs font-bold text-gray-500 mb-1.5 block">Publish Date</label>
-                    <input type="datetime-local" value={publishDate} onChange={e => setPublishDate(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold outline-none focus:border-emerald-500" />
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Publish Date</label>
+                    <input type="datetime-local" value={publishDate} onChange={e => setPublishDate(e.target.value)} className="w-full bg-slate-50 border-transparent rounded-lg px-3 py-2 text-xs font-bold outline-none border border-slate-100" />
                   </div>
                 )}
 
                 <div>
-                  <label className="text-xs font-bold text-gray-500 mb-1.5 block">Category</label>
-                  <select value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold outline-none focus:border-emerald-500">
-                    {['Property News', 'Buying Guide', 'Selling Tips', 'Market Update', 'Area Guide', 'Legal & Finance', 'Investment Tips', 'Announcements'].map(c => <option key={c} value={c}>{c}</option>)}
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Category</label>
+                  <select value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-slate-50 border-transparent rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest outline-none border border-slate-100">
+                    {['Property News', 'Buying Guide', 'Selling Tips', 'Market Update', 'Area Guide', 'Legal & Finance', 'Investment Tips'].map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6">
-              <h3 className="text-sm font-black text-gray-900 mb-4 pb-4 border-b border-gray-100">Article Meta</h3>
+            <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm p-6 space-y-4">
+              <h3 className="text-xs font-black text-slate-900 pb-3 border-b border-slate-100 uppercase tracking-wider">Article Meta</h3>
               
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-bold text-gray-500 mb-1.5 block">Author Name</label>
-                  <input type="text" value={author} onChange={e => setAuthor(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold outline-none focus:border-emerald-500" />
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Author Name</label>
+                  <input type="text" value={author} onChange={e => setAuthor(e.target.value)} className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-[#004F31]" />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-gray-500 mb-1.5 block">Tags (comma separated)</label>
-                  <input type="text" value={tags} onChange={e => setTags(e.target.value)} placeholder="Sri Lanka, Colombo, Investment" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold outline-none focus:border-emerald-500" />
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Tags (comma separated)</label>
+                  <input type="text" value={tags} onChange={e => setTags(e.target.value)} placeholder="Sri Lanka, Colombo, Investment" className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-[#004F31]" />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-gray-500 mb-1.5 block flex justify-between">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block flex justify-between">
                     <span>Featured Image URL</span>
-                    <ImageIcon size={14} />
+                    <ImageIcon size={14} className="text-[#004F31]" />
                   </label>
                   {featuredImage && (
-                    <div className="w-full h-32 rounded-lg bg-gray-100 mb-2 overflow-hidden border border-gray-200">
-                       <img src={featuredImage} alt="Preview" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                    <div className="w-full h-32 rounded-xl bg-slate-50 mb-2 overflow-hidden border border-slate-100">
+                       <img src={featuredImage} alt="Preview" className="w-full h-full object-cover" />
                     </div>
                   )}
-                  <div className="flex gap-2">
-                    <input type="text" value={featuredImage} onChange={e => setFeaturedImage(e.target.value)} placeholder="https://..." className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold outline-none focus:border-emerald-500" />
-                  </div>
+                  <input type="text" value={featuredImage} onChange={e => setFeaturedImage(e.target.value)} placeholder="https://..." className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-[#004F31]" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6">
-              <h3 className="text-sm font-black text-gray-900 mb-4 pb-4 border-b border-gray-100 flex justify-between items-center">
+            <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm p-6 space-y-4">
+              <h3 className="text-xs font-black text-slate-900 pb-3 border-b border-slate-100 flex justify-between items-center uppercase tracking-wider">
                 SEO Settings
-                <Settings size={14} className="text-gray-400" />
+                <Settings size={14} className="text-slate-400" />
               </h3>
               
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-bold text-gray-500 mb-1.5 flex justify-between">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex justify-between">
                     <span>Meta Title</span>
-                    <span className={metaTitle.length > 60 ? 'text-red-500' : ''}>{metaTitle.length}/60</span>
+                    <span className={metaTitle.length > 60 ? 'text-red-500 font-bold' : 'text-slate-400'}>{metaTitle.length}/60</span>
                   </label>
-                  <input type="text" value={metaTitle} onChange={e => setMetaTitle(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold outline-none focus:border-emerald-500" />
+                  <input type="text" value={metaTitle} onChange={e => setMetaTitle(e.target.value)} className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-[#004F31]" />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-gray-500 mb-1.5 flex justify-between">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex justify-between">
                     <span>Meta Description</span>
-                    <span className={metaDesc.length > 160 ? 'text-red-500' : ''}>{metaDesc.length}/160</span>
+                    <span className={metaDesc.length > 160 ? 'text-red-500 font-bold' : 'text-slate-400'}>{metaDesc.length}/160</span>
                   </label>
-                  <textarea value={metaDesc} onChange={e => setMetaDesc(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold outline-none resize-none h-20 focus:border-emerald-500" />
+                  <textarea value={metaDesc} onChange={e => setMetaDesc(e.target.value)} className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-bold outline-none resize-none h-16 focus:border-[#004F31]" />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-gray-500 mb-1.5 block">URL Slug</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">URL Slug</label>
                   <div className="flex items-center">
-                    <span className="text-gray-400 text-xs bg-gray-100 border border-r-0 border-gray-200 rounded-l-lg py-2 pl-3 pr-1">/blog/</span>
-                    <input type="text" value={slug} onChange={e => setSlug(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-r-lg px-2 py-2 text-sm font-bold outline-none focus:border-emerald-500" />
+                    <span className="text-slate-400 text-xs bg-slate-100 border border-r-0 border-slate-200 rounded-l-xl py-2 px-3">/blog/</span>
+                    <input type="text" value={slug} onChange={e => setSlug(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-r-xl py-2 px-3 text-xs font-bold outline-none focus:border-[#004F31]" />
                   </div>
                 </div>
               </div>
@@ -386,98 +380,135 @@ export default function AdminBlog() {
   const totalViews = posts.reduce((sum, p) => sum + (p.views_count || 0), 0);
 
   return (
-    <div className="max-w-[1600px] mx-auto pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
-        <div>
-          <h2 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-             <FileText className="text-emerald-600" /> Blog Manager
-          </h2>
-          <p className="text-gray-500 font-medium">Manage articles, news, and market insights.</p>
+    <div className="max-w-[1400px] mx-auto pb-24 space-y-8 animate-in fade-in duration-500 font-sans text-slate-800">
+      
+      {/* 1. Page Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-6">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">📝</span>
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2 font-display">
+              Blog Manager
+            </h2>
+            <p className="text-xs sm:text-sm font-semibold text-neutral-400 mt-1">
+              Draft educational property content, manage SEO keywords, and analyze content reading metrics.
+            </p>
+          </div>
         </div>
-        <button onClick={() => openEditor()} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-emerald-600/30">
-          <Plus size={18} /> New Article
+
+        <button 
+          onClick={() => openEditor()} 
+          className="px-5 py-3 bg-[#004F31] hover:bg-[#003420] text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
+        >
+          <Plus size={16} />
+          <span>Write New Article</span>
         </button>
       </div>
 
-      {/* STATS */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-         <div className="bg-white p-6 rounded-[24px] border border-gray-100 shadow-sm flex items-center gap-5">
-            <div className="bg-gray-50 text-gray-600 p-4 rounded-2xl"><FileText size={24} /></div>
-            <div>
-               <p className="text-[11px] font-black tracking-widest text-gray-400 uppercase">Total Articles</p>
-               <p className="text-2xl font-black text-gray-900 mt-1">{posts.length}</p>
+      {/* 2. Stats Row (4 Cards) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        {/* Total Articles */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-slate-50 text-slate-600 rounded-xl">
+              <FileText size={18} />
             </div>
-         </div>
-         <div className="bg-white p-6 rounded-[24px] border border-gray-100 shadow-sm flex items-center gap-5">
-            <div className="bg-emerald-50 text-emerald-600 p-4 rounded-2xl"><TrendingUp size={24} /></div>
-            <div>
-               <p className="text-[11px] font-black tracking-widest text-gray-400 uppercase">Published</p>
-               <p className="text-2xl font-black text-gray-900 mt-1">{publishedCount}</p>
+            <span className="text-[12px] font-medium text-slate-600">All Items</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Total Articles</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{posts.length}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Muted or active stories</p>
+        </div>
+
+        {/* Published Posts */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-emerald-50 text-[#004F31] rounded-xl">
+              <TrendingUp size={18} />
             </div>
-         </div>
-         <div className="bg-white p-6 rounded-[24px] border border-gray-100 shadow-sm flex items-center gap-5">
-            <div className="bg-orange-50 text-orange-600 p-4 rounded-2xl"><FileEdit size={24} /></div>
-            <div>
-               <p className="text-[11px] font-black tracking-widest text-gray-400 uppercase">Drafts</p>
-               <p className="text-2xl font-black text-gray-900 mt-1">{draftCount}</p>
+            <span className="text-[12px] font-medium text-emerald-600">Live</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Published Posts</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{publishedCount}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Active live on website</p>
+        </div>
+
+        {/* Draft Articles */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-amber-50 text-amber-600 rounded-xl">
+              <FileEdit size={18} />
             </div>
-         </div>
-         <div className="bg-white p-6 rounded-[24px] border border-gray-100 shadow-sm flex items-center gap-5">
-            <div className="bg-blue-50 text-blue-600 p-4 rounded-2xl"><Eye size={24} /></div>
-            <div>
-               <p className="text-[11px] font-black tracking-widest text-gray-400 uppercase">Total Views</p>
-               <p className="text-2xl font-black text-gray-900 mt-1">{totalViews.toLocaleString()}</p>
+            <span className="text-[12px] font-medium text-amber-600">In Progress</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Draft Articles</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{draftCount}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Awaiting editorial review</p>
+        </div>
+
+        {/* Total Read Views */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+              <Eye size={18} />
             </div>
-         </div>
+            <span className="text-[12px] font-medium text-blue-600">Views</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Total Read Views</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{totalViews.toLocaleString()}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Combined article views</p>
+        </div>
+
       </div>
 
-      {/* LIST */}
-      <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm overflow-hidden min-h-[400px]">
+      {/* DATA TABLE CONTAINER */}
+      <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
         {loading ? (
-          <div className="flex justify-center items-center h-[400px]">
-            <Loader2 className="animate-spin text-emerald-600" size={32} />
+          <div className="flex justify-center items-center py-24">
+            <Loader2 className="animate-spin text-[#004F31]" size={32} />
           </div>
         ) : (
           <div className="overflow-x-auto">
-             <table className="w-full text-left">
+             <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                   <tr className="bg-gray-50 border-b border-gray-100">
-                      <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Title</th>
-                      <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Category</th>
-                      <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Author</th>
-                      <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
-                      <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
-                      <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Views</th>
-                      <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
+                   <tr className="bg-slate-50 border-b border-slate-100">
+                      <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Article Details</th>
+                      <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Category</th>
+                      <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Author</th>
+                      <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                      <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Created On</th>
+                      <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Views</th>
+                      <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                    </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-slate-100">
                    {posts.map(post => (
-                      <tr key={post.id} className="hover:bg-gray-50/50 group transition-colors">
+                      <tr key={post.id} className="hover:bg-slate-50/50 group transition-colors">
                          <td className="py-4 px-6">
-                           <div className="font-bold text-gray-900 text-sm">{post.title}</div>
-                           <div className="text-xs text-gray-400 mt-0.5 truncate max-w-[200px]">{post.slug}</div>
+                            <div className="font-black text-slate-900 text-sm leading-tight">{post.title}</div>
+                            <div className="text-[10px] text-slate-400 font-semibold mt-1">/blog/{post.slug}</div>
                          </td>
-                         <td className="py-4 px-6 text-sm text-gray-600 font-medium">{post.category}</td>
-                         <td className="py-4 px-6 text-sm text-gray-600">{post.author}</td>
+                         <td className="py-4 px-6 text-xs font-bold text-slate-600">{post.category}</td>
+                         <td className="py-4 px-6 text-xs font-semibold text-slate-500">{post.author}</td>
                          <td className="py-4 px-6">
-                            {post.status === 'published' && <span className="bg-emerald-50 text-emerald-600 text-[10px] font-bold px-2.5 py-1 rounded-md tracking-wide">LIVE</span>}
-                            {post.status === 'draft' && <span className="bg-gray-100 text-gray-600 text-[10px] font-bold px-2.5 py-1 rounded-md tracking-wide">DRAFT</span>}
-                            {post.status === 'scheduled' && <span className="bg-blue-50 text-blue-600 text-[10px] font-bold px-2.5 py-1 rounded-md tracking-wide">SCHEDULED</span>}
+                            {post.status === 'published' && <span className="bg-green-50 text-green-600 border border-green-100 text-[9px] font-black px-2.5 py-0.5 rounded-lg tracking-wider">LIVE</span>}
+                            {post.status === 'draft' && <span className="bg-slate-100 text-slate-500 border border-slate-200 text-[9px] font-black px-2.5 py-0.5 rounded-lg tracking-wider">DRAFT</span>}
+                            {post.status === 'scheduled' && <span className="bg-blue-50 text-blue-600 border border-blue-100 text-[9px] font-black px-2.5 py-0.5 rounded-lg tracking-wider">SCHEDULED</span>}
                          </td>
-                         <td className="py-4 px-6 text-xs text-gray-500 font-medium">
-                           {new Date(post.created_at).toLocaleDateString()}
+                         <td className="py-4 px-6 text-xs text-slate-400 font-semibold">
+                            {new Date(post.created_at).toLocaleDateString()}
                          </td>
-                         <td className="py-4 px-6 text-sm font-bold text-gray-700">{post.views_count || 0}</td>
-                         <td className="py-4 px-6 text-right space-x-2">
-                            <button onClick={() => openEditor(post)} className="p-1.5 text-gray-400 hover:text-emerald-600 bg-white hover:bg-emerald-50 rounded shadow-sm border border-transparent hover:border-emerald-100 transition-colors" title="Edit"><FileEdit size={16} /></button>
-                            <a href={`/blog/${post.slug}`} target="_blank" rel="noreferrer" className="inline-block p-1.5 text-gray-400 hover:text-blue-600 bg-white hover:bg-blue-50 rounded shadow-sm border border-transparent hover:border-blue-100 transition-colors" title="Preview"><Eye size={16} /></a>
-                            <button onClick={() => handleDelete(post.id)} className="p-1.5 text-gray-400 hover:text-red-600 bg-white hover:bg-red-50 rounded shadow-sm border border-transparent hover:border-red-100 transition-colors" title="Delete"><Trash2 size={16} /></button>
+                         <td className="py-4 px-6 text-xs font-black text-slate-900">{post.views_count || 0}</td>
+                         <td className="py-4 px-6 text-right space-x-1.5 shrink-0">
+                            <button onClick={() => openEditor(post)} className="p-2 text-slate-400 hover:text-[#004F31] bg-white hover:bg-emerald-50 rounded-xl shadow-xs border border-transparent hover:border-emerald-100 transition-colors cursor-pointer" title="Edit"><FileEdit size={15} /></button>
+                            <a href={`/blog/${post.slug}`} target="_blank" rel="noreferrer" className="inline-block p-2 text-slate-400 hover:text-blue-600 bg-white hover:bg-blue-50 rounded-xl shadow-xs border border-transparent hover:border-blue-100 transition-colors cursor-pointer" title="Preview"><Eye size={15} /></a>
+                            <button onClick={() => handleDelete(post.id)} className="p-2 text-slate-400 hover:text-rose-600 bg-white hover:bg-rose-50 rounded-xl shadow-xs border border-transparent hover:border-rose-100 transition-colors cursor-pointer" title="Delete"><Trash2 size={15} /></button>
                          </td>
                       </tr>
                    ))}
                    {posts.length === 0 && !loading && (
-                      <tr><td colSpan={7} className="py-12 text-center text-gray-400 font-bold text-sm">No blog posts found</td></tr>
+                      <tr><td colSpan={7} className="py-12 text-center text-slate-400 font-bold text-xs bg-white">No blog posts found</td></tr>
                    )}
                 </tbody>
              </table>

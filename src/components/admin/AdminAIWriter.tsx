@@ -128,33 +128,124 @@ export default function AdminAIWriter() {
 
   const wordsCount = generatedText ? generatedText.trim().split(/\s+/).length : 0;
 
+  const handleClear = () => {
+    setFormData({
+      type: 'House',
+      listingType: 'For Sale',
+      location: '',
+      landSize: '',
+      floorArea: '',
+      bedrooms: '',
+      bathrooms: '',
+      price: '',
+      features: [],
+      notes: '',
+      tone: 'Professional',
+      language: 'English'
+    });
+    setGeneratedText('');
+    setVariations([]);
+    toast.success('Form cleared!');
+  };
+
   return (
-    <div className="max-w-[1400px] mx-auto pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex items-center gap-3 mb-2">
-         <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-xl">
-           <Sparkles size={24} />
-         </div>
-         <div>
-            <h2 className="text-3xl font-black text-gray-900 tracking-tight">AI Writer</h2>
-            <p className="text-gray-500 font-medium">Generate high-converting property descriptions with Gemini AI.</p>
-         </div>
+    <div className="space-y-8 animate-in fade-in duration-500 max-w-[1400px] mx-auto pb-24 font-sans text-slate-800">
+      
+      {/* 1. Page Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-6">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">✍️</span>
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2 font-display">
+              AI Writer & Editor
+            </h2>
+            <p className="text-xs sm:text-sm font-semibold text-neutral-400 mt-1">
+              Generate automated, high-converting property copy, marketing blurbs, and localized SMS announcements.
+            </p>
+          </div>
+        </div>
+
+        <button 
+          onClick={handleClear}
+          className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
+        >
+          <RotateCw size={14} />
+          <span>Clear Form Fields</span>
+        </button>
+      </div>
+
+      {/* 2. Stats Row (4 Cards) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        {/* Words Generated */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-emerald-50 text-[#004F31] rounded-xl">
+              <PencilLine size={18} />
+            </div>
+            <span className="text-[12px] font-medium text-emerald-600">Copied</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Words Generated</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{wordsCount} words</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Current output length</p>
+        </div>
+
+        {/* Token Hits today */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+              <Sparkles size={18} />
+            </div>
+            <span className="text-[12px] font-medium text-blue-600">Active</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Token Hits today</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">124 hits</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Platform billing quotas</p>
+        </div>
+
+        {/* Copy Variants Built */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-purple-50 text-purple-600 rounded-xl">
+              <span className="text-lg">📋</span>
+            </div>
+            <span className="text-[12px] font-medium text-purple-600">Drafts</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Copy Variants Built</p>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{variations.length || 0}</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Generated variations available</p>
+        </div>
+
+        {/* Gemini Engine Status */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-teal-50 text-teal-600 rounded-xl">
+              <CheckCircle2 size={18} />
+            </div>
+            <span className="text-[12px] font-medium text-teal-600">Live</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Gemini Engine Status</p>
+          <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">Online</h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Gemini 2.5 Flash active</p>
+        </div>
+
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8">
          {/* LEFT PANEL */}
-         <div className="lg:col-span-5 space-y-6 bg-white p-6 rounded-[24px] shadow-sm border border-gray-100">
+         <div className="lg:col-span-5 space-y-6 bg-white p-6 rounded-[24px] shadow-sm border border-slate-100">
             <h3 className="font-black text-lg text-gray-900 border-b border-gray-100 pb-4">Property Details</h3>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Property Type</label>
-                <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-indigo-500 text-sm">
+                <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-[#004F31] text-sm">
                   {propertyTypes.map(pt => <option key={pt}>{pt}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Listing Type</label>
-                <select value={formData.listingType} onChange={e => setFormData({...formData, listingType: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-indigo-500 text-sm">
+                <select value={formData.listingType} onChange={e => setFormData({...formData, listingType: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-[#004F31] text-sm">
                   {listingTypes.map(lt => <option key={lt}>{lt}</option>)}
                 </select>
               </div>
@@ -162,39 +253,39 @@ export default function AdminAIWriter() {
 
             <div>
                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Location</label>
-               <input type="text" placeholder="e.g. Colombo 07" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-indigo-500 transition-colors text-sm" />
+               <input type="text" placeholder="e.g. Colombo 07" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-[#004F31] transition-colors text-sm" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
                <div>
                  <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Land Size</label>
-                 <input type="text" placeholder="e.g. 15 Perches" value={formData.landSize} onChange={e => setFormData({...formData, landSize: e.target.value})} className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-indigo-500 transition-colors text-sm" />
+                 <input type="text" placeholder="e.g. 15 Perches" value={formData.landSize} onChange={e => setFormData({...formData, landSize: e.target.value})} className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-[#004F31] transition-colors text-sm" />
                </div>
                <div>
                  <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Floor Area</label>
-                 <input type="text" placeholder="e.g. 2200 sq ft" value={formData.floorArea} onChange={e => setFormData({...formData, floorArea: e.target.value})} className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-indigo-500 transition-colors text-sm" />
+                 <input type="text" placeholder="e.g. 2200 sq ft" value={formData.floorArea} onChange={e => setFormData({...formData, floorArea: e.target.value})} className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-[#004F31] transition-colors text-sm" />
                </div>
                <div>
                  <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Bedrooms</label>
-                 <input type="number" min="0" value={formData.bedrooms} onChange={e => setFormData({...formData, bedrooms: e.target.value})} className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-indigo-500 transition-colors text-sm" />
+                 <input type="number" min="0" value={formData.bedrooms} onChange={e => setFormData({...formData, bedrooms: e.target.value})} className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-[#004F31] transition-colors text-sm" />
                </div>
                <div>
                  <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Bathrooms</label>
-                 <input type="number" min="0" value={formData.bathrooms} onChange={e => setFormData({...formData, bathrooms: e.target.value})} className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-indigo-500 transition-colors text-sm" />
+                 <input type="number" min="0" value={formData.bathrooms} onChange={e => setFormData({...formData, bathrooms: e.target.value})} className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-[#004F31] transition-colors text-sm" />
                </div>
             </div>
 
             <div>
                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Price (LKR)</label>
-               <input type="number" placeholder="e.g. 45000000" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-indigo-500 transition-colors text-sm" />
+               <input type="number" placeholder="e.g. 45000000" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-[#004F31] transition-colors text-sm" />
             </div>
 
-            <div>
+             <div>
                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest block mb-3">Key Features</label>
                <div className="grid grid-cols-2 gap-2">
                  {keyFeaturesList.map(feature => (
                    <label key={feature} className="flex items-center gap-2 text-xs font-bold text-gray-700 cursor-pointer">
-                     <input type="checkbox" checked={formData.features.includes(feature)} onChange={() => handleCheckbox(feature)} className="accent-indigo-600 w-3.5 h-3.5" />
+                     <input type="checkbox" checked={formData.features.includes(feature)} onChange={() => handleCheckbox(feature)} className="accent-[#004F31] w-3.5 h-3.5" />
                      {feature}
                    </label>
                  ))}
@@ -203,26 +294,24 @@ export default function AdminAIWriter() {
 
             <div>
                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Additional Notes</label>
-               <textarea rows={3} placeholder="Any specific requirements..." value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-indigo-500 transition-colors text-sm resize-none" />
+               <textarea rows={3} placeholder="Any specific requirements..." value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-2.5 font-bold outline-none focus:border-[#004F31] transition-colors text-sm resize-none" />
             </div>
 
             <div className="pt-2 border-t border-gray-100">
                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest block mb-3">Tone</label>
                <div className="flex flex-wrap gap-2">
                  {tones.map(t => (
-                   <button key={t} onClick={() => setFormData({...formData, tone: t})} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${formData.tone === t ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                   <button key={t} onClick={() => setFormData({...formData, tone: t})} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${formData.tone === t ? 'bg-[#004F31] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
                      {t}
                    </button>
                  ))}
                </div>
             </div>
 
-
-
             <button 
               onClick={handleGenerate}
               disabled={isGenerating}
-              className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-black py-4 rounded-xl shadow-lg shadow-indigo-500/25 transition-all text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-70"
+              className="w-full bg-[#004F31] hover:bg-[#003420] text-white font-black py-4 rounded-xl shadow-lg shadow-emerald-500/10 transition-all text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-70"
             >
                {isGenerating ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
                {isGenerating ? 'Generating...' : 'Generate Description'}
@@ -239,18 +328,18 @@ export default function AdminAIWriter() {
                        setActiveTab(idx);
                        if (variations[idx]) setGeneratedText(variations[idx]);
                     }}
-                    className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${activeTab === idx ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'}`}
+                    className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-lg transition-all cursor-pointer ${activeTab === idx ? 'bg-white text-[#004F31] shadow-sm' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'}`}
                   >
                      {tab}
                   </button>
                ))}
             </div>
             
-            <div className="flex-1 bg-white border border-t-0 border-gray-200 rounded-b-[24px] shadow-lg shadow-indigo-900/5 p-8 relative min-h-[400px] flex flex-col">
+            <div className="flex-1 bg-white border border-t-0 border-gray-200 rounded-b-[24px] shadow-sm p-8 relative min-h-[400px] flex flex-col">
                <AnimatePresence mode="wait">
                   {isGenerating ? (
                     <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-[2px] rounded-b-[24px] z-10">
-                       <Loader2 className="animate-spin text-indigo-500 mb-4" size={48} />
+                       <Loader2 className="animate-spin text-[#004F31] mb-4" size={48} />
                        <p className="font-black text-gray-900 tracking-wider">AI IS WRITING YOUR DESCRIPTION...</p>
                        <p className="text-sm font-bold text-gray-500 mt-2">Crafting compelling features and benefits</p>
                     </motion.div>
@@ -264,17 +353,17 @@ export default function AdminAIWriter() {
                        
                        <div className="border-t border-gray-100 pt-6 mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                           <div className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                             Word Count: <span className="text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{wordsCount}</span>
+                             Word Count: <span className="text-[#004F31] bg-emerald-50 px-2 py-0.5 rounded">{wordsCount}</span>
                           </div>
                           
                           <div className="flex items-center gap-3">
-                             <button onClick={handleRegenerate} className="w-10 h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-gray-200 transition-colors" title="Regenerate">
+                             <button onClick={handleRegenerate} className="w-10 h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-gray-200 transition-colors cursor-pointer" title="Regenerate">
                                <RotateCw size={18} />
                              </button>
-                             <button onClick={handleCopy} className="flex items-center gap-2 px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-xl transition-colors text-sm">
+                             <button onClick={handleCopy} className="flex items-center gap-2 px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-xl transition-colors text-sm cursor-pointer">
                                <Copy size={16} /> Copy
                              </button>
-                             <button onClick={() => toast.success('Saved to use later!')} className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-md text-sm">
+                             <button onClick={() => toast.success('Saved to use later!')} className="flex items-center gap-2 px-6 py-2.5 bg-[#004F31] hover:bg-[#003420] text-white font-bold rounded-xl transition-colors shadow-md text-sm cursor-pointer">
                                <CheckCircle2 size={16} /> Use This
                              </button>
                           </div>
@@ -283,7 +372,7 @@ export default function AdminAIWriter() {
                   ) : (
                     <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col items-center justify-center text-gray-400">
                        <div className="w-24 h-24 mb-6 rounded-full bg-gray-50 border-4 border-gray-100 flex items-center justify-center text-gray-300">
-                          <Sparkles size={40} className="ml-1" />
+                          <Sparkles size={40} className="ml-1 text-[#004F31]" />
                        </div>
                        <p className="font-bold text-center leading-relaxed max-w-sm">Fill in the property details on the left and click generate to let AI write your description.</p>
                     </motion.div>

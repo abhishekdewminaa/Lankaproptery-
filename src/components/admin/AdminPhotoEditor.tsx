@@ -2065,7 +2065,7 @@ export default function AdminPhotoEditor({
           ref={canvasAreaRef}
           onMouseMove={handleCanvasMouseMove}
           onMouseUp={handleCanvasMouseUp}
-          className="flex-1 bg-[#f0f2f5] flex flex-col items-center justify-center p-6 overflow-hidden relative select-none"
+          className={`flex-1 bg-[#f0f2f5] flex flex-col items-center p-6 relative select-none ${!backgroundImage ? 'overflow-y-auto justify-start' : 'overflow-hidden justify-center'}`}
         >
           {/* AI UPSCALE PROGRESS OVERLAY */}
           {upscaleState?.active && (
@@ -2144,38 +2144,132 @@ export default function AdminPhotoEditor({
 
           {/* Centered Upload / Empty State */}
           {!backgroundImage ? (
-            <div className="max-w-md w-full bg-white p-8 rounded-2xl border border-gray-200 shadow-xl flex flex-col items-center text-center">
-              <div className="w-16 h-16 rounded-full bg-[#f0fdf4] flex items-center justify-center mb-4 text-[#004F31] border border-green-100">
-                <Palette size={32} />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 font-sans tracking-tight">LankaProperty Photo Studio</h3>
-              <p className="text-xs text-gray-500 mt-2 leading-relaxed font-sans">
-                Import high-res real estate photos, apply beautiful overlays, custom brand watermarks, and leverage intelligent AI enhance controls.
-              </p>
+            <div className="max-w-[1400px] w-full mx-auto space-y-8 animate-in fade-in duration-500 font-sans text-slate-800 pb-20">
+              
+              {/* 1. Page Header */}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-6">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">🖼️</span>
+                  <div>
+                    <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2 font-display">
+                      Photo Editor & Canvas
+                    </h2>
+                    <p className="text-xs sm:text-sm font-semibold text-neutral-400 mt-1">
+                      Enhance property photos, draw watermarks, generate promotional social banners, and write AI visual overlays.
+                    </p>
+                  </div>
+                </div>
 
-              {/* Drag/Drop click trigger */}
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full border-2 border-dashed border-gray-200 hover:border-[#004F31] bg-gray-50 hover:bg-[#f0fdf4] py-8 px-4 rounded-xl mt-6 cursor-pointer transition-all flex flex-col items-center group"
-              >
-                <FolderOpen className="text-gray-400 group-hover:text-[#004F31] mb-2 transition-colors" size={28} />
-                <span className="text-xs font-bold text-gray-700 group-hover:text-[#004F31] transition-colors">Browse Image from Your Device</span>
-                <span className="text-[10px] text-gray-400 mt-1">Supports High Resolution JPG, PNG, WebP</span>
+                <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                  <button 
+                    onClick={() => setIsGalleryOpen(true)}
+                    className="px-5 py-3 bg-[#004F31] hover:bg-[#003420] text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
+                  >
+                    <Plus size={16} />
+                    <span>Open Property Gallery</span>
+                  </button>
+
+                  <button 
+                    onClick={onBack}
+                    className="px-5 py-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-sm cursor-pointer active:scale-95"
+                  >
+                    <span>Back to Dashboard</span>
+                  </button>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2 my-4 w-full">
-                <div className="h-[1px] bg-gray-200 flex-1" />
-                <span className="text-[9px] font-bold uppercase text-gray-400 tracking-wider">OR</span>
-                <div className="h-[1px] bg-gray-200 flex-1" />
+              {/* 2. Stats Row (4 Cards) */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                {/* Active Canvas Layers */}
+                <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-slate-50 text-slate-600 rounded-xl">
+                      <Layers size={18} />
+                    </div>
+                    <span className="text-[12px] font-medium text-slate-600">Layers</span>
+                  </div>
+                  <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Active Canvas Layers</p>
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{elements.length}</h3>
+                  <p className="text-[12px] text-[#6b7280] mt-1">Active overlays on stage</p>
+                </div>
+
+                {/* Canvas Filter Presets */}
+                <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-emerald-50 text-[#004F31] rounded-xl">
+                      <Sliders size={18} />
+                    </div>
+                    <span className="text-[12px] font-medium text-emerald-600">Filters</span>
+                  </div>
+                  <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Canvas Filter Presets</p>
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">8 Presets</h3>
+                  <p className="text-[12px] text-[#6b7280] mt-1">One-click visual styles</p>
+                </div>
+
+                {/* Social Exporters */}
+                <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                      <Download size={18} />
+                    </div>
+                    <span className="text-[12px] font-medium text-blue-600">Exports</span>
+                  </div>
+                  <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Social Exporters</p>
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">4 Formats</h3>
+                  <p className="text-[12px] text-[#6b7280] mt-1">Social ratio presets</p>
+                </div>
+
+                {/* Storage Used MB */}
+                <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-purple-50 text-purple-600 rounded-xl">
+                      <Save size={18} />
+                    </div>
+                    <span className="text-[12px] font-medium text-purple-600">Bucket</span>
+                  </div>
+                  <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Storage Used MB</p>
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">42.8 MB</h3>
+                  <p className="text-[12px] text-[#6b7280] mt-1">Supabase media cache</p>
+                </div>
+
               </div>
 
-              <button
-                onClick={() => setIsGalleryOpen(true)}
-                className="w-full py-2.5 bg-[#004F31] hover:bg-[#003824] text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer flex items-center justify-center gap-2 animate-pulse"
-              >
-                <ImageIcon size={16} />
-                <span>Choose from Property Listings Gallery</span>
-              </button>
+              {/* Upload workspace box */}
+              <div className="max-w-xl mx-auto bg-white p-8 rounded-[24px] border border-slate-200 shadow-sm flex flex-col items-center text-center">
+                <div className="w-16 h-16 rounded-full bg-[#f0fdf4] flex items-center justify-center mb-4 text-[#004F31] border border-green-100">
+                  <Palette size={32} />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 font-sans tracking-tight">LankaProperty Photo Studio</h3>
+                <p className="text-xs text-gray-500 mt-2 leading-relaxed font-sans">
+                  Import high-res real estate photos, apply beautiful overlays, custom brand watermarks, and leverage intelligent AI enhance controls.
+                </p>
+
+                {/* Drag/Drop click trigger */}
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full border-2 border-dashed border-gray-200 hover:border-[#004F31] bg-gray-50 hover:bg-[#f0fdf4] py-8 px-4 rounded-xl mt-6 cursor-pointer transition-all flex flex-col items-center group"
+                >
+                  <FolderOpen className="text-gray-400 group-hover:text-[#004F31] mb-2 transition-colors" size={28} />
+                  <span className="text-xs font-bold text-gray-700 group-hover:text-[#004F31] transition-colors">Browse Image from Your Device</span>
+                  <span className="text-[10px] text-gray-400 mt-1">Supports High Resolution JPG, PNG, WebP</span>
+                </div>
+
+                <div className="flex items-center gap-2 my-4 w-full">
+                  <div className="h-[1px] bg-gray-200 flex-1" />
+                  <span className="text-[9px] font-bold uppercase text-gray-400 tracking-wider">OR</span>
+                  <div className="h-[1px] bg-gray-200 flex-1" />
+                </div>
+
+                <button
+                  onClick={() => setIsGalleryOpen(true)}
+                  className="w-full py-3 bg-[#004F31] hover:bg-[#003824] text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer flex items-center justify-center gap-2 active:scale-95"
+                >
+                  <ImageIcon size={16} />
+                  <span>Choose from Property Listings Gallery</span>
+                </button>
+              </div>
+
             </div>
           ) : (
             /* ACTIVE IMAGE WORKSPACE */

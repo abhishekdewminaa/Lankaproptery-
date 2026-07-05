@@ -28,7 +28,7 @@
 
 :root {
   /* Backgrounds */
-  --admin-bg: #f5f7fa;
+  --admin-bg: #f0f2f5;
   --admin-card-bg: #ffffff;
   --admin-sidebar-bg: #004F31;
   --admin-navbar-bg: #ffffff;
@@ -226,7 +226,7 @@ button, a, .admin-card, .property-card, .quick-import-card, input, select, texta
 /* Admin Light Theme - enforced globally for both .admin-dark and .admin-light */
 .admin-dark,
 .admin-light {
-  --admin-bg: #f5f7fa;
+  --admin-bg: #f0f2f5;
   --admin-card: #ffffff;
   --admin-sidebar: #ffffff;
   --admin-text: #111827;
@@ -234,7 +234,7 @@ button, a, .admin-card, .property-card, .quick-import-card, input, select, texta
   --admin-border: #e5e7eb;
   --admin-input-bg: #ffffff;
   --admin-hover: #f0fdf4;
-  background-color: var(--admin-bg) !important;
+  background-color: #f0f2f5 !important;
   color: var(--admin-text) !important;
   transition: 
     background-color 0.3s ease,
@@ -633,3 +633,21 @@ header.h-\[60px\] input:focus {
   font-size: 10px;
   letter-spacing: 0.5px;
 }
+
+/* Skeleton pulse shimmer */
+.skeleton-pulse {
+  background: linear-gradient(
+    90deg,
+    #f3f4f6 25%,
+    #e5e7eb 50%,
+    #f3f4f6 75%
+  );
+  background-size: 400px 100%;
+  animation: shimmer-skeleton 1.4s ease infinite;
+}
+
+@keyframes shimmer-skeleton {
+  0% { background-position: -400px 0 }
+  100% { background-position: 400px 0 }
+}
+

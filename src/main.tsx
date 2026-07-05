@@ -4,6 +4,20 @@ import './index.css';
 import App from './App.tsx';
 import { AppErrorBoundary } from './components/AppErrorBoundary.tsx';
 
+// Suppress Vite HMR WebSocket errors in development/hosted environments
+window.addEventListener('error', (e) => {
+  if (e.message?.includes('WebSocket') || e.message?.includes('ws://') || e.message?.includes('wss://')) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+});
+
+window.addEventListener('unhandledrejection', (e) => {
+  if (e.reason?.message?.includes('WebSocket') || e.reason?.message?.includes('ws://') || e.reason?.message?.includes('wss://')) {
+    e.preventDefault();
+  }
+});
+
 const rootElement = document.getElementById('root');
 
 if (!rootElement) {

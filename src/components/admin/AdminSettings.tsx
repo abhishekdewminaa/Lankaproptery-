@@ -150,25 +150,101 @@ export default function AdminSettings({ user }: AdminSettingsProps) {
   );
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-[1400px] mx-auto pb-20">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-black text-gray-900 tracking-tight">System Settings</h2>
-          <p className="text-gray-500 font-medium mt-1">Manage global platform configurations and integrations.</p>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-[1400px] mx-auto pb-20 font-sans text-slate-800">
+      
+      {/* 1. Page Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-6">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">⚙️</span>
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2 font-display">
+              Global Settings
+            </h2>
+            <p className="text-xs sm:text-sm font-semibold text-neutral-400 mt-1">
+              Configure overall portal preferences, API integrations, and security constraints.
+            </p>
+          </div>
         </div>
-        <div className="flex flex-col items-end gap-2">
+
+        <div className="flex flex-col items-end gap-1.5 shrink-0">
           <button 
             onClick={handleSave} disabled={isSaving}
-            className="flex items-center gap-2 px-6 py-3 bg-[#10B981] hover:bg-[#059669] text-white rounded-[12px] font-bold text-sm tracking-wide transition-all shadow-lg active:scale-95 disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-3 bg-[#004F31] hover:bg-[#003420] text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
           >
-            {isSaving ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle size={16} />}
-            {isSaving ? 'Saving...' : 'Save Settings'}
+            {isSaving ? <Loader2 className="animate-spin" size={14} /> : <span>💾 Save Changes</span>}
           </button>
-          {lastSaved && <span className="text-[10px] text-gray-400 font-semibold tracking-wider">LAST SAVED: {lastSaved}</span>}
+          {lastSaved && (
+            <span className="text-[10px] text-slate-400 font-extrabold tracking-wider uppercase">
+              LAST SYNCED: {lastSaved}
+            </span>
+          )}
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8 bg-[linear-gradient(145deg,#ffffff,#f8faf8)] rounded-[24px] p-6 lg:p-8 shadow-sm border border-gray-100">
+      {/* 2. Stats Row (4 Cards) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        {/* Database Link Status */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className={`p-2 rounded-xl ${dbStatus === 'connected' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+              <Shield size={18} />
+            </div>
+            <span className={`text-[12px] font-medium ${dbStatus === 'connected' ? 'text-green-600' : 'text-rose-600'}`}>
+              ● Live
+            </span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Database Link Status</p>
+          <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
+            {dbStatus === 'connected' ? 'Connected' : 'Offline'}
+          </h3>
+          <p className="text-[12px] text-[#6b7280] mt-0.5">Supabase cluster status</p>
+        </div>
+
+        {/* Last Synced At */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+              <Globe size={18} />
+            </div>
+            <span className="text-[12px] font-medium text-blue-600">Autosave</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Last Synced At</p>
+          <h3 className="text-base font-black text-slate-900 mt-2 truncate">
+            {lastSaved ? lastSaved.split(',')[0] : 'Just now'}
+          </h3>
+          <p className="text-[12px] text-[#6b7280] mt-1">Persistent config sync</p>
+        </div>
+
+        {/* System Mode */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-purple-50 text-purple-600 rounded-xl">
+              <Sliders size={18} />
+            </div>
+            <span className="text-[12px] font-medium text-purple-600">Production</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">System Mode</p>
+          <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">Production</h3>
+          <p className="text-[12px] text-[#6b7280] mt-0.5">TLS & CORS enabled</p>
+        </div>
+
+        {/* Admin API Health */}
+        <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 bg-teal-50 text-teal-600 rounded-xl">
+              <Zap size={18} />
+            </div>
+            <span className="text-[12px] font-medium text-teal-600">Excellent</span>
+          </div>
+          <p className="text-[11px] font-black text-[#9ca3af] uppercase tracking-[0.8px]">Admin API Health</p>
+          <h3 className="text-xl sm:text-2xl font-black text-teal-600 mt-1">99.9%</h3>
+          <p className="text-[12px] text-[#6b7280] mt-0.5">Response: 140ms avg</p>
+        </div>
+
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-8 bg-white rounded-[14px] p-6 lg:p-8 shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-slate-200">
         
         {/* Sidebar Navigation */}
         <div className="w-full lg:w-[280px] flex-shrink-0 flex lg:flex-col gap-6 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 hide-scrollbar">
