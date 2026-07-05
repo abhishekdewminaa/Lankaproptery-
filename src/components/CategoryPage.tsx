@@ -188,7 +188,11 @@ const PropertyCard = React.memo(({ p, idx, onPropertyClick, favorites, toggleFav
           
           <div className="absolute top-3 left-3 md:top-4 md:left-4 flex flex-col gap-1.5 md:gap-2">
             <span className={`px-2 py-1 md:px-4 md:py-1.5 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest shadow-lg ${
-              p.listing_type === 'For Sale' ? 'bg-brand-red text-white' : 'bg-brand-gold text-dark-navy'
+              (p.listing_type || '').toLowerCase().includes('sale') 
+                ? 'bg-[#CC1414] text-white' 
+                : (p.listing_type || '').toLowerCase().includes('rent')
+                  ? 'bg-[#1565C0] text-white'
+                  : 'bg-[#E8A000] text-[#111827]'
             }`}>
               {p.listing_type?.toUpperCase()}
             </span>

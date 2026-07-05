@@ -435,7 +435,7 @@ const TopListeningBar = ({ isListening }: { isListening: boolean }) => (
       left: 0,
       right: 0,
       height: '3px',
-      background: 'linear-gradient(90deg, #004F31, #CC2222, #004F31)',
+      background: 'linear-gradient(90deg, #1A5E2A, #CC2222, #1A5E2A)',
       backgroundSize: '200% 100%',
       animation: 'scanLine 1.5s linear infinite',
       zIndex: 99999
@@ -606,7 +606,7 @@ export const VoiceCommandPanel: React.FC<VoiceCommandPanelProps & { isForceListe
       setLastAction(action);
       // Success animation: Flash green border around whole page
       const originalBoxShadow = document.body.style.boxShadow;
-      document.body.style.boxShadow = 'inset 0 0 0 5px #004F31';
+      document.body.style.boxShadow = 'inset 0 0 0 5px #1A5E2A';
       setTimeout(() => {
         document.body.style.boxShadow = originalBoxShadow;
       }, 600);

@@ -82,7 +82,7 @@ Thank you for advertising with LankaProperty.lk!
 
   // Falling Confetti Particles Generator
   const confettiCount = 50;
-  const confettiColors = ['#004F31', '#10b981', '#fbbf24', '#3b82f6', '#ec4899'];
+  const confettiColors = ['#1A5E2A', '#10b981', '#fbbf24', '#3b82f6', '#ec4899'];
 
   return (
     <div className="min-h-screen bg-neutral-50 relative overflow-hidden flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 pt-32">
@@ -148,7 +148,7 @@ Thank you for advertising with LankaProperty.lk!
         <div className="bg-neutral-50 rounded-2xl p-6 border border-neutral-200/50 my-8 text-left space-y-4">
           <div className="flex justify-between pb-3 border-b border-neutral-200/50">
             <span className="text-xs font-bold text-neutral-400 uppercase">Activated Package</span>
-            <span className="text-xs font-extrabold text-[#004F31] uppercase bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-100">{planName}</span>
+            <span className="text-xs font-extrabold text-[#1A5E2A] uppercase bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-100">{planName}</span>
           </div>
           <div className="flex justify-between pb-3 border-b border-neutral-200/50">
             <span className="text-xs font-bold text-neutral-400 uppercase">Valid Until</span>
@@ -178,7 +178,7 @@ Thank you for advertising with LankaProperty.lk!
                 window.history.pushState(null, "", `/post-property`);
                 onNavigate({ type: 'publish' });
               }}
-              className="py-4 bg-[#004F31] hover:bg-[#002a1a] text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+              className="py-4 bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
             >
               <PlusCircle size={16} /> Add Your Property
             </button>
@@ -203,7 +203,7 @@ Thank you for advertising with LankaProperty.lk!
 
         {/* Redirect Countdown Indicator */}
         <div className="mt-8 text-neutral-400 font-bold text-[11px] uppercase tracking-widest flex items-center justify-center gap-1.5 animate-pulse">
-          <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#004F31]" />
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#1A5E2A]" />
           Redirecting to dashboard in {countdown}s...
         </div>
       </div>

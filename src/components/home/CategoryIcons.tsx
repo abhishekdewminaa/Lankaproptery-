@@ -28,7 +28,7 @@ export const CategoryIcons: React.FC<CategoryIconsProps> = ({ onNavigate }) => {
   };
 
   return (
-    <section className="py-6 md:py-10 bg-[#F8FAF8]">
+    <section className="py-6 md:py-10 bg-[var(--lp-bg)]">
       <div className="container mx-auto px-6">
         <div className="flex flex-wrap justify-center gap-8 md:gap-16">
           {CATEGORIES.map((cat, idx) => (
@@ -47,10 +47,10 @@ export const CategoryIcons: React.FC<CategoryIconsProps> = ({ onNavigate }) => {
               onClick={() => handleCategoryClick(cat.label)}
               className="flex flex-col items-center gap-4 group cursor-pointer"
             >
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-brand-green/5 rounded-full flex items-center justify-center text-brand-green transition-all group-hover:bg-brand-green group-hover:text-white shadow-sm">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-[var(--lp-green-light)] rounded-full flex items-center justify-center text-[var(--lp-green)] transition-all group-hover:bg-[var(--lp-green)] group-hover:text-[var(--lp-white)] shadow-sm">
                 {cat.icon}
               </div>
-              <span className="text-[10px] md:text-xs font-black text-gray-500 tracking-widest uppercase transition-colors group-hover:text-brand-green">
+              <span className="text-[10px] md:text-xs font-black text-gray-500 tracking-widest uppercase transition-colors group-hover:text-[var(--lp-green)]">
                 {cat.label}
               </span>
             </motion.div>

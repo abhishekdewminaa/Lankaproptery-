@@ -146,7 +146,7 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onNaviga
         {/* Header greeting row */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-neutral-100">
           <div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#004F31]">🏠 MY PROPERTY SELLER ACCOUNT</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#1A5E2A]">🏠 MY PROPERTY SELLER ACCOUNT</span>
             <h1 className="text-2xl md:text-3xl font-black text-neutral-900 tracking-tight mt-1">
               Welcome back, {ownerName}!
             </h1>
@@ -157,7 +157,7 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onNaviga
           <div className="flex gap-3 shrink-0">
             <button
               onClick={() => onNavigate({ type: 'publish' })}
-              className="px-5 py-3.5 bg-[#004F31] hover:bg-[#002a1a] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md flex items-center gap-2 cursor-pointer"
+              className="px-5 py-3.5 bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md flex items-center gap-2 cursor-pointer"
             >
               <PlusCircle size={15} /> Add New Listing
             </button>
@@ -223,7 +223,7 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onNaviga
                     window.history.pushState(null, "", `/owner/payment?plan=premium_pro`);
                     onNavigate({ type: 'owner_payment', data: { plan: 'premium_pro' } });
                   }}
-                  className="w-full py-3 bg-[#004F31] hover:bg-[#002a1a] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+                  className="w-full py-3 bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
                 >
                   <ArrowUpCircle size={14} /> Upgrade to Premium Pro
                 </button>
@@ -264,7 +264,7 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onNaviga
           <div className="lg:col-span-8 space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="bg-white rounded-2xl p-5 border border-neutral-100 shadow-sm flex items-center gap-4">
-                <div className="p-3.5 rounded-xl bg-neutral-50 text-[#004F31]">
+                <div className="p-3.5 rounded-xl bg-neutral-50 text-[#1A5E2A]">
                   <Building size={20} />
                 </div>
                 <div>
@@ -291,7 +291,7 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onNaviga
                 </div>
                 <div>
                   <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">Leads Generated</span>
-                  <p className="text-2xl font-black text-[#004F31] mt-0.5">
+                  <p className="text-2xl font-black text-[#1A5E2A] mt-0.5">
                     {properties.reduce((sum, p) => sum + (Math.floor(Math.random() * 5) + 1), 0)}
                   </p>
                 </div>
@@ -307,7 +307,7 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onNaviga
 
               {loading ? (
                 <div className="py-12 flex justify-center items-center gap-2 text-xs font-bold text-neutral-400 uppercase tracking-wider">
-                  <svg className="animate-spin h-5 w-5 text-[#004F31]" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin h-5 w-5 text-[#1A5E2A]" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
@@ -319,7 +319,7 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onNaviga
                   <p className="text-[11px] font-semibold text-neutral-400">You haven't added any properties to advertise yet.</p>
                   <button
                     onClick={() => onNavigate({ type: 'publish' })}
-                    className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-[#004F31] hover:bg-[#002a1a] text-white text-[11px] font-black uppercase tracking-wider rounded-xl transition-all shadow-md cursor-pointer"
+                    className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white text-[11px] font-black uppercase tracking-wider rounded-xl transition-all shadow-md cursor-pointer"
                   >
                     <PlusCircle size={14} /> Add First Listing
                   </button>
@@ -338,7 +338,7 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onNaviga
                         <div>
                           <h4 className="text-xs font-black text-neutral-800 leading-snug line-clamp-1">{prop.listing_title || prop.title}</h4>
                           <p className="text-[10px] font-semibold text-neutral-400 mt-0.5">{prop.district}, {prop.property_category || prop.category}</p>
-                          <p className="text-[10px] font-extrabold text-[#004F31] mt-0.5">Rs. {(Number(prop.price_lkr || prop.priceLkr) || 0).toLocaleString()}</p>
+                          <p className="text-[10px] font-extrabold text-[#1A5E2A] mt-0.5">Rs. {(Number(prop.price_lkr || prop.priceLkr) || 0).toLocaleString()}</p>
                         </div>
                       </div>
 
@@ -351,7 +351,7 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onNaviga
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => onNavigate({ type: 'explore', data: { refNo: prop.ref_no || prop.id } })}
-                            className="p-2 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 text-neutral-600 rounded-lg hover:text-[#004F31] transition-colors"
+                            className="p-2 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 text-neutral-600 rounded-lg hover:text-[#1A5E2A] transition-colors"
                             title="View Public Listing"
                           >
                             <ExternalLink size={14} />

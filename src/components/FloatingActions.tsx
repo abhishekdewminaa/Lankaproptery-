@@ -20,7 +20,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
       id: 'voice',
       icon: voiceStatus === 'listening' ? '🎤' : voiceStatus === 'paused' ? '⏸' : '🎤',
       label: 'Voice Command',
-      color: voiceStatus === 'listening' ? 'linear-gradient(135deg, #CC2222, #FF4444)' : voiceStatus === 'paused' ? 'linear-gradient(135deg, #F5A623, #FFB347)' : '#004F31',
+      color: voiceStatus === 'listening' ? 'linear-gradient(135deg, #CC2222, #FF4444)' : voiceStatus === 'paused' ? 'linear-gradient(135deg, #F5A623, #FFB347)' : '#1A5E2A',
       onClick: () => {
         onStartVoice()
         setIsOpen(false)
@@ -30,7 +30,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
       id: 'chat',
       icon: '💬',
       label: 'Live Chat',
-      color: '#007E50',
+      color: '#2E7D3A',
       onClick: () => {
         onOpenChat()
         setIsOpen(false)
@@ -175,7 +175,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
             borderRadius: '50%',
             background: isOpen 
               ? 'linear-gradient(135deg, #FF4B2B 0%, #CC2222 100%)' 
-              : 'linear-gradient(135deg, #007E50 0%, #004F31 100%)',
+              : 'linear-gradient(135deg, #2E7D3A 0%, #1A5E2A 100%)',
             border: 'none',
             cursor: 'pointer',
             boxShadow: isOpen 

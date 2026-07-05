@@ -49,6 +49,40 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const getLinkStyles = (name: string, isCurrent: boolean) => {
+    const lowercaseName = name.toLowerCase();
+    if (lowercaseName.includes('buy')) {
+      return {
+        textColorClass: isCurrent ? 'text-[#E8A000]' : 'text-[#374151]',
+        hoverColorClass: 'hover:text-[#E8A000]',
+        lineBg: 'bg-[#E8A000]',
+        hoverBgClass: 'hover:bg-[#E8A000]/5 hover:text-[#E8A000]',
+      };
+    }
+    if (lowercaseName.includes('sell')) {
+      return {
+        textColorClass: isCurrent ? 'text-[#CC1414]' : 'text-[#374151]',
+        hoverColorClass: 'hover:text-[#CC1414]',
+        lineBg: 'bg-[#CC1414]',
+        hoverBgClass: 'hover:bg-[#CC1414]/5 hover:text-[#CC1414]',
+      };
+    }
+    if (lowercaseName.includes('rent')) {
+      return {
+        textColorClass: isCurrent ? 'text-[#1565C0]' : 'text-[#374151]',
+        hoverColorClass: 'hover:text-[#1565C0]',
+        lineBg: 'bg-[#1565C0]',
+        hoverBgClass: 'hover:bg-[#1565C0]/5 hover:text-[#1565C0]',
+      };
+    }
+    return {
+      textColorClass: isCurrent ? 'text-[#1A5E2A]' : 'text-[#374151]',
+      hoverColorClass: 'hover:text-[#1A5E2A]',
+      lineBg: 'bg-[#1A5E2A]',
+      hoverBgClass: 'hover:bg-[#1A5E2A]/5 hover:text-[#1A5E2A]',
+    };
+  };
+
   const navLinks = [
     { 
       name: 'Buy', 
@@ -63,6 +97,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
         { name: 'All Properties', href: '/', data: { type: 'home' } },
       ]
     },
+    { name: 'Sell my property', href: '/sell', type: 'sell' },
     { 
       name: 'Rent', 
       type: 'dropdown',
@@ -74,7 +109,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
         { name: 'All Rentals', href: '/', data: { type: 'home' } },
       ]
     },
-    { name: 'Sell my property', href: '/sell', type: 'sell' },
     { name: 'Advertised Packages', href: '/packages', type: 'packages' },
     { name: 'Wanted', href: '/wanted', type: 'wanted' },
     { name: 'Projects', href: '/projects', type: 'lands' },
@@ -108,7 +142,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
   };
 
   return (
-    <nav className={`glass-navbar bg-white ${isScrolled ? 'shadow-lg' : 'border-b border-gray-100/60'} h-20 flex items-center px-6 md:px-12 fixed top-0 w-full z-[100] transition-all duration-300`}>
+    <nav className={`glass-navbar bg-white border-b border-solid border-[var(--lp-border)] h-16 flex items-center px-6 md:px-12 fixed top-0 w-full z-[100] transition-all duration-300`}>
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo */}
         <div 
@@ -131,67 +165,76 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
 
         {/* Left Nav (Desktop) */}
         <div className="hidden lg:flex items-center gap-6 ml-8" ref={dropdownRef}>
-          {navLinks.map((link) => (
-            <div key={link.name} className="relative">
-              {link.type === 'dropdown' ? (
-                <>
-                  <button
-                    onClick={() => setActiveDropdown(activeDropdown === link.name ? null : link.name)}
-                    className={`flex items-center gap-1 text-sm font-bold hover:text-brand-green transition-colors ${
-                      activeDropdown === link.name ? 'text-brand-green' : 'text-gray-700'
-                    }`}
-                  >
-                    {link.name}
-                    <ChevronDown size={14} className={`transition-transform duration-200 ${activeDropdown === link.name ? 'rotate-180' : ''}`} />
-                  </button>
-                  
-                  <AnimatePresence>
-                    {activeDropdown === link.name && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        className="absolute top-full left-0 mt-4 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 overflow-hidden z-[110]"
+          {navLinks.map((link, idx) => {
+            const styles = getLinkStyles(link.name, currentView === link.type);
+            const isDividerAfter = link.name === 'Buy' || link.name === 'Sell my property';
+            
+            return (
+              <React.Fragment key={link.name}>
+                <div className="relative">
+                  {link.type === 'dropdown' ? (
+                    <>
+                      <button
+                        onClick={() => setActiveDropdown(activeDropdown === link.name ? null : link.name)}
+                        className={`flex items-center gap-1 text-sm font-bold transition-colors cursor-pointer ${styles.textColorClass} ${styles.hoverColorClass}`}
                       >
-                        {link.items?.map((item) => (
-                          <a
-                            key={item.name}
-                            href={item.href}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (item.data.type === 'home') {
-                                onNavigateHome();
-                              } else {
-                                window.history.pushState({}, '', item.href);
-                                if (onNavigate) onNavigate({ type: 'category', data: item.data });
-                              }
-                              setActiveDropdown(null);
-                            }}
-                            className="block px-6 py-2.5 text-sm font-bold text-gray-600 hover:bg-brand-green/5 hover:text-brand-green transition-colors"
+                        {link.name}
+                        <ChevronDown size={14} className={`transition-transform duration-200 ${activeDropdown === link.name ? 'rotate-180' : ''}`} />
+                      </button>
+                      
+                      <AnimatePresence>
+                        {activeDropdown === link.name && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            className="absolute top-full left-0 mt-4 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 overflow-hidden z-[110]"
                           >
-                            {item.name}
-                          </a>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </>
-              ) : (
-                <a
-                  href={link.href}
-                  onClick={(e) => handleLinkClick(e, link)}
-                  className={`text-sm font-bold hover:text-brand-green relative group transition-colors ${
-                    currentView === link.type ? 'text-brand-green' : 'text-gray-700'
-                  }`}
-                >
-                  {link.name}
-                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-brand-green transition-all ${
-                    currentView === link.type ? 'w-full' : 'w-0 group-hover:w-full'
-                  }`} />
-                </a>
-              )}
-            </div>
-          ))}
+                            {link.items?.map((item) => {
+                              const itemStyles = getLinkStyles(item.name, false);
+                              return (
+                                <a
+                                  key={item.name}
+                                  href={item.href}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    if (item.data.type === 'home') {
+                                      onNavigateHome();
+                                    } else {
+                                      window.history.pushState({}, '', item.href);
+                                      if (onNavigate) onNavigate({ type: 'category', data: item.data });
+                                    }
+                                    setActiveDropdown(null);
+                                  }}
+                                  className={`block px-6 py-2.5 text-sm font-bold transition-colors ${itemStyles.hoverBgClass}`}
+                                >
+                                  {item.name}
+                                </a>
+                              );
+                            })}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </>
+                  ) : (
+                    <a
+                      href={link.href}
+                      onClick={(e) => handleLinkClick(e, link)}
+                      className={`text-sm font-bold relative group transition-colors cursor-pointer ${styles.textColorClass} ${styles.hoverColorClass}`}
+                    >
+                      {link.name}
+                      <span className={`absolute -bottom-1 left-0 h-0.5 transition-all ${styles.lineBg} ${
+                        currentView === link.type ? 'w-full' : 'w-0 group-hover:w-full'
+                      }`} />
+                    </a>
+                  )}
+                </div>
+                {isDividerAfter && (
+                  <span className="text-[#D1D5DB] font-light font-sans text-sm select-none">|</span>
+                )}
+              </React.Fragment>
+            );
+          })}
         </div>
 
         {/* Right side */}
@@ -201,9 +244,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
               e.preventDefault();
               setShowPostModal(true);
             }}
-            className="hidden sm:flex items-center justify-center bg-[#004F31] hover:bg-[#003420] text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-md cursor-pointer"
+            className="hidden sm:flex items-center justify-center bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white px-[18px] py-[10px] rounded-[8px] text-[14px] font-semibold transition-all duration-300 shadow-md cursor-pointer border-none"
           >
-            Post Your Property Free
+            POST YOUR PROPERTY FREE
           </button>
 
           {/* User Auth desktop controls */}
@@ -214,7 +257,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                   window.history.pushState({}, '', '/owner/dashboard');
                   if (onNavigate) onNavigate({ type: 'owner_dashboard' });
                 }}
-                className="text-xs font-bold text-gray-700 hover:text-brand-green px-3 py-2 border border-gray-200 rounded-xl transition-colors"
+                className="text-xs font-bold text-[#374151] hover:text-[#1A5E2A] px-3 py-2 border border-gray-200 rounded-xl transition-colors"
               >
                 My Account
               </button>
@@ -241,7 +284,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                   window.history.pushState({}, '', '/agent/dashboard');
                   if (onNavigate) onNavigate({ type: 'agent_dashboard' });
                 }}
-                className="text-xs font-bold text-gray-700 hover:text-brand-green px-3 py-2 border border-gray-200 rounded-xl transition-colors"
+                className="text-xs font-bold text-[#374151] hover:text-[#1A5E2A] px-3 py-2 border border-gray-200 rounded-xl transition-colors"
               >
                 Agent Portal
               </button>
@@ -270,7 +313,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                     setIsLoginOpen(!isLoginOpen);
                     setIsRegisterOpen(false);
                   }}
-                  className="flex items-center gap-1 text-xs font-bold text-gray-700 hover:text-brand-green px-3 py-2 border border-gray-200 rounded-xl transition-all"
+                  className="flex items-center gap-1 text-xs font-bold text-[#374151] hover:text-[#1A5E2A] px-3 py-2 border border-gray-200 rounded-xl transition-all"
                 >
                   Login
                   <ChevronDown size={12} className={`transition-transform duration-200 ${isLoginOpen ? 'rotate-180' : ''}`} />
@@ -284,9 +327,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                         if (onNavigate) onNavigate({ type: 'owner_login' });
                         setIsLoginOpen(false);
                       }}
-                      className="w-full text-left px-4 py-3 text-xs font-bold text-gray-700 hover:bg-brand-green/5 hover:text-brand-green border-b border-gray-50 flex flex-col gap-0.5"
+                      className="w-full text-left px-4 py-3 text-xs font-bold text-[#374151] hover:bg-[#1A5E2A]/5 hover:text-[#1A5E2A] border-b border-gray-50 flex flex-col gap-0.5"
                     >
-                      <span className="flex items-center gap-1.5 font-black text-gray-800"><span className="text-sm">👤</span> I Want to Sell / Rent</span>
+                      <span className="flex items-center gap-1.5 font-black text-[#111827] hover:text-[#1A5E2A]"><span className="text-sm">👤</span> I Want to Sell / Rent</span>
                       <span className="text-[10px] text-gray-400 font-semibold pl-5">My Property</span>
                     </button>
                     <button
@@ -295,9 +338,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                         if (onNavigate) onNavigate({ type: 'agent_login' });
                         setIsLoginOpen(false);
                       }}
-                      className="w-full text-left px-4 py-3 text-xs font-bold text-gray-700 hover:bg-brand-green/5 hover:text-brand-green flex flex-col gap-0.5"
+                      className="w-full text-left px-4 py-3 text-xs font-bold text-[#374151] hover:bg-[#1A5E2A]/5 hover:text-[#1A5E2A] flex flex-col gap-0.5"
                     >
-                      <span className="flex items-center gap-1.5 font-black text-gray-800"><span className="text-sm">🏢</span> I Am a Real Estate Agent</span>
+                      <span className="flex items-center gap-1.5 font-black text-[#111827] hover:text-[#1A5E2A]"><span className="text-sm">🏢</span> I Am a Real Estate Agent</span>
                     </button>
                   </div>
                 )}
@@ -310,7 +353,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                     setIsRegisterOpen(!isRegisterOpen);
                     setIsLoginOpen(false);
                   }}
-                  className="flex items-center gap-1 text-xs font-black uppercase tracking-wider bg-brand-green/10 text-brand-green hover:bg-brand-green hover:text-white px-3 py-2 rounded-xl transition-all"
+                  className="flex items-center gap-1 text-xs font-bold text-[#374151] hover:text-[#1A5E2A] px-3 py-2 border border-gray-200 rounded-xl transition-all"
                 >
                   Register
                   <ChevronDown size={12} className={`transition-transform duration-200 ${isRegisterOpen ? 'rotate-180' : ''}`} />
@@ -324,9 +367,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                         if (onNavigate) onNavigate({ type: 'owner_register' });
                         setIsRegisterOpen(false);
                       }}
-                      className="w-full text-left px-4 py-3 text-xs font-bold text-gray-700 hover:bg-brand-green/5 hover:text-brand-green border-b border-gray-50 flex flex-col gap-0.5"
+                      className="w-full text-left px-4 py-3 text-xs font-bold text-[#374151] hover:bg-[#1A5E2A]/5 hover:text-[#1A5E2A] border-b border-gray-50 flex flex-col gap-0.5"
                     >
-                      <span className="flex items-center gap-1.5 font-black text-gray-800"><span className="text-sm">🏠</span> List My Property</span>
+                      <span className="flex items-center gap-1.5 font-black text-[#111827]"><span className="text-sm">🏠</span> List My Property</span>
                       <span className="text-[10px] text-gray-400 font-semibold pl-5">(Property Owner)</span>
                     </button>
                     <button
@@ -335,9 +378,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                         if (onNavigate) onNavigate({ type: 'agent_register' });
                         setIsRegisterOpen(false);
                       }}
-                      className="w-full text-left px-4 py-3 text-xs font-bold text-gray-700 hover:bg-brand-green/5 hover:text-brand-green flex flex-col gap-0.5"
+                      className="w-full text-left px-4 py-3 text-xs font-bold text-[#374151] hover:bg-[#1A5E2A]/5 hover:text-[#1A5E2A] flex flex-col gap-0.5"
                     >
-                      <span className="flex items-center gap-1.5 font-black text-gray-800"><span className="text-sm">🏢</span> Join as Agent</span>
+                      <span className="flex items-center gap-1.5 font-black text-[#111827]"><span className="text-sm">🏢</span> Join as Agent</span>
                       <span className="text-[10px] text-gray-400 font-semibold pl-5">(Real Estate Professional)</span>
                     </button>
                   </div>

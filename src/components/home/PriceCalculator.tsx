@@ -187,7 +187,7 @@ export const PriceCalculator: React.FC = () => {
   const hasBedBath = ['House', 'Apartment', 'Villa'].includes(selectedType);
 
   return (
-    <section className="py-24 bg-gradient-to-br from-[#004F31] to-[#002618] relative overflow-hidden">
+    <section className="py-24 bg-gradient-to-br from-[var(--lp-green-dark)] to-[#002618] relative overflow-hidden">
       {/* Abstract Background Decoration */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-green/10 rounded-full blur-[120px] -mr-64 -mt-64" />
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-brand-green-medium/10 rounded-full blur-[100px] -ml-48 -mb-48" />
@@ -575,7 +575,7 @@ export const PriceCalculator: React.FC = () => {
                     type="submit"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full py-5 mt-4 bg-brand-green text-white font-black uppercase tracking-[0.2em] text-sm rounded-2xl shadow-2xl shadow-brand-green/20 hover:bg-brand-green-medium transition-all flex items-center justify-center gap-3 cursor-pointer"
+                    className="w-full py-5 mt-4 bg-[var(--lp-yellow)] text-white hover:bg-[var(--lp-yellow-dark)] font-black uppercase tracking-[0.2em] text-sm rounded-2xl shadow-2xl shadow-[var(--lp-yellow)]/20 transition-all flex items-center justify-center gap-3 cursor-pointer border-none"
                   >
                     CALCULATE ESTIMATE
                   </motion.button>

@@ -44,7 +44,7 @@ export class AppErrorBoundary extends React.Component<Props, State> {
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
             maxWidth: '500px'
           }}>
-            <h2 style={{color: '#004F31', fontSize: '24px', fontWeight: 900, marginBottom: '16px'}}>Something went wrong</h2>
+            <h2 style={{color: '#1A5E2A', fontSize: '24px', fontWeight: 900, marginBottom: '16px'}}>Something went wrong</h2>
             <p style={{color: '#EF4444', marginBottom: '24px', fontSize: '14px', fontWeight: 500}}>
               {this.state.error?.message || "An unexpected error occurred."}
             </p>
@@ -54,7 +54,7 @@ export class AppErrorBoundary extends React.Component<Props, State> {
                 window.location.reload();
               }}
               style={{
-                background: '#004F31',
+                background: '#1A5E2A',
                 color: 'white',
                 border: 'none',
                 padding: '12px 32px',

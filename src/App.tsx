@@ -1021,7 +1021,7 @@ export default function App() {
           },
           success: {
             iconTheme: {
-              primary: '#004F31',
+              primary: '#1A5E2A',
               secondary: '#ffffff',
             },
           },
@@ -2401,9 +2401,9 @@ and deed entries are officially verified by our administrative desk.
                                 }}
                                 className={`p-3 rounded-xl border text-left transition-all hover:scale-[1.02] flex flex-col justify-between ${
                                   interestRate === bank.rate
-                                    ? 'bg-emerald-50 border-[#004f31] text-[#004f31]'
+                                    ? 'bg-[var(--lp-green-light)] border-[var(--lp-green)] text-[var(--lp-green)]'
                                     : 'bg-white border-neutral-150 hover:border-neutral-300'
-                                }`}
+                                  }`}
                               >
                                 <div>
                                   <p className="text-[9.5px] font-black leading-tight truncate">{bank.name}</p>
@@ -2424,7 +2424,7 @@ and deed entries are officially verified by our administrative desk.
                               type="number" 
                               value={loanAmount} 
                               onChange={(e) => setLoanAmount(parseInt(e.target.value, 10))}
-                              className="w-full bg-white px-3 py-2 border border-neutral-200 rounded-lg text-xs font-bold outline-none focus:border-[#004f31]"
+                              className="w-full bg-white px-3 py-2 border border-neutral-200 rounded-lg text-xs font-bold outline-none focus:border-[var(--lp-green)]"
                             />
                           </div>
 
@@ -2434,7 +2434,7 @@ and deed entries are officially verified by our administrative desk.
                               type="number" 
                               value={downPayment} 
                               onChange={(e) => setDownPayment(parseInt(e.target.value, 10))}
-                              className="w-full bg-white px-3 py-2 border border-neutral-200 rounded-lg text-xs font-bold outline-none focus:border-[#004f31]"
+                              className="w-full bg-white px-3 py-2 border border-neutral-200 rounded-lg text-xs font-bold outline-none focus:border-[var(--lp-green)]"
                             />
                           </div>
 
@@ -2445,7 +2445,7 @@ and deed entries are officially verified by our administrative desk.
                               step="0.5"
                               value={interestRate} 
                               onChange={(e) => setInterestRate(parseFloat(e.target.value))}
-                              className="w-full bg-white px-3 py-2 border border-neutral-200 rounded-lg text-xs font-bold outline-none focus:border-[#004f31]"
+                              className="w-full bg-white px-3 py-2 border border-neutral-200 rounded-lg text-xs font-bold outline-none focus:border-[var(--lp-green)]"
                             />
                           </div>
 
@@ -2455,7 +2455,7 @@ and deed entries are officially verified by our administrative desk.
                               type="number" 
                               value={loanTermYears} 
                               onChange={(e) => setLoanTermYears(parseInt(e.target.value, 10))}
-                              className="w-full bg-white px-3 py-2 border border-neutral-200 rounded-lg text-xs font-bold outline-none focus:border-[#004f31]"
+                              className="w-full bg-white px-3 py-2 border border-neutral-200 rounded-lg text-xs font-bold outline-none focus:border-[var(--lp-green)]"
                             />
                           </div>
 
@@ -2469,21 +2469,21 @@ and deed entries are officially verified by our administrative desk.
                               <span>Total Interest ({interestPct.toFixed(0)}%)</span>
                             </div>
                             <div className="h-2.5 w-full bg-neutral-200 rounded-full overflow-hidden flex">
-                              <div className="bg-[#004f31] h-full" style={{ width: `${principalPct}%` }} title="Principal portion" />
+                              <div className="bg-[var(--lp-green)] h-full" style={{ width: `${principalPct}%` }} title="Principal portion" />
                               <div className="bg-amber-500 h-full" style={{ width: `${interestPct}%` }} title="Interest portion" />
                             </div>
                           </div>
                         )}
 
                         {/* Payment output displays */}
-                        <div className="bg-[#004f31] text-white p-5 rounded-2xl flex justify-between items-center shadow-lg shadow-emerald-900/10">
+                        <div className="bg-[var(--lp-green-light)] text-[var(--lp-green)] p-5 rounded-2xl flex justify-between items-center shadow-sm border border-[var(--lp-green)]/10">
                           <div>
-                            <p className="text-[#a8ffd5] text-[9.5px] uppercase tracking-widest font-black">Estimated Monthly Payment</p>
-                            <p className="text-xl sm:text-2xl font-black font-mono">Rs. {calculatedMortgage.monthly.toLocaleString()} <span className="text-xs font-medium text-[#a8ffd5]">/mo</span></p>
+                            <p className="text-[var(--lp-green-mid)] text-[9.5px] uppercase tracking-widest font-black">Estimated Monthly Payment</p>
+                            <p className="text-xl sm:text-2xl font-black font-mono text-[var(--lp-green)]">Rs. {calculatedMortgage.monthly.toLocaleString()} <span className="text-xs font-medium text-[var(--lp-green-mid)]">/mo</span></p>
                           </div>
-                          <div className="text-right border-l border-white/20 pl-4 sm:pl-6">
-                            <p className="text-neutral-300 text-[8.5px] uppercase tracking-wide font-bold">Total Interest Paid</p>
-                            <p className="font-bold text-xs sm:text-sm font-mono text-amber-400">Rs. {calculatedMortgage.interestPay.toLocaleString()}</p>
+                          <div className="text-right border-l border-[var(--lp-green-mid)]/20 pl-4 sm:pl-6">
+                            <p className="text-[var(--lp-green-mid)] text-[8.5px] uppercase tracking-wide font-bold">Total Interest Paid</p>
+                            <p className="font-bold text-xs sm:text-sm font-mono text-[var(--lp-red)]">Rs. {calculatedMortgage.interestPay.toLocaleString()}</p>
                           </div>
                         </div>
 
@@ -2495,14 +2495,14 @@ and deed entries are officially verified by our administrative desk.
                     <div className="lg:col-span-5 space-y-6">
                       
                       {/* Dynamic Price Display summary */}
-                      <div className="bg-[#004f31]/5 border border-[#004f31]/20 p-6 rounded-3xl text-center space-y-4">
+                      <div className="bg-[var(--lp-green-light)] border border-[var(--lp-green)]/20 p-6 rounded-3xl text-center space-y-4">
                         <div>
                           <span className="text-neutral-400 text-[10px] uppercase font-black tracking-widest block">Valuation Total</span>
-                          <p className="text-3xl font-extrabold text-[#004f31] tracking-tight">{formatPriceLKR(selectedProperty.priceLkr)}</p>
+                          <p className="text-3xl font-extrabold text-[var(--lp-green)] tracking-tight">{formatPriceLKR(selectedProperty.priceLkr)}</p>
                         </div>
                         
                         {/* Currency Conversions Segment */}
-                        <div className="pt-4 border-t border-[#004f31]/10 grid grid-cols-2 text-xs font-bold text-neutral-600 gap-3 bg-white p-3 rounded-2xl">
+                        <div className="pt-4 border-t border-[var(--lp-green)]/10 grid grid-cols-2 text-xs font-bold text-neutral-600 gap-3 bg-white p-3 rounded-2xl">
                           <div className="border-r border-neutral-100">
                             <p className="text-[9px] text-neutral-400 uppercase tracking-widest">USD Estimate</p>
                             <p className="text-neutral-800 text-sm font-mono mt-0.5">${Math.round(selectedProperty.priceLkr / LKR_USD_RATE).toLocaleString()}</p>
@@ -2522,7 +2522,7 @@ and deed entries are officially verified by our administrative desk.
                           type="button"
                           onClick={triggerDownloadBrochure}
                           disabled={downloadingBrochure}
-                          className="w-full bg-[#004f31] hover:bg-emerald-950 text-white py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 hover:scale-[1.01]"
+                          className="w-full bg-[var(--lp-green)] hover:bg-[var(--lp-green-dark)] text-white py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 hover:scale-[1.01] border-none"
                         >
                           {downloadingBrochure ? (
                             <>

@@ -266,7 +266,7 @@ Generate marketing content. Return JSON strictly in this format:
          {/* Header */}
          <div className="flex items-center justify-between p-6 border-b border-gray-100 shrink-0">
             <div className="flex items-center gap-4">
-               <div className="w-12 h-12 rounded-xl bg-[#004F31] flex items-center justify-center text-white shadow-lg shadow-[#004F31]/20">
+               <div className="w-12 h-12 rounded-xl bg-[#1A5E2A] flex items-center justify-center text-white shadow-lg shadow-[#1A5E2A]/20">
                   <Star size={24} fill="currentColor" />
                </div>
                <div>
@@ -284,15 +284,15 @@ Generate marketing content. Return JSON strictly in this format:
             <div className="max-w-4xl mx-auto flex justify-between relative">
                <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2 z-0"></div>
                <div 
-                 className="absolute top-1/2 left-0 h-1 bg-[#004F31] -translate-y-1/2 z-0 transition-all duration-500"
+                 className="absolute top-1/2 left-0 h-1 bg-[#1A5E2A] -translate-y-1/2 z-0 transition-all duration-500"
                  style={{ width: `${(currentStep / (STEPS.length - 1)) * 100}%` }}
                ></div>
                
                {STEPS.map((step, idx) => (
                   <div key={idx} className="relative z-10 flex flex-col items-center gap-2">
                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-                        currentStep > idx ? 'bg-[#004F31] text-white' :
-                        currentStep === idx ? 'bg-white border-2 border-[#004F31] text-[#004F31] shadow-lg shadow-[#004F31]/20' :
+                        currentStep > idx ? 'bg-[#1A5E2A] text-white' :
+                        currentStep === idx ? 'bg-white border-2 border-[#1A5E2A] text-[#1A5E2A] shadow-lg shadow-[#1A5E2A]/20' :
                         'bg-white border-2 border-gray-200 text-gray-400'
                      }`}>
                         {currentStep > idx ? <CheckCircle2 size={16} /> : idx + 1}
@@ -312,7 +312,7 @@ Generate marketing content. Return JSON strictly in this format:
             {currentStep === 0 && (
                <div className="p-12 max-w-4xl mx-auto flex gap-12 items-center h-full">
                   <div className="flex-1 space-y-6">
-                     <div className="flex items-center gap-3 text-[#004F31] font-black text-xl mb-8">
+                     <div className="flex items-center gap-3 text-[#1A5E2A] font-black text-xl mb-8">
                         <Loader2 className="animate-spin" /> Extracting property details...
                      </div>
                      <div className="space-y-4">
@@ -358,7 +358,7 @@ Generate marketing content. Return JSON strictly in this format:
                <div className="flex h-full">
                   <div className="w-80 bg-gray-50 border-r border-gray-100 p-6 flex flex-col">
                      <div className="flex items-center gap-3 text-gray-900 font-black mb-8 p-4 bg-white rounded-2xl shadow-sm border border-gray-100">
-                        <Bot className="text-[#004F31]" size={24} /> Gemini AI
+                        <Bot className="text-[#1A5E2A]" size={24} /> Gemini AI
                      </div>
                      <div className="space-y-4 mb-6">
                         <div className="flex justify-between text-xs font-bold text-gray-500 uppercase tracking-widest">
@@ -367,7 +367,7 @@ Generate marketing content. Return JSON strictly in this format:
                         </div>
                         <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                            <motion.div 
-                             className="h-full bg-[#004F31]"
+                             className="h-full bg-[#1A5E2A]"
                              initial={{ width: 0 }}
                              animate={{ width: `${generationProgress}%` }}
                            />
@@ -400,7 +400,7 @@ Generate marketing content. Return JSON strictly in this format:
                      {isGenerating ? (
                         <div className="h-full flex items-center justify-center">
                            <div className="text-center">
-                              <Loader2 className="animate-spin text-[#004F31] mx-auto mb-4" size={48} />
+                              <Loader2 className="animate-spin text-[#1A5E2A] mx-auto mb-4" size={48} />
                               <p className="text-gray-500 font-bold animate-pulse">Crafting perfect marketing copy...</p>
                            </div>
                         </div>
@@ -415,11 +415,11 @@ Generate marketing content. Return JSON strictly in this format:
                            <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
                               <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                                  <div className="font-bold text-gray-900 text-sm">Preview & Edit</div>
-                                 <button onClick={generateContent} className="text-xs font-bold text-[#004F31] flex items-center gap-1 hover:underline"><RefreshCw size={12}/> Regenerate</button>
+                                 <button onClick={generateContent} className="text-xs font-bold text-[#1A5E2A] flex items-center gap-1 hover:underline"><RefreshCw size={12}/> Regenerate</button>
                               </div>
                               <div className="p-6">
                                  <textarea 
-                                    className="w-full h-64 p-4 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 text-sm focus:outline-none focus:border-[#004F31] focus:bg-white resize-none"
+                                    className="w-full h-64 p-4 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 text-sm focus:outline-none focus:border-[#1A5E2A] focus:bg-white resize-none"
                                     value={
                                        activeTab === 'facebook' ? editedContent.facebook.caption :
                                        activeTab === 'instagram' ? editedContent.instagram.caption + '\n\n' + (editedContent.instagram.hashtags?.join(' ') || '') :
@@ -546,21 +546,21 @@ Generate marketing content. Return JSON strictly in this format:
                   {/* Footer Schedule */}
                   <div className="bg-gray-50 p-6 rounded-3xl border border-gray-200 flex items-center justify-between shadow-inner shrink-0">
                      <div className="flex bg-white rounded-2xl p-1 border border-gray-200 shadow-sm">
-                        <button onClick={() => setScheduleType('now')} className={`px-6 py-3 rounded-xl text-sm font-bold flex items-center gap-2 transition-all ${scheduleType === 'now' ? 'bg-[#004F31]/10 text-[#004F31]' : 'text-gray-500 hover:text-gray-900'}`}><Send size={16}/> Post Now</button>
-                        <button onClick={() => setScheduleType('later')} className={`px-6 py-3 rounded-xl text-sm font-bold flex items-center gap-2 transition-all ${scheduleType === 'later' ? 'bg-[#004F31]/10 text-[#004F31]' : 'text-gray-500 hover:text-gray-900'}`}><Calendar size={16}/> Schedule</button>
-                        <button onClick={() => setScheduleType('draft')} className={`px-6 py-3 rounded-xl text-sm font-bold flex items-center gap-2 transition-all ${scheduleType === 'draft' ? 'bg-[#004F31]/10 text-[#004F31]' : 'text-gray-500 hover:text-gray-900'}`}><Edit3 size={16}/> Draft</button>
+                        <button onClick={() => setScheduleType('now')} className={`px-6 py-3 rounded-xl text-sm font-bold flex items-center gap-2 transition-all ${scheduleType === 'now' ? 'bg-[#1A5E2A]/10 text-[#1A5E2A]' : 'text-gray-500 hover:text-gray-900'}`}><Send size={16}/> Post Now</button>
+                        <button onClick={() => setScheduleType('later')} className={`px-6 py-3 rounded-xl text-sm font-bold flex items-center gap-2 transition-all ${scheduleType === 'later' ? 'bg-[#1A5E2A]/10 text-[#1A5E2A]' : 'text-gray-500 hover:text-gray-900'}`}><Calendar size={16}/> Schedule</button>
+                        <button onClick={() => setScheduleType('draft')} className={`px-6 py-3 rounded-xl text-sm font-bold flex items-center gap-2 transition-all ${scheduleType === 'draft' ? 'bg-[#1A5E2A]/10 text-[#1A5E2A]' : 'text-gray-500 hover:text-gray-900'}`}><Edit3 size={16}/> Draft</button>
                      </div>
                      
                      {scheduleType === 'later' && (
                         <div className="flex gap-3 items-center">
-                           <input type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} className="bg-white border border-gray-200 px-4 py-3 rounded-xl text-sm font-bold text-gray-700 outline-none focus:border-[#004F31]" />
-                           <input type="time" value={scheduleTime} onChange={e => setScheduleTime(e.target.value)} className="bg-white border border-gray-200 px-4 py-3 rounded-xl text-sm font-bold text-gray-700 outline-none focus:border-[#004F31]" />
+                           <input type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} className="bg-white border border-gray-200 px-4 py-3 rounded-xl text-sm font-bold text-gray-700 outline-none focus:border-[#1A5E2A]" />
+                           <input type="time" value={scheduleTime} onChange={e => setScheduleTime(e.target.value)} className="bg-white border border-gray-200 px-4 py-3 rounded-xl text-sm font-bold text-gray-700 outline-none focus:border-[#1A5E2A]" />
                         </div>
                      )}
 
                      <button 
                        onClick={publishAll}
-                       className="bg-[#004F31] text-white px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl hover:shadow-[#004F31]/30 hover:scale-105 transition-all active:scale-95"
+                       className="bg-[#1A5E2A] text-white px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl hover:shadow-[#1A5E2A]/30 hover:scale-105 transition-all active:scale-95"
                      >
                         Confirm & Publish
                      </button>
@@ -572,7 +572,7 @@ Generate marketing content. Return JSON strictly in this format:
             {currentStep === 3 && (
                <div className="p-12 max-w-2xl mx-auto h-full flex flex-col justify-center">
                   <div className="text-center mb-12">
-                     <div className="w-20 h-20 bg-[#004F31]/10 rounded-full flex items-center justify-center text-[#004F31] mx-auto mb-6">
+                     <div className="w-20 h-20 bg-[#1A5E2A]/10 rounded-full flex items-center justify-center text-[#1A5E2A] mx-auto mb-6">
                         <Send size={32} className="animate-pulse" />
                      </div>
                      <h3 className="text-3xl font-black text-gray-900 mb-2">Publishing to Social Media</h3>
@@ -599,7 +599,7 @@ Generate marketing content. Return JSON strictly in this format:
                            </div>
                            <div className="text-sm font-bold">
                               {item.status === 'pending' && <span className="text-gray-400">Waiting...</span>}
-                              {item.status === 'publishing' && <span className="text-[#004F31] flex items-center gap-2"><Loader2 size={16} className="animate-spin"/> Publishing...</span>}
+                              {item.status === 'publishing' && <span className="text-[#1A5E2A] flex items-center gap-2"><Loader2 size={16} className="animate-spin"/> Publishing...</span>}
                               {item.status === 'done' && <span className="text-green-600 flex items-center gap-2"><CheckCircle2 size={16}/> {item.msg}</span>}
                               {item.status === 'skipped' && <span className="text-gray-400">Skipped</span>}
                            </div>
@@ -615,7 +615,7 @@ Generate marketing content. Return JSON strictly in this format:
                <div className="p-12 h-full bg-gray-50 overflow-y-auto">
                   <div className="max-w-4xl mx-auto">
                      <div className="bg-white rounded-[32px] p-8 border border-gray-200 shadow-xl shadow-black/5 text-center mb-8 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-2 bg-[#004F31]"></div>
+                        <div className="absolute top-0 left-0 w-full h-2 bg-[#1A5E2A]"></div>
                         <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center text-green-600 mx-auto mb-6 shadow-inner">
                            <CheckCircle2 size={40} />
                         </div>
@@ -644,7 +644,7 @@ Generate marketing content. Return JSON strictly in this format:
                         </div>
                         <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm text-center">
                            <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Target Audience</div>
-                           <div className="text-4xl font-black text-[#004F31]">High</div>
+                           <div className="text-4xl font-black text-[#1A5E2A]">High</div>
                            <div className="text-xs font-bold text-gray-500 mt-2">Matched to property type</div>
                         </div>
                         <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm text-center">

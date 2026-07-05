@@ -36,7 +36,7 @@ const popularPages = [
 ];
 
 const trafficSources = [
-  { name: 'Organic', value: 45, color: '#004F31' },
+  { name: 'Organic', value: 45, color: '#1A5E2A' },
   { name: 'Direct', value: 25, color: '#00A651' },
   { name: 'Social', value: 20, color: '#3b82f6' },
   { name: 'Referral', value: 10, color: '#94a3b8' },
@@ -200,8 +200,8 @@ export default function LiveVisitorTracking({ visitors = [], isDark = false }: {
             <AreaChart width={600} height={200} data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} style={{ width: '100%' }}>
               <defs>
                 <linearGradient id="colorToday" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#004F31" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#004F31" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#1A5E2A" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#1A5E2A" stopOpacity={0}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridColor} />
@@ -219,7 +219,7 @@ export default function LiveVisitorTracking({ visitors = [], isDark = false }: {
                 itemStyle={{ color: '#fff', fontWeight: 'bold' }}
               />
               <Area type="monotone" dataKey="yesterday" stroke="#cbd5e1" strokeDasharray="8 8" fill="none" strokeWidth={2} name="Yesterday" />
-              <Area type="monotone" dataKey="today" stroke="#004F31" fillOpacity={1} fill="url(#colorToday)" strokeWidth={4} name="Today" />
+              <Area type="monotone" dataKey="today" stroke="#1A5E2A" fillOpacity={1} fill="url(#colorToday)" strokeWidth={4} name="Today" />
             </AreaChart>
             </div>
           </div>
@@ -246,7 +246,7 @@ export default function LiveVisitorTracking({ visitors = [], isDark = false }: {
                 }} 
                 itemStyle={{ color: '#fff', fontWeight: 'bold' }}
               />
-              <Bar dataKey="views" fill="#004F31" radius={[0, 8, 8, 0]} barSize={32} />
+              <Bar dataKey="views" fill="#1A5E2A" radius={[0, 8, 8, 0]} barSize={32} />
             </BarChart>
             </div>
           </div>

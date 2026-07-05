@@ -1,64 +1,164 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Plus Jakarta Sans", sans-serif;
 
-  --color-admin-bg: #F0F4F0;
-  --color-admin-primary: #004F31;
-  --color-admin-secondary: #007E50;
-  --color-admin-accent: #CC2222;
-  --color-admin-gold: #F5A623;
-  --color-admin-text-dark: #1A2E1A;
-  --color-admin-text-gray: #6B7280;
-  --color-admin-border: #E5E7EB;
+  --color-green: var(--green);
+  --color-green-dark: var(--green-dark);
+  --color-green-mid: var(--green-mid);
+  --color-green-light: var(--green-light);
+  --color-green-pale: var(--green-pale);
 
-  --color-brand-green: #004F31;
-  --color-brand-green-medium: #007E50;
-  --color-brand-sage: #F8FAF8;
-  --color-brand-navy: #0A1628;
-  --color-dark-navy: #0A1628;
-  --color-brand-gold: #FFD700;
-  --color-brand-red: #CC2222;
+  --color-red: var(--red);
+  --color-red-dark: var(--red-dark);
+  --color-red-light: var(--red-light);
+  --color-red-pale: var(--red-pale);
 
-  --color-primary: #004F31;
-  --color-secondary: #007E50;
+  --color-blue: var(--blue);
+  --color-blue-dark: var(--blue-dark);
+  --color-blue-light: var(--blue-light);
+  --color-blue-pale: var(--blue-pale);
+
+  --color-yellow: var(--yellow);
+  --color-yellow-dark: var(--yellow-dark);
+  --color-yellow-light: var(--yellow-light);
+  --color-yellow-pale: var(--yellow-pale);
+
+  --color-admin-bg: var(--page-bg);
+  --color-admin-primary: var(--green);
+  --color-admin-secondary: var(--green-mid);
+  --color-admin-accent: var(--red);
+  --color-admin-gold: var(--yellow);
+  --color-admin-text-dark: var(--text-primary);
+  --color-admin-text-gray: var(--text-muted);
+  --color-admin-border: var(--border);
+
+  --color-brand-green: var(--green);
+  --color-brand-green-medium: var(--green-mid);
+  --color-brand-sage: var(--green-pale);
+  --color-brand-navy: var(--text-primary);
+  --color-dark-navy: var(--text-primary);
+  --color-brand-gold: var(--yellow);
+  --color-brand-red: var(--red);
+
+  --color-primary: var(--green);
+  --color-secondary: var(--green-mid);
 }
 
 :root {
-  /* Backgrounds */
-  --admin-bg: #f0f2f5;
-  --admin-card-bg: #ffffff;
-  --admin-sidebar-bg: #004F31;
-  --admin-navbar-bg: #ffffff;
-  --admin-table-header-bg: #f9fafb;
-  --admin-table-row-hover: #f0fdf4;
-  --admin-input-bg: #ffffff;
-  --admin-modal-bg: #ffffff;
-  
-  /* Text */
-  --admin-text-primary: #111827;
-  --admin-text-secondary: #6b7280;
-  --admin-text-muted: #9ca3af;
-  --admin-sidebar-text: #ffffff;
-  
-  /* Borders */
-  --admin-border: #e5e7eb;
-  --admin-border-light: #f3f4f6;
-  --admin-input-border: #d1d5db;
-  
-  /* Brand */
-  --admin-primary: #004F31;
-  --admin-primary-hover: #006040;
-  --admin-primary-light: #f0fdf4;
-  
-  /* Shadows */
-  --admin-shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-  --admin-shadow-md: 0 4px 12px rgba(0,0,0,0.10);
-  --admin-shadow-lg: 0 20px 60px rgba(0,0,0,0.12);
+  --lp-green:         #1A5E2A;
+  --lp-green-dark:    #0F3D1A;
+  --lp-green-mid:     #2E7D3A;
+  --lp-green-light:   #E8F5E9;
+  --lp-green-pale:    #F1F8F1;
 
-  --background: #F8FAF8;
+  --lp-red:           #CC1414;
+  --lp-red-dark:      #A00E0E;
+  --lp-red-light:     #FFF0F0;
+
+  --lp-blue:          #1565C0;
+  --lp-blue-dark:     #0D47A1;
+  --lp-blue-light:    #E3F2FD;
+
+  --lp-yellow:        #E8A000;
+  --lp-yellow-dark:   #B37A00;
+  --lp-yellow-light:  #FFF8E1;
+
+  --lp-white:         #FFFFFF;
+  --lp-bg:            #F8F9FA;
+  --lp-card:          #FFFFFF;
+  --lp-border:        #E5E7EB;
+  --lp-border-light:  #F3F4F6;
+
+  --lp-text-1:        #111827;
+  --lp-text-2:        #374151;
+  --lp-text-3:        #6B7280;
+  --lp-text-4:        #9CA3AF;
+
+  --lp-shadow-sm:     0 1px 4px rgba(0,0,0,0.06);
+  --lp-shadow-md:     0 4px 16px rgba(0,0,0,0.10);
+  --lp-shadow-lg:     0 20px 60px rgba(0,0,0,0.15);
+
+  --lp-radius-sm:     8px;
+  --lp-radius-md:     12px;
+  --lp-radius-lg:     16px;
+
+  --lp-font:          'Plus Jakarta Sans', sans-serif;
+
+  /* Map old variables to the new lp brand variables to ensure full coverage */
+  --green: var(--lp-green);
+  --green-dark: var(--lp-green-dark);
+  --green-mid: var(--lp-green-mid);
+  --green-light: var(--lp-green-light);
+  --green-pale: var(--lp-green-pale);
+
+  --red: var(--lp-red);
+  --red-dark: var(--lp-red-dark);
+  --red-light: var(--lp-red-light);
+  --red-pale: var(--lp-red-light);
+
+  --blue: var(--lp-blue);
+  --blue-dark: var(--lp-blue-dark);
+  --blue-light: var(--lp-blue-light);
+  --blue-pale: var(--lp-blue-light);
+
+  --yellow: var(--lp-yellow);
+  --yellow-dark: var(--lp-yellow-dark);
+  --yellow-light: var(--lp-yellow-light);
+  --yellow-pale: var(--lp-yellow-light);
+
+  --white: var(--lp-white);
+  --page-bg: var(--lp-bg);
+  --card-bg: var(--lp-card);
+
+  --text-primary: var(--lp-text-1);
+  --text-secondary: var(--lp-text-2);
+  --text-muted: var(--lp-text-3);
+  --text-light: var(--lp-text-4);
+
+  --border: var(--lp-border);
+  --border-light: var(--lp-border-light);
+
+  --shadow-sm: var(--lp-shadow-sm);
+  --shadow-md: var(--lp-shadow-md);
+  --shadow-lg: var(--lp-shadow-lg);
+
+  --radius-sm: var(--lp-radius-sm);
+  --radius-md: var(--lp-radius-md);
+  --radius-lg: var(--lp-radius-lg);
+
+  --font: var(--lp-font);
+
+  /* ADMIN VARIABLES (mapped to brand) */
+  --admin-bg: var(--lp-bg);
+  --admin-card-bg: var(--lp-card);
+  --admin-sidebar-bg: var(--lp-white);
+  --admin-navbar-bg: var(--lp-white);
+  --admin-table-header-bg: var(--lp-border-light);
+  --admin-table-row-hover: var(--lp-green-pale);
+  --admin-input-bg: var(--lp-white);
+  --admin-modal-bg: var(--lp-white);
+  
+  --admin-text-primary: var(--lp-text-1);
+  --admin-text-secondary: var(--lp-text-2);
+  --admin-text-muted: var(--lp-text-3);
+  --admin-sidebar-text: var(--lp-text-2);
+  
+  --admin-border: var(--lp-border);
+  --admin-border-light: var(--lp-border-light);
+  --admin-input-border: var(--lp-border);
+  
+  --admin-primary: var(--lp-green);
+  --admin-primary-hover: var(--lp-green-dark);
+  --admin-primary-light: var(--lp-green-light);
+  
+  --admin-shadow-sm: var(--lp-shadow-sm);
+  --admin-shadow-md: var(--lp-shadow-md);
+  --admin-shadow-lg: var(--lp-shadow-lg);
+
+  --background: var(--lp-bg);
 }
 
 html {
@@ -130,12 +230,12 @@ img {
   100% { background-position: 200% 0; }
 }
 
-.skeleton {
+.skeleton, .skeleton-loader {
   background: linear-gradient(
     90deg,
-    #f0f0f0 25%,
-    #e0e0e0 50%,
-    #f0f0f0 75%
+    #F3F4F6 25%,
+    #E5E7EB 50%,
+    #F3F4F6 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
@@ -144,8 +244,15 @@ img {
 
 @layer base {
   body {
-    @apply font-sans text-slate-900 bg-[#F8FAF8] antialiased;
+    background: var(--lp-bg) !important;
+    color: var(--lp-text-1) !important;
+    font-family: var(--lp-font) !important;
+    @apply antialiased;
   }
+}
+
+*, body {
+  font-family: var(--lp-font) !important;
 }
 
 .glass-navbar {
@@ -292,7 +399,7 @@ header.h-\[60px\] input {
 .admin-light .admin-navbar input:focus,
 header.h-\[60px\] input:focus {
   background: #ffffff !important;
-  border-color: #004F31 !important;
+  border-color: #1A5E2A !important;
 }
 
 .admin-dark input:focus,
@@ -301,8 +408,8 @@ header.h-\[60px\] input:focus {
 .admin-light textarea:focus,
 .admin-dark select:focus,
 .admin-light select:focus {
-  border-color: #004F31 !important;
-  box-shadow: 0 0 0 3px rgba(0,79,49,0.1) !important;
+  border-color: #1A5E2A !important;
+  box-shadow: 0 0 0 3px rgba(26,94,42,0.1) !important;
 }
 
 .admin-dark table,
@@ -423,7 +530,7 @@ header.h-\[60px\] input:focus {
 }
 
 .quick-import-card h3 {
-  color: #004F31;
+  color: #1A5E2A;
   font-size: 20px;
   font-weight: 800;
   letter-spacing: -0.025em;
@@ -452,15 +559,15 @@ header.h-\[60px\] input:focus {
 }
 
 .import-textarea:focus {
-  border-color: #004F31;
+  border-color: #1A5E2A;
   border-style: solid;
   background-color: white;
   outline: none;
-  box-shadow: 0 0 0 4px rgba(0, 79, 49, 0.05);
+  box-shadow: 0 0 0 4px rgba(26, 94, 42, 0.05);
 }
 
 .import-btn {
-  background: #004F31;
+  background: #1A5E2A;
   color: white;
   border: none;
   border-radius: 12px;
@@ -474,13 +581,13 @@ header.h-\[60px\] input:focus {
   align-items: center;
   gap: 10px;
   transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(0, 79, 49, 0.2);
+  box-shadow: 0 4px 12px rgba(26, 94, 42, 0.2);
 }
 
 .import-btn:hover {
-  background: #003824;
+  background: #0F3D1A;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 79, 49, 0.25);
+  box-shadow: 0 6px 16px rgba(26, 94, 42, 0.25);
 }
 
 .import-btn:active {
@@ -503,7 +610,7 @@ header.h-\[60px\] input:focus {
 
 .import-hint-badge {
   background: #E8F5E9;
-  color: #004F31;
+  color: #1A5E2A;
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 11px;
@@ -638,9 +745,9 @@ header.h-\[60px\] input:focus {
 .skeleton-pulse {
   background: linear-gradient(
     90deg,
-    #f3f4f6 25%,
-    #e5e7eb 50%,
-    #f3f4f6 75%
+    #F3F4F6 25%,
+    #E5E7EB 50%,
+    #F3F4F6 75%
   );
   background-size: 400px 100%;
   animation: shimmer-skeleton 1.4s ease infinite;
@@ -649,5 +756,77 @@ header.h-\[60px\] input:focus {
 @keyframes shimmer-skeleton {
   0% { background-position: -400px 0 }
   100% { background-position: 400px 0 }
+}
+
+/* Scrollbar (webkit) */
+* {
+  scrollbar-color: var(--lp-green-light) transparent !important;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--lp-green-light) !important;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--lp-green) !important;
+}
+
+/* All Buttons & Global Helper Classes */
+button.btn-primary, .btn-primary {
+  background-color: var(--lp-green) !important;
+  color: var(--lp-white) !important;
+}
+button.btn-danger, .btn-danger {
+  background-color: var(--lp-red) !important;
+  color: var(--lp-white) !important;
+}
+button.btn-info, .btn-info {
+  background-color: var(--lp-blue) !important;
+  color: var(--lp-white) !important;
+}
+button.btn-warning, .btn-warning {
+  background-color: var(--lp-yellow) !important;
+  color: var(--lp-white) !important;
+}
+button.btn-secondary, .btn-secondary {
+  background-color: var(--lp-white) !important;
+  border: 1px solid var(--lp-border) !important;
+  color: var(--lp-text-2) !important;
+}
+
+/* All Inputs */
+input:focus, textarea:focus, select:focus {
+  border-color: var(--lp-green) !important;
+  box-shadow: 0 0 0 3px rgba(26, 94, 42, 0.12) !important;
+  outline: none !important;
+}
+input.error, textarea.error, select.error {
+  border-color: var(--lp-red) !important;
+}
+input.success, textarea.success, select.success {
+  border-color: var(--lp-green) !important;
+}
+
+/* All Links */
+a {
+  color: inherit;
+  transition: color 0.2s ease;
+}
+a:hover {
+  color: var(--lp-green) !important;
+}
+a:visited {
+  color: var(--lp-green-dark);
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  color: var(--lp-green) !important;
 }
 

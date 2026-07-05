@@ -88,7 +88,7 @@ export const RecentListings: React.FC<RecentListingsProps> = ({ onNavigate, prop
           {/* Recent Listings Column */}
           <div className="flex-grow lg:w-2/3">
             <div className="flex justify-between items-center mb-10">
-              <h2 className="text-3xl font-bold text-gray-900 uppercase">Recent Listings</h2>
+              <h2 className="text-3xl font-bold text-gray-900 uppercase pl-4 border-l-4 border-[var(--lp-green)]">Recent Listings</h2>
               <a href="#" onClick={(e) => { e.preventDefault(); onNavigate({ type: 'home' }); window.scrollTo({ top: 800, behavior: 'smooth' }); }} className="flex items-center gap-2 text-brand-green font-bold text-sm hover:underline uppercase tracking-widest">
                 View All <ArrowRight size={16} />
               </a>
@@ -113,8 +113,14 @@ export const RecentListings: React.FC<RecentListingsProps> = ({ onNavigate, prop
                       alt={listing.listing_title || listing.title}
                     />
                     <div className="absolute top-4 left-4">
-                      <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full text-white shadow-lg ${listing.listing_type?.toLowerCase().includes('sale') ? 'bg-red-600' : 'bg-brand-green'}`}>
-                        FOR {listing.listing_type || 'Sale'}
+                      <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg ${
+                        (listing.listing_type || '').toLowerCase().includes('sale') 
+                          ? 'bg-[#CC1414] text-white' 
+                          : (listing.listing_type || '').toLowerCase().includes('rent')
+                            ? 'bg-[#1565C0] text-white'
+                            : 'bg-[#E8A000] text-[#111827]'
+                      }`}>
+                        FOR {(listing.listing_type || 'Sale').toUpperCase()}
                       </span>
                     </div>
                   </div>
@@ -148,15 +154,15 @@ export const RecentListings: React.FC<RecentListingsProps> = ({ onNavigate, prop
               <div className="space-y-6 flex-grow">
                 <div>
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Property Price (Rs.)</label>
-                  <input type="text" defaultValue="15000000" className="w-full bg-[#f0fdf4] border-none rounded-xl py-3.5 px-4 text-sm font-bold text-gray-700 outline-none" />
+                  <input type="text" defaultValue="15000000" className="w-full bg-white border border-gray-200 focus:border-[var(--lp-green)] rounded-xl py-3.5 px-4 text-sm font-bold text-gray-700 outline-none transition-colors" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Down Payment (%)</label>
-                  <input type="text" defaultValue="20" className="w-full bg-[#f0fdf4] border-none rounded-xl py-3.5 px-4 text-sm font-bold text-gray-700 outline-none" />
+                  <input type="text" defaultValue="20" className="w-full bg-white border border-gray-200 focus:border-[var(--lp-green)] rounded-xl py-3.5 px-4 text-sm font-bold text-gray-700 outline-none transition-colors" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Interest Rate (%)</label>
-                  <input type="text" defaultValue="14.5" className="w-full bg-[#f0fdf4] border-none rounded-xl py-3.5 px-4 text-sm font-bold text-gray-700 outline-none" />
+                  <input type="text" defaultValue="14.5" className="w-full bg-white border border-gray-200 focus:border-[var(--lp-green)] rounded-xl py-3.5 px-4 text-sm font-bold text-gray-700 outline-none transition-colors" />
                 </div>
 
                 <div className="pt-6 border-t border-gray-50 mt-4">
@@ -164,14 +170,14 @@ export const RecentListings: React.FC<RecentListingsProps> = ({ onNavigate, prop
                   <motion.div 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="text-3xl font-black text-brand-green"
+                    className="text-3xl font-black text-[var(--lp-green)]"
                   >
                     Rs. 142,450
                   </motion.div>
                 </div>
               </div>
 
-              <button className="w-full py-4 bg-brand-navy hover:bg-black text-white font-bold rounded-xl mt-8 transition-all hover:scale-[1.02] active:scale-[0.98]">
+              <button className="w-full py-4 bg-[var(--lp-green)] hover:bg-[var(--lp-green-dark)] text-white font-bold rounded-xl mt-8 transition-all hover:scale-[1.02] active:scale-[0.98]">
                 Get Bank Offers
               </button>
             </div>

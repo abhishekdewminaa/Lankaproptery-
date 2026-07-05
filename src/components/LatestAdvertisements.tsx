@@ -158,13 +158,13 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
   return (
     <div className={`bg-white rounded-3xl border border-gray-100 shadow-sm relative ${isSidebar ? 'p-4 md:p-5' : 'p-6 md:p-8'}`}>
       {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-[#004F31]/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-64 h-64 bg-[#1A5E2A]/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
 
       {/* Header */}
       <div className={`flex flex-col ${isSidebar ? 'gap-3 mb-4' : 'sm:flex-row sm:items-center sm:justify-between gap-4 mb-6'} pb-4 border-b border-gray-100 relative z-10`}>
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="w-1.5 h-5 bg-[#004F31] rounded-full inline-block" />
+            <span className="w-1.5 h-5 bg-[#1A5E2A] rounded-full inline-block" />
             <h3 className={`font-black text-gray-900 tracking-tight uppercase ${isSidebar ? 'text-sm' : 'text-xl md:text-2xl'}`}>
               Latest Project Areas
             </h3>
@@ -182,7 +182,7 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
             onClick={() => setIsOpen(!isOpen)}
             className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl cursor-pointer text-sm font-bold text-gray-700 transition-all shadow-sm active:scale-95"
           >
-            <Calendar size={16} className="text-[#004F31]" />
+            <Calendar size={16} className="text-[#1A5E2A]" />
             <span>{selectedLabel}</span>
             <ChevronDown size={14} className={`text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -212,12 +212,12 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
                         }}
                         className={`w-full px-4 py-2.5 text-left text-sm font-semibold transition-colors flex items-center justify-between ${
                           period === option.value 
-                            ? 'bg-[#E8F5E9] text-[#004F31] font-bold' 
+                            ? 'bg-[#E8F5E9] text-[#1A5E2A] font-bold' 
                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                         }`}
                       >
                         <span>{option.label}</span>
-                        {period === option.value && <span className="w-1.5 h-1.5 bg-[#004F31] rounded-full" />}
+                        {period === option.value && <span className="w-1.5 h-1.5 bg-[#1A5E2A] rounded-full" />}
                       </button>
                     ))}
                   </div>
@@ -232,8 +232,8 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
       <div className="flex items-center justify-between mb-6 relative z-10">
         <div className="flex items-center gap-2">
           <span className="flex h-2 w-2 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#004F31] opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#004F31]"></span>
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1A5E2A] opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#1A5E2A]"></span>
           </span>
           <span className="text-xs font-black uppercase tracking-wider text-gray-400">
             {loading ? 'Querying database...' : `${properties.length} project areas available`}
@@ -258,7 +258,7 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
         </div>
       ) : properties.length === 0 ? (
         <div className="text-center py-16 px-4 border border-dashed border-gray-200 rounded-3xl bg-gray-50/50 relative z-10">
-          <div className="w-16 h-16 bg-[#004F31]/5 text-[#004F31] rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+          <div className="w-16 h-16 bg-[#1A5E2A]/5 text-[#1A5E2A] rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
             🏠
           </div>
           <h4 className="text-lg font-bold text-gray-800 mb-1">No Active Listings found</h4>
@@ -267,7 +267,7 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
           </p>
           <button
             onClick={() => setPeriod('alltime')}
-            className="px-6 py-2.5 bg-[#004F31] text-white rounded-xl text-sm font-bold hover:bg-[#003B24] transition-all shadow-md active:scale-95 cursor-pointer"
+            className="px-6 py-2.5 bg-[#1A5E2A] text-white rounded-xl text-sm font-bold hover:bg-[#0F3D1A] transition-all shadow-md active:scale-95 cursor-pointer"
           >
             Show All Time Live Properties
           </button>
@@ -299,7 +299,7 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
                 whileHover={{ y: -4 }}
-                className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100/70 hover:border-[#004F31]/20 cursor-pointer flex flex-col h-full transition-all"
+                className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100/70 hover:border-[#1A5E2A]/20 cursor-pointer flex flex-col h-full transition-all"
               >
                 {/* Image Section */}
                 <div className="relative aspect-video w-full overflow-hidden bg-gray-50">
@@ -313,13 +313,13 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
                   />
                   <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
                     <span className={`text-[9px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full text-white shadow-sm ${
-                      isSale ? 'bg-rose-600' : 'bg-[#004F31]'
+                      isSale ? 'bg-rose-600' : 'bg-[#1A5E2A]'
                     }`}>
                       FOR {isSale ? 'SALE' : 'RENT'}
                     </span>
                   </div>
                   <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-widest text-gray-800 shadow-sm flex items-center gap-1">
-                    <Clock size={10} className="text-[#004F31]" />
+                    <Clock size={10} className="text-[#1A5E2A]" />
                     {timeAgo(property.created_at)}
                   </div>
                 </div>
@@ -327,12 +327,12 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
                 {/* Info Section */}
                 <div className="p-5 flex flex-col flex-1">
                   {/* Category */}
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#004F31] mb-1.5 block">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#1A5E2A] mb-1.5 block">
                     {property.property_category || 'Property'}
                   </span>
 
                   {/* Title */}
-                  <h4 className="text-sm font-bold text-gray-900 line-clamp-2 leading-snug mb-3 group-hover:text-[#004F31] transition-colors flex-1">
+                  <h4 className="text-sm font-bold text-gray-900 line-clamp-2 leading-snug mb-3 group-hover:text-[#1A5E2A] transition-colors flex-1">
                     {property.listing_title}
                   </h4>
 
@@ -345,22 +345,22 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
                   {/* Details strip */}
                   <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-gray-400 border-t border-b border-gray-50 py-2.5 mb-4">
                     <span className="flex items-center gap-1">
-                      <Bed size={13} className="text-[#004F31]" />
+                      <Bed size={13} className="text-[#1A5E2A]" />
                       {property.rooms || 0} Bed
                     </span>
                     <span className="flex items-center gap-1">
-                      <Bath size={13} className="text-[#004F31]" />
+                      <Bath size={13} className="text-[#1A5E2A]" />
                       {property.bathrooms || 0} Bath
                     </span>
                     <span className="flex items-center gap-1 truncate max-w-[90px]">
-                      <LandPlot size={13} className="text-[#004F31]" />
+                      <LandPlot size={13} className="text-[#1A5E2A]" />
                       {property.land_area || 'N/A'}
                     </span>
                   </div>
 
                   {/* Price & Action */}
                   <div className="flex items-center justify-between mt-auto pt-2">
-                    <div className="text-[#004F31] font-extrabold text-base">
+                    <div className="text-[#1A5E2A] font-extrabold text-base">
                       {property.price_lkr
                         ? `Rs. ${Number(property.price_lkr).toLocaleString()}`
                         : 'Price on Request'
@@ -379,7 +379,7 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
         <div className="mt-8 pt-6 border-t border-gray-50 flex justify-center relative z-10">
           <button
             onClick={handleViewAll}
-            className="flex items-center gap-2 px-8 py-3 bg-emerald-50 hover:bg-[#004F31] hover:text-white border border-[#BBF7D0] hover:border-[#004F31] rounded-2xl text-[#004F31] font-bold text-sm transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+            className="flex items-center gap-2 px-8 py-3 bg-emerald-50 hover:bg-[#1A5E2A] hover:text-white border border-[#BBF7D0] hover:border-[#1A5E2A] rounded-2xl text-[#1A5E2A] font-bold text-sm transition-all duration-300 hover:scale-[1.02] cursor-pointer"
           >
             <span>Explore All Project Areas</span>
             <ArrowRight size={16} />

@@ -131,11 +131,11 @@ export const OwnerLoginPage: React.FC<OwnerLoginPageProps> = ({ onNavigate, onNa
 
     if (plan === 'premium_pro') {
       return (
-        <div className="bg-[#f0fdf4] border-l-4 border-[#004F31] p-4 rounded-r-2xl mb-6 shadow-sm">
+        <div className="bg-[#f0fdf4] border-l-4 border-[#1A5E2A] p-4 rounded-r-2xl mb-6 shadow-sm">
           <div className="flex items-start gap-3">
             <span className="text-xl">⭐</span>
             <div>
-              <h4 className="text-sm font-black text-[#004F31] uppercase tracking-wider">PREMIUM PRO — Rs. 4,500 / 2 Months</h4>
+              <h4 className="text-sm font-black text-[#1A5E2A] uppercase tracking-wider">PREMIUM PRO — Rs. 4,500 / 2 Months</h4>
               <p className="text-xs font-semibold text-emerald-800 mt-1">
                 ✔ 10x More Leads, Featured Position, WhatsApp alerts, and Search Boost included.
               </p>
@@ -167,10 +167,10 @@ export const OwnerLoginPage: React.FC<OwnerLoginPageProps> = ({ onNavigate, onNa
     <div className="min-h-screen bg-neutral-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 pt-32">
       <div className="max-w-md mx-auto w-full bg-white rounded-3xl p-8 md:p-10 shadow-xl border border-neutral-100">
         <div className="text-center mb-8">
-          <span className="inline-block bg-brand-green/10 text-[#004F31] text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider mb-3">
+          <span className="inline-block bg-brand-green/10 text-[#1A5E2A] text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider mb-3">
             🏠 PROPERTY SELLER LOGIN
           </span>
-          <h2 className="text-3xl font-black text-[#004F31] tracking-tight">
+          <h2 className="text-3xl font-black text-[#1A5E2A] tracking-tight">
             Welcome Back
           </h2>
           <p className="text-xs font-semibold text-neutral-500 mt-2 max-w-xs mx-auto">
@@ -193,7 +193,7 @@ export const OwnerLoginPage: React.FC<OwnerLoginPageProps> = ({ onNavigate, onNa
                 placeholder="e.g. deshani@gmail.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-neutral-50 border border-neutral-200 focus:ring-[#004F31] rounded-xl text-xs font-bold outline-none focus:ring-1"
+                className="w-full pl-11 pr-4 py-3 bg-neutral-50 border border-neutral-200 focus:ring-[#1A5E2A] rounded-xl text-xs font-bold outline-none focus:ring-1"
               />
             </div>
           </div>
@@ -201,7 +201,7 @@ export const OwnerLoginPage: React.FC<OwnerLoginPageProps> = ({ onNavigate, onNa
           <div className="space-y-1">
             <div className="flex justify-between items-center">
               <label className="text-[10px] font-black uppercase text-neutral-400 tracking-wider">Password</label>
-              <button type="button" className="text-[10px] font-bold text-[#004F31] hover:underline">Forgot password?</button>
+              <button type="button" className="text-[10px] font-bold text-[#1A5E2A] hover:underline">Forgot password?</button>
             </div>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-neutral-400">
@@ -213,12 +213,12 @@ export const OwnerLoginPage: React.FC<OwnerLoginPageProps> = ({ onNavigate, onNa
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-11 pr-12 py-3 bg-neutral-50 border border-neutral-200 focus:ring-[#004F31] rounded-xl text-xs font-bold outline-none focus:ring-1"
+                className="w-full pl-11 pr-12 py-3 bg-neutral-50 border border-neutral-200 focus:ring-[#1A5E2A] rounded-xl text-xs font-bold outline-none focus:ring-1"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-4 text-neutral-400 hover:text-[#004F31]"
+                className="absolute inset-y-0 right-0 flex items-center pr-4 text-neutral-400 hover:text-[#1A5E2A]"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -228,7 +228,7 @@ export const OwnerLoginPage: React.FC<OwnerLoginPageProps> = ({ onNavigate, onNa
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-4 bg-[#004F31] hover:bg-[#002a1a] text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2"
+            className="w-full py-4 bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <span className="flex items-center gap-2">
@@ -254,7 +254,7 @@ export const OwnerLoginPage: React.FC<OwnerLoginPageProps> = ({ onNavigate, onNa
                 window.history.pushState(null, "", `/owner/register?plan=${plan}`);
                 onNavigate({ type: 'owner_register', data: { plan } });
               }}
-              className="text-[#004F31] hover:underline font-extrabold"
+              className="text-[#1A5E2A] hover:underline font-extrabold"
             >
               {planName ? `Register to get ${planName} →` : 'Register Account →'}
             </button>
@@ -266,7 +266,7 @@ export const OwnerLoginPage: React.FC<OwnerLoginPageProps> = ({ onNavigate, onNa
                 window.history.pushState(null, "", `/agent/login`);
                 onNavigate({ type: 'agent_login' });
               }}
-              className="text-[#004F31] hover:underline font-black"
+              className="text-[#1A5E2A] hover:underline font-black"
             >
               Agent Login →
             </button>

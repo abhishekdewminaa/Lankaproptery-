@@ -128,7 +128,7 @@ export function AutomationPage() {
             </div>
             <button 
               onClick={handleNew}
-              className="px-5 py-3 bg-[#004F31] hover:bg-[#003420] text-white text-2xs font-black uppercase tracking-widest rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer shrink-0"
+              className="px-5 py-3 bg-[#1A5E2A] hover:bg-[#003420] text-white text-2xs font-black uppercase tracking-widest rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer shrink-0"
             >
               <Plus size={16} />
               <span>New Workflow</span>
@@ -141,7 +141,7 @@ export function AutomationPage() {
             {/* Total Jobs */}
             <div className="bg-white border border-slate-200 p-5 rounded-[14px] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] transition-all">
               <div className="flex items-center justify-between mb-3">
-                <div className="p-2 bg-emerald-50 text-[#004F31] rounded-xl">
+                <div className="p-2 bg-emerald-50 text-[#1A5E2A] rounded-xl">
                   <LayoutDashboard size={18} />
                 </div>
                 <span className="text-[12px] font-medium text-emerald-600">Active</span>
@@ -208,7 +208,7 @@ export function AutomationPage() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
                     className={`px-4 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-                      activeTab === tab.id ? 'bg-white text-[#004F31] shadow-xs' : 'text-slate-400 hover:text-slate-700'
+                      activeTab === tab.id ? 'bg-white text-[#1A5E2A] shadow-xs' : 'text-slate-400 hover:text-slate-700'
                     }`}
                   >
                     {tab.icon}

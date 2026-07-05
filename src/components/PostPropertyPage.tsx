@@ -1494,7 +1494,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
               className="bg-white rounded-[28px] max-w-md w-full p-8 shadow-2xl border border-neutral-100"
             >
               <div className="text-center space-y-4">
-                <div className="h-16 w-16 bg-[#004F31]/10 text-[#004F31] rounded-full flex items-center justify-center mx-auto text-2xl">
+                <div className="h-16 w-16 bg-[#1A5E2A]/10 text-[#1A5E2A] rounded-full flex items-center justify-center mx-auto text-2xl">
                   🏠
                 </div>
                 <div>
@@ -1510,7 +1510,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                   </button>
                   <button
                     onClick={handleLoadDraft}
-                    className="py-3 px-4 bg-[#004F31] hover:bg-emerald-950 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors shadow-lg shadow-emerald-900/20"
+                    className="py-3 px-4 bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors shadow-lg shadow-emerald-900/20"
                   >
                     Continue Draft →
                   </button>
@@ -1540,7 +1540,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                       key={segmentNum} 
                       className={`h-0.5 flex-1 transition-all duration-300 mx-2 ${
                         isSegmentCompleted 
-                          ? 'bg-[#004F31]' 
+                          ? 'bg-[#1A5E2A]' 
                           : 'border-t border-dashed border-neutral-300'
                       }`}
                     />
@@ -1564,9 +1564,9 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                     <motion.div
                       className={`h-10 w-10 rounded-full flex items-center justify-center text-base transition-all border shadow-sm select-none ${
                         isCompleted 
-                          ? 'bg-[#004F31] border-[#004F31] text-white font-bold' 
+                          ? 'bg-[#1A5E2A] border-[#1A5E2A] text-white font-bold' 
                           : isCurrent 
-                            ? 'bg-[#004F31] border-[#004F31] text-white font-extrabold ring-4 ring-[#004F31]/20 scale-110' 
+                            ? 'bg-[#1A5E2A] border-[#1A5E2A] text-white font-extrabold ring-4 ring-[#1A5E2A]/20 scale-110' 
                             : 'bg-neutral-100 border-neutral-200 text-neutral-400 font-semibold'
                       }`}
                       animate={isCurrent ? { scale: 1.1 } : { scale: 1 }}
@@ -1575,7 +1575,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                     </motion.div>
                     <span className={`text-[10px] sm:text-xs uppercase mt-2.5 transition-all select-none ${
                       isCurrent 
-                        ? 'text-[#004F31] font-extrabold tracking-wider' 
+                        ? 'text-[#1A5E2A] font-extrabold tracking-wider' 
                         : isCompleted 
                           ? 'text-neutral-700 font-bold' 
                           : 'text-neutral-400 font-medium'
@@ -1590,7 +1590,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
 
             {/* Sub-progress status */}
             <div className="flex flex-col sm:flex-row items-center justify-between border-t border-neutral-100 pt-4 mt-2">
-              <span className="text-xs font-bold text-[#004F31] bg-[#004F31]/5 px-3 py-1 rounded-full uppercase tracking-widest">
+              <span className="text-xs font-bold text-[#1A5E2A] bg-[#1A5E2A]/5 px-3 py-1 rounded-full uppercase tracking-widest">
                 Step {step} of 5
               </span>
               <span className="text-xs font-semibold text-neutral-400 mt-2 sm:mt-0 flex items-center gap-2">
@@ -1655,12 +1655,12 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                         }}
                         className={`p-4 border rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all text-center group ${
                           category === c.type 
-                            ? 'bg-[#004F31]/5 border-[#004F31] ring-2 ring-[#004F31]/5' 
+                            ? 'bg-[#1A5E2A]/5 border-[#1A5E2A] ring-2 ring-[#1A5E2A]/5' 
                             : 'bg-white border-neutral-200 hover:border-neutral-300'
                         }`}
                       >
                         <span className="text-2xl transition-transform group-hover:scale-110">{c.icon}</span>
-                        <span className={`text-xs font-extrabold ${category === c.type ? 'text-[#004F31]' : 'text-neutral-700'}`}>
+                        <span className={`text-xs font-extrabold ${category === c.type ? 'text-[#1A5E2A]' : 'text-neutral-700'}`}>
                           {c.label}
                         </span>
                         <span className="text-[9px] text-neutral-400 font-medium leading-tight hidden sm:block">
@@ -1696,7 +1696,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                         value={title}
                         onFocus={() => setActiveSection('specs')}
                         onChange={(e) => setTitle(e.target.value.slice(0, 100))}
-                        className={`w-full px-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31] ${
+                        className={`w-full px-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#1A5E2A] ${
                           errors.title ? 'border-red-500 focus:ring-red-500' : 'border-neutral-200'
                         }`}
                       />
@@ -1720,7 +1720,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                             }}
                             className={`py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider border transition-all text-center ${
                               listingType === type 
-                                ? 'bg-[#004F31] border-[#004F31] text-white shadow-md shadow-emerald-950/15' 
+                                ? 'bg-[#1A5E2A] border-[#1A5E2A] text-white shadow-md shadow-emerald-950/15' 
                                 : 'bg-white border-neutral-200 hover:border-neutral-300 text-neutral-600'
                             }`}
                           >
@@ -1742,12 +1742,12 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                             value={landSize}
                             onFocus={() => setActiveSection('specs')}
                             onChange={(e) => setLandSize(e.target.value)}
-                            className="w-1/2 px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31]"
+                            className="w-1/2 px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#1A5E2A]"
                           />
                           <select
                             value={landSizeUnit}
                             onChange={(e) => setLandSizeUnit(e.target.value)}
-                            className="w-1/2 px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31]"
+                            className="w-1/2 px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#1A5E2A]"
                           >
                             <option>Perches</option>
                             <option>Acres</option>
@@ -1769,7 +1769,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                           value={floorArea}
                           onFocus={() => setActiveSection('specs')}
                           onChange={(e) => setFloorArea(e.target.value)}
-                          className="w-full px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31]"
+                          className="w-full px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#1A5E2A]"
                         />
                       </div>
 
@@ -1885,7 +1885,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                               const cleaned = e.target.value.replace(/,/g, '');
                               setPriceLkr(formatPriceComma(cleaned));
                             }}
-                            className={`w-full pl-11 pr-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31] ${
+                            className={`w-full pl-11 pr-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#1A5E2A] ${
                               errors.priceLkr ? 'border-red-500 focus:ring-red-500' : 'border-neutral-200'
                             }`}
                           />
@@ -1893,7 +1893,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                         {errors.priceLkr && <p className="text-[10px] font-black text-red-500 uppercase tracking-wider">{errors.priceLkr}</p>}
                         
                         {getFormattedPriceWord() && (
-                          <div className="text-[10px] text-[#004F31] font-bold mt-1 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-100 space-y-0.5">
+                          <div className="text-[10px] text-[#1A5E2A] font-bold mt-1 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-100 space-y-0.5">
                             <p>📈 Local Scale: {getFormattedPriceWord()}</p>
                             <p className="text-neutral-500">🌍 USD Equivalent: ${getUsdEstimate()} USD</p>
                             {getPricePerPerchLabel() && <p className="text-neutral-600 font-extrabold">{getPricePerPerchLabel()}</p>}
@@ -1911,7 +1911,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                             type="checkbox"
                             checked={isNegotiable}
                             onChange={(e) => setIsNegotiable(e.target.checked)}
-                            className="h-4.5 w-4.5 accent-[#004F31] rounded"
+                            className="h-4.5 w-4.5 accent-[#1A5E2A] rounded"
                           />
                         </div>
                       </div>
@@ -1925,7 +1925,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                         <select
                           value={advanceRequired}
                           onChange={(e) => setAdvanceRequired(e.target.value)}
-                          className="w-full px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31]"
+                          className="w-full px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#1A5E2A]"
                         >
                           <option>None (No Advance)</option>
                           <option>1 Month</option>
@@ -1966,7 +1966,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                           onClick={() => setDescLanguage(lang.code as any)}
                           className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all ${
                             descLanguage === lang.code 
-                              ? 'bg-[#004F31] text-white' 
+                              ? 'bg-[#1A5E2A] text-white' 
                               : 'text-neutral-500 hover:text-neutral-800'
                           }`}
                         >
@@ -1981,7 +1981,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                     type="button"
                     onClick={handleAiGenerateText}
                     disabled={isGeneratingAi}
-                    className="w-full py-3 bg-[#004F31] hover:bg-emerald-950 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-md shadow-emerald-950/15 cursor-pointer select-none transition-all"
+                    className="w-full py-3 bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-md shadow-emerald-950/15 cursor-pointer select-none transition-all"
                   >
                     {isGeneratingAi ? (
                       <>
@@ -2003,7 +2003,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                       value={description}
                       onFocus={() => setActiveSection('description')}
                       onChange={(e) => setDescription(e.target.value.slice(0, 2000))}
-                      className={`w-full p-4 bg-[#F8FAF8] border rounded-2xl text-xs font-bold leading-relaxed outline-none focus:ring-1 focus:ring-[#004F31] resize-none ${
+                      className={`w-full p-4 bg-[#F8FAF8] border rounded-2xl text-xs font-bold leading-relaxed outline-none focus:ring-1 focus:ring-[#1A5E2A] resize-none ${
                         errors.description ? 'border-red-500 focus:ring-red-500' : 'border-neutral-200'
                       }`}
                     />
@@ -2014,7 +2014,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                         description.length < 50 
                           ? 'text-orange-500 bg-orange-50' 
                           : description.length < 150 
-                            ? 'text-[#004F31] bg-emerald-50' 
+                            ? 'text-[#1A5E2A] bg-emerald-50' 
                             : 'text-emerald-700 bg-emerald-100'
                       }`}>
                         {description.length < 50 ? "⚠️ Short" : description.length < 400 ? "🟢 Good" : "✨ Rich Description"} ({description.length} chars)
@@ -2059,7 +2059,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                               placeholder="Search districts..."
                               value={districtSearch}
                               onChange={(e) => setDistrictSearch(e.target.value)}
-                              className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31] bg-[#F8FAF8]"
+                              className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-xs font-bold outline-none focus:ring-1 focus:ring-[#1A5E2A] bg-[#F8FAF8]"
                               onClick={(e) => e.stopPropagation()}
                             />
                             <div className="space-y-3">
@@ -2070,7 +2070,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                                 if (filteredDistricts.length === 0) return null;
                                 return (
                                   <div key={prov.province} className="space-y-1">
-                                    <span className="text-[10px] font-black uppercase text-[#004F31] tracking-widest bg-[#004F31]/5 px-2 py-0.5 rounded">
+                                    <span className="text-[10px] font-black uppercase text-[#1A5E2A] tracking-widest bg-[#1A5E2A]/5 px-2 py-0.5 rounded">
                                       {prov.province}
                                     </span>
                                     <div className="grid grid-cols-2 gap-1 pt-1">
@@ -2086,7 +2086,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                                           }}
                                           className={`px-2 py-1.5 rounded-lg text-left text-xs font-bold transition-all ${
                                             district === d 
-                                              ? 'bg-[#004F31] text-white' 
+                                              ? 'bg-[#1A5E2A] text-white' 
                                               : 'hover:bg-neutral-50 text-neutral-700'
                                           }`}
                                         >
@@ -2115,7 +2115,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                           }}
                           onBlur={() => setTimeout(() => setCityFocus(false), 200)}
                           onChange={(e) => setCity(e.target.value)}
-                          className={`w-full px-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31] ${
+                          className={`w-full px-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#1A5E2A] ${
                             errors.city ? 'border-red-500 focus:ring-red-500' : 'border-neutral-200'
                           }`}
                         />
@@ -2156,7 +2156,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                         value={address}
                         onFocus={() => setActiveSection('location')}
                         onChange={(e) => setAddress(e.target.value)}
-                        className={`w-full px-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31] ${
+                        className={`w-full px-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#1A5E2A] ${
                           errors.address ? 'border-red-500 focus:ring-red-500' : 'border-neutral-200'
                         }`}
                       />
@@ -2173,7 +2173,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                             value={searchQuery}
                             onFocus={() => setActiveSection('location')}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31]"
+                            className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#1A5E2A]"
                           />
                         </div>
                         <div className="flex gap-2 shrink-0">
@@ -2188,7 +2188,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                           <button
                             type="button"
                             onClick={handleGPSGeolocate}
-                            className="px-4 py-2.5 bg-emerald-50 text-[#004F31] border border-emerald-200 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-emerald-100 transition-colors flex items-center gap-1 cursor-pointer"
+                            className="px-4 py-2.5 bg-emerald-50 text-[#1A5E2A] border border-emerald-200 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-emerald-100 transition-colors flex items-center gap-1 cursor-pointer"
                           >
                             🛰️ Live GPS
                           </button>
@@ -2196,7 +2196,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                       </div>
 
                       {gpsAccuracy && (
-                        <p className="text-[9px] font-black uppercase tracking-wider text-[#004F31] bg-[#004F31]/5 p-2 rounded-lg border border-[#004F31]/10">
+                        <p className="text-[9px] font-black uppercase tracking-wider text-[#1A5E2A] bg-[#1A5E2A]/5 p-2 rounded-lg border border-[#1A5E2A]/10">
                           🧭 {gpsAccuracy}
                         </p>
                       )}
@@ -2242,17 +2242,17 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                       <div className="grid grid-cols-2 gap-4 pt-1">
                         <div className="bg-[#F8FAF8] border border-neutral-100 p-2 rounded-xl text-center">
                           <span className="text-[9px] font-black uppercase tracking-wider text-neutral-400 block">Latitude</span>
-                          <span className="text-xs font-extrabold text-[#004F31]">{lat.toFixed(6)}</span>
+                          <span className="text-xs font-extrabold text-[#1A5E2A]">{lat.toFixed(6)}</span>
                         </div>
                         <div className="bg-[#F8FAF8] border border-neutral-100 p-2 rounded-xl text-center">
                           <span className="text-[9px] font-black uppercase tracking-wider text-neutral-400 block">Longitude</span>
-                          <span className="text-xs font-extrabold text-[#004F31]">{lng.toFixed(6)}</span>
+                          <span className="text-xs font-extrabold text-[#1A5E2A]">{lng.toFixed(6)}</span>
                         </div>
                       </div>
 
                       {/* Detected Nearby Landmarks checklist */}
                       <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-200/60 space-y-2">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-[#004F31] block">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-[#1A5E2A] block">
                           ⚡ Auto-detected nearby landmarks
                         </span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] font-bold text-neutral-600">
@@ -2306,7 +2306,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                                     setSelectedAmenities(union);
                                   }
                                 }}
-                                className="text-[10px] font-black uppercase text-[#004F31] hover:underline"
+                                className="text-[10px] font-black uppercase text-[#1A5E2A] hover:underline"
                               >
                                 {isAllSelected ? "Deselect All" : "Select All Group"}
                               </button>
@@ -2330,12 +2330,12 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                                     }}
                                     className={`p-2.5 border rounded-xl text-left text-xs font-bold transition-all flex items-center gap-2 ${
                                       isChecked 
-                                        ? 'bg-[#004F31]/5 border-[#004F31] text-[#004F31]' 
+                                        ? 'bg-[#1A5E2A]/5 border-[#1A5E2A] text-[#1A5E2A]' 
                                         : 'bg-white border-neutral-200/80 text-neutral-600 hover:border-neutral-300'
                                     }`}
                                   >
                                     <span className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 ${
-                                      isChecked ? 'bg-[#004F31] border-[#004F31] text-white' : 'border-neutral-300 bg-white'
+                                      isChecked ? 'bg-[#1A5E2A] border-[#1A5E2A] text-white' : 'border-neutral-300 bg-white'
                                     }`}>
                                       {isChecked && '✓'}
                                     </span>
@@ -2373,7 +2373,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                           value={contactName}
                           onFocus={() => setActiveSection('contact')}
                           onChange={(e) => setContactName(e.target.value)}
-                          className={`w-full px-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31] ${
+                          className={`w-full px-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#1A5E2A] ${
                             errors.contactName ? 'border-red-500 focus:ring-red-500' : 'border-neutral-200'
                           }`}
                         />
@@ -2393,7 +2393,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                               setContactWhatsapp(e.target.value);
                             }
                           }}
-                          className={`w-full px-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31] ${
+                          className={`w-full px-4 py-3 bg-[#F8FAF8] border rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#1A5E2A] ${
                             errors.contactPhone ? 'border-red-500 focus:ring-red-500' : 'border-neutral-200'
                           }`}
                         />
@@ -2417,7 +2417,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                               setContactWhatsapp(contactPhone);
                             }
                           }}
-                          className="h-4.5 w-4.5 accent-[#004F31] rounded"
+                          className="h-4.5 w-4.5 accent-[#1A5E2A] rounded"
                         />
                       </div>
 
@@ -2430,7 +2430,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                             value={contactWhatsapp}
                             onFocus={() => setActiveSection('contact')}
                             onChange={(e) => setContactWhatsapp(e.target.value)}
-                            className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31]"
+                            className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#1A5E2A]"
                           />
                         </div>
                       )}
@@ -2443,7 +2443,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                         <select
                           value={displayPreference}
                           onChange={(e) => setDisplayPreference(e.target.value)}
-                          className="w-full px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31]"
+                          className="w-full px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#1A5E2A]"
                         >
                           <option>Both phone and WhatsApp</option>
                           <option>Phone call only</option>
@@ -2457,7 +2457,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                         <select
                           value={responseTime}
                           onChange={(e) => setResponseTime(e.target.value)}
-                          className="w-full px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#004F31]"
+                          className="w-full px-4 py-3 bg-[#F8FAF8] border border-neutral-200 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-[#1A5E2A]"
                         >
                           <option>Within a few minutes</option>
                           <option>Within a few hours</option>
@@ -2482,7 +2482,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                   </button>
                   <button
                     onClick={handleNextStep1}
-                    className="w-full sm:w-auto py-4 px-10 bg-[#004F31] hover:bg-emerald-950 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-950/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                    className="w-full sm:w-auto py-4 px-10 bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-950/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                   >
                     Next: Add Photos <ArrowRight size={14} />
                   </button>
@@ -2497,7 +2497,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                   {/* Visual Strength Meter Card */}
                   <div className="bg-white rounded-[32px] p-6 border border-neutral-200 shadow-sm space-y-4">
                     <div>
-                      <h4 className="text-xs font-black uppercase tracking-widest text-[#004F31]">Listing Strength</h4>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-[#1A5E2A]">Listing Strength</h4>
                       <p className="text-[11px] text-neutral-400 font-bold mt-0.5">Maximize strength to secure 3x faster verification!</p>
                     </div>
 
@@ -2511,7 +2511,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                             ? 'bg-amber-50 text-amber-600' 
                             : getListingStrength().strength < 80 
                               ? 'bg-emerald-50 text-emerald-700' 
-                              : 'bg-emerald-100 text-[#004F31]'
+                              : 'bg-emerald-100 text-[#1A5E2A]'
                         }`}>
                           {getListingStrength().strength < 50 ? "Weak" : getListingStrength().strength < 80 ? "Moderate" : "Excellent"}
                         </span>
@@ -2520,7 +2520,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                       {/* Percentage Bar */}
                       <div className="h-2 w-full bg-neutral-100 rounded-full overflow-hidden">
                         <motion.div 
-                          className="h-full bg-[#004F31]"
+                          className="h-full bg-[#1A5E2A]"
                           initial={{ width: '15%' }}
                           animate={{ width: `${getListingStrength().strength}%` }}
                           transition={{ duration: 0.4 }}
@@ -2544,14 +2544,14 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                         </div>
                       </div>
                     ) : (
-                      <div className="bg-emerald-50 text-[#004F31] p-3 rounded-2xl border border-emerald-100 text-center text-xs font-black uppercase tracking-widest flex items-center justify-center gap-1.5">
+                      <div className="bg-emerald-50 text-[#1A5E2A] p-3 rounded-2xl border border-emerald-100 text-center text-xs font-black uppercase tracking-widest flex items-center justify-center gap-1.5">
                         ✨ listing is 100% optimized!
                       </div>
                     )}
                   </div>
 
                   {/* Section Contextual Advice card (Switches text live based on activeSection) */}
-                  <div className="bg-[#004F31] text-white rounded-[32px] p-6 sm:p-7 shadow-sm space-y-4 relative overflow-hidden">
+                  <div className="bg-[#1A5E2A] text-white rounded-[32px] p-6 sm:p-7 shadow-sm space-y-4 relative overflow-hidden">
                     <div className="absolute top-0 right-0 h-24 w-24 bg-emerald-800/30 rounded-full blur-xl" />
                     
                     <div className="space-y-1">
@@ -2626,7 +2626,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                       <button
                         type="button"
                         onClick={() => setStep(3)}
-                        className="py-2.5 px-5 bg-[#004F31] hover:bg-emerald-950 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md shadow-emerald-950/15 transition-all flex items-center gap-1.5 cursor-pointer border-0"
+                        className="py-2.5 px-5 bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md shadow-emerald-950/15 transition-all flex items-center gap-1.5 cursor-pointer border-0"
                       >
                         Upgrade for up to 12 photos →
                       </button>
@@ -2636,7 +2636,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                   return (
                     <div className="bg-[#f0fdf4] border border-emerald-100 rounded-[24px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
                       <div className="space-y-1 text-center sm:text-left">
-                        <h4 className="text-sm font-black text-[#004F31] flex items-center justify-center sm:justify-start gap-1.5">
+                        <h4 className="text-sm font-black text-[#1A5E2A] flex items-center justify-center sm:justify-start gap-1.5">
                           ⭐ Premium Pro — Up to 9 Photos
                         </h4>
                         <p className="text-xs text-emerald-700/80 font-semibold">Unlock maximum listing capacity for wider coverage.</p>
@@ -2644,7 +2644,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                       <button
                         type="button"
                         onClick={() => setStep(3)}
-                        className="py-2.5 px-5 bg-[#004F31] hover:bg-emerald-950 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md shadow-emerald-950/15 transition-all flex items-center gap-1.5 cursor-pointer border-0"
+                        className="py-2.5 px-5 bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md shadow-emerald-950/15 transition-all flex items-center gap-1.5 cursor-pointer border-0"
                       >
                         👑 Upgrade to Elite Pro →
                       </button>
@@ -2779,7 +2779,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
 
                         {/* Number Badge */}
                         {idx === 0 ? (
-                          <div className="absolute top-[10px] left-[10px] bg-[#004F31] text-white text-[11px] font-black uppercase px-2 py-1 rounded-[6px] z-10 shadow">
+                          <div className="absolute top-[10px] left-[10px] bg-[#1A5E2A] text-white text-[11px] font-black uppercase px-2 py-1 rounded-[6px] z-10 shadow">
                             MAIN
                           </div>
                         ) : (
@@ -2861,11 +2861,11 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                           document.getElementById('photo-picker')?.click();
                         }, 50);
                       }}
-                      className="relative w-full h-[200px] rounded-2xl bg-slate-50/50 border-2 border-dashed border-slate-300 hover:border-[#004F31] hover:bg-[#f0fdf4] flex flex-col items-center justify-center p-4 text-center cursor-pointer transition-all duration-200 group select-none"
+                      className="relative w-full h-[200px] rounded-2xl bg-slate-50/50 border-2 border-dashed border-slate-300 hover:border-[#1A5E2A] hover:bg-[#f0fdf4] flex flex-col items-center justify-center p-4 text-center cursor-pointer transition-all duration-200 group select-none"
                     >
                       {/* Number Badge */}
                       {idx === 0 ? (
-                        <div className="absolute top-[10px] left-[10px] bg-[#004F31] text-white text-[11px] font-black uppercase px-2 py-1 rounded-[6px] shadow-sm">
+                        <div className="absolute top-[10px] left-[10px] bg-[#1A5E2A] text-white text-[11px] font-black uppercase px-2 py-1 rounded-[6px] shadow-sm">
                           MAIN
                         </div>
                       ) : (
@@ -2875,8 +2875,8 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                       )}
 
                       <div className="space-y-2 flex flex-col items-center">
-                        <Camera size={32} className="text-slate-400 group-hover:text-[#004F31] transition-colors duration-200" />
-                        <div className="text-[11px] font-black uppercase tracking-[2px] text-slate-400 group-hover:text-[#004F31] transition-colors duration-200">
+                        <Camera size={32} className="text-slate-400 group-hover:text-[#1A5E2A] transition-colors duration-200" />
+                        <div className="text-[11px] font-black uppercase tracking-[2px] text-slate-400 group-hover:text-[#1A5E2A] transition-colors duration-200">
                           ADD PHOTO
                         </div>
                       </div>
@@ -2894,7 +2894,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
 
               {/* Photo Tips section */}
               <div className="space-y-4">
-                <h3 className="text-xs font-black uppercase tracking-widest text-[#004F31] text-center">📸 Photo Tips for Serious Leads</h3>
+                <h3 className="text-xs font-black uppercase tracking-widest text-[#1A5E2A] text-center">📸 Photo Tips for Serious Leads</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-center space-y-1.5 shadow-sm">
                     <span className="text-xl">☀️</span>
@@ -2922,7 +2922,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
               {/* AI Notice */}
               <div className="bg-emerald-50/50 border border-emerald-100 rounded-[24px] p-6 space-y-2 relative overflow-hidden">
                 <div className="absolute top-0 right-0 h-16 w-16 bg-emerald-100/40 rounded-full blur-lg" />
-                <h4 className="text-xs sm:text-sm font-black text-[#004F31] flex items-center gap-1.5">
+                <h4 className="text-xs sm:text-sm font-black text-[#1A5E2A] flex items-center gap-1.5">
                   ✨ AI Photo Enhancement — FREE
                 </h4>
                 <div className="space-y-1.5 pl-0.5">
@@ -2951,7 +2951,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                   </button>
                   <button
                     onClick={handleNextStep2}
-                    className="w-full sm:w-auto py-3.5 px-8 bg-[#004F31] hover:bg-emerald-950 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-950/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 border-0"
+                    className="w-full sm:w-auto py-3.5 px-8 bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-950/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 border-0"
                   >
                     Next: Choose Your Plan →
                   </button>
@@ -2959,7 +2959,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                 <button
                   type="button"
                   onClick={() => setStep(3)}
-                  className="text-[11px] font-black uppercase tracking-wider text-[#004F31] hover:underline cursor-pointer block text-center border-0 bg-transparent mt-2"
+                  className="text-[11px] font-black uppercase tracking-wider text-[#1A5E2A] hover:underline cursor-pointer block text-center border-0 bg-transparent mt-2"
                 >
                   Skip photos for now →
                 </button>
@@ -3043,7 +3043,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                     <div className="space-y-3.5 pt-2 text-left">
                       <div className="border border-neutral-100 rounded-2xl p-4 bg-emerald-50/10 flex justify-between items-center">
                         <div className="space-y-1">
-                          <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-[#004F31] px-2.5 py-0.5 rounded-full">
+                          <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-[#1A5E2A] px-2.5 py-0.5 rounded-full">
                             ⭐ Premium Pro
                           </span>
                           <p className="text-[11px] font-semibold text-neutral-500">Up to 9 high-quality photos</p>
@@ -3082,7 +3082,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                           setShowUpgradeModal(false);
                           setStep(3);
                         }}
-                        className="py-3 px-5 bg-[#004F31] hover:bg-emerald-950 text-white font-black text-[10.5px] uppercase tracking-widest rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 shadow-md shadow-emerald-950/15 border-0"
+                        className="py-3 px-5 bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white font-black text-[10.5px] uppercase tracking-widest rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 shadow-md shadow-emerald-950/15 border-0"
                       >
                         Upgrade My Plan <ArrowRight size={12} />
                       </button>
@@ -3117,7 +3117,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                   onClick={() => handleSelectPlan('starter_free')}
                   className={`bg-white rounded-[32px] p-8 border transition-all flex flex-col justify-between relative cursor-pointer group ${
                     selectedPlan === 'starter_free' 
-                      ? 'border-[#004F31] ring-2 ring-[#004F31]/10 scale-[1.02]' 
+                      ? 'border-[#1A5E2A] ring-2 ring-[#1A5E2A]/10 scale-[1.02]' 
                       : 'border-neutral-200 hover:border-neutral-300'
                   }`}
                 >
@@ -3127,7 +3127,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                         Starter Free
                       </span>
                       {selectedPlan === 'starter_free' && (
-                        <span className="h-5 w-5 rounded-full bg-[#004F31] text-white flex items-center justify-center text-xs">✓</span>
+                        <span className="h-5 w-5 rounded-full bg-[#1A5E2A] text-white flex items-center justify-center text-xs">✓</span>
                       )}
                     </div>
                     <div>
@@ -3146,8 +3146,8 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                       type="button"
                       className={`w-full py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${
                         selectedPlan === 'starter_free' 
-                          ? 'bg-[#004F31] text-white shadow-lg shadow-emerald-950/25' 
-                          : 'bg-neutral-100 text-neutral-600 hover:bg-[#004F31] hover:text-white'
+                          ? 'bg-[#1A5E2A] text-white shadow-lg shadow-emerald-950/25' 
+                          : 'bg-neutral-100 text-neutral-600 hover:bg-[#1A5E2A] hover:text-white'
                       }`}
                     >
                       {selectedPlan === 'starter_free' ? 'Plan Selected' : 'Choose Starter'}
@@ -3160,20 +3160,20 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                   onClick={() => handleSelectPlan('premium_pro')}
                   className={`bg-white rounded-[32px] p-8 border transition-all flex flex-col justify-between relative cursor-pointer group ${
                     selectedPlan === 'premium_pro' 
-                      ? 'border-[#004F31] ring-2 ring-[#004F31]/10 scale-[1.02]' 
+                      ? 'border-[#1A5E2A] ring-2 ring-[#1A5E2A]/10 scale-[1.02]' 
                       : 'border-neutral-200 hover:border-neutral-300'
                   }`}
                 >
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#004F31] text-white text-[9px] font-black uppercase rounded-full tracking-widest shadow-md">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#1A5E2A] text-white text-[9px] font-black uppercase rounded-full tracking-widest shadow-md">
                     Most Popular Choice
                   </div>
                   <div className="space-y-5">
                     <div className="flex justify-between items-start pt-2">
-                      <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-[#004F31] px-3 py-1 rounded-full border border-emerald-100">
+                      <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-[#1A5E2A] px-3 py-1 rounded-full border border-emerald-100">
                         Premium Pro
                       </span>
                       {selectedPlan === 'premium_pro' && (
-                        <span className="h-5 w-5 rounded-full bg-[#004F31] text-white flex items-center justify-center text-xs">✓</span>
+                        <span className="h-5 w-5 rounded-full bg-[#1A5E2A] text-white flex items-center justify-center text-xs">✓</span>
                       )}
                     </div>
                     <div>
@@ -3192,8 +3192,8 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                       type="button"
                       className={`w-full py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${
                         selectedPlan === 'premium_pro' 
-                          ? 'bg-[#004F31] text-white shadow-lg shadow-emerald-950/25' 
-                          : 'bg-neutral-100 text-neutral-600 hover:bg-[#004F31] hover:text-white'
+                          ? 'bg-[#1A5E2A] text-white shadow-lg shadow-emerald-950/25' 
+                          : 'bg-neutral-100 text-neutral-600 hover:bg-[#1A5E2A] hover:text-white'
                       }`}
                     >
                       {selectedPlan === 'premium_pro' ? 'Plan Selected' : 'Choose Premium'}
@@ -3206,7 +3206,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                   onClick={() => handleSelectPlan('elite_pro')}
                   className={`bg-white rounded-[32px] p-8 border transition-all flex flex-col justify-between relative cursor-pointer group ${
                     selectedPlan === 'elite_pro' 
-                      ? 'border-[#004F31] ring-2 ring-[#004F31]/10 scale-[1.02]' 
+                      ? 'border-[#1A5E2A] ring-2 ring-[#1A5E2A]/10 scale-[1.02]' 
                       : 'border-neutral-200 hover:border-neutral-300'
                   }`}
                 >
@@ -3216,7 +3216,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                         Elite Pro
                       </span>
                       {selectedPlan === 'elite_pro' && (
-                        <span className="h-5 w-5 rounded-full bg-[#004F31] text-white flex items-center justify-center text-xs">✓</span>
+                        <span className="h-5 w-5 rounded-full bg-[#1A5E2A] text-white flex items-center justify-center text-xs">✓</span>
                       )}
                     </div>
                     <div>
@@ -3235,8 +3235,8 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                       type="button"
                       className={`w-full py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${
                         selectedPlan === 'elite_pro' 
-                          ? 'bg-[#004F31] text-white shadow-lg shadow-emerald-950/25' 
-                          : 'bg-neutral-100 text-neutral-600 hover:bg-[#004F31] hover:text-white'
+                          ? 'bg-[#1A5E2A] text-white shadow-lg shadow-emerald-950/25' 
+                          : 'bg-neutral-100 text-neutral-600 hover:bg-[#1A5E2A] hover:text-white'
                       }`}
                     >
                       {selectedPlan === 'elite_pro' ? 'Plan Selected' : 'Choose Elite'}
@@ -3253,7 +3253,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                   <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex gap-3">
                     <span className="text-lg">✅</span>
                     <div>
-                      <h4 className="text-xs font-black uppercase text-[#004F31] tracking-wider">Free plan selected</h4>
+                      <h4 className="text-xs font-black uppercase text-[#1A5E2A] tracking-wider">Free plan selected</h4>
                       <p className="text-[11px] text-emerald-800 font-semibold leading-normal mt-0.5">
                         No payment required! Continue to quickly save your details and go live.
                       </p>
@@ -3270,7 +3270,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                       </div>
                       <div className="text-right">
                         <span className="text-[10px] font-black uppercase text-neutral-400 tracking-wider">Subtotal</span>
-                        <h4 className="text-sm font-black text-[#004F31] mt-0.5">
+                        <h4 className="text-sm font-black text-[#1A5E2A] mt-0.5">
                           Rs. {selectedPlan === 'premium_pro' ? '4,500' : '8,500'} LKR
                         </h4>
                       </div>
@@ -3302,7 +3302,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                 </button>
                 <button
                   onClick={handleNextStep3}
-                  className="py-4 px-10 bg-[#004F31] hover:bg-emerald-950 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-950/25 transition-all flex items-center gap-2 cursor-pointer"
+                  className="py-4 px-10 bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-950/25 transition-all flex items-center gap-2 cursor-pointer"
                 >
                   Continue: Create Account <ArrowRight size={14} />
                 </button>
@@ -3322,7 +3322,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
             >
               
               {/* Draft reminder banner */}
-              <div className="bg-[#004F31] text-white rounded-[24px] p-5 shadow-md flex justify-between items-center relative overflow-hidden">
+              <div className="bg-[#1A5E2A] text-white rounded-[24px] p-5 shadow-md flex justify-between items-center relative overflow-hidden">
                 <div className="space-y-1 relative z-10">
                   <span className="text-[9px] font-black bg-emerald-800 text-emerald-200 px-2 py-0.5 rounded border border-emerald-700 uppercase tracking-widest">
                     Draft Saved
@@ -3453,7 +3453,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                             type="checkbox"
                             checked={agreeTerms}
                             onChange={() => setAgreeTerms(!agreeTerms)}
-                            className="mt-0.5 rounded accent-[#004F31]"
+                            className="mt-0.5 rounded accent-[#1A5E2A]"
                           />
                           <span>I agree to LankaProperty.lk's Terms of Service and Privacy Policy.</span>
                         </label>
@@ -3462,7 +3462,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                             type="checkbox"
                             checked={whatsappInquiries}
                             onChange={() => setWhatsappInquiries(!whatsappInquiries)}
-                            className="mt-0.5 rounded accent-[#004F31]"
+                            className="mt-0.5 rounded accent-[#1A5E2A]"
                           />
                           <span>Send me direct customer inquiries instantly via WhatsApp Alerts.</span>
                         </label>
@@ -3472,7 +3472,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full py-4 bg-[#004F31] hover:bg-emerald-950 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-99 mt-4"
+                      className="w-full py-4 bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-99 mt-4"
                     >
                       {isSubmitting ? (
                         <>
@@ -3492,7 +3492,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                     <button
                       type="button"
                       onClick={() => setIsLoginMode(!isLoginMode)}
-                      className="text-xs font-black uppercase text-[#004F31] hover:underline"
+                      className="text-xs font-black uppercase text-[#1A5E2A] hover:underline"
                     >
                       {isLoginMode ? "Don't have an account? Sign up instead →" : "Already have an account? Login here →"}
                     </button>
@@ -3507,7 +3507,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                   
                   <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
                     <div className="flex items-center gap-1.5">
-                      <div className="h-6 w-12 bg-[#004F31] rounded flex items-center justify-center text-[10px] font-black text-white">
+                      <div className="h-6 w-12 bg-[#1A5E2A] rounded flex items-center justify-center text-[10px] font-black text-white">
                         Pay<span className="text-yellow-400">Here</span>
                       </div>
                       <span className="text-[10px] font-black uppercase tracking-widest bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded border border-yellow-200">
@@ -3528,7 +3528,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                   <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-100 flex justify-between items-center">
                     <div>
                       <span className="text-[10px] font-black uppercase text-neutral-400 tracking-wider">Subtotal Due</span>
-                      <p className="text-base font-black text-[#004F31]">
+                      <p className="text-base font-black text-[#1A5E2A]">
                         Rs. {selectedPlan === 'premium_pro' ? '4,500' : '8,500'} LKR
                       </p>
                     </div>
@@ -3607,7 +3607,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                       type="button"
                       onClick={handleConfirmPaidPayment}
                       disabled={isAuthorizingPayment}
-                      className="py-4 bg-[#004F31] hover:bg-emerald-950 text-white text-xs font-black uppercase tracking-wider rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-emerald-950/15"
+                      className="py-4 bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white text-xs font-black uppercase tracking-wider rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-emerald-950/15"
                     >
                       {isAuthorizingPayment ? (
                         <>
@@ -3655,7 +3655,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                   const delay = Math.random() * 2;
                   const duration = 2 + Math.random() * 3;
                   const left = Math.random() * 100;
-                  const colors = ['bg-[#004F31]', 'bg-yellow-400', 'bg-emerald-400', 'bg-red-400', 'bg-indigo-400'];
+                  const colors = ['bg-[#1A5E2A]', 'bg-yellow-400', 'bg-emerald-400', 'bg-red-400', 'bg-indigo-400'];
                   const color = colors[Math.floor(Math.random() * colors.length)];
                   
                   return (
@@ -3686,7 +3686,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: 'spring', damping: 10, stiffness: 100 }}
-                  className="h-20 w-20 bg-emerald-100 text-[#004F31] rounded-full flex items-center justify-center mx-auto border-4 border-[#004F31] shadow-lg"
+                  className="h-20 w-20 bg-emerald-100 text-[#1A5E2A] rounded-full flex items-center justify-center mx-auto border-4 border-[#1A5E2A] shadow-lg"
                 >
                   <motion.span
                     initial={{ scale: 0 }}
@@ -3727,7 +3727,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                   <h4 className="text-xs font-black text-neutral-900 line-clamp-1">{title || 'Premium Mansion Sri Lanka'}</h4>
                   <p className="text-[10px] text-neutral-400 font-bold">{district} • {category}</p>
                   <div className="flex justify-between items-center pt-1 gap-4">
-                    <span className="text-xs font-black text-[#004F31]">Rs. {formatPriceComma(priceLkr) || '0'}</span>
+                    <span className="text-xs font-black text-[#1A5E2A]">Rs. {formatPriceComma(priceLkr) || '0'}</span>
                     <span className="text-[9px] font-black uppercase tracking-wider bg-yellow-50 text-yellow-800 border border-yellow-200 px-2 py-0.5 rounded">
                       🟡 Under Review
                     </span>
@@ -3737,18 +3737,18 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
 
               {/* What happens next */}
               <div className="bg-white rounded-[32px] p-6 border border-neutral-200/60 shadow-sm text-left max-w-lg mx-auto space-y-4">
-                <h4 className="text-xs font-black uppercase text-[#004F31] tracking-wider">What happens next:</h4>
+                <h4 className="text-xs font-black uppercase text-[#1A5E2A] tracking-wider">What happens next:</h4>
                 <div className="space-y-3.5 text-xs text-neutral-600 font-bold">
                   <div className="flex gap-3">
-                    <span className="h-5 w-5 bg-[#004F31]/10 text-[#004F31] rounded-full flex items-center justify-center text-[10px] shrink-0 font-black">1</span>
+                    <span className="h-5 w-5 bg-[#1A5E2A]/10 text-[#1A5E2A] rounded-full flex items-center justify-center text-[10px] shrink-0 font-black">1</span>
                     <p className="mt-0.5">Our moderation team reviews your listing contents (within 24 hours).</p>
                   </div>
                   <div className="flex gap-3">
-                    <span className="h-5 w-5 bg-[#004F31]/10 text-[#004F31] rounded-full flex items-center justify-center text-[10px] shrink-0 font-black">2</span>
+                    <span className="h-5 w-5 bg-[#1A5E2A]/10 text-[#1A5E2A] rounded-full flex items-center justify-center text-[10px] shrink-0 font-black">2</span>
                     <p className="mt-0.5">Your property listing goes active in organic and smart filters searches.</p>
                   </div>
                   <div className="flex gap-3">
-                    <span className="h-5 w-5 bg-[#004F31]/10 text-[#004F31] rounded-full flex items-center justify-center text-[10px] shrink-0 font-black">3</span>
+                    <span className="h-5 w-5 bg-[#1A5E2A]/10 text-[#1A5E2A] rounded-full flex items-center justify-center text-[10px] shrink-0 font-black">3</span>
                     <p className="mt-0.5">Verified buyers contact your phone and WhatsApp lines directly.</p>
                   </div>
                 </div>
@@ -3792,7 +3792,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
 
               {/* Redirect timer */}
               <div className="pt-4 text-xs font-semibold text-neutral-400">
-                ⏳ Taking you to your dashboard in <strong className="text-[#004F31] font-black">{countdown}s</strong>...
+                ⏳ Taking you to your dashboard in <strong className="text-[#1A5E2A] font-black">{countdown}s</strong>...
               </div>
 
             </motion.div>

@@ -364,7 +364,7 @@ export default function PropertyWanted({ onContact, user, isAdmin }: { onContact
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
               onClick={() => handleOpenForm()}
-              className="bg-[#007E50] text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-[#008F5D] shadow-2xl shadow-black/30 transition-all inline-flex items-center gap-3"
+              className="bg-[#1A5E2A] text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-[#008F5D] shadow-2xl shadow-black/30 transition-all inline-flex items-center gap-3"
             >
               <Plus size={22} className="text-white" strokeWidth={3} />
               Post Your Requirement

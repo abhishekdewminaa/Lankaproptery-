@@ -161,7 +161,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.8, ease: "easeInOut" }}
                 onClick={() => onNavigate({ type: 'detail', data: currentMain })}
-                className="absolute inset-0 group rounded-3xl overflow-hidden shadow-2xl cursor-pointer bg-[#004F31]"
+                className="absolute inset-0 group rounded-3xl overflow-hidden shadow-2xl cursor-pointer bg-[var(--lp-green)]"
               >
                 <div className="absolute inset-0 z-0 overflow-hidden">
                   {/* Image removed per user request */}

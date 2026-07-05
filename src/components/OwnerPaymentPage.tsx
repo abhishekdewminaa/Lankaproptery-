@@ -191,7 +191,7 @@ export const OwnerPaymentPage: React.FC<OwnerPaymentPageProps> = ({ onNavigate, 
             window.history.pushState(null, "", `/post-property`);
             onNavigate({ type: 'sell' });
           }}
-          className="flex items-center gap-1 text-xs font-bold text-neutral-500 hover:text-[#004F31] mb-8 group transition-colors"
+          className="flex items-center gap-1 text-xs font-bold text-neutral-500 hover:text-[#1A5E2A] mb-8 group transition-colors"
         >
           <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" /> Back to Packages
         </button>
@@ -214,7 +214,7 @@ export const OwnerPaymentPage: React.FC<OwnerPaymentPageProps> = ({ onNavigate, 
                 <div className="flex justify-between items-center pb-4 border-b border-neutral-200">
                   <div>
                     <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Selected Plan</span>
-                    <h3 className="text-lg font-black text-[#004F31] mt-0.5">{planDetails.name} Plan</h3>
+                    <h3 className="text-lg font-black text-[#1A5E2A] mt-0.5">{planDetails.name} Plan</h3>
                   </div>
                   <div className="text-right">
                     <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Duration</span>
@@ -245,7 +245,7 @@ export const OwnerPaymentPage: React.FC<OwnerPaymentPageProps> = ({ onNavigate, 
                   <hr className="border-neutral-200 my-2" />
                   <div className="flex justify-between items-baseline">
                     <span className="text-xs font-black uppercase text-neutral-800">Total Due (LKR)</span>
-                    <span className="text-2xl font-black text-[#004F31]">{formattedPrice}</span>
+                    <span className="text-2xl font-black text-[#1A5E2A]">{formattedPrice}</span>
                   </div>
                 </div>
               </div>
@@ -301,7 +301,7 @@ export const OwnerPaymentPage: React.FC<OwnerPaymentPageProps> = ({ onNavigate, 
               {/* PayHere details */}
               <div className="space-y-4">
                 <div className="border border-emerald-100 bg-[#f0fdf4]/50 rounded-2xl p-4 flex gap-3">
-                  <div className="h-6 w-12 bg-white rounded border flex items-center justify-center text-[10px] font-black tracking-tight text-[#004F31] border-neutral-100 shrink-0">
+                  <div className="h-6 w-12 bg-white rounded border flex items-center justify-center text-[10px] font-black tracking-tight text-[#1A5E2A] border-neutral-100 shrink-0">
                     Pay<span className="text-emerald-500 font-semibold">Here</span>
                   </div>
                   <div>
@@ -323,7 +323,7 @@ export const OwnerPaymentPage: React.FC<OwnerPaymentPageProps> = ({ onNavigate, 
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-4 bg-[#004F31] hover:bg-[#002a1a] text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                    className="w-full py-4 bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                   >
                     <Lock size={14} /> Confirm & Pay {formattedPrice} Securely →
                   </button>
@@ -365,7 +365,7 @@ export const OwnerPaymentPage: React.FC<OwnerPaymentPageProps> = ({ onNavigate, 
 
               <div className="space-y-6">
                 <div className="flex items-center gap-2 border-b border-neutral-100 pb-4">
-                  <div className="h-6 w-12 bg-[#004F31] rounded flex items-center justify-center text-[10px] font-black tracking-tight text-white shrink-0">
+                  <div className="h-6 w-12 bg-[#1A5E2A] rounded flex items-center justify-center text-[10px] font-black tracking-tight text-white shrink-0">
                     Pay<span className="text-yellow-400 font-semibold">Here</span>
                   </div>
                   <div>

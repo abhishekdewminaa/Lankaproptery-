@@ -131,7 +131,7 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
           className="text-[28px] md:text-7xl font-bold text-white mb-4 drop-shadow-lg leading-tight"
         >
           Find Your{' '}
-          <div className="inline-grid [grid-template-columns:1fr] [grid-template-rows:1fr] align-baseline text-[#004F31] min-w-[100px] md:min-w-[280px] text-center">
+          <div className="inline-grid [grid-template-columns:1fr] [grid-template-rows:1fr] align-baseline text-[#1A5E2A] min-w-[100px] md:min-w-[280px] text-center">
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.span
                 key={wordIndex}
@@ -152,7 +152,7 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="text-[#004F31] font-semibold tracking-widest text-[14px] md:text-base uppercase mb-8 md:mb-12"
+          className="text-[#1A5E2A] font-semibold tracking-widest text-[14px] md:text-base uppercase mb-8 md:mb-12"
         >
           Sri Lanka's #1 Real Estate Marketplace
         </motion.p>
@@ -169,29 +169,49 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
             <div className="flex overflow-x-auto no-scrollbar w-full lg:w-max shrink-0 bg-gray-100 p-1.5 md:rounded-2xl rounded-full snap-x snap-mandatory">
               {[
                 { id: 'sale', label: '🏠 For Sale' },
-                { id: 'rent', label: '🔑 For Rent' }
+                { id: 'rent', label: '🔑 For Rent' },
+                { id: 'lease', label: '📋 For Lease' }
               ].map((tab) => {
                 const isActive = activeTab === tab.id;
+                
+                let activeBg = 'bg-[#1A5E2A]';
+                let activeText = 'text-white';
+                let shadowColor = 'rgba(26,94,42,0.3)';
+                
+                if (tab.id === 'sale') {
+                  activeBg = 'bg-[#CC1414]';
+                  activeText = 'text-white';
+                  shadowColor = 'rgba(204,20,20,0.3)';
+                } else if (tab.id === 'rent') {
+                  activeBg = 'bg-[#1565C0]';
+                  activeText = 'text-white';
+                  shadowColor = 'rgba(21,101,192,0.3)';
+                } else if (tab.id === 'lease') {
+                  activeBg = 'bg-[#E8A000]';
+                  activeText = 'text-white';
+                  shadowColor = 'rgba(232,160,0,0.3)';
+                }
+
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
                     className={`relative z-10 flex-col md:flex-row flex-1 lg:flex-none px-6 md:px-8 py-3 rounded-full md:rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap outline-none min-w-[120px] md:min-w-0 snap-start shrink-0 ${
                         isActive 
-                        ? 'text-[white]' 
-                        : 'text-dark-navy hover:text-[#004F31]'
+                        ? activeText 
+                        : 'text-[#374151] hover:text-[#1A5E2A] bg-white border border-[#E5E7EB]'
                     }`}
                   >
                     {isActive && (
                       <motion.div
                         layoutId="activeTabHero"
-                        className="absolute inset-0 bg-[#004F31] rounded-full md:rounded-xl shadow-[0_4px_12px_rgba(0,79,49,0.3)]"
+                        className={`absolute inset-0 ${activeBg} rounded-full md:rounded-xl`}
+                        style={{ boxShadow: `0 4px 12px ${shadowColor}`, zIndex: -1 }}
                         initial={false}
                         transition={{
                           duration: 0.3,
                           ease: [0.4, 0, 0.2, 1]
                         }}
-                        style={{ zIndex: -1 }}
                       />
                     )}
                     <motion.span 
@@ -214,8 +234,8 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
                 transition={{ duration: 0.15, ease: "easeInOut" }}
                 className={`flex items-center justify-center gap-2 px-4 md:px-5 py-3 rounded-full border-2 transition-colors font-black text-[10px] md:text-xs uppercase tracking-wider whitespace-nowrap shrink-0 h-[44px] md:h-[48px] ${
                   isAISearch 
-                    ? 'bg-brand-green/10 border-brand-green text-brand-green shadow-[0_4px_14px_0_rgba(0,105,65,0.15)]' 
-                    : 'border-gray-200 text-gray-500 hover:text-brand-green hover:bg-gray-50 shadow-sm hover:shadow-[0_4px_14px_0_rgba(0,105,65,0.1)]'
+                    ? 'bg-[#1A5E2A]/10 border-[#1A5E2A] text-[#1A5E2A] shadow-[0_4px_14px_0_rgba(26,94,42,0.15)]' 
+                    : 'border-gray-200 text-gray-500 hover:text-[#1A5E2A] hover:bg-gray-50 shadow-sm hover:shadow-[0_4px_14px_0_rgba(26,94,42,0.1)]'
                 }`}
               >
                 <Sparkles size={16} className={isAISearch ? 'animate-pulse shrink-0' : 'shrink-0'} />
@@ -491,9 +511,9 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
                     whileTap={{ scale: 0.95 }}
                     animate={{ 
                       boxShadow: [
-                        "0 10px 20px -5px rgba(0, 79, 49, 0.2)",
-                        "0 10px 30px 5px rgba(0, 79, 49, 0.4)",
-                        "0 10px 20px -5px rgba(0, 79, 49, 0.2)"
+                        "0 10px 20px -5px rgba(26, 94, 42, 0.2)",
+                        "0 10px 30px 5px rgba(26, 94, 42, 0.4)",
+                        "0 10px 20px -5px rgba(26, 94, 42, 0.2)"
                       ],
                       x: [0, -2, 2, -2, 2, 0],
                       opacity: [1, 0.8, 1]
@@ -503,7 +523,7 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
                       x: { duration: 0.5, repeat: Infinity, repeatDelay: 3 },
                       opacity: { duration: 1, repeat: Infinity, repeatDelay: 5 }
                     }}
-                    className="w-full md:w-auto md:min-w-[200px] h-[52px] bg-brand-green hover:bg-brand-green-medium text-white font-black uppercase tracking-widest text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-xl shadow-brand-green/20"
+                    className="w-full md:w-auto md:min-w-[200px] h-[52px] bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white font-black uppercase tracking-widest text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-xl shadow-[#1A5E2A]/20 border-none cursor-pointer"
                   >
                     <Search size={18} strokeWidth={3} /> Search Now
                   </motion.button>
@@ -516,7 +536,7 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-gray-100 pt-6">
             <div className="flex items-center gap-4">
               <span className="text-xs font-bold text-gray-400 flex items-center gap-1.5">
-                <Activity size={14} className="text-brand-green" />
+                <Activity size={14} className="text-[#1A5E2A]" />
                 {propertyCount.toLocaleString()} properties found
               </span>
               <button 
@@ -566,7 +586,7 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
                         maxPrice: searchMaxPrice
                       });
                     }}
-                    className="px-2.5 py-1 bg-gray-50 text-[10px] font-bold text-gray-500 rounded-md hover:bg-brand-green/10 hover:text-brand-green transition-colors cursor-pointer"
+                    className="px-2.5 py-1 bg-gray-50 text-[10px] font-bold text-gray-500 rounded-md hover:bg-[#1A5E2A]/10 hover:text-[#1A5E2A] transition-colors cursor-pointer"
                   >
                     {tag.label}
                   </button>
