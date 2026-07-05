@@ -150,6 +150,41 @@ export const PropertyDetail = ({
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [phoneRevealed, setPhoneRevealed] = useState(false);
 
+  // Lightbox Image & Touch Swipe states
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+  const [touchStartX, setTouchStartX] = useState(0);
+  const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  // Body scroll lock when lightbox is open
+  useEffect(() => {
+    if (lightboxOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [lightboxOpen]);
+
+  // Reset image loading and error states on active index change
+  useEffect(() => {
+    setImageLoading(true);
+    setImageError(false);
+  }, [activeImageIndex]);
+
+  // Scroll active thumbnail into view
+  useEffect(() => {
+    if (lightboxOpen && thumbnailRefs.current[activeImageIndex]) {
+      thumbnailRefs.current[activeImageIndex]?.scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest'
+      });
+    }
+  }, [activeImageIndex, lightboxOpen]);
+
   // Lazy loading visibility states
   const [belowFoldVisible, setBelowFoldVisible] = useState(false);
   const [mapVisible, setMapVisible] = useState(false);
@@ -532,6 +567,35 @@ export const PropertyDetail = ({
 
   const images = getPropertyImagesList(property.images);
   const converted = convertPrice(property.price_lkr || property.price);
+
+  // Compute Google Maps URLs dynamically
+  const getGoogleMapsUrls = () => {
+    const lat = property.latitude;
+    const lng = property.longitude;
+    const address = [
+      property.address,
+      property.city,
+      property.district,
+      'Sri Lanka'
+    ].filter(Boolean).join(', ');
+
+    let mapsUrl = '';
+    let directionsUrl = '';
+
+    if (lat && lng) {
+      // Use GPS coordinates (most accurate)
+      mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+      directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+    } else {
+      // Fallback: search by address
+      const encoded = encodeURIComponent(address);
+      mapsUrl = `https://www.google.com/maps/search/${encoded}`;
+      directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encoded}`;
+    }
+    return { mapsUrl, directionsUrl };
+  };
+
+  const { mapsUrl, directionsUrl } = getGoogleMapsUrls();
   
   // Parse description text and word counts
   const fullDesc = (property.property_description || property.description || "").trim();
@@ -999,8 +1063,16 @@ export const PropertyDetail = ({
 
         {/* 3E. LOCATION & MAP */}
         <div ref={mapRef} className="bg-white rounded-[16px] border border-[#e5e7eb] p-6 sm:p-7 shadow-[0_2px_10px_rgba(0,0,0,0.06)]">
-          <div className="border-l-4 border-[#004F31] pl-3 mb-4">
+          <div className="flex items-center justify-between gap-4 border-l-4 border-[#004F31] pl-3 mb-4">
             <h2 className="text-lg font-bold text-[#111827]">Location</h2>
+            <a 
+              href={mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="gmaps-open-btn bg-white border border-[#e5e7eb] rounded-lg px-3.5 py-[7px] text-[13px] font-semibold text-[#374151] inline-flex items-center gap-[6px] cursor-pointer no-underline transition-all duration-150 hover:bg-[#f0fdf4] hover:border-[#004F31] hover:text-[#004F31]"
+            >
+              🗺️ Open in Google Maps
+            </a>
           </div>
           
           <div className="text-sm font-semibold text-[#6b7280] flex items-start gap-1.5 mb-5 leading-normal">
@@ -1015,7 +1087,7 @@ export const PropertyDetail = ({
           <div className="h-[380px] w-full rounded-xl overflow-hidden shadow-inner border border-gray-200 relative z-10 mb-6 bg-gray-100 flex flex-col items-center justify-center">
             {mapVisible ? (
               <MapContainer 
-                center={[6.8841, 79.9402]} 
+                center={[property.latitude ? Number(property.latitude) : 6.8841, property.longitude ? Number(property.longitude) : 79.9402]} 
                 zoom={14} 
                 className="w-full h-full"
                 zoomControl={true}
@@ -1024,7 +1096,7 @@ export const PropertyDetail = ({
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   attribution='&copy; OpenStreetMap contributors'
                 />
-                <Marker position={[6.8841, 79.9402]} icon={customMarkerIcon}>
+                <Marker position={[property.latitude ? Number(property.latitude) : 6.8841, property.longitude ? Number(property.longitude) : 79.9402]} icon={customMarkerIcon}>
                   <Popup>
                     <div className="text-center font-sans p-1">
                       <p className="font-bold text-gray-900 text-sm">{property.city || 'Nugegoda'}</p>
@@ -1039,6 +1111,26 @@ export const PropertyDetail = ({
                 <div className="text-sm font-bold text-gray-400">Loading Map...</div>
               </div>
             )}
+          </div>
+
+          {/* Action buttons side-by-side */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <a 
+              href={directionsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="gmaps-directions-btn flex-1 py-3 px-4 bg-[#004F31] hover:bg-[#006040] text-white rounded-[10px] font-semibold text-sm flex items-center justify-center gap-2 no-underline transition-colors duration-150 cursor-pointer"
+            >
+              📍 Get Directions
+            </a>
+            <a 
+              href={mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="gmaps-open-btn flex-1 py-3 px-4 bg-white hover:bg-[#f0fdf4] hover:border-[#004F31] hover:text-[#004F31] text-[#374151] border-[1.5px] border-[#e5e7eb] rounded-[10px] font-semibold text-sm flex items-center justify-center gap-2 no-underline transition-all duration-150 cursor-pointer"
+            >
+              🗺️ Open in Google Maps
+            </a>
           </div>
 
           {/* Nearby landmarks grid */}
@@ -1392,63 +1484,106 @@ export const PropertyDetail = ({
       <AnimatePresence>
         {lightboxOpen && (
           <div 
-            className="fixed inset-0 z-[1000] bg-black/95 flex flex-col justify-between"
+            className="fixed inset-0 z-[1000] bg-black/95 flex flex-col justify-between select-none"
             tabIndex={0}
             onKeyDown={(e) => {
               if (e.key === 'Escape') setLightboxOpen(false);
               if (e.key === 'ArrowRight') setActiveImageIndex((activeImageIndex + 1) % images.length);
               if (e.key === 'ArrowLeft') setActiveImageIndex((activeImageIndex - 1 + images.length) % images.length);
             }}
+            onTouchStart={(e) => setTouchStartX(e.changedTouches[0].screenX)}
+            onTouchEnd={(e) => {
+              const diff = touchStartX - e.changedTouches[0].screenX;
+              if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                  // Swipe left -> next image
+                  setActiveImageIndex((activeImageIndex + 1) % images.length);
+                } else {
+                  // Swipe right -> prev image
+                  setActiveImageIndex((activeImageIndex - 1 + images.length) % images.length);
+                }
+              }
+            }}
+            onClick={(e) => {
+              // Click outer dark overlay to close
+              if (e.target === e.currentTarget) {
+                setLightboxOpen(false);
+              }
+            }}
             ref={(el) => el?.focus()}
           >
-            {/* Header */}
-            <div className="p-6 flex justify-between items-center text-white z-20">
-              <span className="text-sm font-bold tracking-widest uppercase">
-                {activeImageIndex + 1} of {images.length}
+            {/* Header / Counter & Close */}
+            <div className="p-4 sm:p-6 flex justify-between items-center text-white z-20">
+              <span className="text-[14px] sm:text-base font-semibold tracking-wider font-sans">
+                {activeImageIndex + 1} OF {images.length}
               </span>
               <button 
                 onClick={() => setLightboxOpen(false)}
-                className="p-2 hover:bg-white/10 rounded-full transition-all cursor-pointer"
+                className="w-10 h-10 rounded-full bg-white/15 hover:bg-white/30 text-white font-bold text-lg flex items-center justify-center transition-all cursor-pointer border-none shadow-md"
               >
-                <X size={28} />
+                ✕
               </button>
             </div>
 
-            {/* Main view frame */}
-            <div className="flex-1 relative flex items-center justify-center p-4">
+            {/* Main view frame with navigation */}
+            <div 
+              className="flex-1 relative flex items-center justify-center p-4 min-h-0"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setLightboxOpen(false);
+              }}
+            >
+              {/* Prev Button */}
               <button 
                 onClick={() => setActiveImageIndex((activeImageIndex - 1 + images.length) % images.length)}
-                className="absolute left-4 p-3 bg-white/10 hover:bg-white/25 text-white rounded-full transition-all cursor-pointer"
+                className="absolute left-4 z-20 w-12 h-12 rounded-full bg-white/15 hover:bg-white/30 text-white font-bold text-2xl flex items-center justify-center transition-all cursor-pointer border-none shadow-md"
               >
-                <ChevronLeft size={32} />
+                ‹
               </button>
 
-              <img 
-                src={images[activeImageIndex]} 
-                className="max-h-[70vh] max-w-full object-contain rounded-lg shadow-2xl" 
-                referrerPolicy="no-referrer"
-                alt="Lightbox view" 
-              />
+              {/* Main Image Wrapper */}
+              <div className="relative max-h-full max-w-full flex items-center justify-center">
+                {imageLoading && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white z-10">
+                    <div className="w-9 h-9 border-3 border-white/20 border-t-white rounded-full animate-spin" />
+                    <span className="text-xs font-semibold tracking-wider">Loading photo...</span>
+                  </div>
+                )}
 
+                <img 
+                  src={imageError ? '/placeholder-property.jpg' : getOptimizedImageUrl(images[activeImageIndex], 'lightbox')} 
+                  onLoad={() => setImageLoading(false)}
+                  onError={() => {
+                    setImageError(true);
+                    setImageLoading(false);
+                  }}
+                  className={`max-h-[70vh] max-w-full object-contain rounded-lg shadow-2xl transition-opacity duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'}`} 
+                  referrerPolicy="no-referrer"
+                  crossOrigin="anonymous"
+                  alt={`Property Photo ${activeImageIndex + 1}`} 
+                />
+              </div>
+
+              {/* Next Button */}
               <button 
                 onClick={() => setActiveImageIndex((activeImageIndex + 1) % images.length)}
-                className="absolute right-4 p-3 bg-white/10 hover:bg-white/25 text-white rounded-full transition-all cursor-pointer"
+                className="absolute right-4 z-20 w-12 h-12 rounded-full bg-white/15 hover:bg-white/30 text-white font-bold text-2xl flex items-center justify-center transition-all cursor-pointer border-none shadow-md"
               >
-                <ChevronRight size={32} />
+                ›
               </button>
             </div>
 
             {/* Bottom thumbnail selector strip */}
-            <div className="p-4 overflow-x-auto flex gap-3.5 scrollbar-none justify-center">
+            <div className="p-4 overflow-x-auto flex gap-2.5 scrollbar-none justify-start sm:justify-center max-w-full z-10">
               {images.map((img, idx) => (
                 <button
                   key={idx}
+                  ref={(el) => { thumbnailRefs.current[idx] = el; }}
                   onClick={() => setActiveImageIndex(idx)}
-                  className={`w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
-                    idx === activeImageIndex ? 'border-[#004F31] scale-105' : 'border-transparent opacity-50'
+                  className={`w-14 h-[42px] sm:w-[68px] sm:h-[51px] rounded overflow-hidden flex-shrink-0 border-2 transition-all ${
+                    idx === activeImageIndex ? 'border-white scale-105 opacity-100' : 'border-transparent opacity-60 hover:opacity-90'
                   }`}
                 >
-                  <img src={img} className="w-full h-full object-cover" referrerPolicy="no-referrer" alt="Selector thumb" />
+                  <img src={getOptimizedImageUrl(img, 'thumb')} className="w-full h-full object-cover pointer-events-none" referrerPolicy="no-referrer" alt={`Selector thumb ${idx + 1}`} />
                 </button>
               ))}
             </div>
