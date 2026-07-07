@@ -830,3 +830,1074 @@ a:visited {
   color: var(--lp-green) !important;
 }
 
+/* ==========================================================================
+   LANKAPROPERTY.LK MOBILE HOME PAGE REFINEMENTS
+   ========================================================================= */
+
+/* ════════════════════════════════════════
+   FIX 1 — REMOVE THE BLUE BAR
+   ════════════════════════════════════════ */
+
+/* Remove any blue borders on navbar */
+nav, header, .navbar, #navbar, 
+.nav-container, .header {
+  border-bottom: none !important;
+  border-top: none !important;
+  outline: none !important;
+}
+
+/* Remove blue focus outline on mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
+}
+
+/* Remove blue line from hero section top */
+.hero, #hero, .hero-section,
+.hero-container, section:first-of-type {
+  border-top: none !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Check for any element with blue color 
+   between navbar and hero */
+/* Common causes: */
+
+/* 1. Browser default focus ring */
+:focus { outline: none !important; }
+:focus-visible { 
+  outline: 2px solid #1A5E2A !important;
+  /* green focus, not blue */
+}
+
+/* 2. Bootstrap or Tailwind blue border */
+.border-blue, .border-primary,
+[class*="border-blue"],
+[class*="border-primary"] {
+  border-color: transparent !important;
+}
+
+/* 3. Any element between nav and hero */
+.announcement-bar,
+.top-bar,
+.notice-bar,
+.promo-bar {
+  display: none !important;
+}
+
+/* 4. Scrollbar causing blue tint */
+::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
+
+/* ════════════════════════════════════════
+   FIX 2 — PERFECT MOBILE HOME PAGE
+   ════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  
+  /* ─── NAVBAR (mobile) ─── */
+  nav, .navbar, header {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid #E5E7EB !important;
+    /* Only ONE thin gray border — no blue */
+    z-index: 1000 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 16px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+  }
+
+  /* Logo */
+  nav .logo, nav img[alt*="Lanka"],
+  nav img[alt*="logo"] {
+    height: 36px !important;
+    width: auto !important;
+  }
+
+  /* Hamburger menu button */
+  .hamburger, .menu-toggle, 
+  nav button:last-child {
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    border: none !important;
+    color: #374151 !important;
+    font-size: 22px !important;
+    cursor: pointer !important;
+  }
+
+  /* Hide desktop nav links on mobile */
+  .nav-links, .desktop-nav,
+  nav ul, .nav-menu {
+    display: none !important;
+  }
+
+  /* ─── MOBILE MENU DRAWER ─── */
+  
+  /* Full-screen slide-in menu */
+  .mobile-menu, .nav-drawer {
+    position: fixed !important;
+    top: 0 !important;
+    right: -100% !important;
+    width: 280px !important;
+    height: 100vh !important;
+    background: #ffffff !important;
+    z-index: 9999 !important;
+    padding: 24px 20px !important;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.15) !important;
+    transition: right 0.3s ease !important;
+    overflow-y: auto !important;
+    display: block !important;
+  }
+
+  .mobile-menu.open {
+    right: 0 !important;
+  }
+
+  /* Menu overlay */
+  .mobile-menu-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0,0,0,0.4) !important;
+    z-index: 9998 !important;
+    display: none !important;
+  }
+
+  .mobile-menu-overlay.open {
+    display: block !important;
+  }
+
+  /* Menu links in drawer */
+  .mobile-menu a {
+    display: block !important;
+    padding: 14px 0 !important;
+    font: 600 16px "Plus Jakarta Sans", sans-serif !important;
+    color: #374151 !important;
+    border-bottom: 1px solid #F3F4F6 !important;
+    text-decoration: none !important;
+  }
+
+  .mobile-menu a:hover { color: #1A5E2A !important; }
+
+  /* Color-coded links like logo */
+  .mobile-menu a[href*="buy"]   { color: #E8A000 !important; }
+  .mobile-menu a[href*="sell"]  { color: #CC1414 !important; }
+  .mobile-menu a[href*="rent"]  { color: #1565C0 !important; }
+
+  /* Post Property button in menu */
+  .mobile-menu .post-btn {
+    display: block !important;
+    margin-top: 20px !important;
+    padding: 14px !important;
+    background: #1A5E2A !important;
+    color: white !important;
+    border-radius: 10px !important;
+    text-align: center !important;
+    font-weight: 700 !important;
+  }
+
+  /* ─── HERO SECTION (mobile) ─── */
+
+  .hero, #hero, .hero-section {
+    margin-top: 56px !important; /* below fixed navbar */
+    min-height: 100vh !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  /* Hero background image */
+  .hero-bg, .hero img,
+  .hero-image, .hero-background {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 100vh !important;
+    object-fit: cover !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+  }
+
+  /* Dark overlay for readability */
+  .hero::after {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 !important;
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.45) 0%,
+      rgba(0,0,0,0.2) 50%,
+      rgba(0,0,0,0.0) 100%
+    ) !important;
+    z-index: 1 !important;
+  }
+
+  /* Hero text */
+  .hero-text, .hero-content,
+  .hero h1, .hero-title {
+    position: relative !important;
+    z-index: 2 !important;
+    padding: 40px 20px 20px !important;
+    text-align: center !important;
+    color: white !important;
+  }
+
+  .hero h1, .hero-heading {
+    font-size: 26px !important;
+    font-weight: 800 !important;
+    line-height: 1.3 !important;
+    color: white !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* "Perfect" highlighted word */
+  .hero h1 span, .hero-heading em,
+  .hero-heading .highlight {
+    color: #A8D5B0 !important; /* light green highlight */
+  }
+
+  .hero-subtitle, .hero p {
+    font-size: 12px !important;
+    color: rgba(255,255,255,0.8) !important;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase !important;
+    margin-bottom: 24px !important;
+  }
+
+  /* ─── SEARCH CARD (mobile) ─── */
+
+  .search-card, .search-box,
+  .search-container, #search-form {
+    position: relative !important;
+    z-index: 3 !important;
+    margin: 0 12px 0 !important;
+    background: #ffffff !important;
+    border-radius: 20px !important;
+    padding: 20px 16px !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18) !important;
+  }
+
+  /* FOR SALE / FOR RENT / FOR LEASE tabs */
+  .search-tabs, .listing-tabs,
+  .tab-container {
+    display: flex !important;
+    gap: 8px !important;
+    margin-bottom: 16px !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    padding-bottom: 2px !important;
+  }
+
+  .search-tabs::-webkit-scrollbar { 
+    display: none !important; 
+  }
+
+  .tab-btn, .search-tab {
+    flex-shrink: 0 !important;
+    padding: 8px 16px !important;
+    border-radius: 25px !important;
+    border: 1.5px solid #E5E7EB !important;
+    background: white !important;
+    font: 600 13px "Plus Jakarta Sans", sans-serif !important;
+    color: #374151 !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    transition: all 0.2s ease !important;
+  }
+
+  /* FOR SALE active */
+  .tab-btn.active[data-type="sale"],
+  .tab-btn.sale.active {
+    background: #CC1414 !important;
+    color: white !important;
+    border-color: #CC1414 !important;
+  }
+
+  /* FOR RENT active */
+  .tab-btn.active[data-type="rent"],
+  .tab-btn.rent.active {
+    background: #1565C0 !important;
+    color: white !important;
+    border-color: #1565C0 !important;
+  }
+
+  /* FOR LEASE active */
+  .tab-btn.active[data-type="lease"],
+  .tab-btn.lease.active {
+    background: #E8A000 !important;
+    color: white !important;
+    border-color: #E8A000 !important;
+  }
+
+  /* AI SEARCH button */
+  .ai-search-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    width: 100% !important;
+    padding: 10px !important;
+    border-radius: 10px !important;
+    border: 1.5px solid #E5E7EB !important;
+    background: white !important;
+    font: 600 13px "Plus Jakarta Sans", sans-serif !important;
+    color: #374151 !important;
+    margin-bottom: 14px !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+  }
+
+  .ai-search-btn:hover {
+    border-color: #1A5E2A !important;
+    color: #1A5E2A !important;
+  }
+
+  /* Property type dropdown */
+  .type-dropdown, 
+  select[name="type"],
+  .property-type-select {
+    width: 100% !important;
+    padding: 11px 14px !important;
+    border: 1.5px solid #E5E7EB !important;
+    border-radius: 10px !important;
+    font: 500 14px "Plus Jakarta Sans", sans-serif !important;
+    color: #374151 !important;
+    background: white !important;
+    appearance: none !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+  }
+
+  /* Location search input */
+  .location-input,
+  input[placeholder*="City"],
+  input[placeholder*="Neighborhood"],
+  input[type="text"].search-input {
+    width: 100% !important;
+    padding: 11px 14px 11px 38px !important;
+    border: 1.5px solid #E5E7EB !important;
+    border-radius: 10px !important;
+    font: 500 14px "Plus Jakarta Sans", sans-serif !important;
+    color: #374151 !important;
+    margin-bottom: 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  .location-input:focus {
+    border-color: #1A5E2A !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(26,94,42,0.12) !important;
+  }
+
+  /* Min/Max Price row */
+  .price-row,
+  .min-max-price {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .price-row select,
+  .min-price-select,
+  .max-price-select {
+    width: 100% !important;
+    padding: 11px 10px !important;
+    border: 1.5px solid #E5E7EB !important;
+    border-radius: 10px !important;
+    font: 500 13px "Plus Jakarta Sans", sans-serif !important;
+    color: #374151 !important;
+    background: white !important;
+    appearance: none !important;
+  }
+
+  /* SEARCH NOW button */
+  .search-btn, 
+  button[type="submit"],
+  .search-now-btn {
+    width: 100% !important;
+    padding: 14px !important;
+    background: #1A5E2A !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font: 700 15px "Plus Jakarta Sans", sans-serif !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    transition: background 0.2s !important;
+    margin-bottom: 14px !important;
+  }
+
+  .search-btn:hover,
+  .search-now-btn:hover {
+    background: #0F3D1A !important;
+  }
+
+  /* Results count */
+  .results-count, .property-count {
+    font-size: 13px !important;
+    color: #6B7280 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .results-count strong,
+  .property-count .count {
+    color: #1A5E2A !important;
+    font-weight: 700 !important;
+  }
+
+  /* Popular places */
+  .popular-places, .popular-searches {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+    font-size: 13px !important;
+  }
+
+  .popular-label {
+    color: #9CA3AF !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  .popular-link {
+    color: #1A5E2A !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    font-size: 13px !important;
+  }
+
+  .popular-link:hover {
+    text-decoration: underline !important;
+  }
+
+  /* ─── CATEGORY SECTION (mobile) ─── */
+
+  .categories, .property-types,
+  .category-section {
+    padding: 24px 16px !important;
+    background: white !important;
+  }
+
+  .category-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .category-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 16px 8px !important;
+    background: #F8F9FA !important;
+    border-radius: 14px !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+  }
+
+  .category-item:hover,
+  .category-item:active {
+    background: #E8F5E9 !important;
+  }
+
+  .category-icon {
+    width: 48px !important;
+    height: 48px !important;
+    background: #E8F5E9 !important;
+    border-radius: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 22px !important;
+    color: #1A5E2A !important;
+  }
+
+  .category-label {
+    font: 600 12px "Plus Jakarta Sans", sans-serif !important;
+    color: #374151 !important;
+    text-align: center !important;
+  }
+
+  /* ─── FEATURED PROPERTIES (mobile) ─── */
+
+  .featured-section {
+    padding: 24px 16px !important;
+    background: #F8F9FA !important;
+  }
+
+  .section-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 16px !important;
+  }
+
+  .section-title {
+    font: 700 18px "Plus Jakarta Sans", sans-serif !important;
+    color: #111827 !important;
+  }
+
+  .view-all-link {
+    font: 600 13px "Plus Jakarta Sans", sans-serif !important;
+    color: #1A5E2A !important;
+    text-decoration: none !important;
+  }
+
+  /* Cards: single column on mobile */
+  .property-grid,
+  .featured-grid,
+  .listings-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  /* Property card */
+  .property-card {
+    background: white !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+    border: 1px solid #E5E7EB !important;
+  }
+
+  /* Card image */
+  .property-card img,
+  .card-image {
+    width: 100% !important;
+    height: 200px !important;
+    object-fit: cover !important;
+    display: block !important;
+  }
+
+  /* Card content */
+  .card-body {
+    padding: 14px 16px !important;
+  }
+
+  /* Price */
+  .card-price {
+    font: 700 18px "Plus Jakarta Sans", sans-serif !important;
+    color: #1A5E2A !important;
+    margin-bottom: 4px !important;
+  }
+
+  /* Title */
+  .card-title {
+    font: 600 14px "Plus Jakarta Sans", sans-serif !important;
+    color: #111827 !important;
+    margin-bottom: 6px !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+  }
+
+  /* Location */
+  .card-location {
+    font: 500 13px "Plus Jakarta Sans", sans-serif !important;
+    color: #6B7280 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    margin-bottom: 10px !important;
+  }
+
+  /* Specs row */
+  .card-specs {
+    display: flex !important;
+    gap: 12px !important;
+    font: 500 12px "Plus Jakarta Sans", sans-serif !important;
+    color: #6B7280 !important;
+    padding-top: 10px !important;
+    border-top: 1px solid #F3F4F6 !important;
+  }
+
+  /* ─── HORIZONTAL SCROLL CARDS (mobile) ─── */
+
+  /* For Featured/Recent — horizontal scroll */
+  .cards-scroll {
+    display: flex !important;
+    gap: 14px !important;
+    overflow-x: auto !important;
+    padding-bottom: 8px !important;
+    scroll-snap-type: x mandatory !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  .cards-scroll::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .cards-scroll .property-card {
+    flex: 0 0 280px !important;
+    scroll-snap-align: start !important;
+    width: 280px !important;
+  }
+
+  /* ─── MORTGAGE CALCULATOR (mobile) ─── */
+
+  .mortgage-section {
+    padding: 24px 16px !important;
+    background: white !important;
+  }
+
+  .mortgage-card {
+    background: #F8F9FA !important;
+    border-radius: 16px !important;
+    padding: 20px !important;
+  }
+
+  .mortgage-inputs {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .mortgage-input {
+    width: 100% !important;
+    padding: 11px 14px !important;
+    border: 1.5px solid #E5E7EB !important;
+    border-radius: 10px !important;
+    font: 500 14px "Plus Jakarta Sans", sans-serif !important;
+    box-sizing: border-box !important;
+  }
+
+  .mortgage-result {
+    font: 700 24px "Plus Jakarta Sans", sans-serif !important;
+    color: #1A5E2A !important;
+    margin: 16px 0 !important;
+  }
+
+  .get-bank-btn {
+    width: 100% !important;
+    padding: 14px !important;
+    background: #111827 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font: 700 14px "Plus Jakarta Sans", sans-serif !important;
+    cursor: pointer !important;
+  }
+
+  /* ─── TESTIMONIALS (mobile) ─── */
+
+  .testimonials-section {
+    padding: 32px 16px !important;
+    background: #F8F9FA !important;
+  }
+
+  .testimonial-cards {
+    display: flex !important;
+    gap: 14px !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+  }
+
+  .testimonial-card {
+    flex: 0 0 270px !important;
+    background: white !important;
+    border-radius: 16px !important;
+    padding: 20px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+  }
+
+  .testimonial-stars {
+    color: #E8A000 !important;
+    margin-bottom: 10px !important;
+  }
+
+  .testimonial-text {
+    font: 400 13px/1.7 "Plus Jakarta Sans", sans-serif !important;
+    color: #374151 !important;
+    margin-bottom: 14px !important;
+  }
+
+  .testimonial-author {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .author-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    background: #E8F5E9 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font: 700 14px "Plus Jakarta Sans", sans-serif !important;
+    color: #1A5E2A !important;
+  }
+
+  .author-name {
+    font: 600 13px "Plus Jakarta Sans", sans-serif !important;
+    color: #111827 !important;
+  }
+
+  .author-role {
+    font: 500 11px "Plus Jakarta Sans", sans-serif !important;
+    color: #9CA3AF !important;
+  }
+
+  /* ─── FOOTER (mobile) ─── */
+
+  footer {
+    background: #0F3D1A !important;
+    color: white !important;
+    padding: 32px 16px 80px !important;
+    /* 80px bottom for mobile nav bar */
+  }
+
+  .footer-logo {
+    margin-bottom: 16px !important;
+  }
+
+  .footer-logo img {
+    height: 40px !important;
+    filter: brightness(0) invert(1) !important;
+    /* white version of logo */
+  }
+
+  .footer-description {
+    font: 400 13px/1.7 "Plus Jakarta Sans", sans-serif !important;
+    color: rgba(255,255,255,0.7) !important;
+    margin-bottom: 20px !important;
+  }
+
+  .footer-socials {
+    display: flex !important;
+    gap: 12px !important;
+    margin-bottom: 24px !important;
+  }
+
+  .social-icon {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 8px !important;
+    background: rgba(255,255,255,0.1) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: white !important;
+    font-size: 16px !important;
+    text-decoration: none !important;
+    transition: background 0.2s !important;
+  }
+
+  .social-icon:hover {
+    background: rgba(255,255,255,0.25) !important;
+  }
+
+  /* Footer columns collapsed */
+  .footer-columns {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 24px !important;
+    margin-bottom: 24px !important;
+  }
+
+  .footer-col-title {
+    font: 700 13px "Plus Jakarta Sans", sans-serif !important;
+    color: white !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .footer-col a {
+    display: block !important;
+    font: 400 13px "Plus Jakarta Sans", sans-serif !important;
+    color: rgba(255,255,255,0.7) !important;
+    text-decoration: none !important;
+    margin-bottom: 8px !important;
+    transition: color 0.2s !important;
+  }
+
+  .footer-col a:hover {
+    color: #E8A000 !important;
+  }
+
+  /* Newsletter */
+  .newsletter-form {
+    display: flex !important;
+    gap: 8px !important;
+    margin-top: 8px !important;
+  }
+
+  .newsletter-input {
+    flex: 1 !important;
+    padding: 10px 12px !important;
+    border-radius: 8px !important;
+    border: none !important;
+    background: rgba(255,255,255,0.1) !important;
+    color: white !important;
+    font: 500 13px "Plus Jakarta Sans", sans-serif !important;
+  }
+
+  .newsletter-btn {
+    padding: 10px 16px !important;
+    background: #E8A000 !important;
+    color: #111827 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font: 700 13px "Plus Jakarta Sans", sans-serif !important;
+    cursor: pointer !important;
+  }
+
+  /* Copyright bar */
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.1) !important;
+    padding-top: 16px !important;
+    font: 400 12px "Plus Jakarta Sans", sans-serif !important;
+    color: rgba(255,255,255,0.5) !important;
+    text-align: center !important;
+  }
+}
+
+/* ─── SMOOTH SCROLL & ANIMATIONS ─── */
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Smooth page transitions */
+.page-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Smooth card interactions */
+@media (max-width: 768px) {
+  .property-card:active {
+    transform: scale(0.98) !important;
+    transition: transform 0.1s ease !important;
+  }
+
+  button:active, a:active {
+    transform: scale(0.97) !important;
+    transition: transform 0.1s ease !important;
+  }
+}
+
+/* Remove 300ms tap delay on mobile */
+* {
+  touch-action: manipulation;
+}
+
+/* ==========================================================================
+   DESKTOP NAVBAR RESPONSIVENESS, DROPDOWN OVERFLOW & HERO CYAN PATCH FIXES
+   ========================================================================= */
+
+/* Make hero cover full width with no gaps and prevent blue leakage */
+.hero, #hero, .hero-section,
+.hero-container, .hero-wrapper {
+  width: 100% !important;
+  overflow: hidden !important;
+  background-color: #1A5E2A !important;
+  /* green fallback — never blue */
+  position: relative;
+}
+
+/* Hero background image — cover fully */
+.hero-bg, .hero-image, 
+.hero-background-image,
+.hero img:first-child {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+/* Remove any blue backgrounds globally */
+.hero *, #hero *,
+section:first-of-type * {
+  --blue-bg: none;
+}
+
+/* Find and remove any element with blue background */
+[style*="background: blue"],
+[style*="background:#0000"],
+[style*="background: #00"],
+[style*="background-color: blue"],
+[style*="background-color:#0000ff"],
+.bg-blue, .blue-bg, .hero-blue {
+  background: transparent !important;
+}
+
+/* Full dark overlay on hero 
+   so no color shows through */
+.hero::after,
+.hero-section::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: linear-gradient(
+    135deg,
+    rgba(0,0,0,0.5) 0%,
+    rgba(0,0,0,0.2) 60%,
+    rgba(0,0,0,0.4) 100%
+  ) !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+}
+
+/* All hero content above the overlay */
+.hero-content, .hero-text,
+.hero h1, .hero h2, .hero p,
+.search-card, .search-box {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+/* Remove any blue from entire page header area */
+header, nav, .navbar,
+.nav-wrapper, .top-bar {
+  background: #ffffff !important;
+}
+
+/* Remove blue from ANY element in the 
+   top section of the page */
+.hero-top, .hero-header,
+.slide, .slider, .swiper-slide {
+  background-color: transparent !important;
+}
+
+/* If hero uses a slider/carousel */
+.swiper, .slick-slider, 
+.carousel, .slider-container {
+  background: #1A5E2A !important;
+  /* dark green fallback, never blue */
+}
+
+/* ════════════════════════════════════════
+   DROPDOWN MENU OVERFLOW FIX (DESKTOP)
+   ════════════════════════════════════════ */
+
+/* Standard Dropdown positioning */
+.dropdown, .dropdown-menu {
+  position: absolute !important;
+  top: 100% !important;
+  left: 0 !important;
+  right: auto !important;
+  margin-top: 16px !important;
+  z-index: 110 !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+/* Prevent right-side overflow */
+/* For dropdowns near right edge of screen */
+.dropdown-right,
+nav li:nth-last-child(-n+3) .dropdown,
+nav li:last-child .dropdown,
+nav li:nth-last-child(1) .dropdown,
+nav li:nth-last-child(2) .dropdown {
+  right: 0 !important;
+  left: auto !important;
+}
+
+/* ════════════════════════════════════════
+   NAVBAR RESPONSIVENESS (DESKTOP)
+   ════════════════════════════════════════ */
+
+nav, .navbar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 24px !important;
+  height: 64px !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #E5E7EB !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;
+  gap: 8px !important;
+}
+
+/* Nav links — don't overflow */
+.nav-links, .nav-menu {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  flex-wrap: nowrap !important;
+}
+
+.nav-links a, .nav-item > a {
+  font: 500 13px "Plus Jakarta Sans", sans-serif !important;
+  color: #374151 !important;
+  white-space: nowrap !important;
+  padding: 8px 10px !important;
+  border-radius: 8px !important;
+  transition: all 0.15s !important;
+  text-decoration: none !important;
+}
+
+.nav-links a:hover {
+  background: #F0FDF4 !important;
+  color: #1A5E2A !important;
+}
+
+/* POST YOUR PROPERTY FREE button */
+.post-btn, .post-property-btn,
+a[href*="post-property"],
+button[class*="post"] {
+  background: #1A5E2A !important;
+  color: white !important;
+  border-radius: 8px !important;
+  padding: 9px 14px !important;
+  font: 700 13px "Plus Jakarta Sans", sans-serif !important;
+  white-space: nowrap !important;
+  border: none !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  line-height: 1 !important;
+}
+
+/* Login / Register */
+.login-btn, .register-btn {
+  font: 500 13px "Plus Jakarta Sans", sans-serif !important;
+  color: #374151 !important;
+  white-space: nowrap !important;
+}
+
+

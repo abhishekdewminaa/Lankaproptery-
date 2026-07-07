@@ -49,6 +49,28 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (activeDropdown) {
+      const timer = setTimeout(() => {
+        const dropdowns = document.querySelectorAll('.dropdown, .dropdown-menu, .mega-menu');
+        dropdowns.forEach((dropdown: any) => {
+          const rect = dropdown.getBoundingClientRect();
+          const viewportWidth = window.innerWidth;
+          
+          if (rect.right > viewportWidth) {
+            dropdown.style.left = 'auto';
+            dropdown.style.right = '0';
+          }
+          if (rect.left < 0) {
+            dropdown.style.left = '0';
+            dropdown.style.right = 'auto';
+          }
+        });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [activeDropdown]);
+
   const getLinkStyles = (name: string, isCurrent: boolean) => {
     const lowercaseName = name.toLowerCase();
     if (lowercaseName.includes('buy')) {
@@ -93,20 +115,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
         { name: 'Apartments', href: '/buy/apartments', data: { category: 'Apartment', mode: 'buy' } },
         { name: 'Buildings', href: '/buy/buildings', data: { category: 'Building', mode: 'buy' } },
         { name: 'Hotels', href: '/buy/hotels', data: { category: 'Hotel', mode: 'buy' } },
-        { name: 'Commercial', href: '/buy/commercial', data: { category: 'Commercial', mode: 'buy' } },
-        { name: 'All Properties', href: '/', data: { type: 'home' } },
-      ]
-    },
-    { name: 'Sell my property', href: '/sell', type: 'sell' },
-    { 
-      name: 'Rent', 
-      type: 'dropdown',
-      items: [
-        { name: 'Houses for Rent', href: '/rent/houses', data: { category: 'House', mode: 'rent' } },
-        { name: 'Apartments for Rent', href: '/rent/apartments', data: { category: 'Apartment', mode: 'rent' } },
-        { name: 'Commercial for Rent', href: '/rent/commercial', data: { category: 'Commercial', mode: 'rent' } },
-        { name: 'Buildings for Rent', href: '/rent/buildings', data: { category: 'Building', mode: 'rent' } },
-        { name: 'All Rentals', href: '/', data: { type: 'home' } },
       ]
     },
     { name: 'Advertised Packages', href: '/packages', type: 'packages' },
@@ -142,7 +150,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
   };
 
   return (
-    <nav className={`glass-navbar bg-white border-b border-solid border-[var(--lp-border)] h-16 flex items-center px-6 md:px-12 fixed top-0 w-full z-[100] transition-all duration-300`}>
+    <nav className={`navbar glass-navbar bg-white border-b border-solid border-[var(--lp-border)] h-16 flex items-center px-6 md:px-12 fixed top-0 w-full z-[100] transition-all duration-300`}>
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo */}
         <div 
@@ -153,7 +161,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
           }}
         >
           <motion.img
-            src="https://qsqqolvsndvkwegvcfqv.supabase.co/storage/v1/object/sign/Homa%20page%20images/Homa%20page.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MWNhMTU1MC03OGYzLTQwZGMtYTYzYi02NzVmZTRiYjM2NWMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJIb21hIHBhZ2UgaW1hZ2VzL0hvbWEgcGFnZS5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzgyMjcyNDczLCJleHAiOjI3MjgzNTI0NzN9.anq2vvFCtVaS-LDJkzccWqjo4kqH7wMmOIGw6oM7XKA"
+            src="https://qsqqolvsndvkwegvcfqv.supabase.co/storage/v1/object/sign/Homa%20page%20images/logo.jpeg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MWNhMTU1MC03OGYzLTQwZGMtYTYzYi02NzVmZTRiYjM2NWMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJIb21hIHBhZ2UgaW1hZ2VzL2xvZ28uanBlZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODM0MDY0MzAsImV4cCI6MjQxNDEyNjQzMH0.nxS6KSZywhJEiVjv2igHzUwiiC9mhP4MAsBmg-AV0hY"
             alt="LankaProperty Logo"
             className="h-12 md:h-16 w-auto object-contain rounded-xl"
             referrerPolicy="no-referrer"
@@ -164,14 +172,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
         </div>
 
         {/* Left Nav (Desktop) */}
-        <div className="hidden lg:flex items-center gap-6 ml-8" ref={dropdownRef}>
+        <div className="nav-links nav-menu hidden lg:flex items-center gap-6 ml-8" ref={dropdownRef}>
           {navLinks.map((link, idx) => {
             const styles = getLinkStyles(link.name, currentView === link.type);
-            const isDividerAfter = link.name === 'Buy' || link.name === 'Sell my property';
+            const isDividerAfter = link.name === 'Buy';
             
             return (
               <React.Fragment key={link.name}>
-                <div className="relative">
+                <div className="relative nav-item">
                   {link.type === 'dropdown' ? (
                     <>
                       <button
@@ -188,7 +196,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 10 }}
-                            className="absolute top-full left-0 mt-4 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 overflow-hidden z-[110]"
+                            className="dropdown absolute top-full left-0 mt-4 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 overflow-hidden z-[110]"
                           >
                             {link.items?.map((item) => {
                               const itemStyles = getLinkStyles(item.name, false);
@@ -198,7 +206,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                                   href={item.href}
                                   onClick={(e) => {
                                     e.preventDefault();
-                                    if (item.data.type === 'home') {
+                                    if ((item.data as any).type === 'home') {
                                       onNavigateHome();
                                     } else {
                                       window.history.pushState({}, '', item.href);
@@ -244,7 +252,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
               e.preventDefault();
               setShowPostModal(true);
             }}
-            className="hidden sm:flex items-center justify-center bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white px-[18px] py-[10px] rounded-[8px] text-[14px] font-semibold transition-all duration-300 shadow-md cursor-pointer border-none"
+            className="post-btn post-property-btn hidden sm:flex items-center justify-center bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white px-[18px] py-[10px] rounded-[8px] text-[14px] font-semibold transition-all duration-300 shadow-md cursor-pointer border-none"
           >
             POST YOUR PROPERTY FREE
           </button>
@@ -313,7 +321,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                     setIsLoginOpen(!isLoginOpen);
                     setIsRegisterOpen(false);
                   }}
-                  className="flex items-center gap-1 text-xs font-bold text-[#374151] hover:text-[#1A5E2A] px-3 py-2 border border-gray-200 rounded-xl transition-all"
+                  className="login-btn flex items-center gap-1 text-xs font-bold text-[#374151] hover:text-[#1A5E2A] px-3 py-2 border border-gray-200 rounded-xl transition-all"
                 >
                   Login
                   <ChevronDown size={12} className={`transition-transform duration-200 ${isLoginOpen ? 'rotate-180' : ''}`} />
@@ -353,7 +361,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                     setIsRegisterOpen(!isRegisterOpen);
                     setIsLoginOpen(false);
                   }}
-                  className="flex items-center gap-1 text-xs font-bold text-[#374151] hover:text-[#1A5E2A] px-3 py-2 border border-gray-200 rounded-xl transition-all"
+                  className="register-btn flex items-center gap-1 text-xs font-bold text-[#374151] hover:text-[#1A5E2A] px-3 py-2 border border-gray-200 rounded-xl transition-all"
                 >
                   Register
                   <ChevronDown size={12} className={`transition-transform duration-200 ${isRegisterOpen ? 'rotate-180' : ''}`} />
@@ -403,7 +411,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
           
           {/* Mobile Menu Toggle */}
           <button 
-            className="lg:hidden p-2 text-gray-600"
+            className="lg:hidden p-2 text-gray-600 hamburger menu-toggle"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -412,170 +420,191 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
       </div>
 
       {/* Mobile Menu Overlay */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="absolute top-20 left-0 w-full bg-white border-b border-gray-100 lg:hidden overflow-hidden shadow-2xl z-[90]"
+      <div 
+        className={`mobile-menu-overlay hidden md:hidden ${isMobileMenuOpen ? 'open' : ''}`}
+        onClick={() => setIsMobileMenuOpen(false)}
+      />
+
+      {/* Mobile Menu Drawer */}
+      <div className={`mobile-menu hidden md:hidden ${isMobileMenuOpen ? 'open' : ''}`}>
+        <div className="flex justify-between items-center pb-4 border-b border-gray-100 mb-4">
+          <span className="text-sm font-black uppercase tracking-wider text-gray-400">Menu</span>
+          <button 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-1 text-gray-500 hover:text-gray-800"
           >
-            <div className="flex flex-col p-6 gap-2">
-              {/* Mobile Auth options */}
-              <div className="border-b border-gray-100 pb-4 mb-2">
-                {isOwnerLoggedIn ? (
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Account</p>
-                    <a
-                      href="/owner/dashboard"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        window.history.pushState({}, '', '/owner/dashboard');
-                        if (onNavigate) onNavigate({ type: 'owner_dashboard' });
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="block px-4 py-3 text-base font-bold text-gray-700 hover:bg-gray-50 rounded-xl"
-                    >
-                      My Dashboard
-                    </a>
-                    <button
-                      onClick={() => {
-                        localStorage.removeItem('owner_logged_in');
-                        localStorage.removeItem('owner_id');
-                        localStorage.removeItem('owner_name');
-                        localStorage.removeItem('owner_email');
-                        localStorage.removeItem('user_role');
-                        window.location.reload();
-                      }}
-                      className="w-full text-left px-4 py-3 text-base font-bold text-red-500 hover:bg-red-50 rounded-xl"
-                    >
-                      Sign Out
-                    </button>
-                  </div>
-                ) : isAgentLoggedIn ? (
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Account</p>
-                    <a
-                      href="/agent/dashboard"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        window.history.pushState({}, '', '/agent/dashboard');
-                        if (onNavigate) onNavigate({ type: 'agent_dashboard' });
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="block px-4 py-3 text-base font-bold text-gray-700 hover:bg-gray-50 rounded-xl"
-                    >
-                      Agent Portal
-                    </a>
-                    <button
-                      onClick={() => {
-                        localStorage.removeItem('agent_logged_in');
-                        localStorage.removeItem('agent_id');
-                        localStorage.removeItem('agent_name');
-                        localStorage.removeItem('agent_email');
-                        localStorage.removeItem('user_role');
-                        window.location.reload();
-                      }}
-                      className="w-full text-left px-4 py-3 text-base font-bold text-red-500 hover:bg-red-50 rounded-xl"
-                    >
-                      Sign Out
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Login</p>
-                      <button
-                        onClick={() => {
-                          window.history.pushState({}, '', '/owner/login');
-                          if (onNavigate) onNavigate({ type: 'owner_login' });
-                          setIsMobileMenuOpen(false);
-                        }}
-                        className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl flex items-center gap-2"
-                      >
-                        👤 I Want to Sell / Rent My Property
-                      </button>
-                      <button
-                        onClick={() => {
-                          window.history.pushState({}, '', '/agent/login');
-                          if (onNavigate) onNavigate({ type: 'agent_login' });
-                          setIsMobileMenuOpen(false);
-                        }}
-                        className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl flex items-center gap-2"
-                      >
-                        🏢 I Am a Real Estate Agent
-                      </button>
-                    </div>
+            <X size={20} />
+          </button>
+        </div>
 
-                    <div className="space-y-2">
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Register</p>
-                      <button
-                        onClick={() => {
-                          window.history.pushState({}, '', '/owner/register');
-                          if (onNavigate) onNavigate({ type: 'owner_register' });
-                          setIsMobileMenuOpen(false);
-                        }}
-                        className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl flex items-center gap-2"
-                      >
-                        🏠 List My Property (Property Owner)
-                      </button>
-                      <button
-                        onClick={() => {
-                          window.history.pushState({}, '', '/agent/register');
-                          if (onNavigate) onNavigate({ type: 'agent_register' });
-                          setIsMobileMenuOpen(false);
-                        }}
-                        className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl flex items-center gap-2"
-                      >
-                        🏢 Join as Agent (Real Estate Professional)
-                      </button>
-                    </div>
-                  </div>
-                )}
+        <div className="flex flex-col gap-2">
+          {/* Mobile Auth options */}
+          <div className="border-b border-gray-100 pb-4 mb-2">
+            {isOwnerLoggedIn ? (
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Account</p>
+                <a
+                  href="/owner/dashboard"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.history.pushState({}, '', '/owner/dashboard');
+                    if (onNavigate) onNavigate({ type: 'owner_dashboard' });
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="block px-4 py-3 text-base font-bold text-gray-700 hover:bg-gray-50 rounded-xl"
+                >
+                  My Dashboard
+                </a>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('owner_logged_in');
+                    localStorage.removeItem('owner_id');
+                    localStorage.removeItem('owner_name');
+                    localStorage.removeItem('owner_email');
+                    localStorage.removeItem('user_role');
+                    window.location.reload();
+                  }}
+                  className="w-full text-left px-4 py-3 text-base font-bold text-red-500 hover:bg-red-50 rounded-xl"
+                >
+                  Sign Out
+                </button>
               </div>
-
-              {navLinks.map((link) => (
-                <div key={link.name}>
-                  {link.type === 'dropdown' ? (
-                    <div className="space-y-2">
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2 mt-4">{link.name}</p>
-                      {link.items?.map((item) => (
-                        <a
-                          key={item.name}
-                          href={item.href}
-                          className="block px-4 py-3 text-base font-bold text-gray-700 hover:bg-gray-50 rounded-xl"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (item.data.type === 'home') {
-                              onNavigateHome();
-                            } else {
-                              window.history.pushState({}, '', item.href);
-                              if (onNavigate) onNavigate({ type: 'category', data: item.data });
-                            }
-                            setIsMobileMenuOpen(false);
-                          }}
-                        >
-                          {item.name}
-                        </a>
-                      ))}
-                    </div>
-                  ) : (
-                    <a
-                      href={link.href}
-                      className={`block px-4 py-3 text-base font-bold rounded-xl ${
-                        currentView === link.type ? 'bg-brand-green/5 text-brand-green' : 'text-gray-700 hover:bg-gray-50'
-                      }`}
-                      onClick={(e) => handleLinkClick(e, link)}
-                    >
-                      {link.name}
-                    </a>
-                  )}
+            ) : isAgentLoggedIn ? (
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Account</p>
+                <a
+                  href="/agent/dashboard"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.history.pushState({}, '', '/agent/dashboard');
+                    if (onNavigate) onNavigate({ type: 'agent_dashboard' });
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="block px-4 py-3 text-base font-bold text-gray-700 hover:bg-gray-50 rounded-xl"
+                >
+                  Agent Portal
+                </a>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('agent_logged_in');
+                    localStorage.removeItem('agent_id');
+                    localStorage.removeItem('agent_name');
+                    localStorage.removeItem('agent_email');
+                    localStorage.removeItem('user_role');
+                    window.location.reload();
+                  }}
+                  className="w-full text-left px-4 py-3 text-base font-bold text-red-500 hover:bg-red-50 rounded-xl"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Login</p>
+                  <button
+                    onClick={() => {
+                      window.history.pushState({}, '', '/owner/login');
+                      if (onNavigate) onNavigate({ type: 'owner_login' });
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl flex items-center gap-2"
+                  >
+                    👤 I Want to Sell / Rent My Property
+                  </button>
+                  <button
+                    onClick={() => {
+                      window.history.pushState({}, '', '/agent/login');
+                      if (onNavigate) onNavigate({ type: 'agent_login' });
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl flex items-center gap-2"
+                  >
+                    🏢 I Am a Real Estate Agent
+                  </button>
                 </div>
-              ))}
+
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Register</p>
+                  <button
+                    onClick={() => {
+                      window.history.pushState({}, '', '/owner/register');
+                      if (onNavigate) onNavigate({ type: 'owner_register' });
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl flex items-center gap-2"
+                  >
+                    🏠 List My Property (Property Owner)
+                  </button>
+                  <button
+                    onClick={() => {
+                      window.history.pushState({}, '', '/agent/register');
+                      if (onNavigate) onNavigate({ type: 'agent_register' });
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl flex items-center gap-2"
+                  >
+                    🏢 Join as Agent (Real Estate Professional)
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {navLinks.map((link) => (
+            <div key={link.name}>
+              {link.type === 'dropdown' ? (
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2 mt-4">{link.name}</p>
+                  {link.items?.map((item) => (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      className="block px-4 py-3 text-base font-bold text-gray-700 hover:bg-gray-50 rounded-xl"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if ((item.data as any).type === 'home') {
+                          onNavigateHome();
+                        } else {
+                          window.history.pushState({}, '', item.href);
+                          if (onNavigate) onNavigate({ type: 'category', data: item.data });
+                        }
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      {item.name}
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  className={`block px-4 py-3 text-base font-bold rounded-xl ${
+                    currentView === link.type ? 'bg-brand-green/5 text-brand-green' : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                  onClick={(e) => handleLinkClick(e, link)}
+                >
+                  {link.name}
+                </a>
+              )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          ))}
+
+          {/* Post Property button in menu */}
+          <a
+            href="/sell"
+            onClick={(e) => {
+              e.preventDefault();
+              setShowPostModal(true);
+              setIsMobileMenuOpen(false);
+            }}
+            className="post-btn animate-pulse"
+          >
+            Post Property
+          </a>
+        </div>
+      </div>
 
       {/* Choose Listing Path Modal */}
       <AnimatePresence>

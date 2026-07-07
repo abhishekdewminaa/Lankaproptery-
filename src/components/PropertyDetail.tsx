@@ -683,24 +683,6 @@ export const PropertyDetail = ({
               referrerPolicy="no-referrer"
               alt="Main listing" 
             />
-            {/* For Sale / For Rent badge */}
-            <div className="absolute top-4 left-4 z-10">
-              <span className={`text-[12px] font-extrabold uppercase px-3.5 py-1.5 rounded-md shadow-md tracking-wider text-white ${
-                String(property.listing_type).toLowerCase() === 'sale' 
-                  ? 'bg-red-600' 
-                  : 'bg-blue-600'
-              }`}>
-                {String(property.listing_type).toLowerCase() === 'sale' ? '🔴 FOR SALE' : '🔵 FOR RENT'}
-              </span>
-            </div>
-            {/* ⭐ Featured badge */}
-            {property.is_featured && (
-              <div className="absolute top-4 right-4 z-10">
-                <span className="bg-[#1A5E2A] text-white text-[12px] font-extrabold px-3 py-1.5 rounded-md shadow-md flex items-center gap-1">
-                  ⭐ FEATURED
-                </span>
-              </div>
-            )}
             
             {/* View All pill button */}
             <button 
@@ -772,16 +754,6 @@ export const PropertyDetail = ({
             ))}
           </div>
 
-          {/* Badges on mobile */}
-          <div className="absolute top-4 left-4 z-10">
-            <span className={`text-[10px] font-black uppercase px-2 py-1 rounded shadow-md tracking-wider text-white ${
-              String(property.listing_type).toLowerCase() === 'sale' 
-                ? 'bg-red-600' 
-                : 'bg-blue-600'
-            }`}>
-              {String(property.listing_type).toLowerCase() === 'sale' ? '🔴 SALE' : '🔵 RENT'}
-            </span>
-          </div>
 
           {/* Indicators */}
           <div className="absolute top-4 right-4 bg-black/60 text-white text-xs font-bold px-2.5 py-1 rounded-full z-10 border border-white/15 pointer-events-none">

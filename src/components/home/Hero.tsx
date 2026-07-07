@@ -110,13 +110,13 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
   };
   
   return (
-    <section className="relative h-[calc(100vh-124px)] md:h-screen w-full flex items-center justify-center overflow-hidden">
+    <section className="hero relative h-[calc(100vh-124px)] md:h-screen w-full flex items-center justify-center overflow-hidden" id="hero">
       {/* Background with Luxury Image */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 hero-bg">
         <img 
           src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=2000" 
           alt="Luxury Property" 
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover hero-image"
         />
         {/* Dark gradient overlay bottom to top */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
@@ -226,67 +226,10 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
               })}
             </div>
 
-            <div className="flex items-center gap-3 md:gap-4 w-full lg:w-auto justify-center lg:justify-end overflow-x-auto no-scrollbar pb-1 lg:pb-0">
-              <motion.button 
-                onClick={() => setIsAISearch(!isAISearch)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.96, y: 1 }}
-                transition={{ duration: 0.15, ease: "easeInOut" }}
-                className={`flex items-center justify-center gap-2 px-4 md:px-5 py-3 rounded-full border-2 transition-colors font-black text-[10px] md:text-xs uppercase tracking-wider whitespace-nowrap shrink-0 h-[44px] md:h-[48px] ${
-                  isAISearch 
-                    ? 'bg-[#1A5E2A]/10 border-[#1A5E2A] text-[#1A5E2A] shadow-[0_4px_14px_0_rgba(26,94,42,0.15)]' 
-                    : 'border-gray-200 text-gray-500 hover:text-[#1A5E2A] hover:bg-gray-50 shadow-sm hover:shadow-[0_4px_14px_0_rgba(26,94,42,0.1)]'
-                }`}
-              >
-                <Sparkles size={16} className={isAISearch ? 'animate-pulse shrink-0' : 'shrink-0'} />
-                <span className="hidden sm:inline">AI Smart Search</span>
-                <span className="sm:hidden">AI Search</span>
-              </motion.button>
-            </div>
           </div>
 
-          <AnimatePresence mode="wait">
-            {isAISearch ? (
-              <motion.div
-                key="ai-search"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="mb-4"
-              >
-                <div className="relative group flex flex-col md:block">
-                  <div className="absolute left-4 top-6 md:top-1/2 md:-translate-y-1/2 text-brand-green">
-                    <Bot size={24} className="animate-bounce" />
-                  </div>
-                  <input 
-                    type="text" 
-                    value={aiQuery}
-                    onChange={(e) => setAiQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAISearch()}
-                    placeholder="e.g. '3 bed house in Colombo under 50m'"
-                    className="w-full bg-brand-green/[0.03] border-2 border-brand-green/20 focus:border-brand-green md:rounded-2xl rounded-xl py-4 md:py-6 pl-12 md:pl-16 pr-4 md:pr-32 text-base md:text-lg font-medium outline-none transition-all placeholder:text-gray-400 mb-2 md:mb-0"
-                  />
-                  <button 
-                    onClick={handleAISearch}
-                    disabled={!aiQuery.trim() || isAnalyzing}
-                    className="md:absolute right-4 md:top-1/2 md:-translate-y-1/2 bg-brand-green text-white px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-green-dark transition-all shadow-lg disabled:opacity-50 h-[48px] md:h-auto flex items-center justify-center w-full md:w-auto"
-                  >
-                    {isAnalyzing ? <Loader2 size={18} className="animate-spin" /> : "Analyze"}
-                  </button>
-                </div>
-                <div className="flex items-center gap-2 mt-3 ml-2 justify-center md:justify-start">
-                  <Sparkles size={12} className="text-brand-green" />
-                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Try: "Luxury villa in Galle for lease"</span>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="normal-search"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-              >
-                {/* Row 2 - Main search */}
+          <div className="normal-search">
+            {/* Row 2 - Main search */}
                 <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-3 md:mb-4">
                   <div className="relative w-full md:w-[200px] shrink-0">
                     <select 
@@ -528,9 +471,7 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
                     <Search size={18} strokeWidth={3} /> Search Now
                   </motion.button>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          </div>
 
           {/* Bottom Info */}
           <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-gray-100 pt-6">
