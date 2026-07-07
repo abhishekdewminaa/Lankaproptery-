@@ -136,6 +136,7 @@ export const PropertyDetail = ({
 }: PropertyDetailProps) => {
   const [property, setProperty] = useState<any>(null);
   const [similarProperties, setSimilarProperties] = useState<any[]>([]);
+  const [loadingSimilar, setLoadingSimilar] = useState<boolean>(true);
   const [loading, setLoading] = useState(true);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -172,9 +173,7 @@ export const PropertyDetail = ({
   useEffect(() => {
     setImageLoading(true);
     setImageError(false);
-  }, [activeImageIndex, lightboxOpen]);
-
-  // Scroll active thumbnail into view
+  }, [activeImageIndex, lightboxOpen]);  // Scroll active thumbnail into view
   useEffect(() => {
     if (lightboxOpen && thumbnailRefs.current[activeImageIndex]) {
       thumbnailRefs.current[activeImageIndex]?.scrollIntoView({
@@ -388,6 +387,7 @@ export const PropertyDetail = ({
     if (!property || !similarVisible) return;
 
     const fetchSimilar = async () => {
+      setLoadingSimilar(true);
       try {
         const cacheKey = `similar_${property.district}_${property.id}`;
         const cached = sessionStorage.getItem(cacheKey);
@@ -395,19 +395,68 @@ export const PropertyDetail = ({
           const { data, timestamp } = JSON.parse(cached);
           if (Date.now() - timestamp < 5 * 60 * 1000) {
             setSimilarProperties(data || []);
+            setLoadingSimilar(false);
             return;
           }
         }
 
-        const { data: similar } = await supabase
+        const fields = 'id, listing_title, title, price_lkr, price, city, district, images, rooms, bedrooms, bathrooms, land_area, land_unit, floors, floor_area, status, listing_type, property_category, property_type, slug, created_at';
+
+        // ── QUERY 1: Same district + same listing_type ──
+        let { data: similar, error: err1 } = await supabase
           .from('properties')
-          .select('id, listing_title, price_lkr, city, district, images, rooms, bedrooms, bathrooms, land_area, land_unit, floors, floor_area, status, listing_type, type, property_category')
+          .select(fields)
           .eq('district', property.district)
+          .eq('listing_type', property.listing_type)
           .eq('status', 'active')
           .neq('id', property.id)
-          .limit(3);
+          .order('created_at', { ascending: false })
+          .limit(6);
 
-        const result = similar || [];
+        if (err1) throw err1;
+
+        let combined = similar || [];
+
+        // ── QUERY 2: If less than 6, fill from same district ──
+        if (combined.length < 6) {
+          const existingIds = combined.map(p => p.id);
+          existingIds.push(property.id);
+
+          const { data: more, error: err2 } = await supabase
+            .from('properties')
+            .select(fields)
+            .eq('district', property.district)
+            .eq('status', 'active')
+            .not('id', 'in', `(${existingIds.join(',')})`)
+            .order('created_at', { ascending: false })
+            .limit(6 - combined.length);
+
+          if (!err2 && more) {
+            combined = [...combined, ...more];
+          }
+        }
+
+        // ── QUERY 3: If still less than 6, fill from same category ──
+        const categoryVal = property.property_category || property.category || property.property_type;
+        if (combined.length < 6 && categoryVal) {
+          const existingIds = combined.map(p => p.id);
+          existingIds.push(property.id);
+
+          const { data: more, error: err3 } = await supabase
+            .from('properties')
+            .select(fields)
+            .eq('property_category', categoryVal)
+            .eq('status', 'active')
+            .not('id', 'in', `(${existingIds.join(',')})`)
+            .order('created_at', { ascending: false })
+            .limit(6 - combined.length);
+
+          if (!err3 && more) {
+            combined = [...combined, ...more];
+          }
+        }
+
+        const result = combined.slice(0, 6);
         setSimilarProperties(result);
         
         // Cache similar properties
@@ -417,6 +466,8 @@ export const PropertyDetail = ({
         }));
       } catch (err) {
         console.error('Error fetching similar properties', err);
+      } finally {
+        setLoadingSimilar(false);
       }
     };
 
@@ -548,6 +599,276 @@ export const PropertyDetail = ({
     setActiveMobileIndex(index);
   };
 
+  const images = property ? getPropertyImagesList(property.images) : [];
+
+  // Full-page Gallery Initialization & Navigation Engine
+  useEffect(() => {
+    const preloadedImages: Record<string, HTMLImageElement> = {};
+    
+    // 1. Preload images
+    (window as any).preloadGalleryImages = function(urls: string[]) {
+      if (!urls) return;
+      urls.forEach((url) => {
+        if (preloadedImages[url]) return;
+        const img = new Image();
+        img.src = url;
+        preloadedImages[url] = img;
+      });
+    };
+
+    // 2. Open Gallery
+    (window as any).openLPGallery = function(
+      urls: string[], startIndex: number, title: string, location: string
+    ) {
+      const page = document.getElementById('lp-gallery-page');
+      if (!page) return;
+
+      const titleEl = document.getElementById('lp-gallery-prop-title');
+      const locEl = document.getElementById('lp-gallery-prop-location');
+      if (titleEl) titleEl.textContent = title || '';
+      if (locEl) locEl.textContent = '📍 ' + (location || '');
+
+      // Build photo list
+      buildGalleryPhotos(urls, startIndex || 0);
+
+      // Update counter
+      const counter = document.getElementById('lp-gallery-counter');
+      if (counter) counter.textContent = `${urls.length} Photos`;
+
+      // Update end count
+      const endCount = document.getElementById('lp-gallery-end-count');
+      if (endCount) endCount.textContent = `All ${urls.length} photos for this property`;
+
+      // SHOW INSTANTLY
+      page.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+
+      // Scroll to clicked photo instantly
+      requestAnimationFrame(() => {
+        const target = document.getElementById('lp-gphoto-' + (startIndex || 0));
+        if (target) {
+          target.scrollIntoView({ 
+            behavior: 'auto',
+            block: 'start' 
+          });
+        }
+      });
+    };
+
+    // ── BUILD PHOTO LIST ──
+    function buildGalleryPhotos(urls: string[], startIndex: number) {
+      const container = document.getElementById('lp-gallery-photos');
+      if (!container) return;
+
+      container.innerHTML = urls.map((url, i) => `
+        <div id="lp-gphoto-${i}" 
+             class="lp-gallery-item"
+             style="
+               border-bottom: 1px solid #F3F4F6;
+               background: #ffffff;
+               position: relative;
+             ">
+
+          <!-- Photo number badge -->
+          <div style="
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: rgba(0,0,0,0.55);
+            color: white;
+            font: 600 12px Plus Jakarta Sans, sans-serif;
+            padding: 4px 10px;
+            border-radius: 20px;
+            z-index: 2;
+            backdrop-filter: blur(4px);
+          ">${i + 1} / ${urls.length}</div>
+
+          <!-- The photo -->
+          <img
+            src="${i === startIndex ? url : ''}"
+            data-src="${url}"
+            alt="Property Photo ${i + 1}"
+            loading="${i === startIndex ? 'eager' : 'lazy'}"
+            style="
+              width: 100%;
+              max-height: 92vh;
+              object-fit: contain;
+              display: block;
+              background: #F8F9FA;
+            "
+            onload="this.style.background='transparent'"
+          />
+
+          <!-- Download this photo -->
+          <div style="
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            z-index: 2;
+          ">
+            <a href="${url}" download
+               onclick="event.stopPropagation()"
+               style="
+                 display: inline-flex;
+                 align-items: center;
+                 gap: 5px;
+                 background: rgba(0,0,0,0.55);
+                 color: white;
+                 padding: 6px 12px;
+                 border-radius: 8px;
+                 font: 600 12px Plus Jakarta Sans, sans-serif;
+                 text-decoration: none;
+                 backdrop-filter: blur(4px);
+               "
+            >
+              <svg width="13" height="13"
+                   viewBox="0 0 24 24" fill="none"
+                   stroke="white" stroke-width="2.5">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+              </svg>
+              Save
+            </a>
+          </div>
+
+        </div>
+      `).join('');
+
+      // Lazy load remaining images using IntersectionObserver
+      setupLazyLoad();
+    }
+
+    // ── LAZY LOAD WITH INTERSECTION OBSERVER ──
+    function setupLazyLoad() {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const img = entry.target as HTMLImageElement;
+              const src = img.dataset.src;
+              if (src && img.src !== src) {
+                img.src = src;
+                img.removeAttribute('data-src');
+                observer.unobserve(img);
+              }
+            }
+          });
+        },
+        { 
+          rootMargin: '400px 0px',
+          threshold: 0
+        }
+      );
+
+      document.querySelectorAll('.lp-gallery-item img[data-src]').forEach(img => observer.observe(img));
+    }
+
+    // ── CLOSE GALLERY ──
+    (window as any).closeLPGallery = function() {
+      const page = document.getElementById('lp-gallery-page');
+      if (page) {
+        page.style.display = 'none';
+        page.scrollTop = 0;
+      }
+      document.body.style.overflow = '';
+    };
+
+    // Keyboard ESC
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const page = document.getElementById('lp-gallery-page');
+      if (page && page.style.display !== 'none' && e.key === 'Escape') {
+        (window as any).closeLPGallery();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
+    // Scroll tracking for active download URL and active counter
+    const handleScroll = () => {
+      const page = document.getElementById('lp-gallery-page');
+      if (!page || page.style.display === 'none') return;
+      const items = page.querySelectorAll('.lp-gallery-item');
+      let minDiff = Infinity;
+      let currentIndex = 0;
+      items.forEach((item, idx) => {
+        const rect = item.getBoundingClientRect();
+        const diff = Math.abs(rect.top);
+        if (diff < minDiff) {
+          minDiff = diff;
+          currentIndex = idx;
+        }
+      });
+
+      const counter = document.getElementById('lp-gallery-counter');
+      if (counter) {
+        counter.textContent = `${currentIndex + 1} / ${items.length} Photos`;
+      }
+
+      const downloadLink = document.getElementById('lp-gallery-download') as HTMLAnchorElement;
+      if (downloadLink) {
+        const activeImg = items[currentIndex]?.querySelector('img') as HTMLImageElement;
+        const currentSrc = activeImg?.src || activeImg?.dataset?.src || '';
+        if (currentSrc) {
+          downloadLink.href = currentSrc;
+        }
+      }
+    };
+
+    const galleryPage = document.getElementById('lp-gallery-page');
+    if (galleryPage) {
+      galleryPage.addEventListener('scroll', handleScroll, { passive: true });
+    }
+
+    // Swipe down to close (mobile)
+    let touchStartY = 0;
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    };
+    const handleTouchEnd = (e: TouchEvent) => {
+      const diff = e.changedTouches[0].clientY - touchStartY;
+      if (diff > 80 && galleryPage && galleryPage.scrollTop < 10) {
+        (window as any).closeLPGallery();
+      }
+    };
+
+    if (galleryPage) {
+      galleryPage.addEventListener('touchstart', handleTouchStart, { passive: true });
+      galleryPage.addEventListener('touchend', handleTouchEnd, { passive: true });
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      if (galleryPage) {
+        galleryPage.removeEventListener('scroll', handleScroll);
+        galleryPage.removeEventListener('touchstart', handleTouchStart);
+        galleryPage.removeEventListener('touchend', handleTouchEnd);
+      }
+    };
+  }, []);
+
+  // Preload and connect when property loads
+  useEffect(() => {
+    if (!property) return;
+    const allUrls = images;
+    const propTitle = property.title || property.listing_title || 'Property';
+    const propLocation = [property.city, property.district].filter(Boolean).join(', ');
+
+    if ((window as any).preloadGalleryImages) {
+      (window as any).preloadGalleryImages(allUrls);
+    }
+
+    const backBtn = document.getElementById('lp-gallery-back');
+    if (backBtn) {
+      const handler = () => {
+        if ((window as any).closeLPGallery) {
+          (window as any).closeLPGallery();
+        }
+      };
+      backBtn.addEventListener('click', handler);
+      return () => {
+        backBtn.removeEventListener('click', handler);
+      };
+    }
+  }, [property, images]);
+
   if (loading) {
     return <PropertyDetailSkeleton />;
   }
@@ -565,7 +886,6 @@ export const PropertyDetail = ({
     );
   }
 
-  const images = getPropertyImagesList(property.images);
   const converted = convertPrice(property.price_lkr || property.price);
 
   // Compute Google Maps URLs dynamically
@@ -604,17 +924,395 @@ export const PropertyDetail = ({
   const truncatedDesc = hasLongDesc ? descWords.slice(0, 300).join(' ') + '...' : fullDesc;
   const activeDescText = showOriginal ? (isDescriptionExpanded ? fullDesc : truncatedDesc) : (translatedDesc || '');
 
-  // Calculate dynamic features table
-  const specRows = [
-    { label: 'Listing Type', value: property.listing_type || 'For Rent', icon: '🏷️' },
-    { label: 'Property Type', value: property.property_type || property.property_category || 'Commercial Building', icon: '🏢' },
-    { label: 'Floor Area', value: property.floor_area || property.size || '7,500 Sq.ft', icon: '📐' },
-    { label: 'Total Floors', value: property.floors || '4', icon: '🏗️' },
-    { label: 'Monthly Rent', value: `Rs. ${(property.price_lkr || property.price || 1500000).toLocaleString()}`, icon: '💰' },
-    { label: 'Negotiable', value: property.is_negotiable ? 'Yes' : 'No', icon: '🤝' },
-    { label: 'Available From', value: property.available_from || 'Immediately', icon: '📅' },
-    { label: 'Condition', value: property.condition || 'Good', icon: '📋' }
-  ];
+  // Get amenity-specific icons dynamically with support for all variations
+  const getAmenityIcon = (amenityName: string): string => {
+    const iconMap: Record<string, string> = {
+      'Air Conditioning':       '❄️',
+      'Fully Air Conditioned':  '❄️',
+      'AC':                     '❄️',
+      'Parking / Garage':       '🚗',
+      'Parking Space':          '🚗',
+      'Double Parking Port':    '🚗',
+      'Open Parking':           '🚗',
+      'Covered Parking':        '🚗',
+      'Swimming Pool':          '🏊',
+      'Private Pool':           '🏊',
+      'Gymnasium':              '🏋️',
+      'Gym Access':             '🏋️',
+      'Gym':                    '🏋️',
+      'Garden':                 '🌿',
+      'Private Landscaped Garden': '🌿',
+      'Private Garden':         '🌿',
+      'Generator':              '⚡',
+      'Backup Generator':       '⚡',
+      'Backup Generator System': '⚡',
+      'Water Tank':             '💧',
+      'Solar Panels':           '☀️',
+      'Solar Power':            '☀️',
+      'Solar Power Energy':     '☀️',
+      'Security System / CCTV': '📷',
+      '24 Hours CCTV & Security': '📷',
+      '24-Hour CCTV':           '📷',
+      'CCTV':                   '📷',
+      'Intercom':               '🔔',
+      'Elevator / Lift':        '🛗',
+      'Elevator/Lift':          '🛗',
+      'Club House':             '🏛️',
+      "Children's Play Area":   '🎠',
+      'City Water Supply':      '🚰',
+      'Borehole / Well':        '⛏️',
+      'Borehole/Well Water':    '⛏️',
+      'Broadband Internet':     '🌐',
+      'Fiber Internet Ready':   '🌐',
+      'Fiber Internet':         '🌐',
+      'High-Speed Wifi':        '🌐',
+      'Cable TV':               '📺',
+      'Smart TV':               '📺',
+      'Furnished':              '🛋️',
+      'Fully Furnished':        '🛋️',
+      'Semi Furnished':         '🪑',
+      'Balcony':                '🏡',
+      'Terrace':                '🌄',
+      'Generous Rooftop Terrace': '🌄',
+      'Rooftop Terrace':        '🌄',
+      'Store Room':             '📦',
+      "Servant's Quarters":     '🏠',
+      'Maids Quarters':         '🏠',
+      'Pet Friendly':           '🐾',
+      'BBQ Area':               '🔥',
+      'Outdoor Kitchen':        '🍳',
+      'Modern Kitchen':         '🍳',
+      'Laundry Room':           '🫧',
+      'Hot Water System':       '💧',
+      'Hot Water':              '💧',
+      '24/7 Security':          '🛡️',
+      'Security':               '🛡️',
+      'Security Guards':        '🛡️',
+      'Electric Fence':         '⚡',
+      'Gated Community':        '🏡',
+      'Alarm System':           '🚨',
+      'Three-Phase Electricity': '⚡',
+      'Sports Court':           '🏀',
+      'Near Main Road':         '🛣️',
+      'Near Highway':           '🛣️',
+      'Near School':            '🏫',
+      'Near Hospital':          '🏥',
+      'Near Shopping':          '🛒',
+      'Near Beach':             '🏖️',
+      'Sea View':               '🌊',
+      'Mountain View':          '⛰️',
+      'City View':              '🏙️',
+      'Clear Title Deed':       '📄',
+      'Survey Plan Ready':      '🗺️',
+      'No Legal Issues':        '⚖️',
+      'Undivided Property':     '🏢',
+      'Condominium Title':      '🏢',
+      'Roller Shutter Gate':    '🚧',
+    };
+
+    const trimmed = amenityName.trim();
+    if (iconMap[trimmed]) return iconMap[trimmed];
+    
+    const matchedKey = Object.keys(iconMap).find(
+      key => key.toLowerCase() === trimmed.toLowerCase()
+    );
+    if (matchedKey) return iconMap[matchedKey];
+
+    const matchedSubstringKey = Object.keys(iconMap).find(
+      key => trimmed.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(trimmed.toLowerCase())
+    );
+    if (matchedSubstringKey) return iconMap[matchedSubstringKey];
+
+    return '✅';
+  };
+
+  // Extract ONLY real amenities saved in the database
+  const getDetectedAmenities = () => {
+    let list: string[] = [];
+
+    // Format A: Array column
+    if (Array.isArray(property.amenities)) {
+      list = [...property.amenities];
+    }
+    // Format B: JSON column / object
+    else if (typeof property.amenities === 'object' && property.amenities !== null) {
+      const labelMap: Record<string, string> = {
+        air_conditioning:   'Air Conditioning',
+        parking:            'Parking / Garage',
+        swimming_pool:      'Swimming Pool',
+        garden:             'Garden',
+        generator:          'Generator',
+        water_tank:         'Water Tank',
+        solar_panel:        'Solar Panels',
+        security_system:    'Security System / CCTV',
+        intercom:           'Intercom',
+        elevator:           'Elevator / Lift',
+        gym:                'Gym',
+        club_house:         'Club House',
+        play_area:          'Children\'s Play Area',
+        city_water:         'City Water Supply',
+        borehole:           'Borehole / Well',
+        septic_tank:        'Septic Tank',
+        main_sewerage:      'Main Sewerage',
+        broadband:          'Broadband Internet',
+        cable_tv:           'Cable TV',
+        furnished:          'Furnished',
+        semi_furnished:     'Semi Furnished',
+        balcony:            'Balcony',
+        terrace:            'Terrace',
+        store_room:         'Store Room',
+        servant_room:       'Servant\'s Quarters',
+        laundry_room:       'Laundry Room',
+        outdoor_kitchen:    'Outdoor Kitchen',
+        bbq_area:           'BBQ Area',
+        pet_friendly:       'Pet Friendly',
+      };
+      Object.entries(property.amenities).forEach(([key, val]) => {
+        if (val === true || val === 1 || val === 'true' || val === 'yes') {
+          const label = labelMap[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          list.push(label);
+        }
+      });
+    }
+
+    // Format C: Separate boolean columns
+    const booleanFields: Record<string, string> = {
+      has_garden: 'Private Garden',
+      has_pool: 'Swimming Pool',
+    };
+    Object.entries(booleanFields).forEach(([field, label]) => {
+      if (property[field] === true || property[field] === 1 || property[field] === 'true') {
+        if (!list.includes(label)) {
+          list.push(label);
+        }
+      }
+    });
+
+    // Handle parking space column
+    if (property.parking_spaces && Number(property.parking_spaces) > 0) {
+      if (!list.includes('Parking / Garage') && !list.includes('Parking Space') && !list.includes('Double Parking Port') && !list.includes('Open Parking') && !list.includes('Covered Parking')) {
+        list.push('Parking / Garage');
+      }
+    }
+
+    // Format D: Parse from comma-separated additional_info (which is how selectedAmenities are saved)
+    const addInfo = property.additional_info || property.additional_information;
+    if (typeof addInfo === 'string' && addInfo.trim() !== '') {
+      const parts = addInfo.split(',').map(p => p.trim()).filter(Boolean);
+      const isAmenitiesList = parts.every(p => p.length < 40) && parts.length > 0;
+      
+      if (isAmenitiesList) {
+        parts.forEach(part => {
+          const alreadyInList = list.some(existing => existing.toLowerCase() === part.toLowerCase());
+          if (!alreadyInList) {
+            list.push(part);
+          }
+        });
+      } else {
+        // Scan text block for known amenity words
+        const knownAmenities = [
+          "Air Conditioning", "Hot Water System", "Fully Air Conditioned", "Elevator/Lift", "Built-in Wardrobes", "Modern Kitchen",
+          "24-Hour CCTV", "Security Guards", "Electric Fence", "Gated Community", "Alarm System", "Intercom",
+          "Solar Power", "Backup Generator", "Three-Phase Electricity", "Borehole/Well Water", "City Water Supply", "Fiber Internet Ready",
+          "Swimming Pool", "Private Garden", "Rooftop Terrace", "BBQ Area", "Children's Play Area", "Sports Court",
+          "Garage (Single)", "Garage (Double)", "Open Parking", "Covered Parking", "Parking Area", "Parking / Garage", "24/7 Security"
+        ];
+        
+        const textLower = addInfo.toLowerCase();
+        knownAmenities.forEach(amenity => {
+          if (textLower.includes(amenity.toLowerCase())) {
+            const alreadyInList = list.some(existing => existing.toLowerCase() === amenity.toLowerCase());
+            if (!alreadyInList) {
+              list.push(amenity);
+            }
+          }
+        });
+      }
+    }
+
+    // Unique filter
+    const uniqueList: string[] = [];
+    const seen = new Set<string>();
+    list.forEach(item => {
+      const key = item.toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueList.push(item);
+      }
+    });
+
+    return uniqueList;
+  };
+
+  const detectedAmenities = getDetectedAmenities();
+
+  // Dynamic Features & Specs Table with real data from Supabase, hiding empty/null fields
+  const getDynamicSpecRows = () => {
+    const rows = [];
+
+    // Listing Type
+    if (property.listing_type) {
+      rows.push({
+        label: 'Listing Type',
+        icon: '🏷️',
+        value: property.listing_type === 'Rent' || property.listing_type === 'FOR RENT' ? 'For Rent' : property.listing_type === 'Sale' || property.listing_type === 'FOR SALE' ? 'For Sale' : property.listing_type
+      });
+    }
+
+    // Property Type
+    const propType = property.property_type || property.property_category || property.category;
+    if (propType) {
+      rows.push({
+        label: 'Property Type',
+        icon: '🏢',
+        value: propType
+      });
+    }
+
+    // Land Size
+    const landSizeVal = property.land_area || property.land_size;
+    if (landSizeVal && String(landSizeVal).trim() !== '' && String(landSizeVal) !== '0') {
+      const landUnitStr = property.land_unit || property.land_unit_type || 'Perches';
+      rows.push({
+        label: 'Land Size',
+        icon: '📐',
+        value: `${landSizeVal} ${landUnitStr}`
+      });
+    }
+
+    // Floor Area
+    const floorAreaVal = property.floor_area || property.floor_area_sqft || property.size;
+    if (floorAreaVal && String(floorAreaVal).trim() !== '' && String(floorAreaVal) !== '0') {
+      const displayArea = String(floorAreaVal).toLowerCase().includes('sq') ? floorAreaVal : `${floorAreaVal} sqft`;
+      rows.push({
+        label: 'Floor Area',
+        icon: '📏',
+        value: displayArea
+      });
+    }
+
+    // Bedrooms
+    const bedroomsVal = property.bedrooms || property.rooms;
+    if (bedroomsVal && Number(bedroomsVal) > 0) {
+      rows.push({
+        label: 'Bedrooms',
+        icon: '🛏️',
+        value: `${bedroomsVal} Bed${Number(bedroomsVal) > 1 ? 's' : ''}`
+      });
+    }
+
+    // Bathrooms
+    const bathroomsVal = property.bathrooms;
+    if (bathroomsVal && Number(bathroomsVal) > 0) {
+      rows.push({
+        label: 'Bathrooms',
+        icon: '🚿',
+        value: `${bathroomsVal} Bath${Number(bathroomsVal) > 1 ? 's' : ''}`
+      });
+    }
+
+    // Price
+    const priceVal = property.price_lkr || property.price;
+    if (priceVal && Number(priceVal) > 0) {
+      const isRent = String(property.listing_type).toLowerCase().includes('rent');
+      rows.push({
+        label: isRent ? 'Monthly Rent' : 'Sale Price',
+        icon: '💰',
+        value: `Rs. ${Number(priceVal).toLocaleString()}`
+      });
+    }
+
+    // Total Floors
+    if (property.floors && Number(property.floors) > 0) {
+      rows.push({
+        label: 'Total Floors',
+        icon: '🏗️',
+        value: String(property.floors)
+      });
+    }
+
+    // Year Built
+    if (property.year_built && String(property.year_built).trim() !== '' && String(property.year_built) !== '0') {
+      rows.push({
+        label: 'Year Built',
+        icon: '🏗️',
+        value: String(property.year_built)
+      });
+    }
+
+    // Parking Slots
+    const parkingVal = property.parking_slots || property.parking_spaces;
+    if (parkingVal && Number(parkingVal) > 0) {
+      rows.push({
+        label: 'Parking',
+        icon: '🚗',
+        value: `${parkingVal} Vehicle${Number(parkingVal) > 1 ? 's' : ''}`
+      });
+    }
+
+    // Furnishing Status
+    if (property.furnishing_status && String(property.furnishing_status).trim() !== '' && String(property.furnishing_status) !== 'null') {
+      rows.push({
+        label: 'Furnishing',
+        icon: '🛋️',
+        value: property.furnishing_status
+      });
+    }
+
+    // Negotiable
+    if (property.is_negotiable !== undefined && property.is_negotiable !== null) {
+      rows.push({
+        label: 'Negotiable',
+        icon: '🤝',
+        value: property.is_negotiable ? 'Yes' : 'No'
+      });
+    }
+
+    // Available From
+    if (property.available_from && String(property.available_from).trim() !== '') {
+      let dateStr = property.available_from;
+      try {
+        const d = new Date(property.available_from);
+        if (!isNaN(d.getTime())) {
+          dateStr = d.toLocaleDateString('en-LK', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          });
+        }
+      } catch (e) {
+        // use raw string
+      }
+      rows.push({
+        label: 'Available From',
+        icon: '📅',
+        value: dateStr
+      });
+    }
+
+    // Land Type
+    const landTypeVal = property.land_type || property.zoning;
+    if (landTypeVal && String(landTypeVal).trim() !== '') {
+      rows.push({
+        label: 'Land Type',
+        icon: '🌱',
+        value: landTypeVal
+      });
+    }
+
+    // Title Type
+    if (property.title_type && String(property.title_type).trim() !== '') {
+      rows.push({
+        label: 'Title Type',
+        icon: '📋',
+        value: property.title_type
+      });
+    }
+
+    return rows;
+  };
+
+  const specRows = getDynamicSpecRows();
 
   // Dynamic Category Highlights Cards
   const getHighlightsList = () => {
@@ -635,35 +1333,6 @@ export const PropertyDetail = ({
     ];
   };
 
-  // Safe search terms check for amenities
-  const getDetectedAmenities = () => {
-    const defaultCommercial = ["Air Conditioning", "Parking/Garage", "24-Hour CCTV", "Generator", "3-Phase Electricity", "City Water Supply", "Fiber Internet"];
-    const defaultResidential = ["Air Conditioning", "Parking/Garage", "24-Hour CCTV", "City Water Supply", "Fiber Internet", "Hot Water", "Security"];
-    const defaultLand = ["3-Phase Electricity", "City Water Supply", "Clear Deeds", "Boundary Wall", "Wide Access Road"];
-
-    const infoStr = `${property.additional_info || ''} ${fullDesc}`.toLowerCase();
-    const standardList = [
-      { label: "Air Conditioning", terms: ["ac", "air condition", "air-conditioning", "air conditioning"] },
-      { label: "Parking/Garage", terms: ["parking", "garage", "car park", "vehicle park"] },
-      { label: "24-Hour CCTV", terms: ["cctv", "camera", "surveillance"] },
-      { label: "Generator", terms: ["generator", "power backup", "gen-set"] },
-      { label: "Solar Power", terms: ["solar"] },
-      { label: "City Water Supply", terms: ["water", "tap line", "city water"] },
-      { label: "Fiber Internet", terms: ["internet", "fiber", "wifi", "wi-fi"] },
-      { label: "3-Phase Electricity", terms: ["3-phase", "3 phase", "electricity"] }
-    ];
-
-    const matched = standardList.filter(item => item.terms.some(term => infoStr.includes(term))).map(i => i.label);
-    if (matched.length > 0) return matched;
-    
-    const cat = String(property.property_category || '').toLowerCase();
-    if (cat === 'land') return defaultLand;
-    if (cat.includes('commercial') || cat.includes('office') || cat.includes('building')) return defaultCommercial;
-    return defaultResidential;
-  };
-
-  const detectedAmenities = getDetectedAmenities();
-
   return (
     <div className="min-h-screen bg-[#f8f9fa] font-sans text-gray-900 pb-24 [perspective:1200px]">
       <div className="max-w-[1100px] mx-auto px-4 sm:px-6 pt-6 space-y-4">
@@ -672,8 +1341,16 @@ export const PropertyDetail = ({
         <div className="hidden md:flex gap-2 h-[460px] w-full relative rounded-2xl overflow-hidden shadow-sm">
           {/* Main Photo (60%) */}
           <div 
-            onClick={() => { setLightboxOpen(true); setActiveImageIndex(0); }}
-            className="w-[60%] h-full overflow-hidden cursor-zoom-in relative group"
+            id="gallery-main"
+            onClick={() => {
+              if ((window as any).openLPGallery) {
+                const propTitle = property.title || property.listing_title || 'Property';
+                const propLocation = [property.city, property.district].filter(Boolean).join(', ');
+                (window as any).openLPGallery(images, 0, propTitle, propLocation);
+              }
+            }}
+            className="w-[60%] h-full overflow-hidden cursor-pointer relative group"
+            style={{ cursor: 'pointer' }}
           >
             <img 
               src={getOptimizedImageUrl(images[0], 'main')} 
@@ -686,7 +1363,15 @@ export const PropertyDetail = ({
             
             {/* View All pill button */}
             <button 
-              onClick={(e) => { e.stopPropagation(); setLightboxOpen(true); }}
+              id="view-all-photos"
+              onClick={(e) => {
+                e.stopPropagation();
+                if ((window as any).openLPGallery) {
+                  const propTitle = property.title || property.listing_title || 'Property';
+                  const propLocation = [property.city, property.district].filter(Boolean).join(', ');
+                  (window as any).openLPGallery(images, 0, propTitle, propLocation);
+                }
+              }}
               className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-md hover:bg-white text-gray-900 font-bold px-4 py-2 rounded-full text-xs shadow-[0_2px_8px_rgba(0,0,0,0.2)] flex items-center gap-1.5 z-10 transition-all hover:scale-105 cursor-pointer"
             >
               <span>📷</span> View All {images.length} Photos
@@ -701,8 +1386,15 @@ export const PropertyDetail = ({
               return (
                 <div 
                   key={idx}
-                  onClick={() => { if (hasImage) { setLightboxOpen(true); setActiveImageIndex(idx); } }}
-                  className={`relative overflow-hidden h-full ${hasImage ? 'cursor-zoom-in' : 'bg-gray-100'} group`}
+                  onClick={() => {
+                    if (hasImage && (window as any).openLPGallery) {
+                      const propTitle = property.title || property.listing_title || 'Property';
+                      const propLocation = [property.city, property.district].filter(Boolean).join(', ');
+                      (window as any).openLPGallery(images, idx, propTitle, propLocation);
+                    }
+                  }}
+                  className={`gallery-thumb relative overflow-hidden h-full ${hasImage ? 'cursor-pointer' : 'bg-gray-100'} group`}
+                  style={{ cursor: hasImage ? 'pointer' : 'default' }}
                 >
                   {hasImage ? (
                     <>
@@ -714,7 +1406,11 @@ export const PropertyDetail = ({
                         alt={`Thumbnail ${idx}`} 
                       />
                       {isLast && images.length > 5 && (
-                        <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white z-10">
+                        <div 
+                          id="more-photos-btn"
+                          className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white z-10 cursor-pointer"
+                          style={{ cursor: 'pointer' }}
+                        >
                           <span className="text-xl font-black">📷 +{images.length - 5}</span>
                           <span className="text-[10px] font-bold tracking-wide uppercase mt-1">More Photos</span>
                         </div>
@@ -740,7 +1436,13 @@ export const PropertyDetail = ({
             {images.map((img: string, idx: number) => (
               <div 
                 key={idx} 
-                onClick={() => { setLightboxOpen(true); setActiveImageIndex(idx); }}
+                onClick={() => {
+                  if ((window as any).openLPGallery) {
+                    const propTitle = property.title || property.listing_title || 'Property';
+                    const propLocation = [property.city, property.district].filter(Boolean).join(', ');
+                    (window as any).openLPGallery(images, idx, propTitle, propLocation);
+                  }
+                }}
                 className="w-full h-full shrink-0 snap-center relative cursor-pointer"
               >
                 <img 
@@ -1017,14 +1719,20 @@ export const PropertyDetail = ({
             </div>
 
             <div className="flex flex-wrap gap-2.5">
-              {detectedAmenities.map((amenity, idx) => (
-                <span 
-                  key={idx} 
-                  className="flex items-center gap-1.5 bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0] rounded-full px-4 py-1.5 text-[13px] font-medium"
-                >
-                  <span>✅</span> {amenity}
-                </span>
-              ))}
+              {detectedAmenities.length > 0 ? (
+                detectedAmenities.map((amenity, idx) => (
+                  <span 
+                    key={idx} 
+                    className="flex items-center gap-1.5 bg-[#f0fdf4] text-[#1A5E2A] border border-[#bbf7d0] rounded-full px-4 py-1.5 text-[13px] font-medium transition-all duration-200 hover:scale-105"
+                  >
+                    <span>{getAmenityIcon(amenity)}</span> {amenity}
+                  </span>
+                ))
+              ) : (
+                <div className="w-full text-center py-6 text-[#9CA3AF] font-medium text-sm">
+                  No amenities listed for this property.
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -1308,94 +2016,193 @@ export const PropertyDetail = ({
         </div>
 
         {/* SECTION 5 — SIMILAR PROPERTIES */}
-        <div ref={similarRef} className="min-h-[50px] w-full">
+        <div ref={similarRef} className="min-h-[50px] w-full" id="similar-properties-section">
           {similarVisible && (
-            similarProperties.length > 0 ? (
+            loadingSimilar ? (
+              <div className="bg-white rounded-[16px] border border-[#e5e7eb] p-6 sm:p-7 shadow-[0_2px_10px_rgba(0,0,0,0.06)]">
+                <style>{`
+                  @keyframes shimmer {
+                    0%   { background-position: -400px 0 }
+                    100% { background-position:  400px 0 }
+                  }
+                  .animate-shimmer {
+                    background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+                    background-size: 400px 100%;
+                    animation: shimmer 1.4s ease infinite;
+                  }
+                `}</style>
+                <div className="h-6 bg-gray-200 rounded w-48 mb-6 animate-pulse" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
+                  {Array(6).fill(null).map((_, idx) => (
+                    <div key={idx} className="bg-white border border-[#E5E7EB] rounded-[14px] overflow-hidden">
+                      <div className="h-[180px] animate-shimmer" />
+                      <div className="p-3.5 space-y-2">
+                        <div className="h-3.5 w-3/5 animate-shimmer rounded-md" />
+                        <div className="h-3 w-[90%] animate-shimmer rounded-md" />
+                        <div className="h-3 w-3/4 animate-shimmer rounded-md" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : similarProperties.length > 0 ? (
               <div className="bg-white rounded-[16px] border border-[#e5e7eb] p-6 sm:p-7 shadow-[0_2px_10px_rgba(0,0,0,0.06)] animate-fade-in">
-                <div className="flex flex-col sm:flex-row items-baseline justify-between gap-4 mb-6">
-                  <h3 className="text-xl font-bold text-[#111827] flex items-center gap-2">
-                    <span>▌</span> Similar Properties in {property.city || 'Nugegoda'}
+                <style>{`
+                  .similar-grid {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 18px;
+                  }
+                  @media (max-width: 768px) {
+                    .similar-grid {
+                      grid-template-columns: repeat(2, 1fr) !important;
+                      gap: 12px !important;
+                    }
+                    .similar-card-image {
+                      height: 140px !important;
+                    }
+                  }
+                  @media (max-width: 480px) {
+                    .similar-grid {
+                      grid-template-columns: 1fr !important;
+                    }
+                  }
+                `}</style>
+
+                {/* Section heading */}
+                <div className="flex justify-between items-center mb-5">
+                  <h3 className="text-[20px] font-bold text-[#111827] border-l-4 border-[#1A5E2A] pl-3" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+                    Similar Properties
                   </h3>
+                  <button 
+                    onClick={onBack}
+                    className="text-[13px] font-bold text-[#1A5E2A] hover:underline cursor-pointer"
+                    style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                  >
+                    View All →
+                  </button>
                 </div>
 
-                <div className="flex overflow-x-auto pb-4 gap-6 scrollbar-none snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible">
+                {/* 3 columns x 2 rows grid */}
+                <div className="similar-grid">
                   {similarProperties.map((prop, idx) => {
                     const cover = getPropertyImage(prop.images);
                     const isSaved = favorites.has(Number(prop.id));
+
+                    // Badge color
+                    const badgeColors: Record<string, { bg: string, text: string }> = {
+                      'For Sale':  { bg: '#CC1414', text: 'white' },
+                      'For Rent':  { bg: '#1565C0', text: 'white' },
+                      'For Lease': { bg: '#E8A000', text: 'white' },
+                    };
+                    const badge = badgeColors[prop.listing_type] || { bg: '#1A5E2A', text: 'white' };
+
+                    // Format price
+                    const priceVal = prop.price_lkr || prop.price;
+                    const priceStr = priceVal
+                      ? `Rs. ${Number(priceVal).toLocaleString('en-LK')}`
+                      : 'Price on Request';
+
+                    // Specs row
+                    const specs = [];
+                    const bedVal = prop.bedrooms || prop.rooms;
+                    if (bedVal && Number(bedVal) > 0) {
+                      specs.push({ icon: '🛏️', text: `${bedVal} Bed` });
+                    }
+                    if (prop.bathrooms && Number(prop.bathrooms) > 0) {
+                      specs.push({ icon: '🚿', text: `${prop.bathrooms} Bath` });
+                    }
+                    const landVal = prop.land_area || prop.land_size;
+                    if (landVal && String(landVal).trim() !== '' && String(landVal) !== '0') {
+                      specs.push({ icon: '📐', text: `${landVal} ${prop.land_unit || 'P'}` });
+                    }
+                    const floorVal = prop.floor_area || prop.size;
+                    if (floorVal && String(floorVal).trim() !== '' && String(floorVal) !== '0' && (!bedVal || Number(bedVal) === 0)) {
+                      specs.push({ icon: '📏', text: `${floorVal} sqft` });
+                    }
+
                     return (
-                      <div 
-                        key={idx}
+                      <div
+                        key={prop.id || idx}
                         onClick={() => onPropertyClick(prop)}
-                        className="shrink-0 w-[280px] md:w-full snap-center bg-white rounded-2xl overflow-hidden border border-[#e5e7eb] shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+                        className="group flex flex-col justify-between bg-white border border-[#E5E7EB] rounded-[14px] overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:border-[#1A5E2A] hover:-translate-y-1 transition-all duration-300 cursor-pointer"
                       >
-                        {/* Cover photo */}
-                        <div className="relative h-[200px] overflow-hidden bg-gray-50">
+                        {/* Property Image */}
+                        <div className="similar-card-image relative h-[180px] overflow-hidden bg-gray-50">
                           <img 
-                            src={getOptimizedImageUrl(cover, 'thumb')} 
+                            src={getOptimizedImageUrl(cover, 'thumb')}
+                            alt={prop.listing_title || prop.title}
                             loading="lazy"
-                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" 
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                             referrerPolicy="no-referrer"
-                            alt={prop.listing_title} 
                           />
-                          <span className="absolute top-3 left-3 bg-red-600 text-white text-[8px] font-black tracking-widest px-2 py-1 rounded">
-                            {String(prop.listing_type || 'Sale').toUpperCase()}
+
+                          {/* Listing Type Badge */}
+                          <span 
+                            className="absolute top-2.5 left-2.5 text-[10px] font-bold tracking-widest px-2 py-1 rounded text-white uppercase"
+                            style={{ backgroundColor: badge.bg, color: badge.text, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                          >
+                            {prop.listing_type || 'For Sale'}
                           </span>
+
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleFavorite(Number(prop.id));
                               toast.success(isSaved ? 'Removed from favorites' : 'Saved to favorites!');
                             }}
-                            className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-md hover:bg-white text-gray-800 rounded-full flex items-center justify-center shadow-md transition-all cursor-pointer"
+                            className="absolute top-2.5 right-2.5 w-8 h-8 bg-white/90 backdrop-blur-md hover:bg-white text-gray-800 rounded-full flex items-center justify-center shadow-md transition-all cursor-pointer"
                           >
                             <Heart size={14} fill={isSaved ? '#dc2626' : 'none'} className={isSaved ? 'text-red-500' : 'text-gray-650'} />
                           </button>
                         </div>
 
-                        {/* Info */}
-                        <div className="p-5 flex-1 flex flex-col justify-between">
-                          <div>
-                            <h4 className="text-gray-900 font-extrabold text-sm line-clamp-2 leading-snug mb-1">
-                              {prop.listing_title}
-                            </h4>
-                            <p className="text-[11px] text-[#6b7280] font-semibold mb-3">
-                              📍 {prop.city}, {prop.district}
-                            </p>
-                          </div>
-
-                          <div>
-                            <p className="text-[#1A5E2A] font-extrabold text-base mb-2">
-                              Rs. {(prop.price_lkr || prop.price || 1500000).toLocaleString()}
-                            </p>
-
-                            <div className="flex items-center justify-between text-[11px] font-bold text-gray-500 border-t border-gray-100 pt-3">
-                              <span className="flex items-center gap-1">🏢 {prop.property_type || prop.property_category || 'Property'}</span>
-                              <span className="flex items-center gap-1">📐 {prop.floor_area || prop.size || '5,550'} sqft</span>
+                        {/* Card Content */}
+                        <div className="p-3.5 flex-1 flex flex-col justify-between" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+                          <div className="space-y-1 mb-2">
+                            {/* Price */}
+                            <div className="font-bold text-base text-[#1A5E2A]">
+                              {priceStr}
                             </div>
+
+                            {/* Title */}
+                            <h4 className="font-semibold text-[13px] text-[#111827] line-clamp-2 leading-snug group-hover:text-[#1A5E2A] transition-colors">
+                              {prop.listing_title || prop.title}
+                            </h4>
+
+                            {/* Location */}
+                            <p className="text-[12px] font-medium text-[#6B7280]">
+                              📍 {[prop.city, prop.district].filter(Boolean).join(', ')}
+                            </p>
                           </div>
+
+                          {/* Specs Row */}
+                          {specs.length > 0 && (
+                            <div className="flex flex-wrap gap-x-3 gap-y-1 pt-2.5 border-t border-[#F3F4F6] text-[12px] font-medium text-[#6B7280]">
+                              {specs.map((spec, sIdx) => (
+                                <span key={sIdx} className="flex items-center gap-1">
+                                  {spec.icon} {spec.text}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
                   })}
                 </div>
-
-                <div className="mt-4 text-right">
-                  <button 
-                    onClick={onBack}
-                    className="text-xs font-extrabold text-[#1A5E2A] hover:underline cursor-pointer"
-                  >
-                    View All Properties in {property.city || 'Nugegoda'} →
-                  </button>
-                </div>
               </div>
             ) : (
-              <div className="bg-white rounded-[16px] border border-[#e5e7eb] p-6 sm:p-7 shadow-[0_2px_10px_rgba(0,0,0,0.06)] skeleton-pulse">
-                <div className="h-6 bg-gray-200 rounded w-48 mb-6 animate-pulse" />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="h-64 bg-gray-100 rounded-2xl flex items-center justify-center text-xs font-bold text-gray-400">Loading Similar...</div>
-                  <div className="h-64 bg-gray-100 rounded-2xl flex items-center justify-center text-xs font-bold text-gray-400">Loading Similar...</div>
-                  <div className="h-64 bg-gray-100 rounded-2xl flex items-center justify-center text-xs font-bold text-gray-400">Loading Similar...</div>
-                </div>
+              <div 
+                style={{
+                  textAlign: 'center',
+                  padding: '40px 20px',
+                  color: '#9CA3AF',
+                  font: '500 14px Plus Jakarta Sans, sans-serif'
+                }}
+                className="bg-white rounded-[16px] border border-[#e5e7eb] shadow-[0_2px_10px_rgba(0,0,0,0.06)]"
+              >
+                No similar properties found at this time.
               </div>
             )
           )}
@@ -1614,6 +2421,195 @@ export const PropertyDetail = ({
           </div>
         )}
       </AnimatePresence>
+
+      {/* STEP 1 — FULL PAGE PHOTO GALLERY */}
+      <div id="lp-gallery-page" style={{
+        display: 'none',
+        position: 'fixed',
+        inset: 0,
+        background: '#ffffff',
+        zIndex: 99999,
+        overflowY: 'auto',
+        overscrollBehavior: 'contain',
+        WebkitOverflowScrolling: 'touch',
+      }}>
+
+        {/* ── TOP BAR ── */}
+        <div id="lp-gallery-topbar" style={{
+          position: 'sticky',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '56px',
+          background: '#ffffff',
+          borderBottom: '1px solid #E5E7EB',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 20px',
+          zIndex: 10,
+          boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+        }}>
+          {/* Back button */}
+          <button id="lp-gallery-back" style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'none',
+            border: 'none',
+            font: '600 15px Plus Jakarta Sans, sans-serif',
+            color: '#111827',
+            cursor: 'pointer',
+            padding: '8px 0',
+          }}>
+            <svg width="20" height="20" 
+                 viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" strokeWidth="2.5">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Back to Property
+          </button>
+
+          {/* Photo counter */}
+          <span id="lp-gallery-counter" style={{
+            font: '600 14px Plus Jakarta Sans, sans-serif',
+            color: '#6B7280',
+          }}>12 Photos</span>
+
+          {/* Download current photo */}
+          <a id="lp-gallery-download" 
+             href="#" download
+             style={{
+               display: 'inline-flex',
+               alignItems: 'center',
+               gap: '6px',
+               background: 'none',
+               border: '1px solid #E5E7EB',
+               borderRadius: '8px',
+               padding: '7px 14px',
+               font: '600 13px Plus Jakarta Sans, sans-serif',
+               color: '#374151',
+               textDecoration: 'none',
+               cursor: 'pointer',
+             }}
+          >
+            <svg width="15" height="15" 
+                 viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            Save
+          </a>
+        </div>
+
+        {/* ── PROPERTY TITLE BAR ── */}
+        <div id="lp-gallery-title" style={{
+          padding: '14px 20px',
+          borderBottom: '1px solid #F3F4F6',
+          background: '#FAFAFA',
+        }}>
+          <div style={{
+            font: '700 16px Plus Jakarta Sans, sans-serif',
+            color: '#111827',
+            marginBottom: '2px',
+          }} id="lp-gallery-prop-title"></div>
+          <div style={{
+            font: '500 13px Plus Jakarta Sans, sans-serif',
+            color: '#6B7280',
+          }} id="lp-gallery-prop-location">📍</div>
+        </div>
+
+        {/* ── PHOTOS SCROLL AREA ── */}
+        <div id="lp-gallery-photos" style={{
+          padding: 0,
+        }}>
+          {/* Photos injected here by JavaScript */}
+        </div>
+
+        {/* ── BOTTOM SUMMARY ── */}
+        <div style={{
+          padding: '24px 20px 40px',
+          textAlign: 'center',
+          borderTop: '1px solid #F3F4F6',
+          background: '#FAFAFA',
+        }}>
+          <div style={{
+            font: '500 13px Plus Jakarta Sans, sans-serif',
+            color: '#9CA3AF',
+            marginBottom: '16px',
+          }} id="lp-gallery-end-count"></div>
+          <button onClick={() => (window as any).closeLPGallery?.()} style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '12px 24px',
+            background: '#1A5E2A',
+            color: 'white',
+            border: 'none',
+            borderRadius: '10px',
+            font: '600 14px Plus Jakarta Sans, sans-serif',
+            cursor: 'pointer',
+          }}>
+            ← Back to Property Details
+          </button>
+        </div>
+
+      </div>
+
+      {/* CSS POLISH STYLE BLOCK */}
+      <style>{`
+        /* Gallery page entrance animation */
+        #lp-gallery-page {
+          animation: none; /* no animation = instant */
+        }
+
+        /* Photo hover effect on gallery grid */
+        .lp-gallery-item img {
+          transition: none; /* no transition = instant */
+        }
+
+        /* Top bar shadow on scroll */
+        #lp-gallery-topbar {
+          transition: box-shadow 0.2s;
+        }
+
+        /* Back button hover */
+        #lp-gallery-back:hover {
+          color: #1A5E2A;
+        }
+
+        /* Mobile: full screen photos */
+        @media (max-width: 768px) {
+          .lp-gallery-item img {
+            max-height: 60vh !important;
+            object-fit: cover !important;
+            width: 100% !important;
+          }
+
+          /* Hint: swipe down to close */
+          #lp-gallery-topbar::after {
+            content: 'Swipe down to close';
+            font: 500 11px Plus Jakarta Sans, sans-serif;
+            color: #9CA3AF;
+            margin-left: auto;
+            margin-right: 12px;
+          }
+        }
+
+        /* Desktop: center images nicely */
+        @media (min-width: 769px) {
+          .lp-gallery-item {
+            max-width: 900px;
+            margin: 0 auto;
+            border-left: 1px solid #F3F4F6;
+            border-right: 1px solid #F3F4F6;
+          }
+
+          .lp-gallery-item img {
+            max-height: 85vh !important;
+          }
+        }
+      `}</style>
 
     </div>
   );

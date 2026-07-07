@@ -6,14 +6,26 @@ import { AppErrorBoundary } from './components/AppErrorBoundary.tsx';
 
 // Suppress Vite HMR WebSocket errors in development/hosted environments
 window.addEventListener('error', (e) => {
-  if (e.message?.includes('WebSocket') || e.message?.includes('ws://') || e.message?.includes('wss://')) {
+  const msg = String(e.message || '');
+  if (
+    msg.includes('WebSocket') || 
+    msg.includes('ws://') || 
+    msg.includes('wss://') ||
+    msg.includes('closed without opened')
+  ) {
     e.preventDefault();
     e.stopPropagation();
   }
 });
 
 window.addEventListener('unhandledrejection', (e) => {
-  if (e.reason?.message?.includes('WebSocket') || e.reason?.message?.includes('ws://') || e.reason?.message?.includes('wss://')) {
+  const reasonStr = String(e.reason?.message || e.reason || '');
+  if (
+    reasonStr.includes('WebSocket') || 
+    reasonStr.includes('ws://') || 
+    reasonStr.includes('wss://') ||
+    reasonStr.includes('closed without opened')
+  ) {
     e.preventDefault();
   }
 });
