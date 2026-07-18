@@ -1,3 +1,4 @@
+import { safeLocalStorage } from '../utils/safeUtils';
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, ShieldCheck, ArrowRight, Home, Users } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -69,16 +70,16 @@ export const AgentLoginPage: React.FC<AgentLoginPageProps> = ({
           setIsSubmitting(false);
           toast.success(`Welcome back, ${demoMatch.name}! Authenticated successfully.`);
           
-          // Save login info in localStorage
-          localStorage.setItem('agent_logged_in', 'true');
-          localStorage.setItem('agent_user_id', demoMatch.id);
-          localStorage.setItem('agent_name', demoMatch.name);
-          localStorage.setItem('agent_email', demoMatch.email);
-          localStorage.setItem('agent_phone', demoMatch.phone);
-          localStorage.setItem('agent_agency', demoMatch.agency);
-          localStorage.setItem('agent_image', demoMatch.image);
-          localStorage.setItem('agent_is_verified', String(demoMatch.is_verified));
-          localStorage.setItem('user_role', 'agent');
+          // Save login info in safeLocalStorage
+          safeLocalStorage.setItem('agent_logged_in', 'true');
+          safeLocalStorage.setItem('agent_user_id', demoMatch.id);
+          safeLocalStorage.setItem('agent_name', demoMatch.name);
+          safeLocalStorage.setItem('agent_email', demoMatch.email);
+          safeLocalStorage.setItem('agent_phone', demoMatch.phone);
+          safeLocalStorage.setItem('agent_agency', demoMatch.agency);
+          safeLocalStorage.setItem('agent_image', demoMatch.image);
+          safeLocalStorage.setItem('agent_is_verified', String(demoMatch.is_verified));
+          safeLocalStorage.setItem('user_role', 'agent');
 
           onLoginSuccess(demoMatch);
         }, 1000);
@@ -143,15 +144,15 @@ export const AgentLoginPage: React.FC<AgentLoginPageProps> = ({
             image: agentDetails?.avatar_url || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
           };
 
-          localStorage.setItem('agent_logged_in', 'true');
-          localStorage.setItem('agent_user_id', agentObj.id);
-          localStorage.setItem('agent_name', agentObj.name);
-          localStorage.setItem('agent_email', agentObj.email);
-          localStorage.setItem('agent_phone', agentObj.phone || '');
-          localStorage.setItem('agent_agency', agentObj.agency);
-          localStorage.setItem('agent_image', agentObj.image);
-          localStorage.setItem('agent_is_verified', String(agentObj.is_verified));
-          localStorage.setItem('user_role', 'agent');
+          safeLocalStorage.setItem('agent_logged_in', 'true');
+          safeLocalStorage.setItem('agent_user_id', agentObj.id);
+          safeLocalStorage.setItem('agent_name', agentObj.name);
+          safeLocalStorage.setItem('agent_email', agentObj.email);
+          safeLocalStorage.setItem('agent_phone', agentObj.phone || '');
+          safeLocalStorage.setItem('agent_agency', agentObj.agency);
+          safeLocalStorage.setItem('agent_image', agentObj.image);
+          safeLocalStorage.setItem('agent_is_verified', String(agentObj.is_verified));
+          safeLocalStorage.setItem('user_role', 'agent');
 
           onLoginSuccess(agentObj);
           return;
@@ -188,15 +189,15 @@ export const AgentLoginPage: React.FC<AgentLoginPageProps> = ({
             image: agentDetails?.avatar_url || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
           };
 
-          localStorage.setItem('agent_logged_in', 'true');
-          localStorage.setItem('agent_user_id', agentObj.id);
-          localStorage.setItem('agent_name', agentObj.name);
-          localStorage.setItem('agent_email', agentObj.email);
-          localStorage.setItem('agent_phone', agentObj.phone);
-          localStorage.setItem('agent_agency', agentObj.agency);
-          localStorage.setItem('agent_image', agentObj.image);
-          localStorage.setItem('agent_is_verified', String(agentObj.is_verified));
-          localStorage.setItem('user_role', 'agent');
+          safeLocalStorage.setItem('agent_logged_in', 'true');
+          safeLocalStorage.setItem('agent_user_id', agentObj.id);
+          safeLocalStorage.setItem('agent_name', agentObj.name);
+          safeLocalStorage.setItem('agent_email', agentObj.email);
+          safeLocalStorage.setItem('agent_phone', agentObj.phone);
+          safeLocalStorage.setItem('agent_agency', agentObj.agency);
+          safeLocalStorage.setItem('agent_image', agentObj.image);
+          safeLocalStorage.setItem('agent_is_verified', String(agentObj.is_verified));
+          safeLocalStorage.setItem('user_role', 'agent');
 
           onLoginSuccess(agentObj);
         } else {
@@ -239,15 +240,15 @@ export const AgentLoginPage: React.FC<AgentLoginPageProps> = ({
             image: agentDetails?.avatar_url || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
           };
 
-          localStorage.setItem('agent_logged_in', 'true');
-          localStorage.setItem('agent_user_id', agentObj.id);
-          localStorage.setItem('agent_name', agentObj.name);
-          localStorage.setItem('agent_email', agentObj.email);
-          localStorage.setItem('agent_phone', agentObj.phone || '');
-          localStorage.setItem('agent_agency', agentObj.agency);
-          localStorage.setItem('agent_image', agentObj.image);
-          localStorage.setItem('agent_is_verified', String(agentObj.is_verified));
-          localStorage.setItem('user_role', 'agent');
+          safeLocalStorage.setItem('agent_logged_in', 'true');
+          safeLocalStorage.setItem('agent_user_id', agentObj.id);
+          safeLocalStorage.setItem('agent_name', agentObj.name);
+          safeLocalStorage.setItem('agent_email', agentObj.email);
+          safeLocalStorage.setItem('agent_phone', agentObj.phone || '');
+          safeLocalStorage.setItem('agent_agency', agentObj.agency);
+          safeLocalStorage.setItem('agent_image', agentObj.image);
+          safeLocalStorage.setItem('agent_is_verified', String(agentObj.is_verified));
+          safeLocalStorage.setItem('user_role', 'agent');
 
           onLoginSuccess(agentObj);
         }
@@ -268,15 +269,15 @@ export const AgentLoginPage: React.FC<AgentLoginPageProps> = ({
     toast.success(`Prefilled demo account for ${demo.name}`);
     
     // Auto submit or let user click
-    localStorage.setItem('agent_logged_in', 'true');
-    localStorage.setItem('agent_user_id', demo.id);
-    localStorage.setItem('agent_name', demo.name);
-    localStorage.setItem('agent_email', demo.email);
-    localStorage.setItem('agent_phone', demo.phone);
-    localStorage.setItem('agent_agency', demo.agency);
-    localStorage.setItem('agent_image', demo.image);
-    localStorage.setItem('agent_is_verified', String(demo.is_verified));
-    localStorage.setItem('user_role', 'agent');
+    safeLocalStorage.setItem('agent_logged_in', 'true');
+    safeLocalStorage.setItem('agent_user_id', demo.id);
+    safeLocalStorage.setItem('agent_name', demo.name);
+    safeLocalStorage.setItem('agent_email', demo.email);
+    safeLocalStorage.setItem('agent_phone', demo.phone);
+    safeLocalStorage.setItem('agent_agency', demo.agency);
+    safeLocalStorage.setItem('agent_image', demo.image);
+    safeLocalStorage.setItem('agent_is_verified', String(demo.is_verified));
+    safeLocalStorage.setItem('user_role', 'agent');
 
     onLoginSuccess(demo);
   };

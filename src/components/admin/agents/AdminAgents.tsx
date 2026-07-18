@@ -1,3 +1,4 @@
+import { safeLocalStorage } from '../../../utils/safeUtils';
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../supabaseClient';
 import { Agent, AgentProperty, AgentLead, AgentPayment, AgentActivityLog } from './types';
@@ -63,12 +64,12 @@ export default function AdminAgents({ user }: { user: any }) {
 
   // Dark mode integration check (matches other admin dashboards)
   const [adminDarkMode, setAdminDarkMode] = useState(() => {
-    return localStorage.getItem('admin-dark-mode') === 'true';
+    return safeLocalStorage.getItem('admin-dark-mode') === 'true';
   });
 
   useEffect(() => {
     const checkDark = () => {
-      setAdminDarkMode(localStorage.getItem('admin-dark-mode') === 'true');
+      setAdminDarkMode(safeLocalStorage.getItem('admin-dark-mode') === 'true');
     };
     window.addEventListener('storage', checkDark);
     const interval = setInterval(checkDark, 500);

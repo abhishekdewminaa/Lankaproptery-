@@ -313,7 +313,7 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
                   />
                   <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
                     <span className={`text-[9px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full text-white shadow-sm ${
-                      isSale ? 'bg-rose-600' : 'bg-[#1A5E2A]'
+                      isSale ? 'bg-[#0F3D1A]' : 'bg-[#1A5E2A]'
                     }`}>
                       FOR {isSale ? 'SALE' : 'RENT'}
                     </span>

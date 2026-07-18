@@ -179,24 +179,24 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
                 let shadowColor = 'rgba(26,94,42,0.3)';
                 
                 if (tab.id === 'sale') {
-                  activeBg = 'bg-[#CC1414]';
+                  activeBg = 'bg-[#1A5E2A]';
                   activeText = 'text-white';
-                  shadowColor = 'rgba(204,20,20,0.3)';
+                  shadowColor = 'rgba(26,94,42,0.3)';
                 } else if (tab.id === 'rent') {
-                  activeBg = 'bg-[#1565C0]';
+                  activeBg = 'bg-[#2E7D32]';
                   activeText = 'text-white';
-                  shadowColor = 'rgba(21,101,192,0.3)';
+                  shadowColor = 'rgba(46,125,50,0.3)';
                 } else if (tab.id === 'lease') {
-                  activeBg = 'bg-[#E8A000]';
+                  activeBg = 'bg-[#689F38]';
                   activeText = 'text-white';
-                  shadowColor = 'rgba(232,160,0,0.3)';
+                  shadowColor = 'rgba(104,159,56,0.3)';
                 }
 
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`relative z-10 flex-col md:flex-row flex-1 lg:flex-none px-6 md:px-8 py-3 rounded-full md:rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap outline-none min-w-[120px] md:min-w-0 snap-start shrink-0 ${
+                    className={`tab-btn tab-for-${tab.id} ${isActive ? 'active' : ''} relative z-10 flex-col md:flex-row flex-1 lg:flex-none px-6 md:px-8 py-3 rounded-full md:rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap outline-none min-w-[120px] md:min-w-0 snap-start shrink-0 ${
                         isActive 
                         ? activeText 
                         : 'text-[#374151] hover:text-[#1A5E2A] bg-white border border-[#E5E7EB]'
@@ -527,7 +527,7 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
                         maxPrice: searchMaxPrice
                       });
                     }}
-                    className="px-2.5 py-1 bg-gray-50 text-[10px] font-bold text-gray-500 rounded-md hover:bg-[#1A5E2A]/10 hover:text-[#1A5E2A] transition-colors cursor-pointer"
+                    className="popular-link px-2.5 py-1 bg-gray-50 text-[10px] font-bold text-gray-500 rounded-md hover:bg-[#1A5E2A]/10 hover:text-[#1A5E2A] transition-colors cursor-pointer"
                   >
                     {tag.label}
                   </button>

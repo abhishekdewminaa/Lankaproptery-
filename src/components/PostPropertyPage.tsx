@@ -11,7 +11,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { supabase } from '../supabaseClient';
 import { generateDescription } from '../services/geminiService';
-import { slugify } from '../utils/safeUtils';
+import { slugify, safeLocalStorage } from '../utils/safeUtils';
 
 // Fix Leaflet Default Icon asset paths so they don't break in dev/prod
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -234,8 +234,8 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
 
   // Redesign Extra States
-  const [contactName, setContactName] = useState<string>(() => localStorage.getItem('owner_name') || '');
-  const [contactPhone, setContactPhone] = useState<string>(() => localStorage.getItem('owner_phone') || '');
+  const [contactName, setContactName] = useState<string>(() => safeLocalStorage.getItem('owner_name') || '');
+  const [contactPhone, setContactPhone] = useState<string>(() => safeLocalStorage.getItem('owner_phone') || '');
   const [contactWhatsapp, setContactWhatsapp] = useState<string>('');
   const [sameAsPhone, setSameAsPhone] = useState<boolean>(true);
   const [displayPreference, setDisplayPreference] = useState<string>('Both phone and WhatsApp');
@@ -266,7 +266,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
 
   const [images, setImages] = useState<Array<PhotoSlot | null>>(() => {
     try {
-      const savedImages = localStorage.getItem('lp_listing_images');
+      const savedImages = safeLocalStorage.getItem('lp_listing_images');
       if (savedImages) {
         const parsed = JSON.parse(savedImages);
         const slots = Array(12).fill(null);
@@ -346,9 +346,9 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
   // --- RECOVERY ON MOUNT ---
   useEffect(() => {
     // Check if there is an existing draft
-    const savedDraft = localStorage.getItem('lp_listing_draft');
-    const savedPlan = localStorage.getItem('lp_selected_plan');
-    const savedImages = localStorage.getItem('lp_listing_images');
+    const savedDraft = safeLocalStorage.getItem('lp_listing_draft');
+    const savedPlan = safeLocalStorage.getItem('lp_selected_plan');
+    const savedImages = safeLocalStorage.getItem('lp_listing_images');
 
     if (savedDraft || savedPlan || savedImages) {
       setShowDraftOverlay(true);
@@ -389,9 +389,9 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
           if (prev <= 1) {
             clearInterval(interval);
             // Go to owner dashboard
-            localStorage.removeItem('lp_listing_draft');
-            localStorage.removeItem('lp_listing_images');
-            localStorage.removeItem('lp_selected_plan');
+            safeLocalStorage.removeItem('lp_listing_draft');
+            safeLocalStorage.removeItem('lp_listing_images');
+            safeLocalStorage.removeItem('lp_selected_plan');
             onNavigate({ type: 'owner_dashboard' });
             return 0;
           }
@@ -402,10 +402,10 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
     }
   }, [step, onNavigate]);
 
-  // Load draft data from localStorage
+  // Load draft data from safeLocalStorage
   const handleLoadDraft = () => {
     try {
-      const savedDraft = localStorage.getItem('lp_listing_draft');
+      const savedDraft = safeLocalStorage.getItem('lp_listing_draft');
       if (savedDraft) {
         const draft = JSON.parse(savedDraft);
         setTitle(draft.title || '');
@@ -428,20 +428,20 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
         setLng(draft.lng || 79.8612);
         setHasPinned(draft.hasPinned || false);
         setSelectedAmenities(draft.selectedAmenities || []);
-        setContactName(draft.contactName || localStorage.getItem('owner_name') || '');
-        setContactPhone(draft.contactPhone || localStorage.getItem('owner_phone') || '');
+        setContactName(draft.contactName || safeLocalStorage.getItem('owner_name') || '');
+        setContactPhone(draft.contactPhone || safeLocalStorage.getItem('owner_phone') || '');
         setContactWhatsapp(draft.contactWhatsapp || '');
         setSameAsPhone(draft.sameAsPhone !== undefined ? draft.sameAsPhone : true);
         setDisplayPreference(draft.displayPreference || 'Both phone and WhatsApp');
         setResponseTime(draft.responseTime || 'Within a few hours');
       }
 
-      const savedPlan = localStorage.getItem('lp_selected_plan');
+      const savedPlan = safeLocalStorage.getItem('lp_selected_plan');
       if (savedPlan) {
         setSelectedPlan(savedPlan);
       }
 
-      const savedImages = localStorage.getItem('lp_listing_images');
+      const savedImages = safeLocalStorage.getItem('lp_listing_images');
       if (savedImages) {
         try {
           const parsed = JSON.parse(savedImages);
@@ -485,9 +485,9 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
 
   // Start draft from scratch
   const handleStartFresh = () => {
-    localStorage.removeItem('lp_listing_draft');
-    localStorage.removeItem('lp_listing_images');
-    localStorage.removeItem('lp_selected_plan');
+    safeLocalStorage.removeItem('lp_listing_draft');
+    safeLocalStorage.removeItem('lp_listing_images');
+    safeLocalStorage.removeItem('lp_selected_plan');
     
     // Clear state
     setTitle('');
@@ -513,8 +513,8 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
     setImages(Array(12).fill(null));
     setImageFiles([]);
     setSelectedPlan('starter_free');
-    setContactName(localStorage.getItem('owner_name') || '');
-    setContactPhone(localStorage.getItem('owner_phone') || '');
+    setContactName(safeLocalStorage.getItem('owner_name') || '');
+    setContactPhone(safeLocalStorage.getItem('owner_phone') || '');
     setContactWhatsapp('');
     setSameAsPhone(true);
     setDisplayPreference('Both phone and WhatsApp');
@@ -535,7 +535,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
       contactName, contactPhone, contactWhatsapp, sameAsPhone,
       displayPreference, responseTime
     };
-    localStorage.setItem('lp_listing_draft', JSON.stringify(draftData));
+    safeLocalStorage.setItem('lp_listing_draft', JSON.stringify(draftData));
     
     setIsAutoSaving(true);
     const t = setTimeout(() => setIsAutoSaving(false), 800);
@@ -647,7 +647,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
         contactName, contactPhone, contactWhatsapp, sameAsPhone,
         displayPreference, responseTime
       };
-      localStorage.setItem('lp_listing_draft', JSON.stringify(draftData));
+      safeLocalStorage.setItem('lp_listing_draft', JSON.stringify(draftData));
       setStep(2);
     } else {
       toast.error("Please fill in all required fields marked in red.");
@@ -659,7 +659,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
     const metadata = updatedImages
       .map((img, idx) => img ? { name: img.name, size: img.size, slot: idx } : null)
       .filter((item): item is { name: string; size: number; slot: number } => item !== null);
-    localStorage.setItem('lp_listing_images', JSON.stringify(metadata));
+    safeLocalStorage.setItem('lp_listing_images', JSON.stringify(metadata));
   };
 
   const findNextEmptySlot = (currentSlots: Array<PhotoSlot | null>, startFrom: number, maxPhotos: number) => {
@@ -678,7 +678,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
   };
 
   const addFilesAtSlot = (files: File[], slotIndex: number) => {
-    const plan = localStorage.getItem('lp_selected_plan') || selectedPlan || 'starter_free';
+    const plan = safeLocalStorage.getItem('lp_selected_plan') || selectedPlan || 'starter_free';
     const photoLimits: Record<string, number> = {
       'starter_free': 6,
       'premium_pro': 9,
@@ -832,19 +832,19 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
   // --- STEP 3 ACTIONS: Packages ---
   const handleSelectPlan = (plan: string) => {
     setSelectedPlan(plan);
-    localStorage.setItem('lp_selected_plan', plan);
+    safeLocalStorage.setItem('lp_selected_plan', plan);
   };
 
   const handleNextStep3 = () => {
     // If owner is already logged in, we can skip register step and go straight to publish/checkout!
-    const isLoggedIn = localStorage.getItem('owner_logged_in') === 'true';
+    const isLoggedIn = safeLocalStorage.getItem('owner_logged_in') === 'true';
     if (isLoggedIn) {
-      const ownerEmail = localStorage.getItem('owner_email') || '';
-      const ownerPhone = localStorage.getItem('owner_phone') || '+94771234567';
-      const ownerId = localStorage.getItem('owner_id') || crypto.randomUUID();
+      const ownerEmail = safeLocalStorage.getItem('owner_email') || '';
+      const ownerPhone = safeLocalStorage.getItem('owner_phone') || '+94771234567';
+      const ownerId = safeLocalStorage.getItem('owner_id') || crypto.randomUUID();
       
       if (selectedPlan === 'starter_free') {
-        const draftDataStr = localStorage.getItem('lp_listing_draft');
+        const draftDataStr = safeLocalStorage.getItem('lp_listing_draft');
         if (draftDataStr) {
           const draft = JSON.parse(draftDataStr);
           publishListing(ownerId, ownerEmail, ownerPhone, draft);
@@ -956,14 +956,14 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
         }
       }
 
-      // Save owner login session info to localStorage
-      localStorage.setItem('owner_logged_in', 'true');
-      localStorage.setItem('owner_id', userId);
-      localStorage.setItem('owner_name', activeName);
-      localStorage.setItem('owner_email', activeEmail);
-      localStorage.setItem('user_role', 'owner');
+      // Save owner login session info to safeLocalStorage
+      safeLocalStorage.setItem('owner_logged_in', 'true');
+      safeLocalStorage.setItem('owner_id', userId);
+      safeLocalStorage.setItem('owner_name', activeName);
+      safeLocalStorage.setItem('owner_email', activeEmail);
+      safeLocalStorage.setItem('user_role', 'owner');
 
-      const draftDataStr = localStorage.getItem('lp_listing_draft');
+      const draftDataStr = safeLocalStorage.getItem('lp_listing_draft');
       if (!draftDataStr) {
         throw new Error("Could not find draft property data.");
       }
@@ -1015,11 +1015,11 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      const ownerId = localStorage.getItem('owner_id') || crypto.randomUUID();
-      const ownerEmail = localStorage.getItem('owner_email') || '';
-      const ownerPhone = localStorage.getItem('owner_phone') || '+94771234567';
+      const ownerId = safeLocalStorage.getItem('owner_id') || crypto.randomUUID();
+      const ownerEmail = safeLocalStorage.getItem('owner_email') || '';
+      const ownerPhone = safeLocalStorage.getItem('owner_phone') || '+94771234567';
 
-      const draftDataStr = localStorage.getItem('lp_listing_draft');
+      const draftDataStr = safeLocalStorage.getItem('lp_listing_draft');
       if (!draftDataStr) throw new Error("Property listing details not found.");
       const draft = JSON.parse(draftDataStr);
 
@@ -1175,10 +1175,10 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
 
       toast.success("Your property has been indexed and submitted for review!", { id: toastId });
 
-      // Clean up localStorage
-      localStorage.removeItem('lp_listing_draft');
-      localStorage.removeItem('lp_listing_images');
-      localStorage.removeItem('lp_selected_plan');
+      // Clean up safeLocalStorage
+      safeLocalStorage.removeItem('lp_listing_draft');
+      safeLocalStorage.removeItem('lp_listing_images');
+      safeLocalStorage.removeItem('lp_selected_plan');
 
       // Go to Step 5 (Done)
       setIsPaymentMode(false);
@@ -2613,7 +2613,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
 
               {/* Plan Badge */}
               {(() => {
-                const plan = localStorage.getItem('lp_selected_plan') || selectedPlan || 'starter_free';
+                const plan = safeLocalStorage.getItem('lp_selected_plan') || selectedPlan || 'starter_free';
                 if (plan === 'starter_free') {
                   return (
                     <div className="bg-slate-100 border border-slate-200 rounded-[24px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -2666,7 +2666,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
 
               {/* Photo Count Bar */}
               {(() => {
-                const plan = localStorage.getItem('lp_selected_plan') || selectedPlan || 'starter_free';
+                const plan = safeLocalStorage.getItem('lp_selected_plan') || selectedPlan || 'starter_free';
                 const photoLimits: Record<string, number> = {
                   'starter_free': 6,
                   'premium_pro': 9,
@@ -2707,7 +2707,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                 className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-white border border-neutral-200/60 rounded-[32px] shadow-sm relative"
               >
                 {Array.from({ length: 12 }).map((_, idx) => {
-                  const plan = localStorage.getItem('lp_selected_plan') || selectedPlan || 'starter_free';
+                  const plan = safeLocalStorage.getItem('lp_selected_plan') || selectedPlan || 'starter_free';
                   const photoLimits: Record<string, number> = {
                     'starter_free': 6,
                     'premium_pro': 9,
@@ -3033,7 +3033,7 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                       <p className="text-xs text-neutral-500 font-semibold">
                         Your current plan allows up to{' '}
                         {(() => {
-                          const plan = localStorage.getItem('lp_selected_plan') || selectedPlan || 'starter_free';
+                          const plan = safeLocalStorage.getItem('lp_selected_plan') || selectedPlan || 'starter_free';
                           return plan === 'starter_free' ? '6' : '9';
                         })()}{' '}
                         photos.

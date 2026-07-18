@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import toast from 'react-hot-toast';
 import LatestAdvertisements from './LatestAdvertisements';
 import { 
   Search, MapPin, ChevronDown, Filter, X, 
@@ -604,6 +605,16 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
                   <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                 </div>
               </div>
+              
+              <button 
+                onClick={() => {
+                  fetchProperties();
+                  toast.success("Filters applied successfully!");
+                }}
+                className="listings-search-btn w-full mt-6 py-4 bg-brand-green hover:bg-emerald-800 text-white font-extrabold uppercase tracking-wider text-xs rounded-2xl transition-all shadow-md flex items-center justify-center gap-2"
+              >
+                🔍 Apply Search
+              </button>
             </div>
 
             <LatestAdvertisements 
@@ -620,9 +631,37 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 bg-white p-6 rounded-3xl border border-gray-50 shadow-sm">
               <div>
                 <div className="text-[10px] font-black text-brand-green uppercase tracking-[0.2em] mb-1">
-                  SHOWING {totalCount.toLocaleString()} RESULTS
+                  SHOWING <span className="results-count-num">{totalCount.toLocaleString()}</span> RESULTS
                 </div>
                 <h2 className="text-xl font-black text-dark-navy tracking-tight">{getPageTitle()}</h2>
+                
+                {/* Active Filter Pills list */}
+                <div className="flex flex-wrap items-center gap-2 mt-4">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider mr-1">Active:</span>
+                  {mode === 'buy' ? (
+                    <span className="filter-active-sale px-2.5 py-1 text-xs font-bold rounded-lg flex items-center gap-1">
+                      🔴 For Sale
+                    </span>
+                  ) : mode === 'rent' ? (
+                    <span className="filter-active-rent px-2.5 py-1 text-xs font-bold rounded-lg flex items-center gap-1">
+                      🔵 For Rent
+                    </span>
+                  ) : (
+                    <span className="filter-active-lease px-2.5 py-1 text-xs font-bold rounded-lg flex items-center gap-1">
+                      🟡 For Lease
+                    </span>
+                  )}
+                  {filters.propertySubTypes.length > 0 && (
+                    <span className="filter-active-count px-2.5 py-0.5 text-[10px] font-black rounded-full flex items-center justify-center">
+                      {filters.propertySubTypes.length} types
+                    </span>
+                  )}
+                  {filters.amenities.length > 0 && (
+                    <span className="filter-active-count px-2.5 py-0.5 text-[10px] font-black rounded-full flex items-center justify-center">
+                      {filters.amenities.length} amenities
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-4 w-full md:w-auto">
                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest shrink-0">Sort By</span>
@@ -630,7 +669,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
                   <select 
                     value={filters.sortBy}
                     onChange={(e) => setFilters(f => ({ ...f, sortBy: e.target.value }))}
-                    className="w-full md:w-48 bg-gray-50 px-5 py-3 rounded-xl border border-gray-100 text-xs font-bold outline-none appearance-none cursor-pointer pr-10"
+                    className="sort-select w-full md:w-48 bg-gray-50 px-5 py-3 rounded-xl border border-gray-100 text-xs font-bold outline-none appearance-none cursor-pointer pr-10"
                   >
                     <option>Newest First</option>
                     <option>Price: Low to High</option>
@@ -683,7 +722,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
                 <button 
                   disabled={page === 1}
                   onClick={() => { setPage(p => p - 1); window.scrollTo({ top: 400, behavior: 'smooth' }); }}
-                  className="w-12 h-12 border border-gray-200 rounded-2xl flex items-center justify-center text-gray-500 hover:border-brand-green hover:text-brand-green transition-all shadow-sm disabled:opacity-30 disabled:pointer-events-none"
+                  className="page-btn w-12 h-12 border border-gray-200 rounded-2xl flex items-center justify-center text-gray-500 hover:border-brand-green hover:text-brand-green transition-all shadow-sm disabled:opacity-30 disabled:pointer-events-none"
                 >
                   <ChevronLeft size={20} />
                 </button>
@@ -692,7 +731,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
                   <button
                     key={i}
                     onClick={() => { setPage(i + 1); window.scrollTo({ top: 400, behavior: 'smooth' }); }}
-                    className={`w-12 h-12 rounded-2xl text-sm font-black transition-all ${
+                    className={`page-btn ${page === i + 1 ? 'active' : ''} w-12 h-12 rounded-2xl text-sm font-black transition-all ${
                       page === i + 1 
                       ? 'bg-brand-green text-white shadow-xl shadow-brand-green/20 scale-110' 
                       : 'bg-white border border-gray-100 text-gray-500 hover:border-brand-green hover:text-brand-green'
@@ -705,7 +744,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
                 <button 
                   disabled={page * 8 >= totalCount}
                   onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 400, behavior: 'smooth' }); }}
-                  className="w-12 h-12 border border-gray-200 rounded-2xl flex items-center justify-center text-gray-500 hover:border-brand-green hover:text-brand-green transition-all shadow-sm disabled:opacity-30 disabled:pointer-events-none"
+                  className="page-btn w-12 h-12 border border-gray-200 rounded-2xl flex items-center justify-center text-gray-500 hover:border-brand-green hover:text-brand-green transition-all shadow-sm disabled:opacity-30 disabled:pointer-events-none"
                 >
                   <ChevronRight size={20} />
                 </button>

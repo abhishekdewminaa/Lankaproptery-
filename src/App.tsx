@@ -63,8 +63,8 @@ import { AdminLogin } from "./components/admin/AdminLogin";
 import { AdvertisedPackages } from "./components/AdvertisedPackages";
 import PropertyWanted from "./components/PropertyWanted";
 import { Feedback } from "./components/Feedback";
-import { CategoryPage } from "./components/CategoryPage";
-import { AgentPage } from "./components/AgentPage";
+import CategoryPage from "./components/CategoryPage";
+import AgentPage from "./components/AgentPage";
 import { LandsPortfolio } from "./components/home/LandsPortfolio";
 import { PostPropertyPage } from "./components/PostPropertyPage";
 import { AgentPostPropertyPage } from "./components/AgentPostPropertyPage";
@@ -77,7 +77,7 @@ import { OwnerPaymentPage } from "./components/OwnerPaymentPage";
 import { OwnerPaymentSuccessPage } from "./components/OwnerPaymentSuccessPage";
 import { OwnerDashboardPage } from "./components/OwnerDashboardPage";
 import { supabase } from "./supabaseClient";
-import { removeSinhala, slugify } from "./utils/safeUtils";
+import { removeSinhala, slugify, safeLocalStorage } from "./utils/safeUtils";
 
 // --- MOCK CONSTANTS & STABILIZED UTILS ---
 const LKR_USD_RATE = 300;
@@ -396,18 +396,18 @@ export default function App() {
   // --- STATE SYSTEM ---
   const [currentTab, setCurrentTab] = useState<"explore" | "category" | "dashboard" | "publish" | "ai" | "packages" | "wanted" | "feedback" | "agents" | "lands" | "sell" | "agent_sell" | "agent_register" | "agent_dashboard" | "agent_login" | "owner_register" | "owner_login" | "owner_payment" | "owner_payment_success" | "owner_dashboard" | "property-detail">("explore");
   const [isAgentLoggedIn, setIsAgentLoggedIn] = useState(() => {
-    return localStorage.getItem('agent_logged_in') === 'true';
+    return safeLocalStorage.getItem('agent_logged_in') === 'true';
   });
   const [agentUser, setAgentUser] = useState<any>(() => {
-    if (localStorage.getItem('agent_logged_in') === 'true') {
+    if (safeLocalStorage.getItem('agent_logged_in') === 'true') {
       return {
-        id: localStorage.getItem('agent_user_id') || '',
-        name: localStorage.getItem('agent_name') || '',
-        email: localStorage.getItem('agent_email') || '',
-        phone: localStorage.getItem('agent_phone') || '',
-        agency: localStorage.getItem('agent_agency') || '',
-        image: localStorage.getItem('agent_image') || '',
-        is_verified: localStorage.getItem('agent_is_verified') === 'true'
+        id: safeLocalStorage.getItem('agent_user_id') || '',
+        name: safeLocalStorage.getItem('agent_name') || '',
+        email: safeLocalStorage.getItem('agent_email') || '',
+        phone: safeLocalStorage.getItem('agent_phone') || '',
+        agency: safeLocalStorage.getItem('agent_agency') || '',
+        image: safeLocalStorage.getItem('agent_image') || '',
+        is_verified: safeLocalStorage.getItem('agent_is_verified') === 'true'
       };
     }
     return null;
@@ -527,7 +527,7 @@ export default function App() {
       } else if (path === "/agent/register" || path.includes("/agent/register")) {
         setCurrentTab("agent_register");
       } else if (path === "/agent/dashboard" || path.includes("/agent/dashboard")) {
-        if (localStorage.getItem('agent_logged_in') === 'true') {
+        if (safeLocalStorage.getItem('agent_logged_in') === 'true') {
           setCurrentTab("agent_dashboard");
         } else {
           setCurrentTab("agent_login");
@@ -545,7 +545,7 @@ export default function App() {
       } else if (path === "/owner/payment" || path.includes("/owner/payment")) {
         setCurrentTab("owner_payment");
       } else if (path === "/owner/dashboard" || path.includes("/owner/dashboard")) {
-        if (localStorage.getItem('owner_logged_in') === 'true') {
+        if (safeLocalStorage.getItem('owner_logged_in') === 'true') {
           setCurrentTab("owner_dashboard");
         } else {
           setCurrentTab("owner_login");
@@ -886,7 +886,7 @@ export default function App() {
       setCurrentTab("agent_register");
       setSelectedProperty(null);
     } else if (view.type === "agent_dashboard") {
-      if (localStorage.getItem('agent_logged_in') === 'true') {
+      if (safeLocalStorage.getItem('agent_logged_in') === 'true') {
         setCurrentTab("agent_dashboard");
       } else {
         setCurrentTab("agent_login");
@@ -908,7 +908,7 @@ export default function App() {
       setCurrentTab("owner_payment_success");
       setSelectedProperty(null);
     } else if (view.type === "owner_dashboard") {
-      if (localStorage.getItem('owner_logged_in') === 'true') {
+      if (safeLocalStorage.getItem('owner_logged_in') === 'true') {
         setCurrentTab("owner_dashboard");
       } else {
         setCurrentTab("owner_login");
@@ -978,7 +978,7 @@ export default function App() {
     if (packageName.toLowerCase().includes('pro')) {
       planKey = packageName.toLowerCase().includes('elite') ? 'elite_pro' : 'premium_pro';
     }
-    localStorage.setItem('lp_selected_plan', planKey);
+    safeLocalStorage.setItem('lp_selected_plan', planKey);
     setCurrentTab("sell");
     toast.success(`Selected ${packageName}! Let's start with your property details.`, {
       icon: '💎',
@@ -1063,14 +1063,6 @@ export default function App() {
         {/* =======================================
             VIEWPORT: MARKET EXPLORER & PROPERTIES
             ======================================= */}
-        {currentTab === "explore" && !isSearching && (
-          <HomeRedesign 
-            propertyCount={properties.length} 
-            featuredProperties={properties.filter(p => p.isFeatured)} 
-            properties={properties}
-            onNavigate={handleNavigate}
-          />
-        )}
 
         {currentTab === "category" && (
           <CategoryPage
@@ -1106,6 +1098,15 @@ export default function App() {
             properties={properties}
             onPropertyClick={handlePropertySelect}
             onNavigateHome={() => handleNavigate({ type: "home" })}
+            onNavigate={handleNavigate}
+          />
+        )}
+
+        {currentTab === "explore" && !isSearching && (
+          <HomeRedesign 
+            propertyCount={properties.length} 
+            featuredProperties={properties.filter(p => p.isFeatured)} 
+            properties={properties}
             onNavigate={handleNavigate}
           />
         )}
@@ -1835,11 +1836,11 @@ export default function App() {
           <OwnerPaymentPage 
             onNavigate={handleNavigate}
             onLogout={() => {
-              localStorage.removeItem('owner_logged_in');
-              localStorage.removeItem('owner_id');
-              localStorage.removeItem('owner_name');
-              localStorage.removeItem('owner_email');
-              localStorage.removeItem('user_role');
+              safeLocalStorage.removeItem('owner_logged_in');
+              safeLocalStorage.removeItem('owner_id');
+              safeLocalStorage.removeItem('owner_name');
+              safeLocalStorage.removeItem('owner_email');
+              safeLocalStorage.removeItem('user_role');
               setCurrentTab("explore");
               toast.success("Logged out from direct owner session.");
             }}
@@ -1862,11 +1863,11 @@ export default function App() {
           <OwnerDashboardPage 
             onNavigate={handleNavigate}
             onLogout={() => {
-              localStorage.removeItem('owner_logged_in');
-              localStorage.removeItem('owner_id');
-              localStorage.removeItem('owner_name');
-              localStorage.removeItem('owner_email');
-              localStorage.removeItem('user_role');
+              safeLocalStorage.removeItem('owner_logged_in');
+              safeLocalStorage.removeItem('owner_id');
+              safeLocalStorage.removeItem('owner_name');
+              safeLocalStorage.removeItem('owner_email');
+              safeLocalStorage.removeItem('user_role');
               setCurrentTab("explore");
               toast.success("Logged out from direct owner session.");
             }}
@@ -1907,14 +1908,14 @@ export default function App() {
             agent={agentUser}
             onNavigate={handleNavigate}
             onLogout={() => {
-              localStorage.removeItem('agent_logged_in');
-              localStorage.removeItem('agent_user_id');
-              localStorage.removeItem('agent_name');
-              localStorage.removeItem('agent_email');
-              localStorage.removeItem('agent_phone');
-              localStorage.removeItem('agent_agency');
-              localStorage.removeItem('agent_image');
-              localStorage.removeItem('agent_is_verified');
+              safeLocalStorage.removeItem('agent_logged_in');
+              safeLocalStorage.removeItem('agent_user_id');
+              safeLocalStorage.removeItem('agent_name');
+              safeLocalStorage.removeItem('agent_email');
+              safeLocalStorage.removeItem('agent_phone');
+              safeLocalStorage.removeItem('agent_agency');
+              safeLocalStorage.removeItem('agent_image');
+              safeLocalStorage.removeItem('agent_is_verified');
               setIsAgentLoggedIn(false);
               setAgentUser(null);
               setCurrentTab("explore");

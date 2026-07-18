@@ -1,3 +1,4 @@
+import { safeLocalStorage } from '../utils/safeUtils';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Check, Mail, Lock, Phone, User, ShieldCheck, ArrowRight, Eye, EyeOff } from 'lucide-react';
@@ -23,7 +24,7 @@ export const OwnerRegisterPage: React.FC<OwnerRegisterPageProps> = ({ onNavigate
   useEffect(() => {
     document.title = "List My Property — LankaProperty.lk";
     const params = new URLSearchParams(window.location.search);
-    const urlPlan = params.get('plan') || localStorage.getItem('selected_plan') || 'starter_free';
+    const urlPlan = params.get('plan') || safeLocalStorage.getItem('selected_plan') || 'starter_free';
     setPlan(urlPlan);
   }, []);
 
@@ -137,13 +138,13 @@ export const OwnerRegisterPage: React.FC<OwnerRegisterPageProps> = ({ onNavigate
         console.warn('Failed to insert user into users table:', userInsertError);
       }
 
-      // Save owner login session info to localStorage
-      localStorage.setItem('owner_logged_in', 'true');
-      localStorage.setItem('owner_id', userId);
-      localStorage.setItem('owner_name', fullName);
-      localStorage.setItem('owner_email', email.trim());
-      localStorage.setItem('user_role', 'owner');
-      localStorage.removeItem('selected_plan'); // clean up as requested
+      // Save owner login session info to safeLocalStorage
+      safeLocalStorage.setItem('owner_logged_in', 'true');
+      safeLocalStorage.setItem('owner_id', userId);
+      safeLocalStorage.setItem('owner_name', fullName);
+      safeLocalStorage.setItem('owner_email', email.trim());
+      safeLocalStorage.setItem('user_role', 'owner');
+      safeLocalStorage.removeItem('selected_plan'); // clean up as requested
 
       if (isFree) {
         // Starter Free plan gets written to owner_packages automatically

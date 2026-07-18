@@ -49,12 +49,6 @@ export default function AdminSidebar({
       label: "Dashboard",
       icon: <LayoutDashboard size={18} />,
     },
-    {
-      id: "photo-editor",
-      label: "🎨 Photo Editor",
-      icon: <Sparkles size={18} />,
-      isNew: true,
-    },
     { id: "listings", label: "Properties", icon: <ClipboardList size={18} /> },
     { id: "user_listings", label: "User Listings Overview", icon: <Users size={18} />, isNew: true },
     { id: "agents", label: "Agent Management", icon: <Building2 size={18} />, isNew: true },

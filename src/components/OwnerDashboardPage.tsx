@@ -1,3 +1,4 @@
+import { safeLocalStorage } from '../utils/safeUtils';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
@@ -17,14 +18,14 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onNaviga
   const [loading, setLoading] = useState(true);
   const [refresh, setRefresh] = useState(0);
 
-  const ownerName = localStorage.getItem('owner_name') || 'Valued Owner';
-  const ownerEmail = localStorage.getItem('owner_email') || '';
-  const ownerId = localStorage.getItem('owner_id') || '';
+  const ownerName = safeLocalStorage.getItem('owner_name') || 'Valued Owner';
+  const ownerEmail = safeLocalStorage.getItem('owner_email') || '';
+  const ownerId = safeLocalStorage.getItem('owner_id') || '';
 
   useEffect(() => {
     document.title = "My Seller Dashboard — LankaProperty.lk";
     // Redirect if not logged in
-    if (localStorage.getItem('owner_logged_in') !== 'true') {
+    if (safeLocalStorage.getItem('owner_logged_in') !== 'true') {
       window.history.pushState(null, "", `/owner/login`);
       onNavigate({ type: 'owner_login' });
       return;

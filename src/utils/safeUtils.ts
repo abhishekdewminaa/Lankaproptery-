@@ -78,4 +78,44 @@ export const getFirstImageSafe = (images: unknown): string => {
   }
   return fallback;
 };
+
+// Safe Local Storage wrapper to prevent SecurityError / Access Denied crashes in iframe preview environments
+export const safeLocalStorage = {
+  getItem(key: string): string | null {
+    try {
+      return window.localStorage.getItem(key);
+    } catch (e) {
+      console.warn("localStorage.getItem blocked by browser security:", e);
+      return (window as any).__memStorage?.[key] || null;
+    }
+  },
+  setItem(key: string, value: string): void {
+    try {
+      window.localStorage.setItem(key, value);
+    } catch (e) {
+      console.warn("localStorage.setItem blocked by browser security:", e);
+      if (!(window as any).__memStorage) (window as any).__memStorage = {};
+      (window as any).__memStorage[key] = String(value);
+    }
+  },
+  removeItem(key: string): void {
+    try {
+      window.localStorage.removeItem(key);
+    } catch (e) {
+      console.warn("localStorage.removeItem blocked by browser security:", e);
+      if ((window as any).__memStorage) {
+        delete (window as any).__memStorage[key];
+      }
+    }
+  },
+  clear(): void {
+    try {
+      window.localStorage.clear();
+    } catch (e) {
+      console.warn("localStorage.clear blocked by browser security:", e);
+      (window as any).__memStorage = {};
+    }
+  }
+};
+
 // ─────────────────────────────────────────

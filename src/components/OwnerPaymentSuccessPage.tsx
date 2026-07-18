@@ -1,3 +1,4 @@
+import { safeLocalStorage } from '../utils/safeUtils';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Check, Calendar, Receipt, Download, LayoutDashboard, PlusCircle, Home } from 'lucide-react';
@@ -19,7 +20,7 @@ export const OwnerPaymentSuccessPage: React.FC<OwnerPaymentSuccessPageProps> = (
   const price = data?.price || Number(new URLSearchParams(window.location.search).get('price')) || 4500;
   const orderId = data?.orderId || new URLSearchParams(window.location.search).get('ref') || 'LP-987153';
   
-  const email = localStorage.getItem('owner_email') || '';
+  const email = safeLocalStorage.getItem('owner_email') || '';
 
   const planName = plan === 'premium_pro' ? 'Premium Pro' : 'Elite Pro';
   const durationDays = plan === 'premium_pro' ? 60 : 90;
@@ -56,7 +57,7 @@ Date:          ${new Date().toLocaleDateString()}
 Status:        PAID (PayHere Sandbox)
 ----------------------------------------
 Billed To:
-Name:          ${localStorage.getItem('owner_name') || 'Valued Owner'}
+Name:          ${safeLocalStorage.getItem('owner_name') || 'Valued Owner'}
 Email:         ${email}
 ----------------------------------------
 Item Summary:

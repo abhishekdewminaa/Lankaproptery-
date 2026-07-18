@@ -1,3 +1,4 @@
+import { safeLocalStorage } from '../utils/safeUtils';
 import React, { useState, useEffect } from 'react';
 import { Check, ShieldCheck, CreditCard, Lock, ArrowLeft, RefreshCw, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -19,9 +20,9 @@ export const OwnerPaymentPage: React.FC<OwnerPaymentPageProps> = ({ onNavigate, 
   const [cardName, setCardName] = useState('');
 
   // Pre-filled owner details
-  const ownerName = localStorage.getItem('owner_name') || 'Guest User';
-  const ownerEmail = localStorage.getItem('owner_email') || '';
-  const ownerId = localStorage.getItem('owner_id') || '';
+  const ownerName = safeLocalStorage.getItem('owner_name') || 'Guest User';
+  const ownerEmail = safeLocalStorage.getItem('owner_email') || '';
+  const ownerId = safeLocalStorage.getItem('owner_id') || '';
 
   useEffect(() => {
     document.title = "Secure Ad Checkout — LankaProperty.lk";
@@ -30,7 +31,7 @@ export const OwnerPaymentPage: React.FC<OwnerPaymentPageProps> = ({ onNavigate, 
     setPlan(urlPlan);
 
     // Ensure they are logged in and have owner_logged_in flag
-    if (localStorage.getItem('owner_logged_in') !== 'true') {
+    if (safeLocalStorage.getItem('owner_logged_in') !== 'true') {
       toast.error('Please login first to access the payment checkout.');
       window.history.pushState(null, "", `/owner/login?plan=${urlPlan}`);
       onNavigate({ type: 'owner_login', data: { plan: urlPlan } });

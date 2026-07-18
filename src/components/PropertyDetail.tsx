@@ -12,7 +12,7 @@ import { supabase } from '../supabaseClient';
 import { triggerNotification } from '../services/notificationService';
 import { runLeadFollowUpWorkflow } from '../automation/workflows';
 import { translateDescription } from '../services/geminiService';
-import { safeReplace, USD_RATE, EUR_RATE, slugify } from '../utils/safeUtils';
+import { safeReplace, USD_RATE, EUR_RATE, slugify, safeLocalStorage } from '../utils/safeUtils';
 import toast from 'react-hot-toast';
 
 // Fix Leaflet marker icon issue
@@ -573,7 +573,7 @@ export const PropertyDetail = ({
 
   const handleSaveClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const isLoggedIn = localStorage.getItem('owner_logged_in') === 'true' || localStorage.getItem('agent_logged_in') === 'true';
+    const isLoggedIn = safeLocalStorage.getItem('owner_logged_in') === 'true' || safeLocalStorage.getItem('agent_logged_in') === 'true';
     if (!isLoggedIn) {
       setShowSaveModal(true);
     } else {
@@ -1492,12 +1492,14 @@ export const PropertyDetail = ({
               <div className="flex flex-wrap items-center gap-2">
                 <span className={`text-[12px] font-bold uppercase px-3 py-1 rounded-full border tracking-wide ${
                   String(property.listing_type).toLowerCase() === 'sale' 
-                    ? 'bg-red-50 text-red-700 border-red-200' 
-                    : 'bg-[#eff6ff] text-[#1d4ed8] border-[#bfdbfe]'
+                    ? 'detail-badge-sale bg-red-50 text-red-700 border-red-200' 
+                    : String(property.listing_type).toLowerCase() === 'rent'
+                    ? 'detail-badge-rent bg-[#eff6ff] text-[#1d4ed8] border-[#bfdbfe]'
+                    : 'detail-badge-lease bg-[#fffdf5] text-[#f9a825] border-[#fde68a]'
                 }`}>
                   {String(property.listing_type).toLowerCase() === 'sale' ? '🔴 FOR SALE' : '🔵 FOR RENT'}
                 </span>
-                <span className="flex items-center gap-1.5 text-[12px] font-bold text-[#15803d] bg-[#f0fdf4] border border-[#bbf7d0] px-3.5 py-1 rounded-full">
+                <span className="status-active flex items-center gap-1.5 text-[12px] font-bold text-[#15803d] bg-[#f0fdf4] border border-[#bbf7d0] px-3.5 py-1 rounded-full">
                   <span className="w-1.5 h-1.5 bg-[#15803d] rounded-full animate-pulse" /> Active
                 </span>
                 {property.ref_no ? (
@@ -1528,7 +1530,7 @@ export const PropertyDetail = ({
               </div>
 
               {/* Title */}
-              <h1 className="text-2xl sm:text-[28px] font-extrabold text-[#111827] leading-[1.3] tracking-tight">
+              <h1 className="detail-title text-2xl sm:text-[28px] font-extrabold text-[#111827] leading-[1.3] tracking-tight">
                 {property.listing_title}
               </h1>
 
@@ -1565,7 +1567,7 @@ export const PropertyDetail = ({
                     {String(property.listing_type).toLowerCase() === 'sale' ? 'SELLING PRICE' : 'MONTHLY RENT'}
                   </p>
                   <div className="flex items-baseline flex-wrap gap-2">
-                    <span className="text-[32px] font-black text-[#1A5E2A]">
+                    <span className="detail-price text-[32px] font-black text-[#1A5E2A]">
                       Rs. {(property.price_lkr || property.price || 1500000).toLocaleString()}
                     </span>
                     {property.is_negotiable && (
@@ -1584,14 +1586,14 @@ export const PropertyDetail = ({
                 <div className="space-y-3">
                   <button 
                     onClick={() => window.open(`https://wa.me/94770000000?text=${encodeURIComponent(`I am interested in ${property.listing_title}`)}`, '_blank')}
-                    className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl py-3.5 px-5 font-bold text-[15px] flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 cursor-pointer"
+                    className="whatsapp-btn w-full bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl py-3.5 px-5 font-bold text-[15px] flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 cursor-pointer"
                   >
                     <span>💬</span> WhatsApp Now
                   </button>
 
                   <button 
                     onClick={() => window.open(`tel:+94771234567`)}
-                    className="w-full bg-white border-2 border-[#1A5E2A] text-[#1A5E2A] hover:bg-[#f0fdf4] rounded-xl py-3.5 px-5 font-bold text-[15px] flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
+                    className="call-btn w-full bg-white border-2 border-[#1A5E2A] text-[#1A5E2A] hover:bg-[#f0fdf4] rounded-xl py-3.5 px-5 font-bold text-[15px] flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
                   >
                     <span>📞</span> Call Now
                   </button>
@@ -1644,7 +1646,7 @@ export const PropertyDetail = ({
         {belowFoldVisible ? (
           <div className="bg-white rounded-[16px] border border-[#e5e7eb] p-6 sm:p-7 shadow-[0_2px_10px_rgba(0,0,0,0.06)] animate-fade-in">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-l-4 border-[#1A5E2A] pl-3 mb-6">
-              <h2 className="text-lg font-bold text-[#111827]">Property Description</h2>
+              <h2 className="detail-section-title text-lg font-bold text-[#111827]">Property Description</h2>
               
               {/* Translator button */}
               <button 
@@ -1687,20 +1689,20 @@ export const PropertyDetail = ({
         {belowFoldVisible ? (
           <div className="bg-white rounded-[16px] border border-[#e5e7eb] p-6 sm:p-7 shadow-[0_2px_10px_rgba(0,0,0,0.06)] animate-fade-in">
             <div className="border-l-4 border-[#1A5E2A] pl-3 mb-6">
-              <h2 className="text-lg font-bold text-[#111827]">Features & Specifications</h2>
+              <h2 className="detail-section-title text-lg font-bold text-[#111827]">Features & Specifications</h2>
             </div>
 
             <div className="rounded-xl border border-[#e5e7eb] overflow-hidden divide-y divide-[#e5e7eb]">
               {specRows.map((row, idx) => (
                 <div 
                   key={idx} 
-                  className={`grid grid-cols-2 p-3 sm:p-4 text-sm font-medium ${idx % 2 === 0 ? 'bg-[#f9fafb]' : 'bg-white'}`}
+                  className={`spec-row grid grid-cols-2 p-3 sm:p-4 text-sm font-medium ${idx % 2 === 0 ? 'bg-[#f9fafb]' : 'bg-white'}`}
                 >
                   <div className="text-[#6b7280] flex items-center gap-2">
                     <span className="text-base">{row.icon}</span>
                     <span>{row.label}</span>
                   </div>
-                  <div className="text-[#111827] font-bold text-right">{row.value}</div>
+                  <div className="spec-value text-[#111827] font-bold text-right">{row.value}</div>
                 </div>
               ))}
             </div>
@@ -1715,7 +1717,7 @@ export const PropertyDetail = ({
         {belowFoldVisible ? (
           <div className="bg-white rounded-[16px] border border-[#e5e7eb] p-6 sm:p-7 shadow-[0_2px_10px_rgba(0,0,0,0.06)] animate-fade-in">
             <div className="border-l-4 border-[#1A5E2A] pl-3 mb-6">
-              <h2 className="text-lg font-bold text-[#111827]">Features & Amenities</h2>
+              <h2 className="detail-section-title text-lg font-bold text-[#111827]">Features & Amenities</h2>
             </div>
 
             <div className="flex flex-wrap gap-2.5">
@@ -1723,7 +1725,7 @@ export const PropertyDetail = ({
                 detectedAmenities.map((amenity, idx) => (
                   <span 
                     key={idx} 
-                    className="flex items-center gap-1.5 bg-[#f0fdf4] text-[#1A5E2A] border border-[#bbf7d0] rounded-full px-4 py-1.5 text-[13px] font-medium transition-all duration-200 hover:scale-105"
+                    className="amenity-pill flex items-center gap-1.5 bg-[#f0fdf4] text-[#1A5E2A] border border-[#bbf7d0] rounded-full px-4 py-1.5 text-[13px] font-medium transition-all duration-200 hover:scale-105"
                   >
                     <span>{getAmenityIcon(amenity)}</span> {amenity}
                   </span>
@@ -1744,7 +1746,7 @@ export const PropertyDetail = ({
         {/* 3E. LOCATION & MAP */}
         <div ref={mapRef} className="bg-white rounded-[16px] border border-[#e5e7eb] p-6 sm:p-7 shadow-[0_2px_10px_rgba(0,0,0,0.06)]">
           <div className="flex items-center justify-between gap-4 border-l-4 border-[#1A5E2A] pl-3 mb-4">
-            <h2 className="text-lg font-bold text-[#111827]">Location</h2>
+            <h2 className="detail-section-title text-lg font-bold text-[#111827]">Location</h2>
             <a 
               href={mapsUrl}
               target="_blank"
@@ -1799,7 +1801,7 @@ export const PropertyDetail = ({
               href={directionsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="gmaps-directions-btn flex-1 py-3 px-4 bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white rounded-[10px] font-semibold text-sm flex items-center justify-center gap-2 no-underline transition-colors duration-150 cursor-pointer"
+              className="directions-btn gmaps-directions-btn flex-1 py-3 px-4 bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white rounded-[10px] font-semibold text-sm flex items-center justify-center gap-2 no-underline transition-colors duration-150 cursor-pointer"
             >
               📍 Get Directions
             </a>
@@ -1807,7 +1809,7 @@ export const PropertyDetail = ({
               href={mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="gmaps-open-btn flex-1 py-3 px-4 bg-white hover:bg-[#f0fdf4] hover:border-[#1A5E2A] hover:text-[#1A5E2A] text-[#374151] border-[1.5px] border-[#e5e7eb] rounded-[10px] font-semibold text-sm flex items-center justify-center gap-2 no-underline transition-all duration-150 cursor-pointer"
+              className="maps-btn gmaps-open-btn flex-1 py-3 px-4 bg-white hover:bg-[#f0fdf4] hover:border-[#1A5E2A] hover:text-[#1A5E2A] text-[#374151] border-[1.5px] border-[#e5e7eb] rounded-[10px] font-semibold text-sm flex items-center justify-center gap-2 no-underline transition-all duration-150 cursor-pointer"
             >
               🗺️ Open in Google Maps
             </a>
@@ -1868,7 +1870,7 @@ export const PropertyDetail = ({
         {/* SECTION 4 — CONTACT DETAILS */}
         <div ref={contactRef} className="bg-white rounded-[16px] border border-[#e5e7eb] p-6 sm:p-7 shadow-[0_2px_10px_rgba(0,0,0,0.06)]">
           <div className="border-l-4 border-[#1A5E2A] pl-3 mb-6">
-            <h2 className="text-lg font-bold text-[#111827]">Contact the Owner / Agent</h2>
+            <h2 className="detail-section-title text-lg font-bold text-[#111827]">Contact the Owner / Agent</h2>
           </div>
           
           {contactVisible ? (
@@ -1899,7 +1901,7 @@ export const PropertyDetail = ({
                 <div className="space-y-3">
                   <button 
                     onClick={() => window.open(`https://wa.me/94770000000?text=${encodeURIComponent(`I am interested in ${property.listing_title}`)}`, '_blank')}
-                    className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl py-3.5 px-5 font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
+                    className="whatsapp-btn w-full bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl py-3.5 px-5 font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
                   >
                     <span>💬</span> WhatsApp Now
                   </button>
@@ -1907,7 +1909,7 @@ export const PropertyDetail = ({
                   {phoneRevealed ? (
                     <button 
                       onClick={() => window.open(`tel:+94771234567`)}
-                      className="w-full bg-white border-2 border-[#1A5E2A] text-[#1A5E2A] hover:bg-[#f0fdf4] rounded-xl py-3.5 px-5 font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+                      className="call-btn w-full bg-white border-2 border-[#1A5E2A] text-[#1A5E2A] hover:bg-[#f0fdf4] rounded-xl py-3.5 px-5 font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
                     >
                       <span>📞</span> Call: +94 77 123 4567
                     </button>
@@ -1937,7 +1939,7 @@ export const PropertyDetail = ({
                 {inquirySuccess ? (
                   <div className="p-6 bg-white text-[#15803d] border border-[#bbf7d0] rounded-xl text-center space-y-3 shadow-sm animate-in fade-in duration-300">
                     <div className="text-lg font-bold">✅ Message Sent!</div>
-                    <p className="text-xs text-gray-600">The owner will contact you shortly.</p>
+                    <p className="text-xs text-gray-650">The owner will contact you shortly.</p>
                     <button 
                       onClick={() => setInquirySuccess(false)}
                       className="text-xs font-extrabold text-[#1A5E2A] hover:underline cursor-pointer"
@@ -1946,7 +1948,7 @@ export const PropertyDetail = ({
                     </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleInquirySubmit} className="space-y-4">
+                  <form onSubmit={handleInquirySubmit} className="contact-form space-y-4">
                     <div>
                       <label className="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider block mb-1">Your Name *</label>
                       <input 
@@ -1995,7 +1997,7 @@ export const PropertyDetail = ({
                     <button 
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white py-3.5 rounded-xl font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                      className="contact-submit w-full bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white py-3.5 rounded-xl font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                     >
                       {isSubmitting ? 'Sending...' : '📩 Send Message →'}
                     </button>
@@ -2125,7 +2127,7 @@ export const PropertyDetail = ({
                       <div
                         key={prop.id || idx}
                         onClick={() => onPropertyClick(prop)}
-                        className="group flex flex-col justify-between bg-white border border-[#E5E7EB] rounded-[14px] overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:border-[#1A5E2A] hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                        className="similar-card group flex flex-col justify-between bg-white border border-[#E5E7EB] rounded-[14px] overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:border-[#1A5E2A] hover:-translate-y-1 transition-all duration-300 cursor-pointer"
                       >
                         {/* Property Image */}
                         <div className="similar-card-image relative h-[180px] overflow-hidden bg-gray-50">
@@ -2161,7 +2163,7 @@ export const PropertyDetail = ({
                         <div className="p-3.5 flex-1 flex flex-col justify-between" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
                           <div className="space-y-1 mb-2">
                             {/* Price */}
-                            <div className="font-bold text-base text-[#1A5E2A]">
+                            <div className="similar-card-price font-bold text-base text-[#1A5E2A]">
                               {priceStr}
                             </div>
 

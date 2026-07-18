@@ -1,3 +1,4 @@
+import { safeLocalStorage } from '../../utils/safeUtils';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
@@ -116,7 +117,7 @@ export default function AdminLandsManager() {
   // Load lands
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('lands_portfolio_custom');
+      const stored = safeLocalStorage.getItem('lands_portfolio_custom');
       if (stored) {
         setLands(JSON.parse(stored));
       } else {
@@ -129,7 +130,7 @@ export default function AdminLandsManager() {
 
   const saveToStorage = (updatedList: LandProperty[]) => {
     setLands(updatedList);
-    localStorage.setItem('lands_portfolio_custom', JSON.stringify(updatedList));
+    safeLocalStorage.setItem('lands_portfolio_custom', JSON.stringify(updatedList));
   };
 
   const handleResetToDefaults = () => {

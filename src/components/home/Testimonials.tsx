@@ -28,7 +28,7 @@ const REVIEWS = [
 
 export const Testimonials: React.FC = () => {
   return (
-    <section className="py-24 bg-[#F8FAF8]">
+    <section className="testimonials-section py-24 bg-[#F8FAF8]">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -45,7 +45,7 @@ export const Testimonials: React.FC = () => {
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.5, delay: idx * 0.12 }}
               whileHover={{ y: -8, transition: { duration: 0.2 } }}
-              className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100/50 flex flex-col h-full"
+              className="testimonial-card bg-white p-8 rounded-3xl shadow-sm border border-gray-100/50 flex flex-col h-full"
             >
               <div className="flex gap-1 mb-6">
                 {[...Array(review.rating)].map((_, i) => (
@@ -56,22 +56,22 @@ export const Testimonials: React.FC = () => {
                     viewport={{ once: true }}
                     transition={{ delay: idx * 0.12 + i * 0.05, type: 'spring' }}
                   >
-                    <Star size={18} fill="#F5A623" className="text-yellow-500" />
+                    <Star size={18} fill="#1A5E2A" className="text-[#1A5E2A]" />
                   </motion.div>
                 ))}
               </div>
 
-              <p className="text-gray-500 italic mb-8 flex-grow leading-relaxed">
+              <p className="testimonial-quote text-gray-500 italic mb-8 flex-grow leading-relaxed">
                 "{review.quote}"
               </p>
 
               <div className="flex items-center gap-4 mt-auto">
-                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-brand-green/20">
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-brand-green/20 testimonial-avatar">
                   <img referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg' }} src={review.avatar} className="w-full h-full object-cover" alt={review.name} />
                 </div>
                 <div>
-                  <h4 className="font-bold text-gray-900 leading-none mb-1">{review.name}</h4>
-                  <p className="text-[10px] font-black tracking-widest text-brand-green">{review.role}</p>
+                  <h4 className="client-name font-bold text-gray-900 leading-none mb-1">{review.name}</h4>
+                  <p className="client-role text-[10px] font-black tracking-widest text-brand-green">{review.role}</p>
                 </div>
               </div>
             </motion.div>

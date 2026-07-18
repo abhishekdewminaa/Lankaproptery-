@@ -1,3 +1,4 @@
+import { safeLocalStorage } from '../utils/safeUtils';
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
@@ -19,13 +20,13 @@ export const WhatsAppFAB = () => {
     window.addEventListener('scroll', handleScroll);
     handleScroll();
 
-    // Check localStorage
-    const badgeSeen = localStorage.getItem('whatsapp_badge_seen') === 'true';
+    // Check safeLocalStorage
+    const badgeSeen = safeLocalStorage.getItem('whatsapp_badge_seen') === 'true';
     if (!badgeSeen) {
       setShowBadge(true);
     }
 
-    const bubbleSeen = localStorage.getItem('bubble_seen') === 'true';
+    const bubbleSeen = safeLocalStorage.getItem('bubble_seen') === 'true';
 
     // Auto expand/collapse logic
     const expandTimer = setTimeout(() => {
@@ -44,7 +45,7 @@ export const WhatsAppFAB = () => {
         // Auto dismiss after 4 seconds
         setTimeout(() => {
           setShowBubble(false);
-          localStorage.setItem('bubble_seen', 'true');
+          safeLocalStorage.setItem('bubble_seen', 'true');
         }, 4000);
       }, 5000);
     }
@@ -60,7 +61,7 @@ export const WhatsAppFAB = () => {
   const handleClick = (e: React.MouseEvent) => {
     if (showBadge) {
       setShowBadge(false);
-      localStorage.setItem('whatsapp_badge_seen', 'true');
+      safeLocalStorage.setItem('whatsapp_badge_seen', 'true');
     }
     
     // Create ripple effect
@@ -81,7 +82,7 @@ export const WhatsAppFAB = () => {
   const manuallyCloseBubble = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowBubble(false);
-    localStorage.setItem('bubble_seen', 'true');
+    safeLocalStorage.setItem('bubble_seen', 'true');
   };
 
   return (

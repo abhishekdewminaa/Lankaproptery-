@@ -1,3 +1,4 @@
+import { safeLocalStorage } from '../utils/safeUtils';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -171,9 +172,9 @@ export const AgentPostPropertyPage: React.FC<AgentPostPropertyPageProps> = ({
     updateUrlForStep(step, isPaymentMode);
   }, [step, isPaymentMode]);
 
-  // Check for existing draft in localStorage
+  // Check for existing draft in safeLocalStorage
   useEffect(() => {
-    const savedDraft = localStorage.getItem('lp_agent_listing_draft');
+    const savedDraft = safeLocalStorage.getItem('lp_agent_listing_draft');
     if (savedDraft) {
       setShowDraftOverlay(true);
     }
@@ -181,7 +182,7 @@ export const AgentPostPropertyPage: React.FC<AgentPostPropertyPageProps> = ({
 
   const handleLoadDraft = () => {
     try {
-      const savedDraft = localStorage.getItem('lp_agent_listing_draft');
+      const savedDraft = safeLocalStorage.getItem('lp_agent_listing_draft');
       if (savedDraft) {
         const d = JSON.parse(savedDraft);
         setOnBehalfOf(d.onBehalfOf || 'My Own Property');
@@ -210,7 +211,7 @@ export const AgentPostPropertyPage: React.FC<AgentPostPropertyPageProps> = ({
         setHasPinned(d.hasPinned || false);
         
         // Also load plan if selected
-        const savedPlan = localStorage.getItem('lp_agent_plan');
+        const savedPlan = safeLocalStorage.getItem('lp_agent_plan');
         if (savedPlan) {
           setSelectedPlan(savedPlan as any);
         }
@@ -225,8 +226,8 @@ export const AgentPostPropertyPage: React.FC<AgentPostPropertyPageProps> = ({
   };
 
   const handleStartFresh = () => {
-    localStorage.removeItem('lp_agent_listing_draft');
-    localStorage.removeItem('lp_agent_plan');
+    safeLocalStorage.removeItem('lp_agent_listing_draft');
+    safeLocalStorage.removeItem('lp_agent_plan');
     
     // Clear state
     setOnBehalfOf('My Own Property');
@@ -291,7 +292,7 @@ export const AgentPostPropertyPage: React.FC<AgentPostPropertyPageProps> = ({
       lng,
       hasPinned
     };
-    localStorage.setItem('lp_agent_listing_draft', JSON.stringify(draftPayload));
+    safeLocalStorage.setItem('lp_agent_listing_draft', JSON.stringify(draftPayload));
   };
 
   const handleAiGenerateText = async () => {
@@ -375,7 +376,7 @@ export const AgentPostPropertyPage: React.FC<AgentPostPropertyPageProps> = ({
   // --- STEP 3 ACTIONS: Choose Package (OPTIONAL) ---
   const handleSelectPackage = (planType: 'starter_free' | 'premium_pro' | 'elite_pro') => {
     setSelectedPlan(planType);
-    localStorage.setItem('lp_agent_plan', planType);
+    safeLocalStorage.setItem('lp_agent_plan', planType);
     setStep(4);
   };
 
@@ -462,19 +463,19 @@ export const AgentPostPropertyPage: React.FC<AgentPostPropertyPageProps> = ({
 
       if (agentInsertError) console.warn("Agents insert error:", agentInsertError);
 
-      // Save agent login session info to localStorage
-      localStorage.setItem('agent_logged_in', 'true');
-      localStorage.setItem('agent_user_id', userId);
-      localStorage.setItem('agent_name', activeName);
-      localStorage.setItem('agent_email', activeEmail);
-      localStorage.setItem('agent_phone', activePhone);
-      localStorage.setItem('agent_agency', agencyName || 'Independent Agent');
-      localStorage.setItem('agent_is_verified', 'false');
-      localStorage.setItem('user_role', 'agent');
-      localStorage.setItem('agent_package_type', selectedPlan);
-      localStorage.setItem('agent_show_welcome_banner', 'true');
+      // Save agent login session info to safeLocalStorage
+      safeLocalStorage.setItem('agent_logged_in', 'true');
+      safeLocalStorage.setItem('agent_user_id', userId);
+      safeLocalStorage.setItem('agent_name', activeName);
+      safeLocalStorage.setItem('agent_email', activeEmail);
+      safeLocalStorage.setItem('agent_phone', activePhone);
+      safeLocalStorage.setItem('agent_agency', agencyName || 'Independent Agent');
+      safeLocalStorage.setItem('agent_is_verified', 'false');
+      safeLocalStorage.setItem('user_role', 'agent');
+      safeLocalStorage.setItem('agent_package_type', selectedPlan);
+      safeLocalStorage.setItem('agent_show_welcome_banner', 'true');
 
-      const draftDataStr = localStorage.getItem('lp_agent_listing_draft');
+      const draftDataStr = safeLocalStorage.getItem('lp_agent_listing_draft');
       if (!draftDataStr) {
         throw new Error("Could not find draft property data.");
       }
@@ -530,11 +531,11 @@ export const AgentPostPropertyPage: React.FC<AgentPostPropertyPageProps> = ({
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      const agentId = localStorage.getItem('agent_user_id') || createdAgentId;
-      const agentEmail = localStorage.getItem('agent_email') || email;
-      const agentPhone = localStorage.getItem('agent_phone') || phone;
+      const agentId = safeLocalStorage.getItem('agent_user_id') || createdAgentId;
+      const agentEmail = safeLocalStorage.getItem('agent_email') || email;
+      const agentPhone = safeLocalStorage.getItem('agent_phone') || phone;
 
-      const draftDataStr = localStorage.getItem('lp_agent_listing_draft');
+      const draftDataStr = safeLocalStorage.getItem('lp_agent_listing_draft');
       if (!draftDataStr) throw new Error("Property listing details not found.");
       const draft = JSON.parse(draftDataStr);
 
@@ -600,17 +601,17 @@ export const AgentPostPropertyPage: React.FC<AgentPostPropertyPageProps> = ({
     const toastId = toast.loading("Saving your listing draft under the Free Starter Plan instead...");
 
     try {
-      const agentId = localStorage.getItem('agent_user_id') || createdAgentId;
-      const agentEmail = localStorage.getItem('agent_email') || email;
-      const agentPhone = localStorage.getItem('agent_phone') || phone;
+      const agentId = safeLocalStorage.getItem('agent_user_id') || createdAgentId;
+      const agentEmail = safeLocalStorage.getItem('agent_email') || email;
+      const agentPhone = safeLocalStorage.getItem('agent_phone') || phone;
 
-      const draftDataStr = localStorage.getItem('lp_agent_listing_draft');
+      const draftDataStr = safeLocalStorage.getItem('lp_agent_listing_draft');
       if (!draftDataStr) throw new Error("Property listing details not found.");
       const draft = JSON.parse(draftDataStr);
 
       // Reset plan to starter_free
       setSelectedPlan('starter_free');
-      localStorage.setItem('agent_package_type', 'starter_free');
+      safeLocalStorage.setItem('agent_package_type', 'starter_free');
 
       const durationDays = 90;
       const expiresAt = new Date();
@@ -736,9 +737,9 @@ export const AgentPostPropertyPage: React.FC<AgentPostPropertyPageProps> = ({
 
       toast.success("Your property has been indexed and submitted for admin review!", { id: toastId });
 
-      // Clean up localStorage
-      localStorage.removeItem('lp_agent_listing_draft');
-      localStorage.removeItem('lp_agent_plan');
+      // Clean up safeLocalStorage
+      safeLocalStorage.removeItem('lp_agent_listing_draft');
+      safeLocalStorage.removeItem('lp_agent_plan');
 
       // Go directly to Agent Dashboard Step 5
       setIsPaymentMode(false);

@@ -1,3 +1,4 @@
+import { safeLocalStorage } from '../utils/safeUtils';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -237,11 +238,11 @@ export const AgentRegisterPage: React.FC<AgentRegisterPageProps> = ({ onNavigate
         console.warn('Failed to insert agent into agents table:', agentInsertError);
       }
 
-      // Save session states to localStorage for mock/real logged-in experience
-      localStorage.setItem('owner_logged_in', 'true');
-      localStorage.setItem('owner_name', fullName);
-      localStorage.setItem('owner_email', email);
-      localStorage.setItem('user_role', 'agent');
+      // Save session states to safeLocalStorage for mock/real logged-in experience
+      safeLocalStorage.setItem('owner_logged_in', 'true');
+      safeLocalStorage.setItem('owner_name', fullName);
+      safeLocalStorage.setItem('owner_email', email);
+      safeLocalStorage.setItem('user_role', 'agent');
 
       // Success
       setShowSuccessModal(true);

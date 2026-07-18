@@ -1,3 +1,4 @@
+import { safeLocalStorage } from '../../utils/safeUtils';
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -172,12 +173,12 @@ export const LandsPortfolio: React.FC<LandsPortfolioProps> = ({
   useEffect(() => {
     // Load from local storage if exists
     try {
-      const stored = localStorage.getItem('lands_portfolio_custom');
+      const stored = safeLocalStorage.getItem('lands_portfolio_custom');
       if (stored) {
         setCustomLands(JSON.parse(stored));
       } else {
         setCustomLands(DEFAULT_LAND_PROPERTIES);
-        localStorage.setItem('lands_portfolio_custom', JSON.stringify(DEFAULT_LAND_PROPERTIES));
+        safeLocalStorage.setItem('lands_portfolio_custom', JSON.stringify(DEFAULT_LAND_PROPERTIES));
       }
     } catch (e) {
       setCustomLands(DEFAULT_LAND_PROPERTIES);

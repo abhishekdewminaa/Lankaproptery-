@@ -23,7 +23,7 @@ export const TrustedPartners: React.FC = () => {
         <div className="flex gap-20 py-4 animate-marquee-slow whitespace-nowrap group-hover:[animation-play-state:paused]">
           {LOGOS.map((logo, i) => (
             <div key={i} className="flex items-center justify-center min-w-[200px]">
-              <span className="text-2xl font-bold text-gray-300 hover:text-brand-green transition-colors cursor-default select-none grayscale hover:grayscale-0">
+              <span className="partner-logo text-2xl font-bold text-gray-300 hover:text-brand-green transition-colors cursor-default select-none grayscale hover:grayscale-0">
                 {logo}
               </span>
             </div>
@@ -34,7 +34,7 @@ export const TrustedPartners: React.FC = () => {
         <div className="flex gap-20 py-4 animate-marquee-slow whitespace-nowrap group-hover:[animation-play-state:paused]" aria-hidden="true">
           {LOGOS.map((logo, i) => (
             <div key={`dup-${i}`} className="flex items-center justify-center min-w-[200px]">
-              <span className="text-2xl font-bold text-gray-300 hover:text-brand-green transition-colors cursor-default select-none grayscale hover:grayscale-0">
+              <span className="partner-logo text-2xl font-bold text-gray-300 hover:text-brand-green transition-colors cursor-default select-none grayscale hover:grayscale-0">
                 {logo}
               </span>
             </div>

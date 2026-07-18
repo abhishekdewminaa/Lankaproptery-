@@ -1,3 +1,4 @@
+import { safeLocalStorage } from '../../utils/safeUtils';
 import React, { useState, useEffect } from 'react';
 import { 
   Link, 
@@ -189,12 +190,12 @@ export default function AdminLinks({ user }: { user: any }) {
 
   // Track state of dark mode
   useEffect(() => {
-    const isDark = localStorage.getItem('admin-dark-mode') === 'true';
+    const isDark = safeLocalStorage.getItem('admin-dark-mode') === 'true';
     setAdminDarkMode(isDark);
     
     // Check if body has dark class or watch for mutations
     const observer = new MutationObserver(() => {
-      setAdminDarkMode(localStorage.getItem('admin-dark-mode') === 'true');
+      setAdminDarkMode(safeLocalStorage.getItem('admin-dark-mode') === 'true');
     });
     observer.observe(document.body, { attributes: true, childList: true, subtree: true });
     return () => observer.disconnect();
@@ -227,25 +228,25 @@ export default function AdminLinks({ user }: { user: any }) {
       setClicks(clicksData || []);
       setIsLocalMode(false);
     } catch (e: any) {
-      console.warn("Supabase short links query failed (using localStorage backup):", e);
+      console.warn("Supabase short links query failed (using safeLocalStorage backup):", e);
       setIsLocalMode(true);
       
-      // Load from localStorage or set defaults
-      const storedLinks = localStorage.getItem('lp_short_links');
-      const storedClicks = localStorage.getItem('lp_link_clicks');
+      // Load from safeLocalStorage or set defaults
+      const storedLinks = safeLocalStorage.getItem('lp_short_links');
+      const storedClicks = safeLocalStorage.getItem('lp_link_clicks');
       
       if (storedLinks) {
         setLinks(JSON.parse(storedLinks));
       } else {
         setLinks(SEED_LINKS);
-        localStorage.setItem('lp_short_links', JSON.stringify(SEED_LINKS));
+        safeLocalStorage.setItem('lp_short_links', JSON.stringify(SEED_LINKS));
       }
 
       if (storedClicks) {
         setClicks(JSON.parse(storedClicks));
       } else {
         setClicks(SEED_CLICKS);
-        localStorage.setItem('lp_link_clicks', JSON.stringify(SEED_CLICKS));
+        safeLocalStorage.setItem('lp_link_clicks', JSON.stringify(SEED_CLICKS));
       }
     } finally {
       setLoading(false);
@@ -343,7 +344,7 @@ export default function AdminLinks({ user }: { user: any }) {
       
       const updatedList = [newLink, ...links];
       setLinks(updatedList);
-      localStorage.setItem('lp_short_links', JSON.stringify(updatedList));
+      safeLocalStorage.setItem('lp_short_links', JSON.stringify(updatedList));
       toast.success('Short link generated locally!');
     } else {
       // Supabase Mode Insert
@@ -401,7 +402,7 @@ export default function AdminLinks({ user }: { user: any }) {
       };
       const updatedList = [newLink, ...links];
       setLinks(updatedList);
-      localStorage.setItem('lp_short_links', JSON.stringify(updatedList));
+      safeLocalStorage.setItem('lp_short_links', JSON.stringify(updatedList));
     } else {
       const { error } = await supabase
         .from('short_links')
@@ -437,7 +438,7 @@ export default function AdminLinks({ user }: { user: any }) {
     if (isLocalMode) {
       const updatedList = links.map(l => l.id === editingLink.id ? { ...l, ...updatedPayload } : l);
       setLinks(updatedList);
-      localStorage.setItem('lp_short_links', JSON.stringify(updatedList));
+      safeLocalStorage.setItem('lp_short_links', JSON.stringify(updatedList));
       toast.success('Link updated successfully!');
       setEditingLink(null);
     } else {
@@ -465,12 +466,12 @@ export default function AdminLinks({ user }: { user: any }) {
     if (isLocalMode) {
       const updatedList = links.filter(l => l.id !== id);
       setLinks(updatedList);
-      localStorage.setItem('lp_short_links', JSON.stringify(updatedList));
+      safeLocalStorage.setItem('lp_short_links', JSON.stringify(updatedList));
       
       // Filter clicks too
       const updatedClicks = clicks.filter(c => c.link_id !== id);
       setClicks(updatedClicks);
-      localStorage.setItem('lp_link_clicks', JSON.stringify(updatedClicks));
+      safeLocalStorage.setItem('lp_link_clicks', JSON.stringify(updatedClicks));
 
       toast.success('Link deleted successfully');
     } else {
@@ -499,7 +500,7 @@ export default function AdminLinks({ user }: { user: any }) {
     if (isLocalMode) {
       const updatedList = links.map(l => l.id === link.id ? { ...l, is_active: updatedStatus } : l);
       setLinks(updatedList);
-      localStorage.setItem('lp_short_links', JSON.stringify(updatedList));
+      safeLocalStorage.setItem('lp_short_links', JSON.stringify(updatedList));
       toast.success(`Link has been ${updatedStatus ? 'activated' : 'paused'}`);
     } else {
       const { error } = await supabase

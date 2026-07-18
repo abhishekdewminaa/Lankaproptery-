@@ -1,3 +1,4 @@
+import { safeLocalStorage } from '../utils/safeUtils';
 import React, { useState, useEffect } from 'react';
 import { Mail, Lock, Eye, EyeOff, ShieldCheck, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -19,7 +20,7 @@ export const OwnerLoginPage: React.FC<OwnerLoginPageProps> = ({ onNavigate, onNa
   useEffect(() => {
     document.title = "Property Seller Login — LankaProperty.lk";
     const params = new URLSearchParams(window.location.search);
-    const urlPlan = params.get('plan') || localStorage.getItem('selected_plan') || '';
+    const urlPlan = params.get('plan') || safeLocalStorage.getItem('selected_plan') || '';
     if (urlPlan) {
       setPlan(urlPlan);
     }
@@ -99,11 +100,11 @@ export const OwnerLoginPage: React.FC<OwnerLoginPageProps> = ({ onNavigate, onNa
           return;
         }
 
-        localStorage.setItem('owner_logged_in', 'true');
-        localStorage.setItem('owner_id', loggedInUser.id);
-        localStorage.setItem('owner_name', loggedInUser.name);
-        localStorage.setItem('owner_email', loggedInUser.email);
-        localStorage.setItem('user_role', loggedInUser.role || 'owner');
+        safeLocalStorage.setItem('owner_logged_in', 'true');
+        safeLocalStorage.setItem('owner_id', loggedInUser.id);
+        safeLocalStorage.setItem('owner_name', loggedInUser.name);
+        safeLocalStorage.setItem('owner_email', loggedInUser.email);
+        safeLocalStorage.setItem('user_role', loggedInUser.role || 'owner');
 
         toast.success(`Welcome back, ${loggedInUser.name}! Login successful.`, { icon: '👋' });
 

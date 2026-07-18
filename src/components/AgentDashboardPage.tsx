@@ -1,3 +1,4 @@
+import { safeLocalStorage } from '../utils/safeUtils';
 import React, { useState, useEffect } from 'react';
 import { 
   BarChart as RechartsBarChart, 
@@ -223,7 +224,7 @@ export const AgentDashboardPage: React.FC<AgentDashboardPageProps> = ({
   const [activeTab, setActiveTab] = useState<'dashboard' | 'listings' | 'add_property' | 'pipeline' | 'clients' | 'package' | 'analytics' | 'profile' | 'settings'>('dashboard');
   const [darkMode, setDarkMode] = useState(false);
   const [showWelcome, setShowWelcome] = useState(() => {
-    return localStorage.getItem('agent_show_welcome_banner') === 'true';
+    return safeLocalStorage.getItem('agent_show_welcome_banner') === 'true';
   });
   
   // App states
@@ -340,7 +341,7 @@ export const AgentDashboardPage: React.FC<AgentDashboardPageProps> = ({
     try {
       const prompt = `Write a stunning, highly compelling property listing description for a ${formFields.category} ${formFields.type} in ${formFields.city}, ${formFields.district}, Sri Lanka. Size: ${formFields.landArea}. Floor area: ${formFields.floorArea}. ${formFields.bedrooms} bedrooms, ${formFields.bathrooms} bathrooms. Price expectation: ${formFields.price || "Contact Agent"}. Key features: luxury finishing, modern architecture, clear titles. Tone: ${aiTone}. Return acompelling text under 150 words perfect for Sri Lankan property buyers. Do not output markdown.`;
       
-      const apiKey = process.env.GEMINI_API_KEY || localStorage.getItem('gemini_api_key') || '';
+      const apiKey = process.env.GEMINI_API_KEY || safeLocalStorage.getItem('gemini_api_key') || '';
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
       
       const response = await fetch(endpoint, {
@@ -527,10 +528,10 @@ export const AgentDashboardPage: React.FC<AgentDashboardPageProps> = ({
   const handleSaveProfile = () => {
     toast.success("Profile saved and pushed publicly!");
     // save locally
-    localStorage.setItem('agent_name', profileName);
-    localStorage.setItem('agent_phone', profilePhone);
-    localStorage.setItem('agent_agency', profileAgency);
-    localStorage.setItem('agent_image', avatarUrl);
+    safeLocalStorage.setItem('agent_name', profileName);
+    safeLocalStorage.setItem('agent_phone', profilePhone);
+    safeLocalStorage.setItem('agent_agency', profileAgency);
+    safeLocalStorage.setItem('agent_image', avatarUrl);
   };
 
   // Process Listings calculations
@@ -627,7 +628,7 @@ export const AgentDashboardPage: React.FC<AgentDashboardPageProps> = ({
             {/* Plan Badge */}
             <div className="mt-2.5 flex items-center gap-2 flex-wrap justify-center">
               {(() => {
-                const currentPlan = localStorage.getItem('agent_package_type') || 'starter_free';
+                const currentPlan = safeLocalStorage.getItem('agent_package_type') || 'starter_free';
                 if (currentPlan === 'starter_free') {
                   return (
                     <div className="flex items-center gap-1.5 justify-center">
@@ -814,7 +815,7 @@ export const AgentDashboardPage: React.FC<AgentDashboardPageProps> = ({
                     onClick={() => {
                       setActiveTab('profile');
                       setShowWelcome(false);
-                      localStorage.removeItem('agent_show_welcome_banner');
+                      safeLocalStorage.removeItem('agent_show_welcome_banner');
                     }}
                     className="bg-white hover:bg-green-50 text-green-800 text-xs font-black px-4 py-2 rounded-xl transition-all shadow-sm cursor-pointer"
                   >
@@ -825,7 +826,7 @@ export const AgentDashboardPage: React.FC<AgentDashboardPageProps> = ({
               <button 
                 onClick={() => {
                   setShowWelcome(false);
-                  localStorage.removeItem('agent_show_welcome_banner');
+                  safeLocalStorage.removeItem('agent_show_welcome_banner');
                 }}
                 className="absolute top-4 right-4 text-white hover:text-green-200 text-sm bg-black/10 hover:bg-black/20 h-6 w-6 rounded-full flex items-center justify-center transition-all cursor-pointer"
                 title="Dismiss"
@@ -1650,7 +1651,7 @@ export const AgentDashboardPage: React.FC<AgentDashboardPageProps> = ({
                 className="space-y-6"
               >
                 {/* Upgrade prompt for Free Plan */}
-                {(localStorage.getItem('agent_package_type') || 'starter_free') === 'starter_free' && (
+                {(safeLocalStorage.getItem('agent_package_type') || 'starter_free') === 'starter_free' && (
                   <div className={`p-4 rounded-xl border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${darkMode ? 'bg-blue-950/25 border-blue-900/40 text-blue-200' : 'bg-blue-50 border-blue-100 text-blue-800'}`}>
                     <div className="flex items-center gap-2">
                       <span className="text-lg">⭐</span>
@@ -1895,7 +1896,7 @@ export const AgentDashboardPage: React.FC<AgentDashboardPageProps> = ({
                 className="space-y-6"
               >
                 {/* Upgrade prompt for Free Plan */}
-                {(localStorage.getItem('agent_package_type') || 'starter_free') === 'starter_free' && (
+                {(safeLocalStorage.getItem('agent_package_type') || 'starter_free') === 'starter_free' && (
                   <div className={`p-4 rounded-xl border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${darkMode ? 'bg-blue-950/25 border-blue-900/40 text-blue-200' : 'bg-blue-50 border-blue-100 text-blue-800'}`}>
                     <div className="flex items-center gap-2">
                       <span className="text-lg">📊</span>

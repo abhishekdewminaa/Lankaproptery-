@@ -1,3 +1,4 @@
+import { safeLocalStorage } from '../../utils/safeUtils';
 import React, { useState } from 'react';
 import { Sparkles, Copy, PencilLine, RotateCw, CheckCircle2, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -57,7 +58,7 @@ export default function AdminAIWriter() {
       const prompt = `Write a professional property listing description for a ${formData.type} ${formData.listingType} in ${formData.location}, Sri Lanka. Size: ${formData.landSize}. Floor area: ${formData.floorArea}. ${formData.bedrooms} bedrooms, ${formData.bathrooms} bathrooms. Price: Rs. ${formData.price}. Key features: ${formData.features.join(', ')}. Additional notes: ${formData.notes}. Tone: ${formData.tone}. Language: ${formData.language}. Keep it under 200 words. Make it compelling for Sri Lankan property buyers. Return the text without any surrounding quotes. Provide 3 different variations separated by "|||VARIATION|||".`;
 
       // using the generic backend fetch call assuming it is mapped correctly or use Gemini API key from client-side if needed
-      const apiKey = process.env.GEMINI_API_KEY || localStorage.getItem('gemini_api_key') || '';
+      const apiKey = process.env.GEMINI_API_KEY || safeLocalStorage.getItem('gemini_api_key') || '';
       
       let endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=" + apiKey;
       

@@ -18,7 +18,6 @@ import AdminLandsManager from './AdminLandsManager';
 import AdminUserListings from './AdminUserListings';
 import AdminAgents from './agents/AdminAgents';
 import AdminLinks from './AdminLinks';
-import AdminPhotoEditor from './AdminPhotoEditor';
 import { AutomationBuilderPage } from '../../pages/AutomationBuilderPage';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
@@ -159,13 +158,6 @@ export default function AdminPortal({ user, onLogout, onRefresh, onAgentAccessBa
       toggleAdminDark={toggleAdminDark}
     >
       {activePage === 'dashboard' && <AdminDashboard user={user} />}
-      {activePage === 'photo-editor' && (
-        <AdminPhotoEditor 
-          user={user} 
-          onBack={() => setActivePage('dashboard')} 
-          adminDarkMode={adminDarkMode} 
-        />
-      )}
       {activePage === 'links' && <AdminLinks user={user} />}
       {activePage === 'enquiries' && <AdminInquiries user={user} />}
       {activePage === 'marketing' && <AdminMarketing />}

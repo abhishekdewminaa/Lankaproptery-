@@ -1,3 +1,4 @@
+import { safeLocalStorage } from '../../utils/safeUtils';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Bell, Settings, Menu, X, ChevronDown, Home, Building2, ArrowRight } from 'lucide-react';
@@ -21,8 +22,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
 
   const [showPostModal, setShowPostModal] = useState(false);
 
-  const isAgentLoggedIn = localStorage.getItem('agent_logged_in') === 'true';
-  const isOwnerLoggedIn = localStorage.getItem('owner_logged_in') === 'true';
+  const isAgentLoggedIn = safeLocalStorage.getItem('agent_logged_in') === 'true';
+  const isOwnerLoggedIn = safeLocalStorage.getItem('owner_logged_in') === 'true';
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const authDropdownRef = useRef<HTMLDivElement>(null);
@@ -47,6 +48,33 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowPostModal(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const handleInterceptSell = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const link = target.closest('a');
+      if (link) {
+        const href = link.getAttribute('href') || '';
+        const hasClass = link.classList.contains('sell-nav-link');
+        if (href.includes('sell-my-property') || href.includes('sell_my_property') || hasClass) {
+          e.preventDefault();
+          setShowPostModal(true);
+        }
+      }
+    };
+    document.addEventListener('click', handleInterceptSell);
+    return () => document.removeEventListener('click', handleInterceptSell);
   }, []);
 
   useEffect(() => {
@@ -117,6 +145,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
         { name: 'Hotels', href: '/buy/hotels', data: { category: 'Hotel', mode: 'buy' } },
       ]
     },
+    { 
+      name: 'Rent', 
+      type: 'dropdown',
+      items: [
+        { name: 'Houses for Rent', href: '/rent/houses', data: { category: 'House', mode: 'rent' } },
+        { name: 'Land for Rent', href: '/rent/land', data: { category: 'Land', mode: 'rent' } },
+        { name: 'Apartments for Rent', href: '/rent/apartments', data: { category: 'Apartment', mode: 'rent' } },
+        { name: 'Buildings for Rent', href: '/rent/buildings', data: { category: 'Building', mode: 'rent' } },
+        { name: 'Hotels for Rent', href: '/rent/hotels', data: { category: 'Hotel', mode: 'rent' } },
+      ]
+    },
     { name: 'Advertised Packages', href: '/packages', type: 'packages' },
     { name: 'Wanted', href: '/wanted', type: 'wanted' },
     { name: 'Projects', href: '/projects', type: 'lands' },
@@ -175,7 +214,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
         <div className="nav-links nav-menu hidden lg:flex items-center gap-6 ml-8" ref={dropdownRef}>
           {navLinks.map((link, idx) => {
             const styles = getLinkStyles(link.name, currentView === link.type);
-            const isDividerAfter = link.name === 'Buy';
+            const isDividerAfter = link.name === 'Buy' || link.name === 'Rent';
             
             return (
               <React.Fragment key={link.name}>
@@ -184,7 +223,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                     <>
                       <button
                         onClick={() => setActiveDropdown(activeDropdown === link.name ? null : link.name)}
-                        className={`flex items-center gap-1 text-sm font-bold transition-colors cursor-pointer ${styles.textColorClass} ${styles.hoverColorClass}`}
+                        className={`nav-link flex items-center gap-1 text-sm font-bold transition-colors cursor-pointer ${link.name.toLowerCase() === 'buy' ? 'nav-buy' : link.name.toLowerCase() === 'rent' ? 'nav-rent' : ''} ${styles.textColorClass} ${styles.hoverColorClass}`}
                       >
                         {link.name}
                         <ChevronDown size={14} className={`transition-transform duration-200 ${activeDropdown === link.name ? 'rotate-180' : ''}`} />
@@ -196,7 +235,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 10 }}
-                            className="dropdown absolute top-full left-0 mt-4 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 overflow-hidden z-[110]"
+                            className="dropdown dropdown-menu absolute top-full left-0 mt-4 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 overflow-hidden z-[110]"
                           >
                             {link.items?.map((item) => {
                               const itemStyles = getLinkStyles(item.name, false);
@@ -214,7 +253,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                                     }
                                     setActiveDropdown(null);
                                   }}
-                                  className={`block px-6 py-2.5 text-sm font-bold transition-colors ${itemStyles.hoverBgClass}`}
+                                  className={`dropdown-item block px-6 py-2.5 text-sm font-bold transition-colors ${itemStyles.hoverBgClass}`}
                                 >
                                   {item.name}
                                 </a>
@@ -228,7 +267,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                     <a
                       href={link.href}
                       onClick={(e) => handleLinkClick(e, link)}
-                      className={`text-sm font-bold relative group transition-colors cursor-pointer ${styles.textColorClass} ${styles.hoverColorClass}`}
+                      className={`nav-link text-sm font-bold relative group transition-colors cursor-pointer ${link.name.toLowerCase() === 'buy' ? 'nav-buy' : link.name.toLowerCase() === 'sell' ? 'nav-sell' : link.name.toLowerCase() === 'rent' ? 'nav-rent' : ''} ${styles.textColorClass} ${styles.hoverColorClass}`}
                     >
                       {link.name}
                       <span className={`absolute -bottom-1 left-0 h-0.5 transition-all ${styles.lineBg} ${
@@ -239,6 +278,40 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                 </div>
                 {isDividerAfter && (
                   <span className="text-[#D1D5DB] font-light font-sans text-sm select-none">|</span>
+                )}
+                {link.name === 'Rent' && (
+                  <>
+                    <button 
+                      id="sell-nav-btn"
+                      onClick={() => setShowPostModal(true)}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '9px 18px',
+                        background: '#CC1414',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        font: '700 14px Plus Jakarta Sans',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        transition: 'all 0.2s ease',
+                        textDecoration: 'none',
+                      }}
+                      onMouseOver={(e) => {
+                        (e.currentTarget as HTMLElement).style.background = '#A00E0E';
+                        (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)';
+                      }}
+                      onMouseOut={(e) => {
+                        (e.currentTarget as HTMLElement).style.background = '#CC1414';
+                        (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+                      }}
+                    >
+                      🏠 Sell
+                    </button>
+                    <span className="text-[#D1D5DB] font-light font-sans text-sm select-none">|</span>
+                  </>
                 )}
               </React.Fragment>
             );
@@ -271,11 +344,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
               </button>
               <button
                 onClick={() => {
-                  localStorage.removeItem('owner_logged_in');
-                  localStorage.removeItem('owner_id');
-                  localStorage.removeItem('owner_name');
-                  localStorage.removeItem('owner_email');
-                  localStorage.removeItem('user_role');
+                  safeLocalStorage.removeItem('owner_logged_in');
+                  safeLocalStorage.removeItem('owner_id');
+                  safeLocalStorage.removeItem('owner_name');
+                  safeLocalStorage.removeItem('owner_email');
+                  safeLocalStorage.removeItem('user_role');
                   window.history.pushState({}, '', '/');
                   if (onNavigate) onNavigate({ type: 'explore' });
                   window.location.reload();
@@ -298,11 +371,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
               </button>
               <button
                 onClick={() => {
-                  localStorage.removeItem('agent_logged_in');
-                  localStorage.removeItem('agent_id');
-                  localStorage.removeItem('agent_name');
-                  localStorage.removeItem('agent_email');
-                  localStorage.removeItem('user_role');
+                  safeLocalStorage.removeItem('agent_logged_in');
+                  safeLocalStorage.removeItem('agent_id');
+                  safeLocalStorage.removeItem('agent_name');
+                  safeLocalStorage.removeItem('agent_email');
+                  safeLocalStorage.removeItem('user_role');
                   window.history.pushState({}, '', '/');
                   if (onNavigate) onNavigate({ type: 'explore' });
                   window.location.reload();
@@ -457,11 +530,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                 </a>
                 <button
                   onClick={() => {
-                    localStorage.removeItem('owner_logged_in');
-                    localStorage.removeItem('owner_id');
-                    localStorage.removeItem('owner_name');
-                    localStorage.removeItem('owner_email');
-                    localStorage.removeItem('user_role');
+                    safeLocalStorage.removeItem('owner_logged_in');
+                    safeLocalStorage.removeItem('owner_id');
+                    safeLocalStorage.removeItem('owner_name');
+                    safeLocalStorage.removeItem('owner_email');
+                    safeLocalStorage.removeItem('user_role');
                     window.location.reload();
                   }}
                   className="w-full text-left px-4 py-3 text-base font-bold text-red-500 hover:bg-red-50 rounded-xl"
@@ -486,11 +559,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                 </a>
                 <button
                   onClick={() => {
-                    localStorage.removeItem('agent_logged_in');
-                    localStorage.removeItem('agent_id');
-                    localStorage.removeItem('agent_name');
-                    localStorage.removeItem('agent_email');
-                    localStorage.removeItem('user_role');
+                    safeLocalStorage.removeItem('agent_logged_in');
+                    safeLocalStorage.removeItem('agent_id');
+                    safeLocalStorage.removeItem('agent_name');
+                    safeLocalStorage.removeItem('agent_email');
+                    safeLocalStorage.removeItem('user_role');
                     window.location.reload();
                   }}
                   className="w-full text-left px-4 py-3 text-base font-bold text-red-500 hover:bg-red-50 rounded-xl"
@@ -609,139 +682,329 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
       {/* Choose Listing Path Modal */}
       <AnimatePresence>
         {showPostModal && (
-          <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 z-[999]">
+          <div 
+            id="sell-modal-overlay" 
+            onClick={(e) => { if(e.target === e.currentTarget) setShowPostModal(false); }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.65)',
+              zIndex: 99999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '16px',
+              backdropFilter: 'blur(3px)',
+              animation: 'fadeOverlay 0.2s ease',
+            }}
+          >
+            {/* Modal Card */}
             <motion.div 
-              id="post-property-modal-card"
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-[32px] p-6 sm:p-8 max-w-2xl w-full shadow-2xl border border-neutral-100 relative text-center overflow-hidden"
+              style={{
+                background: '#ffffff',
+                borderRadius: '24px',
+                padding: '40px 36px',
+                maxWidth: '680px',
+                width: '100%',
+                position: 'relative',
+                animation: 'slideUp 0.25s ease',
+                boxShadow: '0 24px 80px rgba(0,0,0,0.25)',
+              }}
             >
               {/* Close Button */}
               <button 
-                id="post-property-close-btn"
                 onClick={() => setShowPostModal(false)}
-                className="absolute top-6 right-6 h-9 w-9 rounded-full bg-neutral-50 hover:bg-neutral-100 border border-neutral-100 text-neutral-500 hover:text-neutral-800 flex items-center justify-center transition-all duration-200 hover:scale-105 cursor-pointer z-10"
+                style={{
+                  position: 'absolute',
+                  top: '18px',
+                  right: '18px',
+                  width: '36px',
+                  height: '36px',
+                  background: '#F3F4F6',
+                  border: 'none',
+                  borderRadius: '50%',
+                  fontSize: '18px',
+                  color: '#374151',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  lineHeight: 1,
+                  transition: 'background 0.15s',
+                }}
+                onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.background = '#E5E7EB'; }}
+                onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.background = '#F3F4F6'; }}
               >
-                <X size={16} />
+                &times;
               </button>
 
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#004F31]/5 border border-[#004F31]/10 text-[#004F31] rounded-full text-[10px] font-extrabold uppercase tracking-widest mb-3">
-                Post Property
+              {/* POST PROPERTY Badge */}
+              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                <span style={{
+                  display: 'inline-block',
+                  padding: '6px 18px',
+                  border: '1.5px solid #1A5E2A',
+                  borderRadius: '25px',
+                  font: '700 12px Plus Jakarta Sans',
+                  color: '#1A5E2A',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                }}>POST PROPERTY</span>
               </div>
 
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
-                List Your Property on LankaProperty.lk
-              </h2>
-              <p className="text-sm font-medium text-neutral-500 max-w-md mx-auto mb-8">
-                Choose the listing path that matches your profile to proceed with standard owner or agent listings.
-              </p>
+              {/* Heading */}
+              <h2 style={{
+                font: '800 28px/1.25 Plus Jakarta Sans',
+                color: '#111827',
+                textAlign: 'center',
+                margin: '0 0 12px',
+              }}>List Your Property on LankaProperty.lk</h2>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                
-                {/* Direct Owner Box */}
+              {/* Subtitle */}
+              <p style={{
+                font: '400 15px/1.6 Plus Jakarta Sans',
+                color: '#6B7280',
+                textAlign: 'center',
+                margin: '0 0 32px',
+                maxWidth: '480px',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+              }}>Choose the listing path that matches your profile to proceed with standard owner or agent listings.</p>
+
+              {/* TWO OPTION CARDS */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '16px',
+                marginBottom: '28px',
+              }}>
+                {/* Card 1: Owner */}
                 <div 
-                  id="direct-owner-box-card"
+                  style={{
+                    border: '1.5px solid #E5E7EB',
+                    borderRadius: '18px',
+                    padding: '28px 24px',
+                    textAlign: 'center',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '12px',
+                    transition: 'all 0.2s',
+                    cursor: 'pointer',
+                  }}
+                  className="hover:border-[#1A5E2A] hover:shadow-lg hover:-translate-y-0.5"
+                  onMouseOver={(e) => {
+                    const card = e.currentTarget as HTMLElement;
+                    card.style.borderColor = '#1A5E2A';
+                    card.style.boxShadow = '0 4px 20px rgba(26,94,42,0.1)';
+                    card.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseOut={(e) => {
+                    const card = e.currentTarget as HTMLElement;
+                    card.style.borderColor = '#E5E7EB';
+                    card.style.boxShadow = 'none';
+                    card.style.transform = 'translateY(0)';
+                  }}
                   onClick={() => {
                     setShowPostModal(false);
                     window.history.pushState({}, '', '/sell');
                     if (onNavigate) onNavigate({ type: 'sell' });
                   }}
-                  className="group relative border border-neutral-200/80 hover:border-[#004F31] rounded-[24px] p-6 flex flex-col justify-between items-center text-center transition-all duration-300 bg-white hover:shadow-xl hover:shadow-emerald-950/5 hover:-translate-y-1 cursor-pointer overflow-hidden"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-b from-emerald-50/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                  
-                  <div className="space-y-2 mb-4 relative z-10 flex flex-col items-center">
-                    <div className="h-14 w-14 bg-emerald-50/80 text-[#004F31] rounded-2xl flex items-center justify-center mx-auto mb-2 border border-emerald-100/50 group-hover:scale-110 transition-transform duration-300 shadow-sm">
-                      <Home size={24} className="stroke-[2.25]" />
-                    </div>
-                    
-                    <span className="inline-block px-2.5 py-0.5 bg-emerald-100/50 text-emerald-800 rounded-full text-[9px] font-extrabold uppercase tracking-wider mb-1">
-                      Free Option
-                    </span>
-                    
-                    <h3 className="text-base font-black text-slate-800 tracking-tight">I Own This Property</h3>
-                    <p className="text-xs font-semibold text-neutral-400 leading-relaxed max-w-[210px]">
-                      Post your private house, apartment or land draft directly for free to reach direct buyers.
-                    </p>
-                  </div>
-                  
-                  <button
-                    id="direct-owner-submit-btn"
+                  <div style={{
+                    width: '64px',
+                    height: '64px',
+                    background: '#E8F5E9',
+                    borderRadius: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '28px',
+                  }}>🏠</div>
+
+                  <span style={{
+                    background: '#E8F5E9',
+                    color: '#1A5E2A',
+                    border: '1px solid #A5D6A7',
+                    borderRadius: '20px',
+                    padding: '3px 12px',
+                    font: '700 11px Plus Jakarta Sans',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}>FREE OPTION</span>
+
+                  <h3 style={{
+                    font: '800 20px Plus Jakarta Sans',
+                    color: '#111827',
+                    margin: 0,
+                  }}>I Own This Property</h3>
+
+                  <p style={{
+                    font: '400 13px/1.65 Plus Jakarta Sans',
+                    color: '#6B7280',
+                    margin: 0,
+                  }}>Post your private house, apartment or land draft directly for free to reach direct buyers.</p>
+
+                  <a 
+                    href="/sell"
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       setShowPostModal(false);
                       window.history.pushState({}, '', '/sell');
                       if (onNavigate) onNavigate({ type: 'sell' });
                     }}
-                    className="w-full mt-2 py-3.5 bg-[#004F31] hover:bg-[#003420] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-lg shadow-emerald-950/10 hover:shadow-emerald-950/20 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5 relative z-10"
-                  >
-                    <span>Sell As Owner Free</span>
-                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                  </button>
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      width: '100%',
+                      padding: '14px',
+                      background: '#1A5E2A',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      font: '700 13px Plus Jakarta Sans',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      cursor: 'pointer',
+                      textDecoration: 'none',
+                      transition: 'background 0.2s',
+                      marginTop: '4px',
+                    }}
+                    onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.background = '#0F3D1A'; }}
+                    onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.background = '#1A5E2A'; }}
+                  >SELL AS OWNER FREE &rarr;</a>
                 </div>
 
-                {/* Professional Agent Box */}
+                {/* Card 2: Agent */}
                 <div 
-                  id="professional-agent-box-card"
+                  style={{
+                    border: '1.5px solid #E5E7EB',
+                    borderRadius: '18px',
+                    padding: '28px 24px',
+                    textAlign: 'center',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '12px',
+                    transition: 'all 0.2s',
+                    cursor: 'pointer',
+                  }}
+                  className="hover:border-[#111827] hover:shadow-lg hover:-translate-y-0.5"
+                  onMouseOver={(e) => {
+                    const card = e.currentTarget as HTMLElement;
+                    card.style.borderColor = '#111827';
+                    card.style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)';
+                    card.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseOut={(e) => {
+                    const card = e.currentTarget as HTMLElement;
+                    card.style.borderColor = '#E5E7EB';
+                    card.style.boxShadow = 'none';
+                    card.style.transform = 'translateY(0)';
+                  }}
                   onClick={() => {
                     setShowPostModal(false);
                     window.history.pushState({}, '', '/agent/post-property/details');
                     if (onNavigate) onNavigate({ type: 'agent_sell' });
                   }}
-                  className="group relative border border-neutral-200/80 hover:border-slate-800 rounded-[24px] p-6 flex flex-col justify-between items-center text-center transition-all duration-300 bg-white hover:shadow-xl hover:shadow-slate-950/5 hover:-translate-y-1 cursor-pointer overflow-hidden"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-b from-slate-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                  
-                  <div className="space-y-2 mb-4 relative z-10 flex flex-col items-center">
-                    <div className="h-14 w-14 bg-slate-50/80 text-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-2 border border-slate-100 group-hover:scale-110 transition-transform duration-300 shadow-sm">
-                      <Building2 size={24} className="stroke-[2.25]" />
-                    </div>
+                  <div style={{
+                    width: '64px',
+                    height: '64px',
+                    background: '#F3F4F6',
+                    borderRadius: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '28px',
+                  }}>🏢</div>
 
-                    <span className="inline-block px-2.5 py-0.5 bg-slate-100 text-slate-800 rounded-full text-[9px] font-extrabold uppercase tracking-wider mb-1">
-                      Agent
-                    </span>
-                    
-                    <h3 className="text-base font-black text-slate-800 tracking-tight">I Am An Agent / Broker</h3>
-                    <p className="text-xs font-semibold text-neutral-400 leading-relaxed max-w-[210px]">
-                      Access advanced broker CRM, team leads, pipeline boards, bio profile & syndication tools.
-                    </p>
-                  </div>
-                  
-                  <button
-                    id="professional-agent-submit-btn"
+                  <span style={{
+                    background: '#F3F4F6',
+                    color: '#374151',
+                    border: '1px solid #E5E7EB',
+                    borderRadius: '20px',
+                    padding: '3px 12px',
+                    font: '700 11px Plus Jakarta Sans',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}>AGENT</span>
+
+                  <h3 style={{
+                    font: '800 20px Plus Jakarta Sans',
+                    color: '#111827',
+                    margin: 0,
+                  }}>I Am An Agent / Broker</h3>
+
+                  <p style={{
+                    font: '400 13px/1.65 Plus Jakarta Sans',
+                    color: '#6B7280',
+                    margin: 0,
+                  }}>Access advanced broker CRM, team leads, pipeline boards, bio profile &amp; syndication tools.</p>
+
+                  <a 
+                    href="/agent/post-property/details"
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       setShowPostModal(false);
                       window.history.pushState({}, '', '/agent/post-property/details');
                       if (onNavigate) onNavigate({ type: 'agent_sell' });
                     }}
-                    className="w-full mt-2 py-3.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-lg shadow-slate-950/10 hover:shadow-slate-950/20 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5 relative z-10"
-                  >
-                    <span>Post As Agent</span>
-                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                  </button>
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      width: '100%',
+                      padding: '14px',
+                      background: '#111827',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      font: '700 13px Plus Jakarta Sans',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      cursor: 'pointer',
+                      textDecoration: 'none',
+                      transition: 'background 0.2s',
+                      marginTop: '4px',
+                    }}
+                    onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.background = '#000000'; }}
+                    onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.background = '#111827'; }}
+                  >POST AS AGENT &rarr;</a>
                 </div>
-
               </div>
 
-              {/* Login option at the bottom */}
-              <div className="border-t border-neutral-100 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-center gap-2">
-                <span className="text-xs font-bold text-neutral-500">Are you a registered agent?</span>
-                <button
-                  id="agent-portal-signin-btn"
-                  onClick={() => {
+              {/* Bottom: Already an agent? */}
+              <div style={{
+                textAlign: 'center',
+                font: '500 14px Plus Jakarta Sans',
+                color: '#6B7280',
+              }}>
+                Are you a registered agent?&nbsp;
+                <a 
+                  href="/agent/login" 
+                  onClick={(e) => {
+                    e.preventDefault();
                     setShowPostModal(false);
                     window.history.pushState({}, '', '/agent/login');
                     if (onNavigate) onNavigate({ type: 'agent_login' });
                   }}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 hover:bg-blue-100/80 text-blue-600 hover:text-blue-700 rounded-lg text-xs font-black transition-all duration-200 cursor-pointer"
-                >
-                  <span>Sign In to Agent Portal</span>
-                  <ArrowRight size={12} className="stroke-[2.5]" />
-                </button>
+                  style={{
+                    color: '#1565C0',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                  }}
+                  className="hover:underline"
+                >Sign In to Agent Portal &rarr;</a>
               </div>
-
             </motion.div>
           </div>
         )}

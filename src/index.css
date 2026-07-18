@@ -1,6 +1,32 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+:root {
+  --font: 'Plus Jakarta Sans', sans-serif;
+  --green-main: #1B5E20;
+  --red-main: #C62828;
+  --blue-main: #1565C0;
+  --yellow-main: #F9A825;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: #F8F9FA;
+  color: #111827;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+#root {
+  min-height: 100vh;
+  background: transparent;
+}
+
 @theme {
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Plus Jakarta Sans", sans-serif;
@@ -1840,57 +1866,131 @@ nav li:nth-last-child(2) .dropdown {
    NAVBAR RESPONSIVENESS (DESKTOP)
    ════════════════════════════════════════ */
 
-nav, .navbar {
+nav, .navbar, header.site-header {
+  background: #FFFFFF !important;
+  border-bottom: 1px solid #E5E7EB !important;
+  height: 64px !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
   padding: 0 24px !important;
-  height: 64px !important;
-  background: #ffffff !important;
-  border-bottom: 1px solid #E5E7EB !important;
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 1000 !important;
   gap: 8px !important;
 }
 
-/* Nav links — don't overflow */
-.nav-links, .nav-menu {
+.nav-inner {
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding: 0 24px !important;
+  height: 100% !important;
   display: flex !important;
   align-items: center !important;
-  gap: 4px !important;
-  flex-wrap: nowrap !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
 }
 
-.nav-links a, .nav-item > a {
-  font: 500 13px "Plus Jakarta Sans", sans-serif !important;
+/* Nav links */
+.nav-link, .nav-links a, .nav-item > a, .nav-item > button {
+  font: 500 14px "Plus Jakarta Sans", sans-serif !important;
   color: #374151 !important;
-  white-space: nowrap !important;
+  text-decoration: none !important;
   padding: 8px 10px !important;
   border-radius: 8px !important;
   transition: all 0.15s !important;
-  text-decoration: none !important;
+  white-space: nowrap !important;
 }
 
-.nav-links a:hover {
-  background: #F0FDF4 !important;
-  color: #1A5E2A !important;
+/* BUY → Yellow */
+.nav-link[href*="buy"]:hover,
+.nav-links a[href*="buy"]:hover,
+.nav-buy:hover {
+  color: #F9A825 !important;
+  background: #FFF8E1 !important;
+}
+
+/* SELL → Red */
+.nav-link[href*="sell"]:hover,
+.nav-links a[href*="sell"]:hover,
+.nav-sell:hover {
+  color: #C62828 !important;
+  background: #FFEBEE !important;
+}
+
+/* RENT → Blue */
+.nav-link[href*="rent"]:hover,
+.nav-links a[href*="rent"]:hover,
+.nav-rent:hover {
+  color: #1565C0 !important;
+  background: #E3F2FD !important;
+}
+
+/* Others → Green */
+.nav-link:hover,
+.nav-links a:hover,
+.nav-item > button:hover {
+  color: #1B5E20 !important;
+  background: #E8F5E9 !important;
+}
+
+/* SELL button in navbar */
+#sell-nav-btn {
+  background: #C62828 !important;
+  color: white !important;
+  padding: 9px 18px !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+  border: none !important;
+  cursor: pointer !important;
+}
+
+#sell-nav-btn:hover {
+  background: #8B0000 !important;
 }
 
 /* POST YOUR PROPERTY FREE button */
-.post-btn, .post-property-btn,
-a[href*="post-property"],
-button[class*="post"] {
-  background: #1A5E2A !important;
+.post-property-btn,
+.post-btn,
+a[href*="post-property"] {
+  background: #1B5E20 !important;
   color: white !important;
+  padding: 9px 16px !important;
   border-radius: 8px !important;
-  padding: 9px 14px !important;
   font: 700 13px "Plus Jakarta Sans", sans-serif !important;
+  text-decoration: none !important;
   white-space: nowrap !important;
   border: none !important;
   cursor: pointer !important;
-  text-decoration: none !important;
-  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.post-property-btn:hover {
+  background: #0A3D10 !important;
+}
+
+/* Dropdown menus */
+.dropdown-menu,
+.nav-dropdown,
+.dropdown {
+  background: white !important;
+  border: 1px solid #E5E7EB !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12) !important;
+  overflow: hidden !important;
+}
+
+.dropdown-item:hover {
+  background: #E8F5E9 !important;
+  color: #1B5E20 !important;
+}
+
+.dropdown-item.green-link {
+  color: #1B5E20 !important;
+  font-weight: 600 !important;
 }
 
 /* Login / Register */
@@ -1938,6 +2038,1237 @@ section[class*="bg-[#004F31]"] {
   color: rgba(255,255,255,0.75) !important;
   margin-top: 4px !important;
 }
+
+
+/* ── GLOBAL SPACING SYSTEM & HOME REDESIGN ALIGNMENT ── */
+:root {
+  --section-pad-y:    60px;  /* top/bottom padding */
+  --section-pad-x:    24px;  /* side padding */
+  --container-max:    1200px; /* max content width */
+  --card-gap:         20px;  /* gap between cards */
+  --section-gap:      0px;   /* gap between sections */
+}
+
+/* Global container */
+.container, .inner-container,
+.section-container, .content-wrap {
+  max-width: var(--container-max) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-left: var(--section-pad-x) !important;
+  padding-right: var(--section-pad-x) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Every section base */
+section, .section {
+  padding-top: var(--section-pad-y) !important;
+  padding-bottom: var(--section-pad-y) !important;
+  margin: 0 !important;
+}
+
+/* Section headings always aligned */
+.section-header,
+.section-title-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 28px !important;
+}
+
+.section-title,
+.section h2,
+.section-heading {
+  font: 700 22px/1.3 Plus Jakarta Sans !important;
+  color: #111827 !important;
+  margin: 0 !important;
+}
+
+.section-view-all,
+.view-all-link {
+  font: 600 13px Plus Jakarta Sans !important;
+  color: #1A5E2A !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+}
+
+/* ── HERO ── */
+.hero, #hero, .hero-section {
+  padding: 0 !important;
+  margin: 0 !important;
+  min-height: 560px !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.hero-content {
+  padding: 60px 24px 40px !important;
+  text-align: center !important;
+}
+
+.hero h1 {
+  font: 800 44px/1.2 Plus Jakarta Sans !important;
+  color: white !important;
+  margin-bottom: 12px !important;
+}
+
+.hero-subtitle {
+  font: 600 13px Plus Jakarta Sans !important;
+  color: rgba(255,255,255,0.85) !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  margin-bottom: 32px !important;
+}
+
+/* Search card */
+.search-card, .search-box,
+.search-container {
+  background: white !important;
+  border-radius: 20px !important;
+  padding: 24px !important;
+  max-width: 780px !important;
+  margin: 0 auto !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.2) !important;
+}
+
+/* ── CATEGORY ICONS ── */
+/* Category section — MORE top space */
+.category-section,
+.property-types-section,
+.categories-section,
+section:has(.category-item),
+section:has([class*="category"]),
+div:has(> .category-grid),
+div:has(> .categories-grid) {
+  padding-top: 48px !important;
+  padding-bottom: 44px !important;
+  background: #ffffff !important;
+  border-top: 1px solid #F0F0F0 !important;
+  border-bottom: 1px solid #F0F0F0 !important;
+}
+
+.category-section {
+  border-top: 1px solid #F0F0F0 !important;
+  border-bottom: 1px solid #F0F0F0 !important;
+}
+
+/* If the section has a direct parent wrapper */
+.category-wrapper,
+.category-container,
+.categories-container {
+  padding-top: 48px !important;
+  padding-bottom: 44px !important;
+}
+
+/* Center the whole grid */
+.category-grid,
+div:has(> .category-item),
+.categories-grid {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 0 !important;
+  max-width: 800px !important;
+  margin: 0 auto !important;
+  margin-top: 8px !important;
+  margin-bottom: 8px !important;
+}
+
+.category-item,
+.property-type-item {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 16px 12px !important;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+  border-radius: 14px !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  min-width: 0 !important;
+}
+
+.category-item:hover {
+  background: #F0FDF4 !important;
+}
+
+.category-icon,
+.category-item .icon,
+.category-item svg {
+  width: 56px !important;
+  height: 56px !important;
+  background: #E8F5E9 !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #1A5E2A !important;
+  font-size: 22px !important;
+  flex-shrink: 0 !important;
+  margin-bottom: 10px !important;
+}
+
+.category-item:hover .category-icon {
+  background: #1A5E2A !important;
+  color: white !important;
+}
+
+.category-label,
+.category-item span,
+.category-item p {
+  font: 700 10px Plus Jakarta Sans !important;
+  color: #374151 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  margin-top: 8px !important;
+}
+
+/* ── BUY/SELL/RENT BANNER ── */
+.buy-sell-rent,
+.action-banner,
+.property-actions,
+section.green-section,
+section[style*="background: #1A5E2A"],
+section[style*="background:#1A5E2A"],
+section[style*="background: #0F3D1A"] {
+  background: #1A5E2A !important;
+  padding: 48px 24px !important;
+}
+
+/* 3 action cards in a row */
+.action-cards,
+.bsr-grid,
+div:has(> .action-card) {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 20px !important;
+  max-width: 900px !important;
+  margin: 0 auto !important;
+}
+
+.action-card {
+  background: rgba(255,255,255,0.1) !important;
+  border: 1px solid rgba(255,255,255,0.2) !important;
+  border-radius: 16px !important;
+  padding: 28px 20px !important;
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.action-card:hover {
+  background: rgba(255,255,255,0.18) !important;
+  transform: translateY(-2px) !important;
+}
+
+.action-card .action-icon {
+  width: 52px !important;
+  height: 52px !important;
+  background: #E8F5E9 !important;
+  color: #1A5E2A !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 24px !important;
+  margin-bottom: 4px !important;
+}
+
+.action-card h3 {
+  font: 700 18px Plus Jakarta Sans !important;
+  color: #1A5E2A !important;
+  margin: 0 !important;
+}
+
+.action-card p {
+  font: 400 13px/1.6 Plus Jakarta Sans !important;
+  color: #4B5563 !important;
+  margin: 0 !important;
+}
+
+.action-card .action-btn {
+  margin-top: 8px !important;
+  padding: 10px 22px !important;
+  background: #1A5E2A !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font: 700 13px Plus Jakarta Sans !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  display: inline-block !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.action-card .action-btn:hover {
+  background: #0F3D1A !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ── FEATURED PROPERTIES ── */
+.featured-section,
+#featured-properties {
+  background: #F8F9FA !important;
+  padding: var(--section-pad-y) 24px !important;
+}
+
+.featured-section .container {
+  max-width: var(--container-max) !important;
+  margin: 0 auto !important;
+}
+
+/* Featured grid layout */
+.featured-grid,
+.property-grid-featured {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  grid-template-rows: auto auto !important;
+  gap: 16px !important;
+}
+
+/* Main large card (left) */
+.featured-grid .featured-main,
+.featured-grid .property-card:first-child {
+  grid-column: 1 !important;
+  grid-row: 1 / 3 !important;
+}
+
+/* 4 small cards (right, 2×2) */
+.featured-grid .property-card:not(:first-child) {
+  grid-column: 2 !important;
+}
+
+/* ── LATEST PROJECTS / LISTINGS ── */
+.projects-section,
+.latest-projects,
+#latest-projects {
+  background: #ffffff !important;
+  padding: var(--section-pad-y) 24px !important;
+}
+
+/* 3 cards in a row */
+.projects-grid,
+.listings-row,
+div:has(> .project-card) {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: var(--card-gap) !important;
+}
+
+.project-card,
+.listing-card {
+  background: white !important;
+  border: 1px solid #E5E7EB !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+  transition: all 0.2s !important;
+}
+
+.project-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.10) !important;
+}
+
+.project-card img {
+  width: 100% !important;
+  height: 190px !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+.project-card-body {
+  padding: 16px !important;
+}
+
+.project-card-title {
+  font: 600 14px/1.4 Plus Jakarta Sans !important;
+  color: #111827 !important;
+  margin-bottom: 6px !important;
+}
+
+.project-card-price {
+  font: 700 16px Plus Jakarta Sans !important;
+  color: #1A5E2A !important;
+}
+
+/* "Load More" button */
+.load-more-btn {
+  display: block !important;
+  margin: 28px auto 0 !important;
+  padding: 12px 32px !important;
+  background: transparent !important;
+  border: 2px solid #1A5E2A !important;
+  color: #1A5E2A !important;
+  border-radius: 10px !important;
+  font: 600 14px Plus Jakarta Sans !important;
+  cursor: pointer !important;
+  text-align: center !important;
+  width: fit-content !important;
+}
+
+/* ── TESTIMONIALS ── */
+.testimonials-section,
+#testimonials {
+  background: #F8F9FA !important;
+  padding: var(--section-pad-y) 24px !important;
+  text-align: center !important;
+}
+
+.testimonials-section h2 {
+  font: 700 28px Plus Jakarta Sans !important;
+  color: #111827 !important;
+  margin-bottom: 8px !important;
+}
+
+.testimonials-section .subtitle {
+  font: 400 15px Plus Jakarta Sans !important;
+  color: #6B7280 !important;
+  margin-bottom: 36px !important;
+}
+
+/* 2 testimonial cards side by side */
+.testimonials-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 20px !important;
+  max-width: 860px !important;
+  margin: 0 auto !important;
+}
+
+.testimonial-card {
+  background: white !important;
+  border: 1px solid #E5E7EB !important;
+  border-radius: 16px !important;
+  padding: 24px !important;
+  text-align: left !important;
+}
+
+.testimonial-stars {
+  color: #E8A000 !important;
+  font-size: 16px !important;
+  margin-bottom: 12px !important;
+}
+
+.testimonial-text {
+  font: 400 14px/1.7 Plus Jakarta Sans !important;
+  color: #374151 !important;
+  margin-bottom: 16px !important;
+}
+
+.testimonial-author {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.author-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  background: #E8F5E9 !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+}
+
+.author-name {
+  font: 700 14px Plus Jakarta Sans !important;
+  color: #111827 !important;
+}
+
+.author-role {
+  font: 500 12px Plus Jakarta Sans !important;
+  color: #9CA3AF !important;
+}
+
+/* ── RECENT LISTINGS + CALCULATOR ── */
+.recent-section,
+#recent-listings {
+  background: #ffffff !important;
+  padding: var(--section-pad-y) 24px !important;
+}
+
+/* 2 column layout: listings + calculator */
+.recent-layout {
+  display: grid !important;
+  grid-template-columns: 1fr 360px !important;
+  gap: 28px !important;
+  align-items: start !important;
+  max-width: var(--container-max) !important;
+  margin: 0 auto !important;
+}
+
+/* Listings column: 2 cards */
+.recent-listings-col {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: var(--card-gap) !important;
+}
+
+/* Calculator column */
+.mortgage-calculator {
+  background: #F8F9FA !important;
+  border: 1px solid #E5E7EB !important;
+  border-radius: 16px !important;
+  padding: 24px !important;
+  position: sticky !important;
+  top: 80px !important;
+}
+
+.mortgage-title {
+  font: 700 18px Plus Jakarta Sans !important;
+  color: #111827 !important;
+  margin-bottom: 20px !important;
+}
+
+.mortgage-field {
+  margin-bottom: 14px !important;
+}
+
+.mortgage-field label {
+  display: block !important;
+  font: 600 12px Plus Jakarta Sans !important;
+  color: #374151 !important;
+  margin-bottom: 6px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.mortgage-field input {
+  width: 100% !important;
+  padding: 11px 14px !important;
+  border: 1.5px solid #E5E7EB !important;
+  border-radius: 10px !important;
+  font: 500 14px Plus Jakarta Sans !important;
+  box-sizing: border-box !important;
+}
+
+.mortgage-field input:focus {
+  border-color: #1A5E2A !important;
+  outline: none !important;
+}
+
+.mortgage-result {
+  background: white !important;
+  border: 1px solid #E5E7EB !important;
+  border-radius: 10px !important;
+  padding: 14px !important;
+  margin: 16px 0 !important;
+  text-align: center !important;
+}
+
+.mortgage-result-label {
+  font: 500 12px Plus Jakarta Sans !important;
+  color: #6B7280 !important;
+  margin-bottom: 4px !important;
+}
+
+.mortgage-result-value {
+  font: 800 24px Plus Jakarta Sans !important;
+  color: #1A5E2A !important;
+}
+
+.mortgage-btn {
+  width: 100% !important;
+  padding: 13px !important;
+  background: #111827 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 10px !important;
+  font: 700 14px Plus Jakarta Sans !important;
+  cursor: pointer !important;
+}
+
+/* ── CALCULATE PROPERTY PRICE ── */
+.calculate-section,
+.property-price-section,
+section[class*="calculate"],
+section[style*="dark"] {
+  background: #0F3D1A !important;
+  padding: 56px 24px !important;
+  text-align: center !important;
+}
+
+.calculate-section h2 {
+  font: 800 32px Plus Jakarta Sans !important;
+  color: white !important;
+  margin-bottom: 12px !important;
+}
+
+.calculate-section p {
+  font: 400 15px Plus Jakarta Sans !important;
+  color: rgba(255,255,255,0.75) !important;
+  margin-bottom: 32px !important;
+  max-width: 500px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* For Sale / For Rent toggle */
+.calc-toggle {
+  display: inline-flex !important;
+  background: rgba(255,255,255,0.1) !important;
+  border-radius: 10px !important;
+  padding: 4px !important;
+  margin-bottom: 24px !important;
+  gap: 4px !important;
+}
+
+.calc-toggle button {
+  padding: 9px 24px !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font: 600 14px Plus Jakarta Sans !important;
+  cursor: pointer !important;
+}
+
+.calc-toggle button.active {
+  background: white !important;
+  color: #1A5E2A !important;
+}
+
+.calc-toggle button:not(.active) {
+  background: transparent !important;
+  color: rgba(255,255,255,0.7) !important;
+}
+
+/* Calculate button */
+.calculate-btn {
+  padding: 14px 40px !important;
+  background: #E8A000 !important;
+  color: #111827 !important;
+  border: none !important;
+  border-radius: 12px !important;
+  font: 700 15px Plus Jakarta Sans !important;
+  cursor: pointer !important;
+  margin-top: 8px !important;
+}
+
+/* ── PARTNER LOGOS ── */
+.partners-section,
+.logo-section,
+.brands-section {
+  background: #ffffff !important;
+  padding: 32px 24px !important;
+  border-top: 1px solid #F3F4F6 !important;
+}
+
+.partners-label {
+  text-align: center !important;
+  font: 600 11px Plus Jakarta Sans !important;
+  color: #9CA3AF !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2px !important;
+  margin-bottom: 20px !important;
+}
+
+.partners-row {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 32px !important;
+  flex-wrap: wrap !important;
+}
+
+.partner-logo {
+  height: 28px !important;
+  opacity: 0.5 !important;
+  filter: grayscale(1) !important;
+  transition: all 0.2s !important;
+}
+
+.partner-logo:hover {
+  opacity: 0.9 !important;
+  filter: grayscale(0) !important;
+}
+
+/* ── FOOTER ── */
+footer {
+  background: #0A3D10 !important;
+  color: white !important;
+  padding: 52px 24px 0 !important;
+}
+
+.footer-inner {
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+}
+
+.footer-grid {
+  display: grid !important;
+  grid-template-columns: 2fr 1fr 1fr 1fr !important;
+  gap: 40px !important;
+  padding-bottom: 40px !important;
+}
+
+.footer-col-title {
+  font: 700 12px "Plus Jakarta Sans", sans-serif !important;
+  color: white !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1.2px !important;
+  margin-bottom: 16px !important;
+}
+
+.footer-col a,
+.footer-link {
+  display: block !important;
+  font: 400 13px "Plus Jakarta Sans", sans-serif !important;
+  color: rgba(255,255,255,0.65) !important;
+  text-decoration: none !important;
+  margin-bottom: 10px !important;
+  transition: color 0.2s !important;
+}
+
+.footer-col a:hover {
+  color: #F9A825 !important;
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.1) !important;
+  padding: 18px 0 !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  font: 400 12px "Plus Jakarta Sans", sans-serif !important;
+  color: rgba(255,255,255,0.45) !important;
+}
+
+/* ── MOBILE — ALL SECTIONS ── */
+@media (max-width: 768px) {
+
+  :root {
+    --section-pad-y: 36px;
+    --section-pad-x: 16px;
+    --card-gap:      12px;
+  }
+
+  /* Hero */
+  .hero h1 { font-size: 26px !important; }
+
+  /* Categories — 3 columns */
+  .category-grid,
+  div:has(> .category-item) {
+    flex-wrap: wrap !important;
+  }
+  .category-item { 
+    flex: 0 0 calc(33.33% - 8px) !important;
+  }
+
+  .category-section,
+  .property-types-section {
+    padding-top: 32px !important;
+    padding-bottom: 28px !important;
+  }
+
+  /* Action banner — 1 column */
+  .action-cards {
+    grid-template-columns: 1fr !important;
+    max-width: 400px !important;
+  }
+
+  /* Featured — 1 column */
+  .featured-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .featured-grid .featured-main {
+    grid-row: 1 !important;
+  }
+
+  /* Projects — 1 column */
+  .projects-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Testimonials — 1 column */
+  .testimonials-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Recent + Calculator — stack */
+  .recent-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .recent-listings-col {
+    grid-template-columns: 1fr !important;
+  }
+  .mortgage-calculator {
+    position: static !important;
+  }
+
+  /* Footer — 2 columns */
+  .footer-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 24px !important;
+  }
+
+  .footer-bottom {
+    flex-direction: column !important;
+    gap: 8px !important;
+    text-align: center !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@keyframes fadeOverlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px) scale(0.97); 
+  }
+  to   { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
+}
+
+/* Mobile responsive modal */
+@media (max-width: 640px) {
+  #sell-modal-overlay > div {
+    padding: 28px 20px !important;
+    border-radius: 20px !important;
+    max-height: 92vh !important;
+    overflow-y: auto !important;
+  }
+
+  #sell-modal-overlay h2 {
+    font-size: 22px !important;
+  }
+
+  #sell-modal-overlay .cards-grid,
+  #sell-modal-overlay div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ════════════════════════════════════════
+   STEP 3 OF 6 — HOME PAGE BRAND OVERRIDES
+   ════════════════════════════════════════ */
+
+/* HERO Section overrides */
+.hero h1 { color: white; }
+
+.hero h1 .highlight,
+.hero h1 em,
+.hero h1 span {
+  color: #A5D6A7; /* soft green */
+}
+
+.hero-subtitle {
+  color: rgba(255,255,255,0.85);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* Search tabs */
+.tab-for-sale.active  { background:#C62828 !important; color:white !important; border-color:#C62828 !important; }
+.tab-for-rent.active  { background:#1565C0 !important; color:white !important; border-color:#1565C0 !important; }
+.tab-for-lease.active { background:#F9A825 !important; color:white !important; border-color:#F9A825 !important; }
+.tab-btn { border:1.5px solid #E5E7EB !important; color:#374151 !important; background:white !important; }
+
+/* SEARCH NOW */
+.search-btn, .search-now-btn {
+  background: #1B5E20 !important;
+  color: white !important;
+}
+.search-btn:hover { background: #0A3D10 !important; }
+
+/* Popular links */
+.popular-link { color: #1B5E20 !important; font-weight:600 !important; }
+
+/* CATEGORY ICONS overrides */
+.category-section {
+  background: white !important;
+  padding: 48px 24px !important;
+  border-top: 1px solid #F3F4F6 !important;
+  border-bottom: 1px solid #F3F4F6 !important;
+}
+
+.category-item {
+  border: 1px solid #E5E7EB !important;
+  background: #FFFFFF !important;
+  transition: all 0.2s ease !important;
+}
+.category-item:hover {
+  border-color: #1B5E20 !important;
+  box-shadow: 0 4px 12px rgba(27,94,32,0.1) !important;
+  transform: translateY(-2px) !important;
+}
+
+.category-icon {
+  color: #1B5E20 !important;
+}
+
+.category-label {
+  color: #374151 !important;
+  font-weight: 700 !important;
+}
+
+/* BUY/SELL/RENT BANNER overrides */
+.action-card {
+  background: #FFFFFF !important;
+  border: 1px solid #E5E7EB !important;
+  box-shadow: 0 10px 30px -10px rgba(26, 94, 42, 0.08) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.action-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 20px 40px -15px rgba(26, 94, 42, 0.15) !important;
+  border-color: #1A5E2A !important;
+}
+
+.action-card-btn.sell,
+.action-card-btn.rent,
+.action-card-btn.buy {
+  background: #1A5E2A !important;
+  color: white !important;
+}
+
+.action-card-btn.sell:hover,
+.action-card-btn.rent:hover,
+.action-card-btn.buy:hover {
+  background: #0F3D1A !important;
+  color: white !important;
+}
+
+/* PROPERTY CARDS overrides */
+.property-card {
+  border: 1px solid #E5E7EB !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+}
+
+.card-price {
+  color: #1B5E20 !important; /* LankaProperty green */
+}
+
+.card-location {
+  color: #4B5563 !important;
+}
+
+/* Badges on cards */
+.badge-sale {
+  background: #C62828 !important;
+  color: white !important;
+}
+
+.badge-rent {
+  background: #1565C0 !important;
+  color: white !important;
+}
+
+.badge-lease {
+  background: #F9A825 !important;
+  color: #111827 !important;
+}
+
+.badge-featured {
+  background: #E8F5E9 !important;
+  color: #1B5E20 !important;
+  border: 1px solid #C8E6C9 !important;
+}
+
+.badge-new {
+  background: #E3F2FD !important;
+  color: #0D47A1 !important;
+  border: 1px solid #BBDEFB !important;
+}
+
+/* Icons */
+.heart-icon {
+  color: #C62828 !important;
+}
+
+/* Details link */
+.view-details-link {
+  color: #1B5E20 !important;
+}
+.view-details-link:hover {
+  color: #0D330F !important;
+}
+
+/* SECTION HEADINGS overrides */
+.section-heading {
+  border-left: 4px solid #1B5E20 !important;
+}
+
+.section-title {
+  color: #111827 !important;
+}
+
+.section-subtitle {
+  color: #4B5563 !important;
+}
+
+/* TESTIMONIALS overrides */
+.testimonials-section {
+  background: #F8F9FA !important;
+}
+
+.testimonial-card {
+  background: #FFFFFF !important;
+  border: 1px solid #E5E7EB !important;
+}
+
+.testimonial-avatar {
+  border-color: #F9A825 !important; /* gold accent border */
+}
+
+.testimonial-quote {
+  color: #4B5563 !important;
+}
+
+.client-name {
+  color: #111827 !important;
+}
+
+.client-role {
+  color: #F9A825 !important;
+}
+
+/* MORTGAGE CALCULATOR overrides */
+.mortgage-calculator {
+  background: #F8F9FA !important;
+  border: 1px solid #E5E7EB !important;
+}
+
+.mortgage-result-value { color: #1B5E20 !important; }
+
+.get-bank-btn {
+  background: #111827 !important;
+  color: white !important;
+}
+
+/* CALCULATE PRICE DARK SECTION overrides */
+.calculate-section {
+  background: linear-gradient(135deg, #0A2F1D 0%, #051B10 100%) !important;
+}
+
+.calculate-btn {
+  background: #F9A825 !important;
+  color: #111827 !important;
+}
+.calculate-btn:hover {
+  background: #F57F17 !important;
+}
+
+/* PARTNER LOGOS overrides */
+.partner-logo {
+  filter: grayscale(100%) opacity(0.6) !important;
+  transition: all 0.3s ease !important;
+}
+.partner-logo:hover {
+  filter: grayscale(0%) opacity(1) !important;
+}
+
+
+/* ==========================================================================
+   STEP 4 OF 6 — PROPERTY LISTINGS & DETAIL PAGES BRAND OVERRIDES
+   ========================================================================= */
+
+/* === PROPERTY LISTINGS PAGE === */
+
+.filter-active-sale {
+  background-color: #FFEBEE !important;
+  border: 1.5px solid #C62828 !important;
+  color: #C62828 !important;
+}
+
+.filter-active-rent {
+  background-color: #E3F2FD !important;
+  border: 1.5px solid #1565C0 !important;
+  color: #1565C0 !important;
+}
+
+.filter-active-lease {
+  background-color: #FFF8E1 !important;
+  border: 1.5px solid #F9A825 !important;
+  color: #E65100 !important;
+}
+
+.filter-active-count {
+  background-color: #C62828 !important;
+  color: #ffffff !important;
+}
+
+.listings-search-btn {
+  background-color: #1B5E20 !important;
+  color: #ffffff !important;
+}
+
+.results-count-num {
+  color: #1B5E20 !important;
+  font-weight: 700 !important;
+}
+
+.page-btn.active {
+  background-color: #1B5E20 !important;
+  color: #ffffff !important;
+}
+
+.page-btn:hover {
+  background-color: #E8F5E9 !important;
+}
+
+/* === PROPERTY DETAIL PAGE === */
+
+.detail-price {
+  color: #1B5E20 !important;
+  font-size: 28px !important;
+  font-weight: 700 !important;
+}
+
+.detail-title {
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  color: #111827 !important;
+}
+
+.status-active {
+  background-color: #E8F5E9 !important;
+  color: #1B5E20 !important;
+  border: 1px solid #A5D6A7 !important;
+}
+
+.whatsapp-btn {
+  background-color: #25D366 !important;
+  color: #ffffff !important;
+}
+.whatsapp-btn:hover {
+  background-color: #128C7E !important;
+}
+
+.call-btn {
+  background-color: #ffffff !important;
+  border: 2px solid #1B5E20 !important;
+  color: #1B5E20 !important;
+}
+.call-btn:hover {
+  background-color: #0D330F !important;
+}
+
+.detail-section-title {
+  border-left: 4px solid #1B5E20 !important;
+  padding-left: 12px !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #111827 !important;
+}
+
+.amenity-pill {
+  background-color: #E8F5E9 !important;
+  border: 1px solid #A5D6A7 !important;
+  color: #1B5E20 !important;
+  border-radius: 25px !important;
+  padding: 7px 14px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+.spec-row:nth-child(even) {
+  background-color: #F8F9FA !important;
+}
+
+.spec-value {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #111827 !important;
+}
+
+.maps-btn {
+  background-color: #ffffff !important;
+  border: 1px solid #E5E7EB !important;
+  color: #374151 !important;
+  cursor: pointer !important;
+}
+.maps-btn:hover {
+  background-color: #E8F5E9 !important;
+}
+
+.directions-btn {
+  background-color: #1B5E20 !important;
+  color: #ffffff !important;
+}
+.directions-btn:hover {
+  background-color: #0D330F !important;
+}
+
+.contact-submit {
+  background-color: #1B5E20 !important;
+  color: #ffffff !important;
+  width: 100% !important;
+  padding: 13px !important;
+  border-radius: 10px !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  border: none !important;
+  cursor: pointer !important;
+}
+.contact-submit:hover {
+  background-color: #0A3D10 !important;
+}
+
+.similar-card:hover {
+  border-color: #1B5E20 !important;
+}
+
+.similar-card-price {
+  color: #1B5E20 !important;
+  font-weight: 700 !important;
+}
+
+.detail-badge-sale  { 
+  background-color: #C62828 !important; 
+  color: #ffffff !important; 
+}
+
+.detail-badge-rent  { 
+  background-color: #1565C0 !important; 
+  color: #ffffff !important; 
+}
+
+.detail-badge-lease { 
+  background-color: #F9A825 !important; 
+  color: #ffffff !important; 
+}
+
+/* LankaProperty Brand Colors */
+.badge-sale   { background-color: #C62828 !important; color: #fff !important; }
+.badge-rent   { background-color: #1565C0 !important; color: #fff !important; }
+.badge-lease  { background-color: #F9A825 !important; color: #fff !important; }
+.badge-new    { background-color: #1B5E20 !important; color: #fff !important; }
+.card-price   { color: #1B5E20 !important; font-weight: 700 !important; }
+.btn-green    { background-color: #1B5E20 !important; color: #fff !important; }
+.btn-green:hover { background-color: #0A3D10 !important; }
+.btn-red      { background-color: #C62828 !important; color: #fff !important; }
+.btn-red:hover { background-color: #8B0000 !important; }
+.btn-outline-green {
+  border: 2px solid #1B5E20 !important;
+  color: #1B5E20 !important;
+  background-color: transparent !important;
+}
+.text-brand   { color: #1B5E20 !important; }
+.bg-brand     { background-color: #1B5E20 !important; }
+.border-brand { border-color: #1B5E20 !important; }
+.pill-green   { background-color: #E8F5E9 !important; color: #1B5E20 !important; border: 1px solid #A5D6A7 !important; border-radius: 25px !important; }
+.whatsapp-btn { background-color: #25D366 !important; color: #fff !important; }
+
+
+
 
 
 

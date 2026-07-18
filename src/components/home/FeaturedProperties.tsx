@@ -164,7 +164,13 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
                 className="absolute inset-0 group rounded-3xl overflow-hidden shadow-2xl cursor-pointer bg-[var(--lp-green)]"
               >
                 <div className="absolute inset-0 z-0 overflow-hidden">
-                  {/* Image removed per user request */}
+                  <img 
+                    onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=80'; }} 
+                    src={getPropertyImage(currentMain.images)} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                    alt={currentMain.listing_title}
+                    referrerPolicy="no-referrer"
+                  />
                 </div>
                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10" />
                 <div className="absolute top-6 right-6 z-20">
@@ -172,7 +178,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
                 </div>
                 <div className="absolute top-6 left-6 z-20 flex gap-2">
                   {(currentMain.trending || currentMain.package_tier === 'Elite Pro') && (
-                    <span className="bg-red-600 text-white text-[10px] font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg">
+                    <span className="bg-[#0F3D1A] text-white text-[10px] font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg">
                       <TrendingUp size={12} /> TRENDING
                     </span>
                   )}
@@ -214,6 +220,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
                 src={getPropertyImage(displayProperties[secondaryIndex1].images)} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                 alt={displayProperties[secondaryIndex1].listing_title}
+                referrerPolicy="no-referrer"
               />
             </div>
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
@@ -245,6 +252,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
                 src={getPropertyImage(displayProperties[secondaryIndex2].images)} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                 alt={displayProperties[secondaryIndex2].listing_title}
+                referrerPolicy="no-referrer"
               />
             </div>
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 via-transparent to-transparent z-10" />
@@ -276,6 +284,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
                 src={getPropertyImage(displayProperties[secondaryIndex3].images)} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                 alt={displayProperties[secondaryIndex3].listing_title}
+                referrerPolicy="no-referrer"
               />
             </div>
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 via-transparent to-transparent z-10" />
@@ -314,10 +323,10 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
           {displayProperties.map((prop, idx) => (
             <div key={prop.id || idx} className="bg-white rounded-[24px] overflow-hidden border border-gray-100 shadow-xl shadow-gray-200/50 flex flex-col cursor-pointer" onClick={() => onNavigate({ type: 'detail', data: prop })}>
               <div className="h-[200px] relative shrink-0">
-                <img src={getPropertyImage(prop.images)} alt={prop.listing_title} className="w-full h-full object-cover" />
+                <img src={getPropertyImage(prop.images)} alt={prop.listing_title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 <div className="absolute top-4 left-4 z-20 flex flex-wrap gap-2 pr-4">
                   {(prop.trending || prop.package_tier === 'Elite Pro') && (
-                    <span className="bg-red-600 text-white text-[10px] font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg shrink-0">
+                    <span className="bg-[#0F3D1A] text-white text-[10px] font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg shrink-0">
                       <TrendingUp size={12} /> TRENDING
                     </span>
                   )}

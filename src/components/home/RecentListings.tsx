@@ -115,10 +115,10 @@ export const RecentListings: React.FC<RecentListingsProps> = ({ onNavigate, prop
                     <div className="absolute top-4 left-4">
                       <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg ${
                         (listing.listing_type || '').toLowerCase().includes('sale') 
-                          ? 'bg-[#CC1414] text-white' 
+                          ? 'bg-[#0F3D1A] text-white' 
                           : (listing.listing_type || '').toLowerCase().includes('rent')
-                            ? 'bg-[#1565C0] text-white'
-                            : 'bg-[#E8A000] text-[#111827]'
+                            ? 'bg-[#2E7D32] text-white'
+                            : 'bg-[#689F38] text-white'
                       }`}>
                         FOR {(listing.listing_type || 'Sale').toUpperCase()}
                       </span>
@@ -148,7 +148,7 @@ export const RecentListings: React.FC<RecentListingsProps> = ({ onNavigate, prop
             transition={{ duration: 0.5 }}
             className="lg:w-1/3"
           >
-            <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 flex flex-col h-full">
+            <div className="mortgage-calculator bg-white rounded-3xl p-8 shadow-xl border border-gray-100 flex flex-col h-full">
               <h2 className="text-2xl font-bold text-gray-900 mb-8">Mortgage Calculator</h2>
               
               <div className="space-y-6 flex-grow">
@@ -170,14 +170,14 @@ export const RecentListings: React.FC<RecentListingsProps> = ({ onNavigate, prop
                   <motion.div 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="text-3xl font-black text-[var(--lp-green)]"
+                    className="mortgage-result-value text-3xl font-black text-[var(--lp-green)]"
                   >
                     Rs. 142,450
                   </motion.div>
                 </div>
               </div>
 
-              <button className="w-full py-4 bg-[var(--lp-green)] hover:bg-[var(--lp-green-dark)] text-white font-bold rounded-xl mt-8 transition-all hover:scale-[1.02] active:scale-[0.98]">
+              <button className="get-bank-btn w-full py-4 bg-[var(--lp-green)] hover:bg-[var(--lp-green-dark)] text-white font-bold rounded-xl mt-8 transition-all hover:scale-[1.02] active:scale-[0.98]">
                 Get Bank Offers
               </button>
             </div>
