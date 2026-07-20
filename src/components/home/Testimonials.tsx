@@ -1,83 +1,136 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Star } from 'lucide-react';
+import { Star, Quote } from 'lucide-react';
 
 const REVIEWS = [
   {
     rating: 5,
-    quote: "Found my dream villa in Galle through LankaProperty. The search filters were incredibly precise, making the whole process stress-free.",
-    name: "Amara Perera",
-    role: "HOME BUYER",
-    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&h=150&q=80",
+    quote: "Finding a premium luxury apartment in Colombo 05 was incredibly straightforward. EstateFlow's verified listings and direct agent communication made the entire closing process completely transparent and seamless.",
+    name: "Rohan De Silva",
+    role: "Home Buyer",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80",
   },
   {
     rating: 5,
-    quote: "The AI price estimator was spot on! It helped me list my apartment at the perfect market rate, leading to a quick sale within weeks.",
-    name: "Sahan Gunasekera",
-    role: "PROPERTY INVESTOR",
-    avatar: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&w=150&h=150&q=80",
+    quote: "I listed my ancestral land in Kandy and found a verified buyer within just two weeks. The Premium Owner exposure and customer support are far superior to traditional newspaper classifieds.",
+    name: "Anjali Senanayake",
+    role: "Property Owner",
+    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&h=150&q=80",
   },
   {
     rating: 5,
-    quote: "As a first-time renter in Colombo, I was nervous. This platform provided all the verified details I needed to feel confident in my choice.",
-    name: "Dilini Silva",
-    role: "RENTER",
-    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&h=150&q=80",
+    quote: "As an expat property investor, managing assets from abroad can be difficult. EstateFlow's real-time market insights and direct messaging have made expanding my portfolio in Sri Lanka a breeze.",
+    name: "Dr. Suresh Wijesinghe",
+    role: "Property Investor",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&h=150&q=80",
+  },
+  {
+    rating: 5,
+    quote: "We struggled to find reliable tenants for our commercial property in Negombo. Within three days of posting on EstateFlow, we secured a premium corporate lease. Exceptional reach!",
+    name: "Priyantha Perera",
+    role: "Commercial Landlord",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&h=150&q=80",
   },
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    }
+  }
+};
+
+const itemVariants: any = {
+  hidden: { opacity: 0, y: 15 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+};
+
 export const Testimonials: React.FC = () => {
   return (
-    <section className="testimonials-section py-24 bg-[#F8FAF8]">
-      <div className="container mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            What <span className="text-brand-green">Our</span> Clients Say
+    <section id="testimonials-section" className="py-12 bg-[#f8fafc] border-t border-gray-100">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8">
+        
+        {/* Header */}
+        <div className="text-center max-w-2xl mx-auto mb-8">
+          <span className="text-[10px] font-black text-[#0a4225] uppercase tracking-widest bg-[#0a4225]/5 px-3.5 py-1.5 rounded-full inline-block mb-3">
+            TESTIMONIALS
+          </span>
+          <h2 id="testimonials-heading" className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight leading-tight mb-4">
+            Customer Testimonials & Success Stories
           </h2>
+          <p className="text-sm text-gray-500 font-medium leading-relaxed">
+            Discover why home buyers, landlords, and elite property investors across Sri Lanka trust EstateFlow to navigate the market with confidence.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* 4-Card Responsive Grid */}
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-50px" }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+        >
           {REVIEWS.map((review, idx) => (
-            <motion.div key={idx}
-
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.5, delay: idx * 0.12 }}
-              whileHover={{ y: -8, transition: { duration: 0.2 } }}
-              className="testimonial-card bg-white p-8 rounded-3xl shadow-sm border border-gray-100/50 flex flex-col h-full"
+            <motion.div 
+              key={idx}
+              id={`testimonial-card-${idx}`}
+              variants={itemVariants}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="bg-white p-5 rounded-[24px] border border-gray-100 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between h-full group cursor-pointer"
             >
-              <div className="flex gap-1 mb-6">
-                {[...Array(review.rating)].map((_, i) => (
-                  <motion.div key={i}
+              <div>
+                {/* Header Star Rating & Quote Accent */}
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex gap-0.5">
+                    {[...Array(review.rating)].map((_, i) => (
+                      <Star 
+                        key={i} 
+                        size={15} 
+                        fill="#0a4225" 
+                        className="text-[#0a4225]" 
+                      />
+                    ))}
+                  </div>
+                  <Quote size={20} className="text-gray-200 group-hover:text-[#0a4225]/10 transition-colors" />
+                </div>
 
-                    initial={{ scale: 0 }}
-                    whileInView={{ scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: idx * 0.12 + i * 0.05, type: 'spring' }}
-                  >
-                    <Star size={18} fill="#1A5E2A" className="text-[#1A5E2A]" />
-                  </motion.div>
-                ))}
+                {/* Testimonial Quote */}
+                <p className="text-gray-600 text-[13px] leading-relaxed mb-6 font-medium">
+                  "{review.quote}"
+                </p>
               </div>
 
-              <p className="testimonial-quote text-gray-500 italic mb-8 flex-grow leading-relaxed">
-                "{review.quote}"
-              </p>
-
-              <div className="flex items-center gap-4 mt-auto">
-                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-brand-green/20 testimonial-avatar">
-                  <img referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg' }} src={review.avatar} className="w-full h-full object-cover" alt={review.name} />
+              {/* User Identity Footer */}
+              <div className="flex items-center gap-3.5 pt-4 border-t border-gray-50 mt-auto">
+                <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-[#0a4225]/10 shrink-0">
+                  <img 
+                    referrerPolicy="no-referrer" 
+                    onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg' }} 
+                    src={review.avatar} 
+                    className="w-full h-full object-cover" 
+                    alt={review.name} 
+                  />
                 </div>
-                <div>
-                  <h4 className="client-name font-bold text-gray-900 leading-none mb-1">{review.name}</h4>
-                  <p className="client-role text-[10px] font-black tracking-widest text-brand-green">{review.role}</p>
+                <div className="min-w-0">
+                  <h4 className="font-bold text-gray-900 text-sm leading-tight truncate">
+                    {review.name}
+                  </h4>
+                  <p className="text-[#0a4225] text-[10px] font-extrabold tracking-wider uppercase mt-0.5">
+                    {review.role}
+                  </p>
                 </div>
               </div>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
+        
       </div>
     </section>
   );
 };
+

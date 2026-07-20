@@ -76,6 +76,8 @@ import { OwnerLoginPage } from "./components/OwnerLoginPage";
 import { OwnerPaymentPage } from "./components/OwnerPaymentPage";
 import { OwnerPaymentSuccessPage } from "./components/OwnerPaymentSuccessPage";
 import { OwnerDashboardPage } from "./components/OwnerDashboardPage";
+import PublicBlog from "./components/public/PublicBlog";
+import PublicBlogPost from "./components/public/PublicBlogPost";
 import { supabase } from "./supabaseClient";
 import { removeSinhala, slugify, safeLocalStorage } from "./utils/safeUtils";
 
@@ -394,7 +396,8 @@ const unifyProperty = (p: any) => {
 
 export default function App() {
   // --- STATE SYSTEM ---
-  const [currentTab, setCurrentTab] = useState<"explore" | "category" | "dashboard" | "publish" | "ai" | "packages" | "wanted" | "feedback" | "agents" | "lands" | "sell" | "agent_sell" | "agent_register" | "agent_dashboard" | "agent_login" | "owner_register" | "owner_login" | "owner_payment" | "owner_payment_success" | "owner_dashboard" | "property-detail">("explore");
+  const [currentTab, setCurrentTab] = useState<"explore" | "category" | "dashboard" | "publish" | "ai" | "packages" | "wanted" | "feedback" | "agents" | "lands" | "sell" | "agent_sell" | "agent_register" | "agent_dashboard" | "agent_login" | "owner_register" | "owner_login" | "owner_payment" | "owner_payment_success" | "owner_dashboard" | "property-detail" | "blog" | "blog-detail">("explore");
+  const [selectedBlogSlug, setSelectedBlogSlug] = useState<string | null>(null);
   const [isAgentLoggedIn, setIsAgentLoggedIn] = useState(() => {
     return safeLocalStorage.getItem('agent_logged_in') === 'true';
   });
@@ -969,6 +972,13 @@ export default function App() {
     } else if (view.type === "lands") {
       setCurrentTab("lands");
       setSelectedProperty(null);
+    } else if (view.type === "blog") {
+      setCurrentTab("blog");
+      setSelectedProperty(null);
+    } else if (view.type === "blog-detail") {
+      setCurrentTab("blog-detail");
+      setSelectedBlogSlug(view.data);
+      setSelectedProperty(null);
     }
   };
 
@@ -1099,6 +1109,19 @@ export default function App() {
             onPropertyClick={handlePropertySelect}
             onNavigateHome={() => handleNavigate({ type: "home" })}
             onNavigate={handleNavigate}
+          />
+        )}
+
+        {currentTab === "blog" && (
+          <PublicBlog 
+            onNavigatePost={(slug) => handleNavigate({ type: "blog-detail", data: slug })} 
+          />
+        )}
+
+        {currentTab === "blog-detail" && (
+          <PublicBlogPost 
+            slug={selectedBlogSlug || ""} 
+            onBack={() => handleNavigate({ type: "blog" })} 
           />
         )}
 

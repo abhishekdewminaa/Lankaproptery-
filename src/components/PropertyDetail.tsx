@@ -1152,10 +1152,11 @@ export const PropertyDetail = ({
 
     // Listing Type
     if (property.listing_type) {
+      const ltLower = String(property.listing_type).toLowerCase();
       rows.push({
         label: 'Listing Type',
         icon: '🏷️',
-        value: property.listing_type === 'Rent' || property.listing_type === 'FOR RENT' ? 'For Rent' : property.listing_type === 'Sale' || property.listing_type === 'FOR SALE' ? 'For Sale' : property.listing_type
+        value: ltLower.includes('rent') ? 'rent' : ltLower.includes('sale') ? 'sell' : property.listing_type
       });
     }
 
@@ -1317,19 +1318,22 @@ export const PropertyDetail = ({
   // Dynamic Category Highlights Cards
   const getHighlightsList = () => {
     const isLand = String(property.property_category || '').toLowerCase() === 'land';
+    const ltLower = String(property.listing_type || '').toLowerCase();
+    const formattedLT = ltLower.includes('rent') ? 'rent' : ltLower.includes('sale') ? 'sell' : (property.listing_type || (isLand ? 'sell' : 'rent'));
+    
     if (isLand) {
       return [
         { icon: '🏢', value: property.property_category || 'Land', label: 'Property Type' },
         { icon: '📐', value: `${property.land_area || 'N/A'} ${property.land_unit || 'Perches'}`, label: 'Land Area' },
         { icon: '🏗️', value: property.zoning || 'Residential', label: 'Zoning' },
-        { icon: '🔑', value: property.listing_type || 'For Sale', label: 'Listing Type' },
+        { icon: '🔑', value: formattedLT, label: 'Listing Type' },
       ];
     }
     return [
       { icon: '🏢', value: property.property_type || property.property_category || 'Commercial', label: 'Property Type' },
       { icon: '📐', value: `${property.floor_area || property.size || '7,500'} sq.ft`, label: 'Floor Area' },
       { icon: '🏗️', value: `${property.floors || '4'} Floors`, label: 'Total Floors' },
-      { icon: '🔑', value: property.listing_type || 'For Rent', label: 'Listing Type' },
+      { icon: '🔑', value: formattedLT, label: 'Listing Type' },
     ];
   };
 
@@ -1491,13 +1495,13 @@ export const PropertyDetail = ({
               {/* Status Row */}
               <div className="flex flex-wrap items-center gap-2">
                 <span className={`text-[12px] font-bold uppercase px-3 py-1 rounded-full border tracking-wide ${
-                  String(property.listing_type).toLowerCase() === 'sale' 
+                  String(property.listing_type || '').toLowerCase().includes('sale') 
                     ? 'detail-badge-sale bg-red-50 text-red-700 border-red-200' 
-                    : String(property.listing_type).toLowerCase() === 'rent'
+                    : String(property.listing_type || '').toLowerCase().includes('rent')
                     ? 'detail-badge-rent bg-[#eff6ff] text-[#1d4ed8] border-[#bfdbfe]'
                     : 'detail-badge-lease bg-[#fffdf5] text-[#f9a825] border-[#fde68a]'
                 }`}>
-                  {String(property.listing_type).toLowerCase() === 'sale' ? '🔴 FOR SALE' : '🔵 FOR RENT'}
+                  {String(property.listing_type || '').toLowerCase().includes('sale') ? '🔴 sell' : '🔵 rent'}
                 </span>
                 <span className="status-active flex items-center gap-1.5 text-[12px] font-bold text-[#15803d] bg-[#f0fdf4] border border-[#bbf7d0] px-3.5 py-1 rounded-full">
                   <span className="w-1.5 h-1.5 bg-[#15803d] rounded-full animate-pulse" /> Active
@@ -2144,7 +2148,7 @@ export const PropertyDetail = ({
                             className="absolute top-2.5 left-2.5 text-[10px] font-bold tracking-widest px-2 py-1 rounded text-white uppercase"
                             style={{ backgroundColor: badge.bg, color: badge.text, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
                           >
-                            {prop.listing_type || 'For Sale'}
+                            {String(prop.listing_type || 'For Sale').toLowerCase().includes('rent') ? 'rent' : 'sell'}
                           </span>
 
                           <button 

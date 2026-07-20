@@ -128,33 +128,18 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-[28px] md:text-7xl font-bold text-white mb-4 drop-shadow-lg leading-tight"
+          className="text-4xl md:text-7xl font-black text-white mb-6 drop-shadow-lg leading-tight tracking-tight"
         >
-          Find Your{' '}
-          <div className="inline-grid [grid-template-columns:1fr] [grid-template-rows:1fr] align-baseline text-[#1A5E2A] min-w-[100px] md:min-w-[280px] text-center">
-            <AnimatePresence mode="popLayout" initial={false}>
-              <motion.span
-                key={wordIndex}
-                initial={{ opacity: 0, y: 40, rotateX: -90 }}
-                animate={{ opacity: 1, y: 0, rotateX: 0 }}
-                exit={{ opacity: 0, y: -40, rotateX: 90 }}
-                transition={{ duration: 0.5, type: "spring", bounce: 0.3 }}
-                className="[grid-area:1/1] origin-center block whitespace-nowrap font-black tracking-tight text-[28px] md:text-7xl"
-              >
-                {cycleWords[wordIndex]}
-              </motion.span>
-            </AnimatePresence>
-          </div>
-          {' '}Home <br className="hidden md:block" /> in Sri Lanka
+          Find Your <span className="text-[#34d399]">Perfect Flow.</span>
         </motion.h1>
         
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="text-[#1A5E2A] font-semibold tracking-widest text-[14px] md:text-base uppercase mb-8 md:mb-12"
+          className="text-gray-200 font-medium text-base md:text-xl max-w-3xl mx-auto mb-10 md:mb-12 drop-shadow"
         >
-          Sri Lanka's #1 Real Estate Marketplace
+          Discover the most exclusive properties in Sri Lanka with our curated selection of premium real estate.
         </motion.p>
 
         {/* Search Widget */}
@@ -179,17 +164,17 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
                 let shadowColor = 'rgba(26,94,42,0.3)';
                 
                 if (tab.id === 'sale') {
-                  activeBg = 'bg-[#1A5E2A]';
+                  activeBg = 'bg-[#0a4225]';
                   activeText = 'text-white';
-                  shadowColor = 'rgba(26,94,42,0.3)';
+                  shadowColor = 'rgba(10,66,37,0.3)';
                 } else if (tab.id === 'rent') {
-                  activeBg = 'bg-[#2E7D32]';
+                  activeBg = 'bg-[#0f5130]';
                   activeText = 'text-white';
-                  shadowColor = 'rgba(46,125,50,0.3)';
+                  shadowColor = 'rgba(15,81,48,0.3)';
                 } else if (tab.id === 'lease') {
-                  activeBg = 'bg-[#689F38]';
+                  activeBg = 'bg-[#14633a]';
                   activeText = 'text-white';
-                  shadowColor = 'rgba(104,159,56,0.3)';
+                  shadowColor = 'rgba(20,99,58,0.3)';
                 }
 
                 return (
@@ -199,7 +184,7 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
                     className={`tab-btn tab-for-${tab.id} ${isActive ? 'active' : ''} relative z-10 flex-col md:flex-row flex-1 lg:flex-none px-6 md:px-8 py-3 rounded-full md:rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap outline-none min-w-[120px] md:min-w-0 snap-start shrink-0 ${
                         isActive 
                         ? activeText 
-                        : 'text-[#374151] hover:text-[#1A5E2A] bg-white border border-[#E5E7EB]'
+                        : 'text-[#374151] hover:text-[#0a4225] bg-white border border-[#E5E7EB]'
                     }`}
                   >
                     {isActive && (
@@ -454,9 +439,9 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
                     whileTap={{ scale: 0.95 }}
                     animate={{ 
                       boxShadow: [
-                        "0 10px 20px -5px rgba(26, 94, 42, 0.2)",
-                        "0 10px 30px 5px rgba(26, 94, 42, 0.4)",
-                        "0 10px 20px -5px rgba(26, 94, 42, 0.2)"
+                        "0 10px 20px -5px rgba(10, 66, 37, 0.2)",
+                        "0 10px 30px 5px rgba(10, 66, 37, 0.4)",
+                        "0 10px 20px -5px rgba(10, 66, 37, 0.2)"
                       ],
                       x: [0, -2, 2, -2, 2, 0],
                       opacity: [1, 0.8, 1]
@@ -466,7 +451,7 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
                       x: { duration: 0.5, repeat: Infinity, repeatDelay: 3 },
                       opacity: { duration: 1, repeat: Infinity, repeatDelay: 5 }
                     }}
-                    className="w-full md:w-auto md:min-w-[200px] h-[52px] bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white font-black uppercase tracking-widest text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-xl shadow-[#1A5E2A]/20 border-none cursor-pointer"
+                    className="w-full md:w-auto md:min-w-[200px] h-[52px] bg-[#0a4225] hover:bg-[#072d19] text-white font-black uppercase tracking-widest text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-xl shadow-[#0a4225]/20 border-none cursor-pointer"
                   >
                     <Search size={18} strokeWidth={3} /> Search Now
                   </motion.button>
@@ -477,7 +462,7 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-gray-100 pt-6">
             <div className="flex items-center gap-4">
               <span className="text-xs font-bold text-gray-400 flex items-center gap-1.5">
-                <Activity size={14} className="text-[#1A5E2A]" />
+                <Activity size={14} className="text-[#0a4225]" />
                 {propertyCount.toLocaleString()} properties found
               </span>
               <button 

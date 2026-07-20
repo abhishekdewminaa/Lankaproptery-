@@ -315,7 +315,7 @@ const LatestAdvertisements: React.FC<LatestAdvertisementsProps> = ({
                     <span className={`text-[9px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full text-white shadow-sm ${
                       isSale ? 'bg-[#0F3D1A]' : 'bg-[#1A5E2A]'
                     }`}>
-                      FOR {isSale ? 'SALE' : 'RENT'}
+                      {isSale ? 'sell' : 'rent'}
                     </span>
                   </div>
                   <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-widest text-gray-800 shadow-sm flex items-center gap-1">

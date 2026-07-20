@@ -9,7 +9,7 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onAdminClick, onHomeClick }) => {
   return (
-    <footer className="footer bg-[#0A3D10] text-white">
+    <footer className="footer bg-[#0a4225] text-white">
       <div className="footer-inner">
         {/* Footer Grid */}
         <div className="footer-grid container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16 relative z-10">

@@ -195,7 +195,7 @@ const PropertyCard = React.memo(({ p, idx, onPropertyClick, favorites, toggleFav
                   ? 'bg-[#1565C0] text-white'
                   : 'bg-[#E8A000] text-[#111827]'
             }`}>
-              {p.listing_type?.toUpperCase()}
+              {(p.listing_type || '').toLowerCase().includes('rent') ? 'rent' : 'sell'}
             </span>
             {p.is_trending && (
                <span className="px-2 py-1 md:px-4 md:py-1.5 bg-brand-green text-white rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-1 shadow-lg">
