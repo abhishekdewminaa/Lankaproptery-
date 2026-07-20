@@ -9,6 +9,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { supabase } from '../supabaseClient';
+import { useProperties } from '../hooks/useProperties';
 import { triggerNotification } from '../services/notificationService';
 import { runLeadFollowUpWorkflow } from '../automation/workflows';
 import { translateDescription } from '../services/geminiService';
@@ -148,6 +149,70 @@ export const PropertyDetail = ({
   const [showOriginal, setShowOriginal] = useState(true);
   const [copiedRef, setCopiedRef] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
+
+  const { properties: globalProperties } = useProperties();
+
+  const smartSimilarProperties = React.useMemo(() => {
+    if (!globalProperties || !property) return [];
+    
+    // Create a filtering/scoring mechanism
+    const candidateProps = globalProperties.filter(p => Number(p.id) !== Number(property.id));
+    
+    const scored = candidateProps.map(p => {
+      let score = 0;
+      
+      // Match current property's location (city or district)
+      const currentCity = String(property.city || '').toLowerCase().trim();
+      const pCity = String(p.city || '').toLowerCase().trim();
+      if (currentCity && pCity && (pCity.includes(currentCity) || currentCity.includes(pCity))) {
+        score += 8;
+      }
+      
+      const currentDistrict = String(property.district || '').toLowerCase().trim();
+      const pDistrict = String(p.district || '').toLowerCase().trim();
+      if (currentDistrict && pDistrict && currentDistrict === pDistrict) {
+        score += 4;
+      }
+      
+      // Price similarity within +/- 30% or +/- 50%
+      const currentPrice = Number(property.price_lkr || property.price || 0);
+      const pPrice = Number(p.price_lkr || p.price || 0);
+      if (currentPrice > 0 && pPrice > 0) {
+        const diffRatio = Math.abs(currentPrice - pPrice) / currentPrice;
+        if (diffRatio <= 0.2) {
+          score += 6;
+        } else if (diffRatio <= 0.4) {
+          score += 3;
+        } else if (diffRatio <= 0.6) {
+          score += 1;
+        }
+      }
+      
+      // Category match
+      const currentCategory = String(property.property_category || property.category || '').toLowerCase().trim();
+      const pCategory = String(p.property_category || '').toLowerCase().trim();
+      if (currentCategory && pCategory && currentCategory === pCategory) {
+        score += 3;
+      }
+      
+      return { property: p, score };
+    });
+    
+    // Sort by score descending
+    scored.sort((a, b) => b.score - a.score);
+    
+    // filter to display properties with at least some similarity
+    const matched = scored.filter(item => item.score > 0).map(item => item.property);
+    
+    // If we have fewer than 4 matched, pad with any other active properties
+    if (matched.length < 4) {
+      const remainingCandidates = candidateProps.filter(p => !matched.some(m => m.id === p.id));
+      const padding = remainingCandidates.slice(0, 4 - matched.length);
+      return [...matched, ...padding].slice(0, 4);
+    }
+    
+    return matched.slice(0, 4);
+  }, [globalProperties, property]);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [phoneRevealed, setPhoneRevealed] = useState(false);
 
@@ -2213,6 +2278,180 @@ export const PropertyDetail = ({
             )
           )}
         </div>
+
+        {/* SMART SIMILAR PROPERTIES SECTION */}
+        <motion.section 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="py-12 sm:py-16 bg-[#f8fafc] border border-gray-150 rounded-2xl overflow-hidden mt-10 shadow-sm"
+          id="smart-similar-properties-section"
+        >
+          <div className="max-w-[1100px] mx-auto px-4 sm:px-6">
+            
+            {/* Header Block */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+              <div>
+                <span className="text-[10px] font-black text-[#0a4225] uppercase tracking-widest bg-[#0a4225]/10 px-2.5 py-1 rounded-md inline-block mb-2">
+                  Smart Match Engine
+                </span>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-[#111827]" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+                  Smart Similar Properties in This Area
+                </h3>
+                <p className="text-xs text-gray-500 font-medium mt-1">
+                  Handpicked properties in {property.city || property.district || 'this location'} matching similar criteria and price brackets.
+                </p>
+              </div>
+              
+              {/* Chevron buttons for slide assistance on desktop */}
+              <div className="hidden md:flex items-center gap-2">
+                <button 
+                  onClick={() => {
+                    const el = document.getElementById('smart-similar-slider');
+                    if (el) el.scrollBy({ left: -320, behavior: 'smooth' });
+                  }}
+                  className="w-9 h-9 bg-white border border-gray-200 text-gray-600 rounded-md hover:border-[#0a4225] hover:text-[#0a4225] flex items-center justify-center transition-all shadow-sm active:scale-95 cursor-pointer"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button 
+                  onClick={() => {
+                    const el = document.getElementById('smart-similar-slider');
+                    if (el) el.scrollBy({ left: 320, behavior: 'smooth' });
+                  }}
+                  className="w-9 h-9 bg-white border border-gray-200 text-gray-600 rounded-md hover:border-[#0a4225] hover:text-[#0a4225] flex items-center justify-center transition-all shadow-sm active:scale-95 cursor-pointer"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Slider/Carousel wrapper */}
+            {smartSimilarProperties.length > 0 ? (
+              <div 
+                id="smart-similar-slider"
+                className="flex md:grid md:grid-cols-3 lg:grid-cols-4 gap-6 overflow-x-auto md:overflow-x-visible pb-4 md:pb-0 snap-x snap-mandatory scrollbar-none"
+              >
+                {smartSimilarProperties.map((prop, idx) => {
+                  const coverImg = getPropertyImage(prop.images);
+                  const isRent = String(prop.listing_type || '').toLowerCase().includes('rent');
+                  const formattedPrice = prop.price_lkr 
+                    ? `Rs. ${Number(prop.price_lkr).toLocaleString('en-LK')}`
+                    : 'Price on Request';
+                  
+                  const specs = [];
+                  const beds = prop.bedrooms || prop.rooms;
+                  if (beds && Number(beds) > 0) {
+                    specs.push(`${beds} Beds`);
+                  }
+                  if (prop.bathrooms && Number(prop.bathrooms) > 0) {
+                    specs.push(`${prop.bathrooms} Baths`);
+                  }
+                  const land = prop.land_area;
+                  if (land && String(land).trim() !== '' && String(land) !== '0') {
+                    specs.push(`${land} ${prop.land_unit || 'P'}`);
+                  }
+                  const floor = prop.floor_area;
+                  if (floor && String(floor).trim() !== '' && String(floor) !== '0' && specs.length < 3) {
+                    specs.push(`${floor} sqft`);
+                  }
+
+                  // Framer motion variants for stagger effect
+                  const cardVariants = {
+                    hidden: { opacity: 0, y: 20 },
+                    visible: { 
+                      opacity: 1, 
+                      y: 0,
+                      transition: { duration: 0.5, delay: idx * 0.1 }
+                    }
+                  };
+
+                  return (
+                    <motion.div
+                      key={prop.id || idx}
+                      variants={cardVariants}
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={{ once: true }}
+                      onClick={() => onPropertyClick(prop)}
+                      className="min-w-[280px] sm:min-w-[320px] md:min-w-0 bg-white border border-gray-200 rounded-md overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer snap-center flex flex-col justify-between group"
+                    >
+                      {/* Image container */}
+                      <div className="relative h-44 overflow-hidden bg-gray-50">
+                        <img 
+                          src={getOptimizedImageUrl(coverImg, 'thumb')}
+                          alt={prop.listing_title || prop.title || 'Property'}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                        />
+                        {/* Sell/Rent status badge */}
+                        <span className={`absolute top-3 left-3 text-[9px] font-black tracking-widest px-2.5 py-1 rounded-md text-white uppercase shadow-sm ${
+                          isRent ? 'bg-blue-600' : 'bg-red-600'
+                        }`}>
+                          {isRent ? 'RENT' : 'SELL'}
+                        </span>
+                      </div>
+
+                      {/* Content block */}
+                      <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                        <div className="space-y-1.5">
+                          {/* Price */}
+                          <div className="text-[#0a4225] font-black text-base sm:text-lg">
+                            {formattedPrice}
+                          </div>
+                          
+                          {/* Title */}
+                          <h4 className="font-bold text-xs sm:text-[13px] text-gray-900 line-clamp-2 leading-snug group-hover:text-[#0a4225] transition-colors">
+                            {prop.listing_title || prop.title}
+                          </h4>
+
+                          {/* Location tag */}
+                          <div className="flex items-center gap-1 text-[11px] text-gray-500 font-bold">
+                            <span className="text-gray-400">📍</span>
+                            <span className="truncate">{[prop.city, prop.district].filter(Boolean).join(', ')}</span>
+                          </div>
+                        </div>
+
+                        {/* Specs & CTA */}
+                        <div className="space-y-3 pt-3 border-t border-gray-100">
+                          {/* Key Specs Row */}
+                          {specs.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5">
+                              {specs.map((spec, sIdx) => (
+                                <span 
+                                  key={sIdx} 
+                                  className="text-[10px] font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-md"
+                                >
+                                  {spec}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Forest green view details button */}
+                          <button
+                            type="button"
+                            className="w-full bg-[#0a4225] text-white text-[10px] font-black uppercase tracking-wider py-2.5 rounded-md hover:bg-black transition-colors duration-300 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+                          >
+                            <span>View Details</span>
+                            <ArrowRight size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="bg-white rounded-md border border-gray-200 p-8 text-center text-xs font-semibold text-gray-400 shadow-sm">
+                🔍 Calculating best matches...
+              </div>
+            )}
+
+          </div>
+        </motion.section>
 
         {/* LISTING METADATA (small, bottom of page) */}
         <div className="text-center space-y-3 pt-6 text-xs font-semibold text-[#6b7280]">

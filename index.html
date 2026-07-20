@@ -9,7 +9,9 @@
     };
     window.addEventListener('unhandledrejection', function(e) {
       var reasonStr = String(e.reason && (e.reason.stack || e.reason.message || e.reason));
-      if (reasonStr.indexOf('WebSocket') > -1 || reasonStr.indexOf('websocket') > -1 || reasonStr.indexOf('vite') > -1) {
+      if (reasonStr.indexOf('WebSocket') > -1 || reasonStr.indexOf('websocket') > -1 || reasonStr.indexOf('vite') > -1 || reasonStr.indexOf('closed without opened') > -1) {
+        e.preventDefault();
+        e.stopPropagation();
         return;
       }
       document.body.style.background = 'white';  
@@ -100,10 +102,13 @@
       window.addEventListener(
         'unhandledrejection',
         function(e) {
-          if (e.reason && typeof e.reason === 'string' && e.reason.indexOf('WebSocket') > -1) { e.preventDefault(); return }
-          if (e.reason && e.reason.message && e.reason.message.indexOf('WebSocket') > -1) { e.preventDefault(); return }
+          var reasonMsg = e.reason ? (e.reason.message || String(e.reason)) : '';
+          if (reasonMsg.indexOf('WebSocket') > -1 || reasonMsg.indexOf('websocket') > -1 || reasonMsg.indexOf('vite') > -1 || reasonMsg.indexOf('closed without opened') > -1) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
           try {
-            var reasonMsg = e.reason ? (e.reason.message || String(e.reason)) : 'unknown';
             var reasonStack = e.reason ? e.reason.stack : null;
             var payload = {
               type: 'unhandled_rejection',

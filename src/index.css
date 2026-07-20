@@ -3268,6 +3268,76 @@ footer {
 .pill-green   { background-color: #E8F5E9 !important; color: #1B5E20 !important; border: 1px solid #A5D6A7 !important; border-radius: 25px !important; }
 .whatsapp-btn { background-color: #25D366 !important; color: #fff !important; }
 
+/* Custom Property Card Modern Design styles */
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+.property-card-modern:hover {
+  transform: translateY(-6px) !important;
+  box-shadow: 
+    0 20px 60px rgba(0,0,0,0.12),
+    0 4px 12px rgba(0,0,0,0.06) !important;
+  border-color: transparent !important;
+}
+
+.property-card-modern:hover img {
+  transform: scale(1.08) !important;
+}
+
+.property-card-modern:hover span:last-child {
+  gap: 10px !important;
+}
+
+/* Heart button hover */
+.property-card-modern button:hover {
+  background: #FEE2E2 !important;
+  color: #C62828 !important;
+  transform: scale(1.1) !important;
+}
+
+/* Saved heart state */
+.property-card-modern button.saved {
+  background: #C62828 !important;
+  color: white !important;
+}
+
+@media (max-width: 1024px) {
+  .property-cards-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .property-cards-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 14px !important;
+  }
+
+  .property-card-modern img {
+    height: 180px !important;
+  }
+
+  /* Section header stack on mobile */
+  .section-header-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .property-cards-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .property-card-modern img {
+    height: 200px !important;
+  }
+}
+
 
 
 
