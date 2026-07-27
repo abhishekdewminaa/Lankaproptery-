@@ -61,17 +61,6 @@ export const RecentlyUpdatedProperties: React.FC<RecentlyUpdatedPropertiesProps>
         {/* Redesigned Section Header */}
         <div className="section-header-row flex justify-between items-end mb-8 px-1">
           <div>
-            {/* Live pulse badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#F0FDF4] border border-[#A5D6A7] rounded-full mb-3.5">
-              <span 
-                className="w-2 h-2 bg-[#22C55E] rounded-full inline-block"
-                style={{ animation: 'livePulse 2s ease infinite' }}
-              ></span>
-              <span className="text-[11px] font-bold text-[#1B5E20] uppercase tracking-wider">
-                Real-Time Live Feed
-              </span>
-            </div>
-
             <h2 className="text-[28px] font-extrabold text-gray-900 m-0 mb-1.5 leading-tight">
               Recently Updated Properties
             </h2>
@@ -111,7 +100,7 @@ export const RecentlyUpdatedProperties: React.FC<RecentlyUpdatedPropertiesProps>
                 <div
                   key={prop.id || idx}
                   onClick={() => onNavigate({ type: 'detail', data: prop })}
-                  className="property-card-modern block bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden no-underline transition-all duration-300 relative cursor-pointer"
+                  className="property-card-modern block bg-white border border-[#E5E7EB] rounded-lg overflow-hidden no-underline transition-all duration-300 relative cursor-pointer"
                   style={{
                     transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
                   }}

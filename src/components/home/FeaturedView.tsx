@@ -131,7 +131,7 @@ export const FeaturedView: React.FC<FeaturedViewProps> = ({ onBack, onNavigate }
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="bg-white rounded-3xl h-[400px] animate-pulse shadow-sm" />
+              <div key={i} className="bg-white rounded-lg h-[400px] animate-pulse shadow-sm" />
             ))}
           </div>
         ) : (
@@ -143,7 +143,7 @@ export const FeaturedView: React.FC<FeaturedViewProps> = ({ onBack, onNavigate }
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}
                 onClick={() => onNavigate({ type: 'detail', data: p })}
-                className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all cursor-pointer border border-gray-100/50"
+                className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all cursor-pointer border border-gray-100/50"
               >
                 <div className="relative h-56 overflow-hidden">
                   <img onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; }} src={p.images?.[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={p.listing_title} />

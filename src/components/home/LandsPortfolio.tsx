@@ -540,7 +540,7 @@ export const LandsPortfolio: React.FC<LandsPortfolioProps> = ({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: Math.min(idx * 0.05, 0.3) }}
-                    className="bg-white rounded-3xl border border-gray-100 shadow-md hover:shadow-2xl hover:border-emerald-100 transition-all flex flex-col overflow-hidden group text-left"
+                    className="bg-white rounded-lg border border-gray-100 shadow-md hover:shadow-2xl hover:border-emerald-100 transition-all flex flex-col overflow-hidden group text-left"
                   >
                     {/* Visual poster / photo container */}
                     <div className="relative h-[200px] overflow-hidden">

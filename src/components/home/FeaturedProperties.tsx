@@ -187,7 +187,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({ properti
                 <div
                   key={prop.id || idx}
                   onClick={() => onNavigate({ type: 'detail', data: prop })}
-                  className="property-card-modern block bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden no-underline transition-all duration-300 relative cursor-pointer"
+                  className="property-card-modern block bg-white border border-[#E5E7EB] rounded-lg overflow-hidden no-underline transition-all duration-300 relative cursor-pointer"
                   style={{
                     transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
                   }}

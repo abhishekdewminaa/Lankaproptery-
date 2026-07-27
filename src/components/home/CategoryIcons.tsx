@@ -57,7 +57,7 @@ export const CategoryIcons: React.FC<CategoryIconsProps> = ({ onNavigate }) => {
   };
 
   return (
-    <section className="py-12 bg-[#f8fafc]" id="browse-by-category">
+    <section className="pt-24 pb-12 sm:pt-32 sm:pb-16 bg-[#f8fafc]" id="browse-by-category">
       <div className="max-w-7xl mx-auto px-6 sm:px-8">
         <div className="text-center mb-8">
           <h2 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">Browse by Category</h2>

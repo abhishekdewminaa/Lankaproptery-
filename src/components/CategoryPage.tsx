@@ -74,7 +74,7 @@ const PROPERTY_TYPES_MAP: Record<string, string[]> = {
 };
 
 const SkeletonCard = ({ viewMode = 'grid' }: { viewMode?: 'grid' | 'list' }) => (
-  <div className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 ${viewMode === 'list' ? 'flex flex-row h-32 md:h-48' : 'h-full'}`}>
+  <div className={`bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100 ${viewMode === 'list' ? 'flex flex-row h-32 md:h-48' : 'h-full'}`}>
     <div className={`bg-gray-100 animate-shimmer ${viewMode === 'list' ? 'w-[120px] md:w-64 h-full shrink-0' : 'h-56'}`} />
     <div className="p-4 md:p-6 space-y-4 flex-1">
       <div className="h-4 bg-gray-100 animate-shimmer w-1/4 rounded" />
@@ -103,7 +103,7 @@ const PropertyCard = React.memo(({ p, idx, onPropertyClick, favorites, toggleFav
       >
         <div 
           onClick={() => onPropertyClick(p)}
-          className="bg-white rounded-[24px] md:rounded-[32px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-row h-[140px] md:h-[220px]"
+          className="bg-white rounded-lg overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-row h-[140px] md:h-[220px]"
         >
           <div className="relative w-[120px] md:w-[280px] h-full shrink-0 overflow-hidden">
             <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg'; }} 
@@ -176,7 +176,7 @@ const PropertyCard = React.memo(({ p, idx, onPropertyClick, favorites, toggleFav
     >
       <div 
         onClick={() => onPropertyClick(p)}
-        className="bg-white rounded-[24px] md:rounded-[32px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 md:hover:-translate-y-2 transition-all duration-300 md:duration-500 cursor-pointer flex flex-col h-full"
+        className="bg-white rounded-lg overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 md:hover:-translate-y-2 transition-all duration-300 md:duration-500 cursor-pointer flex flex-col h-full"
       >
         <div className="relative h-48 md:h-64 overflow-hidden shrink-0">
           <img onError={(e) => { e.currentTarget.src = '/placeholder-property.jpg'; }} 

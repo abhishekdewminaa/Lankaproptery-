@@ -308,7 +308,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                         (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
                       }}
                     >
-                      🏠 Sell
+                      <Home size={16} className="shrink-0" /> Sell
                     </button>
                     <span className="text-[#D1D5DB] font-light font-sans text-sm select-none">|</span>
                   </>
@@ -450,7 +450,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                       }}
                       className="w-full text-left px-4 py-3 text-xs font-bold text-[#374151] hover:bg-[#1A5E2A]/5 hover:text-[#1A5E2A] border-b border-gray-50 flex flex-col gap-0.5"
                     >
-                      <span className="flex items-center gap-1.5 font-black text-[#111827]"><span className="text-sm">🏠</span> List My Property</span>
+                      <span className="flex items-center gap-1.5 font-black text-[#111827]"><Home size={15} className="text-[#1A5E2A]" /> List My Property</span>
                       <span className="text-[10px] text-gray-400 font-semibold pl-5">(Property Owner)</span>
                     </button>
                     <button
@@ -461,7 +461,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                       }}
                       className="w-full text-left px-4 py-3 text-xs font-bold text-[#374151] hover:bg-[#1A5E2A]/5 hover:text-[#1A5E2A] flex flex-col gap-0.5"
                     >
-                      <span className="flex items-center gap-1.5 font-black text-[#111827]"><span className="text-sm">🏢</span> Join as Agent</span>
+                      <span className="flex items-center gap-1.5 font-black text-[#111827]"><Building2 size={15} className="text-blue-600" /> Join as Agent</span>
                       <span className="text-[10px] text-gray-400 font-semibold pl-5">(Real Estate Professional)</span>
                     </button>
                   </div>
@@ -607,7 +607,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                     }}
                     className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl flex items-center gap-2"
                   >
-                    🏠 List My Property (Property Owner)
+                    <Home size={16} className="text-[#1A5E2A]" /> List My Property (Property Owner)
                   </button>
                   <button
                     onClick={() => {
@@ -617,7 +617,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                     }}
                     className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl flex items-center gap-2"
                   >
-                    🏢 Join as Agent (Real Estate Professional)
+                    <Building2 size={16} className="text-blue-600" /> Join as Agent (Real Estate Professional)
                   </button>
                 </div>
               </div>
@@ -822,8 +822,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '28px',
-                  }}>🏠</div>
+                    color: '#1A5E2A',
+                  }}><Home size={28} /></div>
 
                   <span style={{
                     background: '#E8F5E9',

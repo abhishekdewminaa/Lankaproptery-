@@ -78,6 +78,7 @@ import { OwnerPaymentSuccessPage } from "./components/OwnerPaymentSuccessPage";
 import { OwnerDashboardPage } from "./components/OwnerDashboardPage";
 import PublicBlog from "./components/public/PublicBlog";
 import PublicBlogPost from "./components/public/PublicBlogPost";
+import { MaintenancePopup } from "./components/MaintenancePopup";
 import { supabase } from "./supabaseClient";
 import { removeSinhala, slugify, safeLocalStorage } from "./utils/safeUtils";
 
@@ -434,6 +435,8 @@ export default function App() {
   const [selectedAdPackage, setSelectedAdPackage] = useState<string | null>(null);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState<boolean>(true);
+  const [showMaintenancePopup, setShowMaintenancePopup] = useState<boolean>(true);
   const [properties, setProperties] = useState(() => resolveDuplicateSlugs(INITIAL_PROPERTIES.map(unifyProperty)));
   const [selectedProperty, setSelectedProperty] = useState<any | null>(null);
   const [propertyDetailId, setPropertyDetailId] = useState<number | string | null>(null);
@@ -1037,6 +1040,23 @@ export default function App() {
           },
         }}
       />
+
+      {/* --- MAINTENANCE MODE TOP NOTICE BAR --- */}
+      {isMaintenanceMode && (
+        <div className="bg-gradient-to-r from-amber-600 via-[#0a4225] to-amber-700 text-white text-[11px] sm:text-xs font-bold py-2 px-4 text-center flex items-center justify-center gap-2 shadow-md relative z-[100]">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-300 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400"></span>
+          </span>
+          <span><strong>System Maintenance Mode Active:</strong> Platform operations are temporarily paused for system upgrades.</span>
+          <button
+            onClick={() => setShowMaintenancePopup(true)}
+            className="underline hover:text-amber-200 transition-colors ml-1.5 font-black cursor-pointer bg-white/10 hover:bg-white/20 px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider shrink-0"
+          >
+            View Status
+          </button>
+        </div>
+      )}
 
       {/* --- REDESIGNED BRAND NAVIGATION --- */}
       {currentTab !== "dashboard" && (
@@ -2665,6 +2685,14 @@ and deed entries are officially verified by our administrative desk.
         <Footer 
           onAdminClick={() => setCurrentTab("dashboard")} 
           onHomeClick={() => handleNavigate({ type: "home" })}
+        />
+      )}
+
+      {/* --- MAINTENANCE POPUP MODAL --- */}
+      {isMaintenanceMode && (
+        <MaintenancePopup 
+          isOpen={showMaintenancePopup}
+          onClose={() => setShowMaintenancePopup(false)}
         />
       )}
 

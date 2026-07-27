@@ -2375,7 +2375,7 @@ export const PropertyDetail = ({
                       whileInView="visible"
                       viewport={{ once: true }}
                       onClick={() => onPropertyClick(prop)}
-                      className="min-w-[280px] sm:min-w-[320px] md:min-w-0 bg-white border border-gray-200 rounded-md overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer snap-center flex flex-col justify-between group"
+                      className="min-w-[280px] sm:min-w-[320px] md:min-w-0 bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer snap-center flex flex-col justify-between group"
                     >
                       {/* Image container */}
                       <div className="relative h-44 overflow-hidden bg-gray-50">

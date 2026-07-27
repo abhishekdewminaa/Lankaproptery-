@@ -1,7 +1,7 @@
 import React from 'react';
 
 export const SkeletonCard = () => (
-  <div className="bg-white dark:bg-white/5 rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-gray-100 dark:border-white/10 h-full flex flex-col">
+  <div className="bg-white dark:bg-white/5 rounded-lg overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-gray-100 dark:border-white/10 h-full flex flex-col">
     <div className="relative h-[220px] bg-gray-200 dark:bg-white/5 overflow-hidden animate-pulse">
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] animate-[shimmer_1.5s_infinite]" />
     </div>
