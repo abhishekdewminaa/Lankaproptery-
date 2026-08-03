@@ -1957,9 +1957,15 @@ export const PropertyDetail = ({
                   <div>
                     <h4 className="text-[18px] font-bold text-gray-900">{property.agent_name || 'Pradeep Jayawardene'}</h4>
                     <p className="text-xs text-[#1A5E2A] font-semibold">Commercial Property Owner</p>
-                    <div className="flex items-center gap-1.5 mt-1 text-[#f5a623] text-xs font-bold">
-                      <span>⭐⭐⭐⭐⭐</span> 
-                      <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px]">Verified Seller ✅</span>
+                    <div className="flex items-center gap-1.5 mt-1 text-xs font-bold">
+                      <div className="flex text-amber-400">
+                        <Star size={12} fill="currentColor" />
+                        <Star size={12} fill="currentColor" />
+                        <Star size={12} fill="currentColor" />
+                        <Star size={12} fill="currentColor" />
+                        <Star size={12} fill="currentColor" />
+                      </div>
+                      <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px]">Verified Seller</span>
                     </div>
                     <p className="text-[11px] text-gray-400 font-semibold mt-1">Member since: May 2024</p>
                   </div>
@@ -1968,36 +1974,38 @@ export const PropertyDetail = ({
                 <hr className="border-gray-100" />
 
                 <div className="space-y-3">
-                  <button 
-                    onClick={() => window.open(`https://wa.me/94770000000?text=${encodeURIComponent(`I am interested in ${property.listing_title}`)}`, '_blank')}
-                    className="whatsapp-btn w-full bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl py-3.5 px-5 font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
+                  <a 
+                    href={`https://wa.me/94770000000?text=${encodeURIComponent(`I am interested in ${property.listing_title}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="whatsapp-btn w-full bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl py-3.5 px-5 font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer no-underline"
                   >
-                    <span>💬</span> WhatsApp Now
-                  </button>
+                    <MessageCircle size={16} /> WhatsApp Now
+                  </a>
 
                   {phoneRevealed ? (
                     <button 
                       onClick={() => window.open(`tel:+94771234567`)}
                       className="call-btn w-full bg-white border-2 border-[#1A5E2A] text-[#1A5E2A] hover:bg-[#f0fdf4] rounded-xl py-3.5 px-5 font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
                     >
-                      <span>📞</span> Call: +94 77 123 4567
+                      <Phone size={16} /> Call: +94 77 123 4567
                     </button>
                   ) : (
                     <div className="space-y-2 text-center">
-                      <p className="text-xs text-gray-400 font-semibold">📞 Phone number hidden for privacy</p>
+                      <p className="text-xs text-gray-400 font-semibold">Phone number hidden for privacy</p>
                       <button 
                         onClick={() => setPhoneRevealed(true)}
                         className="text-[#1A5E2A] hover:underline font-bold text-sm cursor-pointer"
                       >
-                        🔓 Click to Reveal Number
+                        Click to Reveal Number
                       </button>
                     </div>
                   )}
                 </div>
 
                 <div className="text-xs space-y-1.5 text-gray-500 font-medium">
-                  <p>⚡ Response time: Usually replies within 1 hour</p>
-                  <p>🗣️ Languages: Sinhala, English</p>
+                  <p>Response time: Usually replies within 1 hour</p>
+                  <p>Languages: Sinhala, English</p>
                 </div>
               </div>
 
@@ -2007,7 +2015,7 @@ export const PropertyDetail = ({
 
                 {inquirySuccess ? (
                   <div className="p-6 bg-white text-[#15803d] border border-[#bbf7d0] rounded-xl text-center space-y-3 shadow-sm animate-in fade-in duration-300">
-                    <div className="text-lg font-bold">✅ Message Sent!</div>
+                    <div className="text-lg font-bold">Message Sent!</div>
                     <p className="text-xs text-gray-650">The owner will contact you shortly.</p>
                     <button 
                       onClick={() => setInquirySuccess(false)}
@@ -2068,11 +2076,11 @@ export const PropertyDetail = ({
                       disabled={isSubmitting}
                       className="contact-submit w-full bg-[#1A5E2A] hover:bg-[#0F3D1A] text-white py-3.5 rounded-xl font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                     >
-                      {isSubmitting ? 'Sending...' : '📩 Send Message →'}
+                      {isSubmitting ? 'Sending...' : 'Send Message →'}
                     </button>
 
                     <p className="text-[11px] text-gray-400 text-center">
-                      🔒 Your personal details are kept private and only shared with the seller.
+                      Your personal details are kept private and only shared with the seller.
                     </p>
                   </form>
                 )}
@@ -2086,198 +2094,8 @@ export const PropertyDetail = ({
           )}
         </div>
 
-        {/* SECTION 5 — SIMILAR PROPERTIES */}
-        <div ref={similarRef} className="min-h-[50px] w-full" id="similar-properties-section">
-          {similarVisible && (
-            loadingSimilar ? (
-              <div className="bg-white rounded-[16px] border border-[#e5e7eb] p-6 sm:p-7 shadow-[0_2px_10px_rgba(0,0,0,0.06)]">
-                <style>{`
-                  @keyframes shimmer {
-                    0%   { background-position: -400px 0 }
-                    100% { background-position:  400px 0 }
-                  }
-                  .animate-shimmer {
-                    background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
-                    background-size: 400px 100%;
-                    animation: shimmer 1.4s ease infinite;
-                  }
-                `}</style>
-                <div className="h-6 bg-gray-200 rounded w-48 mb-6 animate-pulse" />
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
-                  {Array(6).fill(null).map((_, idx) => (
-                    <div key={idx} className="bg-white border border-[#E5E7EB] rounded-[14px] overflow-hidden">
-                      <div className="h-[180px] animate-shimmer" />
-                      <div className="p-3.5 space-y-2">
-                        <div className="h-3.5 w-3/5 animate-shimmer rounded-md" />
-                        <div className="h-3 w-[90%] animate-shimmer rounded-md" />
-                        <div className="h-3 w-3/4 animate-shimmer rounded-md" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : similarProperties.length > 0 ? (
-              <div className="bg-white rounded-[16px] border border-[#e5e7eb] p-6 sm:p-7 shadow-[0_2px_10px_rgba(0,0,0,0.06)] animate-fade-in">
-                <style>{`
-                  .similar-grid {
-                    display: grid;
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: 18px;
-                  }
-                  @media (max-width: 768px) {
-                    .similar-grid {
-                      grid-template-columns: repeat(2, 1fr) !important;
-                      gap: 12px !important;
-                    }
-                    .similar-card-image {
-                      height: 140px !important;
-                    }
-                  }
-                  @media (max-width: 480px) {
-                    .similar-grid {
-                      grid-template-columns: 1fr !important;
-                    }
-                  }
-                `}</style>
-
-                {/* Section heading */}
-                <div className="flex justify-between items-center mb-5">
-                  <h3 className="text-[20px] font-bold text-[#111827] border-l-4 border-[#1A5E2A] pl-3" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-                    Similar Properties
-                  </h3>
-                  <button 
-                    onClick={onBack}
-                    className="text-[13px] font-bold text-[#1A5E2A] hover:underline cursor-pointer"
-                    style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                  >
-                    View All →
-                  </button>
-                </div>
-
-                {/* 3 columns x 2 rows grid */}
-                <div className="similar-grid">
-                  {similarProperties.map((prop, idx) => {
-                    const cover = getPropertyImage(prop.images);
-                    const isSaved = favorites.has(Number(prop.id));
-
-                    // Badge color
-                    const badgeColors: Record<string, { bg: string, text: string }> = {
-                      'For Sale':  { bg: '#CC1414', text: 'white' },
-                      'For Rent':  { bg: '#1565C0', text: 'white' },
-                      'For Lease': { bg: '#E8A000', text: 'white' },
-                    };
-                    const badge = badgeColors[prop.listing_type] || { bg: '#1A5E2A', text: 'white' };
-
-                    // Format price
-                    const priceVal = prop.price_lkr || prop.price;
-                    const priceStr = priceVal
-                      ? `Rs. ${Number(priceVal).toLocaleString('en-LK')}`
-                      : 'Price on Request';
-
-                    // Specs row
-                    const specs = [];
-                    const bedVal = prop.bedrooms || prop.rooms;
-                    if (bedVal && Number(bedVal) > 0) {
-                      specs.push({ icon: '🛏️', text: `${bedVal} Bed` });
-                    }
-                    if (prop.bathrooms && Number(prop.bathrooms) > 0) {
-                      specs.push({ icon: '🚿', text: `${prop.bathrooms} Bath` });
-                    }
-                    const landVal = prop.land_area || prop.land_size;
-                    if (landVal && String(landVal).trim() !== '' && String(landVal) !== '0') {
-                      specs.push({ icon: '📐', text: `${landVal} ${prop.land_unit || 'P'}` });
-                    }
-                    const floorVal = prop.floor_area || prop.size;
-                    if (floorVal && String(floorVal).trim() !== '' && String(floorVal) !== '0' && (!bedVal || Number(bedVal) === 0)) {
-                      specs.push({ icon: '📏', text: `${floorVal} sqft` });
-                    }
-
-                    return (
-                      <div
-                        key={prop.id || idx}
-                        onClick={() => onPropertyClick(prop)}
-                        className="similar-card group flex flex-col justify-between bg-white border border-[#E5E7EB] rounded-[14px] overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:border-[#1A5E2A] hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-                      >
-                        {/* Property Image */}
-                        <div className="similar-card-image relative h-[180px] overflow-hidden bg-gray-50">
-                          <img 
-                            src={getOptimizedImageUrl(cover, 'thumb')}
-                            alt={prop.listing_title || prop.title}
-                            loading="lazy"
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            referrerPolicy="no-referrer"
-                          />
-
-                          {/* Listing Type Badge */}
-                          <span 
-                            className="absolute top-2.5 left-2.5 text-[10px] font-bold tracking-widest px-2 py-1 rounded text-white uppercase"
-                            style={{ backgroundColor: badge.bg, color: badge.text, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                          >
-                            {String(prop.listing_type || 'For Sale').toLowerCase().includes('rent') ? 'rent' : 'sell'}
-                          </span>
-
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleFavorite(Number(prop.id));
-                              toast.success(isSaved ? 'Removed from favorites' : 'Saved to favorites!');
-                            }}
-                            className="absolute top-2.5 right-2.5 w-8 h-8 bg-white/90 backdrop-blur-md hover:bg-white text-gray-800 rounded-full flex items-center justify-center shadow-md transition-all cursor-pointer"
-                          >
-                            <Heart size={14} fill={isSaved ? '#dc2626' : 'none'} className={isSaved ? 'text-red-500' : 'text-gray-650'} />
-                          </button>
-                        </div>
-
-                        {/* Card Content */}
-                        <div className="p-3.5 flex-1 flex flex-col justify-between" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-                          <div className="space-y-1 mb-2">
-                            {/* Price */}
-                            <div className="similar-card-price font-bold text-base text-[#1A5E2A]">
-                              {priceStr}
-                            </div>
-
-                            {/* Title */}
-                            <h4 className="font-semibold text-[13px] text-[#111827] line-clamp-2 leading-snug group-hover:text-[#1A5E2A] transition-colors">
-                              {prop.listing_title || prop.title}
-                            </h4>
-
-                            {/* Location */}
-                            <p className="text-[12px] font-medium text-[#6B7280]">
-                              📍 {[prop.city, prop.district].filter(Boolean).join(', ')}
-                            </p>
-                          </div>
-
-                          {/* Specs Row */}
-                          {specs.length > 0 && (
-                            <div className="flex flex-wrap gap-x-3 gap-y-1 pt-2.5 border-t border-[#F3F4F6] text-[12px] font-medium text-[#6B7280]">
-                              {specs.map((spec, sIdx) => (
-                                <span key={sIdx} className="flex items-center gap-1">
-                                  {spec.icon} {spec.text}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : (
-              <div 
-                style={{
-                  textAlign: 'center',
-                  padding: '40px 20px',
-                  color: '#9CA3AF',
-                  font: '500 14px Plus Jakarta Sans, sans-serif'
-                }}
-                className="bg-white rounded-[16px] border border-[#e5e7eb] shadow-[0_2px_10px_rgba(0,0,0,0.06)]"
-              >
-                No similar properties found at this time.
-              </div>
-            )
-          )}
-        </div>
+        {/* SECTION 5 — SIMILAR PROPERTIES (REMOVED) */}
+        <div ref={similarRef} className="hidden" id="similar-properties-section" />
 
         {/* SMART SIMILAR PROPERTIES SECTION */}
         <motion.section 
@@ -2453,28 +2271,7 @@ export const PropertyDetail = ({
           </div>
         </motion.section>
 
-        {/* LISTING METADATA (small, bottom of page) */}
-        <div className="text-center space-y-3 pt-6 text-xs font-semibold text-[#6b7280]">
-          <div className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1.5">
-            <span>📅 Listed: 28 June 2026</span>
-            <span className="text-gray-300">|</span>
-            <span>🔄 Updated: 30 June 2026</span>
-            <span className="text-gray-300">|</span>
-            <span>🆔 REF: LP{property.id || '0186'}</span>
-            <span className="text-gray-300">|</span>
-            <span>👁️ {(property.views_count || property.views || 1247).toLocaleString()} Views</span>
-          </div>
-          <div>
-            <button 
-              onClick={() => {
-                toast.success('Thank you! Report received and will be reviewed.');
-              }}
-              className="text-xs font-semibold text-[#9ca3af] hover:text-[#dc2626] transition-colors cursor-pointer"
-            >
-              ⚠️ Report this listing
-            </button>
-          </div>
-        </div>
+
 
       </div>
 

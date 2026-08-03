@@ -410,8 +410,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                       }}
                       className="w-full text-left px-4 py-3 text-xs font-bold text-[#374151] hover:bg-[#1A5E2A]/5 hover:text-[#1A5E2A] border-b border-gray-50 flex flex-col gap-0.5"
                     >
-                      <span className="flex items-center gap-1.5 font-black text-[#111827] hover:text-[#1A5E2A]"><span className="text-sm">👤</span> I Want to Sell / Rent</span>
-                      <span className="text-[10px] text-gray-400 font-semibold pl-5">My Property</span>
+                      <span className="flex items-center gap-1.5 font-black text-[#111827] hover:text-[#1A5E2A]">I Want to Sell / Rent</span>
+                      <span className="text-[10px] text-gray-400 font-semibold">My Property</span>
                     </button>
                     <button
                       onClick={() => {
@@ -421,7 +421,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                       }}
                       className="w-full text-left px-4 py-3 text-xs font-bold text-[#374151] hover:bg-[#1A5E2A]/5 hover:text-[#1A5E2A] flex flex-col gap-0.5"
                     >
-                      <span className="flex items-center gap-1.5 font-black text-[#111827] hover:text-[#1A5E2A]"><span className="text-sm">🏢</span> I Am a Real Estate Agent</span>
+                      <span className="flex items-center gap-1.5 font-black text-[#111827] hover:text-[#1A5E2A]">I Am a Real Estate Agent</span>
                     </button>
                   </div>
                 )}
@@ -583,7 +583,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                     }}
                     className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl flex items-center gap-2"
                   >
-                    👤 I Want to Sell / Rent My Property
+                    I Want to Sell / Rent My Property
                   </button>
                   <button
                     onClick={() => {
@@ -593,7 +593,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onPostAd, onNavigateHome, onAdmi
                     }}
                     className="w-full text-left px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl flex items-center gap-2"
                   >
-                    🏢 I Am a Real Estate Agent
+                    I Am a Real Estate Agent
                   </button>
                 </div>
 

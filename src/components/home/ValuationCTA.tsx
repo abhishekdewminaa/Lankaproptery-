@@ -116,10 +116,10 @@ export function ValuationCTA() {
                         onChange={(e) => setPropertyType(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#0a4225] focus:bg-white transition-all cursor-pointer"
                       >
-                        <option value="House">House 🏠</option>
-                        <option value="Apartment">Apartment 🏢</option>
-                        <option value="Bare Land">Bare Land 🌳</option>
-                        <option value="Commercial">Commercial 🏬</option>
+                        <option value="House">House</option>
+                        <option value="Apartment">Apartment</option>
+                        <option value="Bare Land">Bare Land</option>
+                        <option value="Commercial">Commercial</option>
                       </select>
                     </div>
 
