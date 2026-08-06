@@ -230,12 +230,6 @@ export function PriceCalculator() {
         
         {/* Section Heading with Luxury Touches */}
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 bg-[#0a4225]/5 border border-[#0a4225]/10 px-4 py-1.5 rounded-full mb-4">
-            <Sparkles size={14} className="text-[#0a4225] animate-pulse" />
-            <span className="text-[11px] font-bold uppercase tracking-widest text-[#0a4225]">
-              Intelligence Valuation Tool
-            </span>
-          </div>
           <h2 id="oppi-calculator-title" className="text-3xl sm:text-4xl md:text-[42px] font-black text-gray-900 tracking-tight mb-4 leading-none">
             Calculate Your Property Price
           </h2>

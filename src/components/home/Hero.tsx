@@ -153,9 +153,9 @@ export const Hero: React.FC<HeroProps> = ({ propertyCount, onSearch, onNavigate 
           <div className="flex flex-col lg:flex-row justify-between items-center mb-6 md:mb-8 gap-4 md:gap-6">
             <div className="flex overflow-x-auto no-scrollbar w-full lg:w-max shrink-0 bg-gray-100 p-1.5 md:rounded-2xl rounded-full snap-x snap-mandatory">
               {[
-                { id: 'sale', label: '🏠 For Sale' },
-                { id: 'rent', label: '🔑 For Rent' },
-                { id: 'lease', label: '📋 For Lease' }
+                { id: 'sale', label: 'For Sale' },
+                { id: 'rent', label: 'For Rent' },
+                { id: 'lease', label: 'For Lease' }
               ].map((tab) => {
                 const isActive = activeTab === tab.id;
                 
