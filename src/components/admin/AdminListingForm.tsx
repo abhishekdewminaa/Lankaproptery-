@@ -386,7 +386,7 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
   });
 
   const [images, setImages] = useState<{ id: string, order: number, url: string | null, file: File | null }[]>(
-    Array(12).fill(null).map((_, i) => ({
+    Array(20).fill(null).map((_, i) => ({
       id: `slot-${i + 1}`,
       order: i + 1,
       url: initialData?.images?.[i] || null,
@@ -481,8 +481,8 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
       a.name.localeCompare(b.name, undefined, { numeric: true })
     );
 
-    // Only take up to 12 files
-    const toUpload = sorted.slice(0, 12);
+    // Only take up to 20 files
+    const toUpload = sorted.slice(0, 20);
 
     toast(`📸 Loading ${toUpload.length} photos...`);
 
@@ -494,11 +494,11 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
       file: file
     }));
 
-    // Fill the images state with previews (padding with empty slots if < 12)
+    // Fill the images state with previews (padding with empty slots if < 20)
     setImages(prev => {
       const newImages = [...prev];
       previews.forEach((p, i) => {
-        if (i < 12) {
+        if (i < 20) {
           newImages[i] = { ...p, id: `slot-${i + 1}` };
         }
       });
@@ -1331,7 +1331,7 @@ export default function AdminListingForm({ user, initialData, onBack, onRefresh,
               <p className="text-sm font-bold text-gray-400 mt-1">💡 Click any slot to open file picker. Select multiple images with Ctrl+A to fill slots at once.</p>
             </motion.div>
             <div className="flex items-center gap-4">
-              <span className="text-xs font-black text-gray-400 uppercase tracking-widest">{photoCount} / 12 photos</span>
+              <span className="text-xs font-black text-gray-400 uppercase tracking-widest">{photoCount} / 20 photos</span>
             </div>
           </div>
 

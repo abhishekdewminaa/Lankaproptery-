@@ -108,24 +108,24 @@ export default function AdminDashboard({ user: adminUser }: { user: any }) {
       const { data: dbPayments } = await supabase
         .from('payments')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('paid_at', { ascending: false });
 
       const { data: dbLeads } = await supabase
         .from('leads')
         .select('*')
         .order('created_at', { ascending: false });
 
-      setUsers(dbUsers && dbUsers.length > 0 ? dbUsers : fallbackUsers);
-      setProperties(dbProperties && dbProperties.length > 0 ? dbProperties : fallbackProperties);
-      setPayments(dbPayments && dbPayments.length > 0 ? dbPayments : fallbackPayments);
-      setLeads(dbLeads && dbLeads.length > 0 ? dbLeads : fallbackLeads);
+      setUsers(dbUsers || []);
+      setProperties(dbProperties || []);
+      setPayments(dbPayments || []);
+      setLeads(dbLeads || []);
 
     } catch (err) {
       console.error('Error loading dashboard data:', err);
-      setUsers(fallbackUsers);
-      setProperties(fallbackProperties);
-      setPayments(fallbackPayments);
-      setLeads(fallbackLeads);
+      setUsers([]);
+      setProperties([]);
+      setPayments([]);
+      setLeads([]);
     } finally {
       setLoading(false);
     }
@@ -133,6 +133,40 @@ export default function AdminDashboard({ user: adminUser }: { user: any }) {
 
   useEffect(() => {
     fetchData();
+
+    // Subscribe to real-time changes across key tables to provide "real-time real data" live
+    const channels = [
+      supabase
+        .channel('admin_users_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
+          fetchData();
+        })
+        .subscribe(),
+      supabase
+        .channel('admin_properties_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'properties' }, () => {
+          fetchData();
+        })
+        .subscribe(),
+      supabase
+        .channel('admin_payments_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' }, () => {
+          fetchData();
+        })
+        .subscribe(),
+      supabase
+        .channel('admin_leads_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
+          fetchData();
+        })
+        .subscribe(),
+    ];
+
+    return () => {
+      channels.forEach(channel => {
+        supabase.removeChannel(channel);
+      });
+    };
   }, []);
 
   const handleToggleUserActive = async (userId: string, currentActive: boolean) => {

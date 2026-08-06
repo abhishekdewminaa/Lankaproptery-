@@ -169,7 +169,7 @@ export default function AdminUserListings({ user: adminUser }: { user: any }) {
       const { data: dbPayments, error: payErr } = await supabase
         .from('payments')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('paid_at', { ascending: false });
 
       // Fetch Leads & inquiries
       const { data: dbLeads, error: leadsErr } = await supabase
@@ -181,20 +181,6 @@ export default function AdminUserListings({ user: adminUser }: { user: any }) {
       let loadedProperties = dbProperties || [];
       let loadedPayments = dbPayments || [];
       let loadedLeads = dbLeads || [];
-
-      // Graceful merge with rich Fallback Data if database is empty/missing table columns
-      if (loadedUsers.length === 0) {
-        loadedUsers = [...fallbackUsers];
-      }
-      if (loadedProperties.length === 0) {
-        loadedProperties = [...fallbackProperties];
-      }
-      if (loadedPayments.length === 0) {
-        loadedPayments = [...fallbackPayments];
-      }
-      if (loadedLeads.length === 0) {
-        loadedLeads = [...fallbackLeads];
-      }
 
       setUsers(loadedUsers);
       setProperties(loadedProperties);
@@ -225,12 +211,11 @@ export default function AdminUserListings({ user: adminUser }: { user: any }) {
 
     } catch (err) {
       console.error('Error fetching admin user listings data:', err);
-      toast.error('Could not sync with Supabase. Loaded offline-safe data views.');
-      // Offline fallback
-      setUsers([...fallbackUsers]);
-      setProperties([...fallbackProperties]);
-      setPayments([...fallbackPayments]);
-      setLeads([...fallbackLeads]);
+      toast.error('Could not sync with Supabase.');
+      setUsers([]);
+      setProperties([]);
+      setPayments([]);
+      setLeads([]);
     } finally {
       setLoading(false);
     }
@@ -238,6 +223,40 @@ export default function AdminUserListings({ user: adminUser }: { user: any }) {
 
   useEffect(() => {
     fetchData();
+
+    // Subscribe to real-time changes across key tables to provide "real-time real data" live
+    const channels = [
+      supabase
+        .channel('admin_ul_users_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
+          fetchData();
+        })
+        .subscribe(),
+      supabase
+        .channel('admin_ul_properties_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'properties' }, () => {
+          fetchData();
+        })
+        .subscribe(),
+      supabase
+        .channel('admin_ul_payments_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' }, () => {
+          fetchData();
+        })
+        .subscribe(),
+      supabase
+        .channel('admin_ul_leads_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
+          fetchData();
+        })
+        .subscribe(),
+    ];
+
+    return () => {
+      channels.forEach(channel => {
+        supabase.removeChannel(channel);
+      });
+    };
   }, []);
 
   // --- ACTIONS ---

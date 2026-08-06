@@ -106,10 +106,10 @@ export const Footer: React.FC<FooterProps> = ({ onAdminClick, onHomeClick }) => 
             <button 
               onClick={onAdminClick}
               className="hover:text-brand-green transition-colors flex items-center gap-1.5"
-              title="Admin Access"
+              title="Admin"
             >
               <Home size={14} />
-              <span>Admin Access</span>
+              <span>Admin</span>
             </button>
           </div>
           
