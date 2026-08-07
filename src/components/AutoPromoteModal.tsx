@@ -289,7 +289,7 @@ Generate marketing content. Return JSON strictly in this format:
                ></div>
                
                {STEPS.map((step, idx) => (
-                  <div key={idx} className="relative z-10 flex flex-col items-center gap-2">
+                  <button type="button" onClick={() => setCurrentStep(idx)} key={idx} className="relative z-10 flex flex-col items-center gap-2 cursor-pointer group focus:outline-none transition-all hover:scale-105 active:scale-95 border-0 bg-transparent p-0">
                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
                         currentStep > idx ? 'bg-[#1A5E2A] text-white' :
                         currentStep === idx ? 'bg-white border-2 border-[#1A5E2A] text-[#1A5E2A] shadow-lg shadow-[#1A5E2A]/20' :
@@ -300,7 +300,7 @@ Generate marketing content. Return JSON strictly in this format:
                      <span className={`text-[10px] font-black uppercase tracking-widest ${currentStep >= idx ? 'text-gray-900' : 'text-gray-400'}`}>
                         {step}
                      </span>
-                  </div>
+                  </button>
                ))}
             </div>
          </div>

@@ -320,19 +320,12 @@ export const AgentPostPropertyPage: React.FC<AgentPostPropertyPageProps> = ({
   };
 
   const handleValidateStep1 = () => {
-    if (!title.trim()) return toast.error("Property Title is required");
-    if (title.length < 10) return toast.error("Please provide a more descriptive title (at least 10 characters)");
-    if (!priceLkr.trim() || isNaN(Number(priceLkr.replace(/,/g, '')))) return toast.error("Valid Price in LKR is required");
-    if (!address.trim()) return toast.error("Street Address is required");
-    if (!city.trim()) return toast.error("City is required");
-    if (!description.trim()) return toast.error("Detailed description is required");
-
-    if (onBehalfOf === "Client's Property") {
-      if (!clientName.trim()) return toast.error("Client Name is required for client listing representations");
-      if (!clientPhone.trim()) return toast.error("Client Phone is required");
-    }
-
     handleSaveDraftStep1();
+    if (!title.trim() || title.length < 10 || !priceLkr.trim() || !address.trim() || !city.trim() || !description.trim()) {
+      toast("Moved to Step 2! You can return anytime to fill missing details.", { id: "agent-step1-unlocked" });
+    } else {
+      toast.success("Step 1 saved!");
+    }
     setStep(2);
   };
 
@@ -868,25 +861,35 @@ export const AgentPostPropertyPage: React.FC<AgentPostPropertyPageProps> = ({
                 const isCompleted = step > stepNum;
                 
                 return (
-                  <div key={idx} className="flex flex-col items-center">
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      if (isPaymentMode) setIsPaymentMode(false);
+                      setStep(stepNum);
+                      toast.success(`Jumped to Step ${stepNum}: ${s.label}`, { id: `agent-jump-${stepNum}` });
+                    }}
+                    title={`Click to jump to Step ${stepNum}: ${s.label}`}
+                    className="flex flex-col items-center cursor-pointer group focus:outline-none transition-all hover:scale-105 active:scale-95 border-0 bg-transparent p-0"
+                  >
                     <motion.div
-                      className={`h-9 w-9 rounded-full flex items-center justify-center text-sm font-black transition-all border shadow-sm select-none ${
+                      className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-black transition-all border shadow-sm select-none ${
                         isCompleted 
-                          ? 'bg-slate-800 border-slate-800 text-white' 
+                          ? 'bg-slate-800 border-slate-800 text-white group-hover:bg-slate-900' 
                           : isCurrent 
-                            ? 'bg-slate-800 border-slate-800 text-white ring-4 ring-slate-800/25' 
-                            : 'bg-white border-neutral-200 text-neutral-400'
+                            ? 'bg-slate-800 border-slate-800 text-white ring-4 ring-slate-800/25 scale-110 shadow-md' 
+                            : 'bg-white border-neutral-200 text-neutral-400 group-hover:border-slate-800/60 group-hover:bg-slate-50 group-hover:text-slate-800'
                       }`}
                       animate={isCurrent ? { scale: 1.1 } : { scale: 1 }}
                     >
                       {isCompleted ? '✓' : s.icon}
                     </motion.div>
                     <span className={`text-[9px] sm:text-xs uppercase tracking-wider mt-2 transition-all font-black select-none text-center max-w-[80px] ${
-                      isCurrent ? 'text-slate-800' : isCompleted ? 'text-neutral-700' : 'text-neutral-400'
+                      isCurrent ? 'text-slate-800' : isCompleted ? 'text-neutral-700 group-hover:text-slate-800' : 'text-neutral-400 group-hover:text-slate-700'
                     }`}>
                       {s.label}
                     </span>
-                  </div>
+                  </button>
                 );
               })}
 

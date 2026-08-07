@@ -432,8 +432,19 @@ export default function App() {
     });
   };
   const [selectedAdPackage, setSelectedAdPackage] = useState<string | null>(null);
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
-  const [adminUser, setAdminUser] = useState<any>(null);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('isAdminLoggedIn') === 'true';
+    }
+    return false;
+  });
+  const [adminUser, setAdminUser] = useState<any>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem('adminUser');
+      return stored ? JSON.parse(stored) : null;
+    }
+    return null;
+  });
   const [properties, setProperties] = useState(() => resolveDuplicateSlugs(INITIAL_PROPERTIES.map(unifyProperty)));
   const [selectedProperty, setSelectedProperty] = useState<any | null>(null);
   const [propertyDetailId, setPropertyDetailId] = useState<number | string | null>(null);
@@ -446,6 +457,7 @@ export default function App() {
   const [searchBeds, setSearchBeds] = useState("Any Beds");
   const [minPrice, setMinPrice] = useState<number | "Any">("Any");
   const [maxPrice, setMaxPrice] = useState<number | "Any">("Any");
+  const [forceShowListings, setForceShowListings] = useState(false);
 
   // Agent page initial selected agent name
   const [agentPageInitialAgentName, setAgentPageInitialAgentName] = useState<string | null>(null);
@@ -869,6 +881,12 @@ export default function App() {
 
   const handleNavigate = (view: any) => {
     if (!view) return;
+    
+    // Clear force listing display on other navigations
+    if (view.type !== "all_properties" && view.type !== "search_results" && view.type !== "detail") {
+      setForceShowListings(false);
+    }
+
     if (view.type === "home") {
       setCurrentTab("explore");
       setSelectedProperty(null);
@@ -879,6 +897,18 @@ export default function App() {
       setSearchBeds("Any Beds");
       setMinPrice("Any");
       setMaxPrice("Any");
+      setForceShowListings(false);
+    } else if (view.type === "all_properties") {
+      setCurrentTab("explore");
+      setSelectedProperty(null);
+      setMapSelectedDistrict(null);
+      setSearchText("");
+      setSearchCategory("All Categories");
+      setSearchDistrict("All Districts");
+      setSearchBeds("Any Beds");
+      setMinPrice("Any");
+      setMaxPrice("Any");
+      setForceShowListings(true);
     } else if (view.type === "sell") {
       setCurrentTab("sell");
       setSelectedProperty(null);
@@ -1005,6 +1035,7 @@ export default function App() {
 
   const isSearching = useMemo(() => {
     return (
+      forceShowListings ||
       mapSelectedDistrict !== null ||
       searchCategory !== "All Categories" ||
       searchDistrict !== "All Districts" ||
@@ -1013,7 +1044,7 @@ export default function App() {
       minPrice !== "Any" ||
       maxPrice !== "Any"
     );
-  }, [mapSelectedDistrict, searchCategory, searchDistrict, searchText, searchBeds, minPrice, maxPrice]);
+  }, [forceShowListings, mapSelectedDistrict, searchCategory, searchDistrict, searchText, searchBeds, minPrice, maxPrice]);
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900 font-sans selection:bg-[#004f31] selection:text-white antialiased">
@@ -1546,6 +1577,10 @@ export default function App() {
               onLogout={() => {
                 setIsAdminLoggedIn(false);
                 setAdminUser(null);
+                if (typeof window !== 'undefined') {
+                  sessionStorage.removeItem('isAdminLoggedIn');
+                  sessionStorage.removeItem('adminUser');
+                }
                 setCurrentTab("explore");
               }}
               onRefresh={() => {}}
@@ -1558,6 +1593,10 @@ export default function App() {
               onLoginSuccess={(email) => {
                 setIsAdminLoggedIn(true);
                 setAdminUser({ email });
+                if (typeof window !== 'undefined') {
+                  sessionStorage.setItem('isAdminLoggedIn', 'true');
+                  sessionStorage.setItem('adminUser', JSON.stringify({ email }));
+                }
               }}
               onBackToHome={() => {
                 setCurrentTab("explore");

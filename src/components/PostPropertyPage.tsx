@@ -637,21 +637,23 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
   };
 
   const handleNextStep1 = () => {
-    if (validateStep1()) {
-      // Save data
-      const draftData = {
-        title, listingType, category, bedrooms, bathrooms, floors,
-        landSize, landSizeUnit, floorArea, priceLkr, isNegotiable,
-        advanceRequired, description, address, district, city,
-        lat, lng, hasPinned, selectedAmenities,
-        contactName, contactPhone, contactWhatsapp, sameAsPhone,
-        displayPreference, responseTime
-      };
-      safeLocalStorage.setItem('lp_listing_draft', JSON.stringify(draftData));
-      setStep(2);
+    // Save data draft
+    const draftData = {
+      title, listingType, category, bedrooms, bathrooms, floors,
+      landSize, landSizeUnit, floorArea, priceLkr, isNegotiable,
+      advanceRequired, description, address, district, city,
+      lat, lng, hasPinned, selectedAmenities,
+      contactName, contactPhone, contactWhatsapp, sameAsPhone,
+      displayPreference, responseTime
+    };
+    safeLocalStorage.setItem('lp_listing_draft', JSON.stringify(draftData));
+
+    if (!validateStep1()) {
+      toast("Moved to Step 2! You can return anytime to fill missing details.", { id: "step1-unlocked" });
     } else {
-      toast.error("Please fill in all required fields marked in red.");
+      toast.success("Step 1 saved successfully!");
     }
+    setStep(2);
   };
 
   // --- STEP 2 ACTIONS: Images Adding ---
@@ -1556,18 +1558,28 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                 { label: 'Done', icon: '✅' },
               ].map((s, idx) => {
                 const stepNum = idx + 1;
-                const isCurrent = step === stepNum;
+                const isCurrent = step === stepNum && !isPaymentMode;
                 const isCompleted = step > stepNum;
                 
                 return (
-                  <div key={idx} className="flex flex-col items-center">
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      if (isPaymentMode) setIsPaymentMode(false);
+                      setStep(stepNum);
+                      toast.success(`Jumped to Step ${stepNum}: ${s.label}`, { id: `jump-step-${stepNum}` });
+                    }}
+                    title={`Click to jump to Step ${stepNum}: ${s.label}`}
+                    className="flex flex-col items-center cursor-pointer group focus:outline-none transition-all hover:scale-105 active:scale-95 border-0 bg-transparent p-0"
+                  >
                     <motion.div
-                      className={`h-10 w-10 rounded-full flex items-center justify-center text-base transition-all border shadow-sm select-none ${
+                      className={`h-11 w-11 rounded-full flex items-center justify-center text-base transition-all border shadow-sm select-none ${
                         isCompleted 
-                          ? 'bg-[#1A5E2A] border-[#1A5E2A] text-white font-bold' 
+                          ? 'bg-[#1A5E2A] border-[#1A5E2A] text-white font-bold group-hover:bg-[#0F3D1A]' 
                           : isCurrent 
-                            ? 'bg-[#1A5E2A] border-[#1A5E2A] text-white font-extrabold ring-4 ring-[#1A5E2A]/20 scale-110' 
-                            : 'bg-neutral-100 border-neutral-200 text-neutral-400 font-semibold'
+                            ? 'bg-[#1A5E2A] border-[#1A5E2A] text-white font-extrabold ring-4 ring-[#1A5E2A]/20 scale-110 shadow-md' 
+                            : 'bg-neutral-100 border-neutral-200 text-neutral-500 font-semibold group-hover:border-[#1A5E2A]/60 group-hover:bg-emerald-50 group-hover:text-[#1A5E2A]'
                       }`}
                       animate={isCurrent ? { scale: 1.1 } : { scale: 1 }}
                     >
@@ -1577,12 +1589,12 @@ export const PostPropertyPage: React.FC<PostPropertyPageProps> = ({ onNavigate, 
                       isCurrent 
                         ? 'text-[#1A5E2A] font-extrabold tracking-wider' 
                         : isCompleted 
-                          ? 'text-neutral-700 font-bold' 
-                          : 'text-neutral-400 font-medium'
+                          ? 'text-neutral-700 font-bold group-hover:text-[#1A5E2A]' 
+                          : 'text-neutral-400 font-medium group-hover:text-neutral-800'
                     }`}>
                       {s.label}
                     </span>
-                  </div>
+                  </button>
                 );
               })}
 

@@ -13,14 +13,17 @@ function wrapThenable(originalBuilder: any, isWriteAction = false): any {
           try {
             // 2. Before any authenticated API call, check if user session exists:
             if (isWriteAction) {
-              const { data } = await baseSupabase.auth.getSession().catch(() => ({ data: { session: null } }));
-              // Support both { data: session } and { data: { session } }
-              const session = data && ('session' in data ? (data as any).session : data);
-              if (!session) {
-                console.warn("Supabase session check: No active session for authenticated call.");
-                const res = { data: null, error: { message: "No active session available for this authenticated request", code: "NO_SESSION" } };
-                if (onfulfilled) return onfulfilled(res);
-                return res;
+              const isAdmin = typeof window !== 'undefined' && sessionStorage.getItem('isAdminLoggedIn') === 'true';
+              if (!isAdmin) {
+                const { data } = await baseSupabase.auth.getSession().catch(() => ({ data: { session: null } }));
+                // Support both { data: session } and { data: { session } }
+                const session = data && ('session' in data ? (data as any).session : data);
+                if (!session) {
+                  console.warn("Supabase session check: No active session for authenticated call.");
+                  const res = { data: null, error: { message: "No active session available for this authenticated request", code: "NO_SESSION" } };
+                  if (onfulfilled) return onfulfilled(res);
+                  return res;
+                }
               }
             }
 

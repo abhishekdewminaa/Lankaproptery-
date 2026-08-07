@@ -55,9 +55,6 @@ export const Testimonials: React.FC = () => {
         
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-8">
-          <span className="text-[10px] font-black text-[#0a4225] uppercase tracking-widest bg-[#0a4225]/5 px-3.5 py-1.5 rounded-full inline-block mb-3">
-            TESTIMONIALS
-          </span>
           <h2 id="testimonials-heading" className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight leading-tight mb-4">
             Customer Testimonials & Success Stories
           </h2>
